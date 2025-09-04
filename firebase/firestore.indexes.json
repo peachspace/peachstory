@@ -1,0 +1,118 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "comments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "parent_comment_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "characterComments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "character_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "parent_comment_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "like_count",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "characterComments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "character_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "parent_comment_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "characterComments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "parent_comment_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "comments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "story_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "parent_comment_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "like_count",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "comments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "story_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "parent_comment_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "charactermessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "chat_ref",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ]
+}
