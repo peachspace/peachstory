@@ -2845,6 +2845,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                 createdTimestamp: getCurrentTimestamp,
                                 authorIsCreator: valueOrDefault<bool>(
                                     currentUserDocument?.isCreator, false),
+                                viewCount: 0,
                               ),
                               ...mapToFirestore(
                                 {

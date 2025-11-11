@@ -78,7 +78,15 @@ Future<List<CombinedListItemStructStruct>> loadNewPosts() async {
   // 5. 두 리스트를 합쳐서 다시 시간순으로 정렬
   combinedList.sort((a, b) => (b.timestamp!).compareTo(a.timestamp!));
 
-  // 6. 합쳐진 리스트에서 최종 30개만 반환
+// 6. timestamp 없는 항목 제거 (null 방어)
+  combinedList.removeWhere((item) => item.timestamp == null);
+
+// 7. 시간순 정렬
+  combinedList.sort(
+    (a, b) => b.timestamp!.compareTo(a.timestamp!),
+  );
+
+// 8. 상위 30개 반환
   return combinedList.take(30).toList();
 }
 // Set your action name, define your arguments and return parameter,
