@@ -1,7 +1,6 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/backend/firebase_storage/storage.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -11,16 +10,13 @@ import '/flutter_flow/upload_data.dart';
 import '/shared/background/background_widget.dart';
 import '/shared/situation/situation_widget.dart';
 import '/story1/character/character_widget.dart';
-import 'dart:ui';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'storycreate_model.dart';
 export 'storycreate_model.dart';
 
@@ -52,22 +48,22 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (widget!.storyDoc != null) {
-        _model.title = widget!.storyDoc?.title;
-        _model.worldview = widget!.storyDoc?.worldview;
+      if (widget.storyDoc != null) {
+        _model.title = widget.storyDoc?.title;
+        _model.worldview = widget.storyDoc?.worldview;
         _model.characters =
-            widget!.storyDoc!.characters.toList().cast<CharacterStructStruct>();
-        _model.userrole = widget!.storyDoc?.userRole;
-        _model.prologue = widget!.storyDoc?.prologue;
-        _model.mainImage = widget!.storyDoc!.mainImage;
-        _model.introduce = widget!.storyDoc?.description;
-        _model.author = widget!.storyDoc?.authorNotes;
-        _model.genre = widget!.storyDoc?.category;
-        _model.hashitags = widget!.storyDoc!.hashtags.toList().cast<String>();
-        _model.backgroundsList = widget!.storyDoc!.backgroundImages
+            widget.storyDoc!.characters.toList().cast<CharacterStructStruct>();
+        _model.userrole = widget.storyDoc?.userRole;
+        _model.prologue = widget.storyDoc?.prologue;
+        _model.mainImage = widget.storyDoc!.mainImage;
+        _model.introduce = widget.storyDoc?.description;
+        _model.author = widget.storyDoc?.authorNotes;
+        _model.genre = widget.storyDoc?.category;
+        _model.hashitags = widget.storyDoc!.hashtags.toList().cast<String>();
+        _model.backgroundsList = widget.storyDoc!.backgroundImages
             .toList()
             .cast<LocationBackgroundStructStruct>();
-        _model.newSituationalImages = widget!.storyDoc!.situationalImages
+        _model.newSituationalImages = widget.storyDoc!.situationalImages
             .toList()
             .cast<SituationalImageStructStruct>();
         safeSetState(() {});
@@ -1817,6 +1813,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                       ?.width,
                                                                   blurHash: m
                                                                       .blurHash,
+                                                                  originalFilename:
+                                                                      m.originalFilename,
                                                                 ))
                                                             .toList();
 
@@ -2741,7 +2739,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                       ),
                       child: FFButtonWidget(
                         onPressed: () async {
-                          if (widget!.storyDoc == null) {
+                          if (widget.storyDoc == null) {
                             var storiesRecordReference =
                                 StoriesRecord.collection.doc();
                             await storiesRecordReference.set({
@@ -2759,6 +2757,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                 creatorNickname: currentUserDisplayName,
                                 type: 'story',
                                 createdTimestamp: getCurrentTimestamp,
+                                viewCount: 0,
                                 authorIsCreator: valueOrDefault<bool>(
                                     currentUserDocument?.isCreator, false),
                               ),
@@ -2796,6 +2795,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                 creatorNickname: currentUserDisplayName,
                                 type: 'story',
                                 createdTimestamp: getCurrentTimestamp,
+                                viewCount: 0,
                                 authorIsCreator: valueOrDefault<bool>(
                                     currentUserDocument?.isCreator, false),
                               ),
@@ -2828,7 +2828,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                               }.withoutNulls,
                             );
                           } else {
-                            await widget!.storyDoc!.reference.update({
+                            await widget.storyDoc!.reference.update({
                               ...createStoriesRecordData(
                                 title: _model.title,
                                 worldview: _model.worldview,
@@ -2869,7 +2869,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                               StorymainWidget.routeName,
                               queryParameters: {
                                 'storymainRef': serializeParam(
-                                  widget!.storyDoc?.reference,
+                                  widget.storyDoc?.reference,
                                   ParamType.DocumentReference,
                                 ),
                               }.withoutNulls,
@@ -2878,7 +2878,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
 
                           safeSetState(() {});
                         },
-                        text: widget!.storyDoc != null ? '수정하기' : '생성하기',
+                        text: widget.storyDoc != null ? '수정하기' : '생성하기',
                         options: FFButtonOptions(
                           height: 50.0,
                           padding: EdgeInsetsDirectional.fromSTEB(

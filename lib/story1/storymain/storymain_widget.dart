@@ -1,18 +1,14 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_toggle_icon.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/story1/storyusername/storyusername_widget.dart';
-import 'dart:ui';
 import '/index.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'storymain_model.dart';
 export 'storymain_model.dart';
@@ -47,11 +43,11 @@ class _StorymainWidgetState extends State<StorymainWidget> {
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.loadedStory =
-          await StoriesRecord.getDocumentOnce(widget!.storymainRef!);
+          await StoriesRecord.getDocumentOnce(widget.storymainRef!);
       _model.currentUserDoc =
           await UsersRecord.getDocumentOnce(currentUserReference!);
       if (_model.currentUserDoc!.heartedPostPaths
-          .contains(widget!.storymainRef?.path)) {
+          .contains(widget.storymainRef?.path)) {
         _model.isHearted = !_model.isHearted;
         safeSetState(() {});
       }
@@ -157,7 +153,7 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                                 child: Text(
                                   valueOrDefault<String>(
                                     _model.loadedStory?.title,
-                                    'Untitle',
+                                    '제목없음',
                                   ),
                                   style: FlutterFlowTheme.of(context)
                                       .titleMedium
@@ -192,12 +188,12 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                                         {
                                           'hearted_post_paths':
                                               FieldValue.arrayUnion(
-                                                  [widget!.storymainRef?.path]),
+                                                  [widget.storymainRef?.path]),
                                         },
                                       ),
                                     });
 
-                                    await widget!.storymainRef!.update({
+                                    await widget.storymainRef!.update({
                                       ...mapToFirestore(
                                         {
                                           'heart_count':
@@ -211,12 +207,12 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                                         {
                                           'hearted_post_paths':
                                               FieldValue.arrayRemove(
-                                                  [widget!.storymainRef?.path]),
+                                                  [widget.storymainRef?.path]),
                                         },
                                       ),
                                     });
 
-                                    await widget!.storymainRef!.update({
+                                    await widget.storymainRef!.update({
                                       ...mapToFirestore(
                                         {
                                           'heart_count':
@@ -313,7 +309,7 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                             child: Builder(
                               builder: (context) {
                                 final hashtagItem =
-                                    (_model.loadedStory?.hashtags?.toList() ??
+                                    (_model.loadedStory?.hashtags.toList() ??
                                             [])
                                         .take(10)
                                         .toList();
@@ -404,7 +400,7 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                             child: Builder(
                               builder: (context) {
                                 final characterItem =
-                                    (_model.loadedStory?.characters?.toList() ??
+                                    (_model.loadedStory?.characters.toList() ??
                                             [])
                                         .take(4)
                                         .toList();
@@ -759,7 +755,7 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                                     StorycommentlistWidget.routeName,
                                     queryParameters: {
                                       'storyRef': serializeParam(
-                                        widget!.storymainRef,
+                                        widget.storymainRef,
                                         ParamType.DocumentReference,
                                       ),
                                     }.withoutNulls,
@@ -803,7 +799,7 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                               queryBuilder: (commentsRecord) => commentsRecord
                                   .where(
                                     'story_ref',
-                                    isEqualTo: widget!.storymainRef,
+                                    isEqualTo: widget.storymainRef,
                                   )
                                   .where(
                                     'parent_comment_ref',
@@ -1059,13 +1055,13 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                                             ?.unfocus();
                                       },
                                       child: StoryusernameWidget(
-                                        storyRef: widget!.storymainRef!,
+                                        storyRef: widget.storymainRef!,
                                         onNameConfirmed: (enteredName) async {
                                           context.pushNamed(
                                             StorychatWidget.routeName,
                                             queryParameters: {
                                               'storyRef': serializeParam(
-                                                widget!.storymainRef,
+                                                widget.storymainRef,
                                                 ParamType.DocumentReference,
                                               ),
                                               'userInChatName': serializeParam(

@@ -1,19 +1,14 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/backend/custom_cloud_functions/custom_cloud_function_response_manager.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_toggle_icon.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'charactercomment_copy_model.dart';
 export 'charactercomment_copy_model.dart';
@@ -53,7 +48,7 @@ class _CharactercommentCopyWidgetState
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.isLikedByUser = functions.didUserLike(
-          widget!.charactercommentDocument?.likedBy?.toList(),
+          widget.charactercommentDocument?.likedBy.toList(),
           currentUserReference);
       safeSetState(() {});
     });
@@ -91,7 +86,7 @@ class _CharactercommentCopyWidgetState
                     shape: BoxShape.circle,
                   ),
                   child: Image.network(
-                    widget!.charactercommentDocument!.userProfileImage,
+                    widget.charactercommentDocument!.userProfileImage,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -107,7 +102,7 @@ class _CharactercommentCopyWidgetState
                             EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 3.0),
                         child: Text(
                           valueOrDefault<String>(
-                            widget!.charactercommentDocument?.userName,
+                            widget.charactercommentDocument?.userName,
                             'No name',
                           ),
                           style:
@@ -133,7 +128,7 @@ class _CharactercommentCopyWidgetState
                       Text(
                         dateTimeFormat(
                           "relative",
-                          widget!.charactercommentDocument!.timestamp!,
+                          widget.charactercommentDocument!.timestamp!,
                           locale: FFLocalizations.of(context).languageCode,
                         ),
                         style: FlutterFlowTheme.of(context).labelSmall.override(
@@ -160,14 +155,14 @@ class _CharactercommentCopyWidgetState
               ],
             ),
             if (currentUserReference ==
-                widget!.charactercommentDocument?.userRef)
+                widget.charactercommentDocument?.userRef)
               InkWell(
                 splashColor: Colors.transparent,
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 onTap: () async {
-                  if (widget!.isReply) {
+                  if (widget.isReply) {
                     var confirmDialogResponse = await showDialog<bool>(
                           context: context,
                           builder: (alertDialogContext) {
@@ -192,7 +187,7 @@ class _CharactercommentCopyWidgetState
                           },
                         ) ??
                         false;
-                    await widget!.charactercommentDocument!.reference.delete();
+                    await widget.charactercommentDocument!.reference.delete();
                   } else {
                     var confirmDialogResponse = await showDialog<bool>(
                           context: context,
@@ -224,7 +219,7 @@ class _CharactercommentCopyWidgetState
                           .httpsCallable('deleteCommentAndReplies')
                           .call({
                         "commentId":
-                            widget!.charactercommentDocument!.reference.id,
+                            widget.charactercommentDocument!.reference.id,
                       });
                       _model.cloudFunction =
                           DeleteCommentAndRepliesCloudFunctionCallResponse(
@@ -258,7 +253,7 @@ class _CharactercommentCopyWidgetState
             padding: EdgeInsetsDirectional.fromSTEB(40.0, 10.0, 0.0, 0.0),
             child: Text(
               valueOrDefault<String>(
-                widget!.charactercommentDocument?.content,
+                widget.charactercommentDocument?.content,
                 'No comment',
               ),
               style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -284,7 +279,7 @@ class _CharactercommentCopyWidgetState
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               if (valueOrDefault<bool>(
-                widget!.isReply,
+                widget.isReply,
                 false,
               ))
                 Row(
@@ -311,7 +306,7 @@ class _CharactercommentCopyWidgetState
                     ),
                     Text(
                       formatNumber(
-                        widget!.charactercommentDocument!.replyCount,
+                        widget.charactercommentDocument!.replyCount,
                         formatType: FormatType.compact,
                       ),
                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -335,7 +330,7 @@ class _CharactercommentCopyWidgetState
                   ],
                 ),
               if (valueOrDefault<bool>(
-                widget!.isReply,
+                widget.isReply,
                 false,
               ))
                 Padding(
@@ -348,7 +343,7 @@ class _CharactercommentCopyWidgetState
                           safeSetState(() =>
                               _model.isLikedByUser = !_model.isLikedByUser);
                           if (_model.isLikedByUser == true) {
-                            await widget!.charactercommentDocument!.reference
+                            await widget.charactercommentDocument!.reference
                                 .update({
                               ...mapToFirestore(
                                 {
@@ -359,7 +354,7 @@ class _CharactercommentCopyWidgetState
                               ),
                             });
                           } else {
-                            await widget!.charactercommentDocument!.reference
+                            await widget.charactercommentDocument!.reference
                                 .update({
                               ...mapToFirestore(
                                 {
@@ -388,7 +383,7 @@ class _CharactercommentCopyWidgetState
                       ),
                       Text(
                         formatNumber(
-                          widget!.charactercommentDocument!.likeCount,
+                          widget.charactercommentDocument!.likeCount,
                           formatType: FormatType.compact,
                         ),
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -430,7 +425,7 @@ class _CharactercommentCopyWidgetState
                           .where(
                             'parent_comment_ref',
                             isEqualTo:
-                                widget!.charactercommentDocument?.reference,
+                                widget.charactercommentDocument?.reference,
                           )
                           .orderBy('timestamp'),
                 ),
@@ -468,8 +463,8 @@ class _CharactercommentCopyWidgetState
                               'Keyj9z_${listViewIndex}_of_${listViewCharacterCommentsRecordList.length}'),
                           isReply: true,
                           charactercommentDocument:
-                              widget!.charactercommentDocument,
-                          parentcharacterRef: widget!.parentcharacterRef,
+                              widget.charactercommentDocument,
+                          parentcharacterRef: widget.parentcharacterRef,
                         ),
                       );
                     },
@@ -477,7 +472,7 @@ class _CharactercommentCopyWidgetState
                 },
               ),
               if (valueOrDefault<bool>(
-                widget!.isReply,
+                widget.isReply,
                 false,
               ))
                 Padding(
@@ -616,15 +611,15 @@ class _CharactercommentCopyWidgetState
                                   userProfileImage: currentUserPhoto,
                                   content: _model.textController.text,
                                   timestamp: getCurrentTimestamp,
-                                  characterRef: widget!.parentcharacterRef,
-                                  parentCommentRef: widget!
+                                  characterRef: widget.parentcharacterRef,
+                                  parentCommentRef: widget
                                       .charactercommentDocument?.reference,
                                 ));
                             safeSetState(() {
                               _model.textController?.clear();
                             });
 
-                            await widget!.charactercommentDocument!.reference
+                            await widget.charactercommentDocument!.reference
                                 .update({
                               ...mapToFirestore(
                                 {

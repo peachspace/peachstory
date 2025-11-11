@@ -1,10 +1,7 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_web_view.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'payweb_model.dart';
 export 'payweb_model.dart';
 
@@ -68,7 +65,7 @@ class _PaywebWidgetState extends State<PaywebWidget> {
         body: SafeArea(
           top: true,
           child: FlutterFlowWebView(
-            content: widget!.checkoutUrl!,
+            content: widget.checkoutUrl!,
             bypass: false,
             height: 500.0,
             verticalScroll: false,

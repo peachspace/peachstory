@@ -1,10 +1,7 @@
-import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -45,7 +42,7 @@ class _CharacterbottomWidgetState extends State<CharacterbottomWidget>
 
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.localSelectedModel = widget!.currentSelectedModel!;
+      _model.localSelectedModel = widget.currentSelectedModel!;
       safeSetState(() {});
     });
 
@@ -72,7 +69,7 @@ class _CharacterbottomWidgetState extends State<CharacterbottomWidget>
     context.watch<FFAppState>();
 
     return StreamBuilder<CharacterchatsRecord>(
-      stream: CharacterchatsRecord.getDocument(widget!.characterchatRef!),
+      stream: CharacterchatsRecord.getDocument(widget.characterchatRef!),
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
@@ -197,7 +194,7 @@ class _CharacterbottomWidgetState extends State<CharacterbottomWidget>
                                     _model.localSelectedModel = modelItemItem;
                                     safeSetState(() {});
 
-                                    await widget!.characterchatRef!
+                                    await widget.characterchatRef!
                                         .update(createCharacterchatsRecordData(
                                       selectedAiModel:
                                           _model.localSelectedModel,
@@ -303,7 +300,7 @@ class _CharacterbottomWidgetState extends State<CharacterbottomWidget>
                               '_model.textController',
                               Duration(milliseconds: 1000),
                               () async {
-                                await widget!.characterchatRef!
+                                await widget.characterchatRef!
                                     .update(createCharacterchatsRecordData(
                                   userNote: _model.textController.text,
                                 ));

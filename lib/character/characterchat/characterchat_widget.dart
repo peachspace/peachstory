@@ -1,8 +1,5 @@
-import '/auth/base_auth_user_provider.dart';
 import '/auth/firebase_auth/auth_util.dart';
-import '/backend/api_requests/api_calls.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/character/characterbottom/characterbottom_widget.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -10,20 +7,16 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/shared/login/login_widget.dart';
-import 'dart:math';
-import 'dart:ui';
 import '/custom_code/actions/index.dart' as actions;
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'characterchat_model.dart';
 export 'characterchat_model.dart';
@@ -61,7 +54,7 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.characterDoc =
-          await CharacterRecord.getDocumentOnce(widget!.characterRef!);
+          await CharacterRecord.getDocumentOnce(widget.characterRef!);
       _model.currentCharacter = _model.characterDoc;
       _model.name = _model.characterDoc?.name;
       _model.setting = _model.characterDoc?.setting;
@@ -80,7 +73,7 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
             )
             .where(
               'character_ref',
-              isEqualTo: widget!.characterRef,
+              isEqualTo: widget.characterRef,
             ),
       );
       if (_model.existingChatlist!.length > 0) {
@@ -102,7 +95,7 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
         await characterchatsRecordReference.set(createCharacterchatsRecordData(
           userRef: currentUserReference,
           createdAt: getCurrentTimestamp,
-          characterRef: widget!.characterRef,
+          characterRef: widget.characterRef,
           lastSummaryMessageCount: 0,
           selectedAiModel: 'claude-3-haiku-20240307',
         ));
@@ -110,7 +103,7 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
             createCharacterchatsRecordData(
               userRef: currentUserReference,
               createdAt: getCurrentTimestamp,
-              characterRef: widget!.characterRef,
+              characterRef: widget.characterRef,
               lastSummaryMessageCount: 0,
               selectedAiModel: 'claude-3-haiku-20240307',
             ),
@@ -281,7 +274,7 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
                           for (int loop1Index = 0;
                               loop1Index < scenes!.length;
                               loop1Index++) {
-                            final currentLoop1Item = scenes![loop1Index];
+                            final currentLoop1Item = scenes[loop1Index];
                             if (functions.isSceneType(
                                     currentLoop1Item, 'dialogue') ==
                                 true) {
@@ -320,9 +313,9 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
                             }
                           }
                           for (int loop2Index = 0;
-                              loop2Index < scenes!.length;
+                              loop2Index < scenes.length;
                               loop2Index++) {
-                            final currentLoop2Item = scenes![loop2Index];
+                            final currentLoop2Item = scenes[loop2Index];
                             if (functions.isSceneType(
                                     currentLoop2Item, 'dialogue') ==
                                 true) {
@@ -479,47 +472,6 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
                                               .orderBy('timestamp'),
                                       limit: 20,
                                     );
-                                    _model.apiResultInnerThought =
-                                        await GetInnerThoughtCall.call(
-                                      messagesJson:
-                                          functions.buildSimpleChatHistory(
-                                              _model.chatHistory!.toList()),
-                                      systemPrompt:
-                                          functions.getInnerThoughtPrompt(),
-                                    );
-
-                                    if ((_model
-                                            .apiResultInnerThought?.succeeded ??
-                                        true)) {
-                                      _model.addToChatMessages(
-                                          CharacterChatMessageStructStruct(
-                                        text: GetInnerThoughtCall.thoughtText(
-                                          (_model.apiResultInnerThought
-                                                  ?.jsonBody ??
-                                              ''),
-                                        ),
-                                        type: 'thought',
-                                        isStreaming: false,
-                                      ));
-                                      safeSetState(() {});
-
-                                      await CharactermessagesRecord.createDoc(
-                                              _model.currentDocRef!)
-                                          .set(
-                                              createCharactermessagesRecordData(
-                                        senderImage: _model
-                                            .currentCharacter?.characterimage,
-                                        timestamp: getCurrentTimestamp,
-                                        name: _model.currentCharacter?.name,
-                                        text: GetInnerThoughtCall.thoughtText(
-                                          (_model.apiResultInnerThought
-                                                  ?.jsonBody ??
-                                              ''),
-                                        ),
-                                        type: 'thought',
-                                        chatRef: _model.currentDocRef,
-                                      ));
-                                    }
 
                                     safeSetState(() {});
                                   },
@@ -678,41 +630,6 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
                                             await CharacterchatsRecord
                                                 .getDocumentOnce(
                                                     _model.currentDocRef!);
-                                        if (functions.shouldSummarize(
-                                            _model.messageCount!,
-                                            _model.characterChatDoc!
-                                                .lastSummaryMessageCount)) {
-                                          _model.messagesToSummarize =
-                                              await queryCharactermessagesRecordOnce(
-                                            parent: _model.currentDocRef,
-                                            queryBuilder:
-                                                (charactermessagesRecord) =>
-                                                    charactermessagesRecord
-                                                        .where(
-                                                          'chat_ref',
-                                                          isEqualTo: _model
-                                                              .currentDocRef,
-                                                        )
-                                                        .orderBy('timestamp',
-                                                            descending: true),
-                                            limit: 30,
-                                          );
-                                          _model.summary =
-                                              await GroqsummaryCall.call(
-                                            summaryPrompt:
-                                                'You are a helpful text summarization assistant. The following conversation must be summarized into a single, concise paragraph from the character\'s point of view. This summary will serve as a memory for the character to continue the conversation later. Just provide the summary text itself, without any introductory phrases.',
-                                          );
-
-                                          await _model.currentDocRef!.update(
-                                              createCharacterchatsRecordData(
-                                            lastSummaryMessageCount:
-                                                _model.messageCount,
-                                            summary:
-                                                GroqsummaryCall.summaryResult(
-                                              (_model.summary?.jsonBody ?? ''),
-                                            ),
-                                          ));
-                                        }
                                       } else {
                                         var confirmDialogResponse =
                                             await showDialog<bool>(

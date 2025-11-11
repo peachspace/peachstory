@@ -2,14 +2,11 @@ import '/backend/firebase_storage/storage.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
-import 'dart:ui';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'character_model.dart';
 export 'character_model.dart';
 
@@ -47,11 +44,11 @@ class _CharacterWidgetState extends State<CharacterWidget> {
     _model = createModel(context, () => CharacterModel());
 
     _model.charNameTextController ??=
-        TextEditingController(text: widget!.characterData?.name);
+        TextEditingController(text: widget.characterData?.name);
     _model.charNameFocusNode ??= FocusNode();
 
     _model.charPersonailtyTextController ??=
-        TextEditingController(text: widget!.characterData?.personality);
+        TextEditingController(text: widget.characterData?.personality);
     _model.charPersonailtyFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
@@ -121,6 +118,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                       height: m.dimensions?.height,
                                       width: m.dimensions?.width,
                                       blurHash: m.blurHash,
+                                      originalFilename: m.originalFilename,
                                     ))
                                 .toList();
 
@@ -152,7 +150,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         }
 
                         await widget.onUpdate?.call(
-                          widget!.index!,
+                          widget.index!,
                           _model.charNameTextController.text,
                           _model.charPersonailtyTextController.text,
                           _model.uploadedFileUrl_uploadCharImage,
@@ -167,7 +165,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         ),
                         child: Image.network(
                           valueOrDefault<String>(
-                            widget!.characterData?.image,
+                            widget.characterData?.image,
                             'https://t3.ftcdn.net/jpg/11/40/90/46/240_F_1140904604_Bgl5UkXYSBRNRUh96jQFOCyeFzl6ffY0.jpg',
                           ),
                           fit: BoxFit.cover,
@@ -195,7 +193,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           Duration(milliseconds: 2000),
                           () async {
                             await widget.onUpdate?.call(
-                              widget!.index!,
+                              widget.index!,
                               _model.charNameTextController.text,
                               _model.charPersonailtyTextController.text,
                               _model.uploadedFileUrl_uploadCharImage,
@@ -315,7 +313,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                     highlightColor: Colors.transparent,
                     onTap: () async {
                       await widget.onDelete?.call(
-                        widget!.index!,
+                        widget.index!,
                       );
                     },
                     child: Icon(
@@ -340,7 +338,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                   Duration(milliseconds: 2000),
                   () async {
                     await widget.onUpdate?.call(
-                      widget!.index!,
+                      widget.index!,
                       _model.charNameTextController.text,
                       _model.charPersonailtyTextController.text,
                       _model.uploadedFileUrl_uploadCharImage,

@@ -10,67 +10,76 @@ import 'package:flutter/material.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 Future<List<CombinedListItemStructStruct>> loadNewPosts() async {
-  // 캐릭터와 스토리를 각각 20개씩 최신순으로 불러옵니다.
-  final characterQuery = await FirebaseFirestore.instance
-      .collection('character')
-      .orderBy('created_timestamp', descending: true)
-      .limit(20)
-      .get();
+  final db = FirebaseFirestore.instance;
 
-  final storyQuery = await FirebaseFirestore.instance
+  // 1. 'stories'에서 최신 30개 쿼리
+  final storyQuery = await db
       .collection('stories')
       .orderBy('created_timestamp', descending: true)
-      .limit(20)
+      .limit(30)
       .get();
 
+  // 2. 'character'에서 최신 30개 쿼리
+  final characterQuery = await db
+      .collection('character')
+      .orderBy('created_timestamp', descending: true)
+      .limit(30)
+      .get();
+
+  final storyList =
+      storyQuery.docs.map((doc) => StoriesRecord.fromSnapshot(doc)).toList();
   final characterList = characterQuery.docs
       .map((doc) => CharacterRecord.fromSnapshot(doc))
       .toList();
-  final storyList =
-      storyQuery.docs.map((doc) => StoriesRecord.fromSnapshot(doc)).toList();
 
   final combinedList = <CombinedListItemStructStruct>[];
 
-  // 캐릭터 목록을 공통 형식으로 변환
-  for (var char in characterList) {
-    combinedList.add(CombinedListItemStructStruct(
-      type: 'character',
-      title: char.name,
-      imageUrl: char.characterimage,
-      timestamp: char.createdTimestamp,
-      viewCount: char.viewCount,
-      heartCount: char.heartCount,
-      introduction: char.introduce,
-      creatorNickname: char.creatorNickname,
-      characterRef: char.reference,
-      hashtags: char.hashtags,
-      creatorRef: char.creatorRef,
-    ));
-  }
-
-  // 스토리 목록을 공통 형식으로 변환
+  // 3. 'stories' 리스트 변환
   for (var story in storyList) {
     combinedList.add(CombinedListItemStructStruct(
       type: 'story',
       title: story.title,
       imageUrl: story.mainImage,
       timestamp: story.createdTimestamp,
+      characterRef: null,
+      storyRef: story.reference,
+      category: story.category,
+      introduction: story.description,
       viewCount: story.viewCount,
       heartCount: story.heartCount,
-      introduction: story.description,
       creatorNickname: story.creatorNickname,
-      storyRef: story.reference,
       hashtags: story.hashtags,
       creatorRef: story.creatorRef,
+      // userRole은 CombinedListItemStructStruct에 없으면 이 줄 삭제
+      // userRole: story.userRole,
     ));
   }
 
-  combinedList.sort((a, b) {
-    final aTime = a.timestamp ?? DateTime(1970);
-    final bTime = b.timestamp ?? DateTime(1970);
-    return bTime.compareTo(aTime);
-  });
-  return combinedList;
+  // 4. 'character' 리스트 변환
+  for (var char in characterList) {
+    combinedList.add(CombinedListItemStructStruct(
+      type: 'character',
+      title: char.name,
+      imageUrl: char.characterimage,
+      timestamp: char.createdTimestamp,
+      characterRef: char.reference,
+      storyRef: null,
+      category: char.genre,
+      introduction: char.introduce,
+      viewCount: char.viewCount,
+      heartCount: char.heartCount,
+      creatorNickname: char.creatorNickname,
+      hashtags: char.hashtags,
+      creatorRef: char.creatorRef,
+      // userRole: '', // userRole이 필요하면 추가
+    ));
+  }
+
+  // 5. 두 리스트를 합쳐서 다시 시간순으로 정렬
+  combinedList.sort((a, b) => (b.timestamp!).compareTo(a.timestamp!));
+
+  // 6. 합쳐진 리스트에서 최종 30개만 반환
+  return combinedList.take(30).toList();
 }
 // Set your action name, define your arguments and return parameter,
 // and then add the boilerplate code using the green button on the right!

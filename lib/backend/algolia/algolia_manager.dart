@@ -2,14 +2,13 @@ import 'dart:async';
 
 import 'package:algolia/algolia.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 
 import '/backend/backend.dart';
 
 export 'package:algolia/algolia.dart';
 
-const kAlgoliaApplicationId = 'E0K7Z2N2CS';
-const kAlgoliaApiKey = 'ccea70170f64625fb7b08ba06140c3bb';
+const kAlgoliaApplicationId = '0SCUW3F36S';
+const kAlgoliaApiKey = '9f79f1fe4ddec0b10dedefd3505e460b';
 
 class AlgoliaQueryParams extends Equatable {
   const AlgoliaQueryParams(this.index, this.term, this.latLng, this.maxResults,
@@ -56,11 +55,6 @@ class FFAlgoliaManager {
     LatLng? loc;
     if (location != null) {
       loc = await location;
-      // Either the user denied permissions, we could not access
-      // their location, or null location specified.
-      if (loc == null) {
-        return [];
-      }
     }
     final params =
         AlgoliaQueryParams(index, term, loc, maxResults, searchRadiusMeters);

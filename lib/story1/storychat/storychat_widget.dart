@@ -1,8 +1,5 @@
-import '/auth/base_auth_user_provider.dart';
 import '/auth/firebase_auth/auth_util.dart';
-import '/backend/api_requests/api_calls.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -10,20 +7,16 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/shared/login/login_widget.dart';
 import '/story1/storybottom/storybottom_widget.dart';
-import 'dart:math';
-import 'dart:ui';
 import '/custom_code/actions/index.dart' as actions;
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'storychat_model.dart';
 export 'storychat_model.dart';
@@ -62,7 +55,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.storyDoc = await StoriesRecord.getDocumentOnce(widget!.storyRef!);
+      _model.storyDoc = await StoriesRecord.getDocumentOnce(widget.storyRef!);
       _model.currentStory = _model.storyDoc;
       _model.title = valueOrDefault<String>(
         _model.storyDoc?.title,
@@ -113,7 +106,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
             )
             .where(
               'story_ref',
-              isEqualTo: widget!.storyRef,
+              isEqualTo: widget.storyRef,
             ),
       );
       if (_model.existingChatRoom!.length > 0) {
@@ -134,16 +127,16 @@ class _StorychatWidgetState extends State<StorychatWidget>
         await storychatsRecordReference.set(createStorychatsRecordData(
           userRef: currentUserReference,
           lastSummaryMessageCount: 0,
-          storyRef: widget!.storyRef,
-          userInChatName: widget!.userInChatName,
+          storyRef: widget.storyRef,
+          userInChatName: widget.userInChatName,
           selectedAiModel: 'claude-3-haiku-20240307',
         ));
         _model.newChatRef = StorychatsRecord.getDocumentFromData(
             createStorychatsRecordData(
               userRef: currentUserReference,
               lastSummaryMessageCount: 0,
-              storyRef: widget!.storyRef,
-              userInChatName: widget!.userInChatName,
+              storyRef: widget.storyRef,
+              userInChatName: widget.userInChatName,
               selectedAiModel: 'claude-3-haiku-20240307',
             ),
             storychatsRecordReference);
@@ -161,7 +154,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
               _model.pageBackgrounds.toList(),
               _model.pageSituationalImages.toList(),
               '',
-              widget!.userInChatName!),
+              widget.userInChatName!),
           functions.prologue('도입부를 생성하라.').toList(),
         );
         _model.aiResponseScript = _model.aitext!;
@@ -327,7 +320,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                         newResponseScript: _model.aiResponseScript,
                         initialMessages: _model.chatMessages,
                         preDefinedCharacters: _model.characters,
-                        userInChatName: widget!.userInChatName,
+                        userInChatName: widget.userInChatName,
                         backgroundList: _model.pageBackgrounds,
                         situationalImageList: _model.pageSituationalImages,
                         onBackgroundChange: (newBgUrl) async {
@@ -338,7 +331,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                           for (int loop1Index = 0;
                               loop1Index < scenes!.length;
                               loop1Index++) {
-                            final currentLoop1Item = scenes![loop1Index];
+                            final currentLoop1Item = scenes[loop1Index];
                             if (functions.isSceneType(
                                     currentLoop1Item, 'dialogue') ==
                                 true) {
@@ -392,9 +385,9 @@ class _StorychatWidgetState extends State<StorychatWidget>
                             }
                           }
                           for (int loop2Index = 0;
-                              loop2Index < scenes!.length;
+                              loop2Index < scenes.length;
                               loop2Index++) {
-                            final currentLoop2Item = scenes![loop2Index];
+                            final currentLoop2Item = scenes[loop2Index];
                             if (functions.isSceneType(
                                     currentLoop2Item, 'dialogue') ==
                                 true) {
@@ -680,7 +673,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                         .textController.text,
                                                     type: 'user',
                                                     speakerName:
-                                                        widget!.userInChatName,
+                                                        widget.userInChatName,
                                                     userRef:
                                                         currentUserReference,
                                                   ));
@@ -758,7 +751,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                           .toList(),
                                                       _model.updatedChatDoc!
                                                           .userNote,
-                                                      widget!.userInChatName!),
+                                                      widget.userInChatName!),
                                                   _model.formattedHistory
                                                       ?.toList(),
                                                 );
@@ -767,7 +760,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                 safeSetState(() {});
                                                 _model.messageCount =
                                                     await queryStorymessagesRecordCount(
-                                                  parent: widget!.storychatRef,
+                                                  parent: widget.storychatRef,
                                                 );
                                                 _model.characterChatDoc =
                                                     await StorychatsRecord
@@ -777,24 +770,9 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                     _model.messageCount!,
                                                     _model.characterChatDoc!
                                                         .lastSummaryMessageCount)) {
-                                                  _model.messagesToSummarize =
-                                                      await queryStorymessagesRecordOnce(
-                                                    parent:
-                                                        _model.currentDocRef,
-                                                    queryBuilder:
-                                                        (storymessagesRecord) =>
-                                                            storymessagesRecord
-                                                                .orderBy(
-                                                                    'timestamp',
-                                                                    descending:
-                                                                        true),
-                                                    limit: 30,
-                                                  );
-                                                  _model.summary =
-                                                      await GroqsummaryCall
-                                                          .call(
-                                                    summaryPrompt:
-                                                        'You are a helpful text summarization assistant. The following conversation must be summarized into a single, concise paragraph from the character\'s point of view. This summary will serve as a memory for the character to continue the conversation later. Just provide the summary text itself, without any introductory phrases.',
+                                                  _model.summary = await actions
+                                                      .callAiSummaryAction(
+                                                    _model.currentDocRef,
                                                   );
 
                                                   firestoreBatch.update(
@@ -802,12 +780,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                       createStorychatsRecordData(
                                                         lastSummaryMessageCount:
                                                             _model.messageCount,
-                                                        summary: GroqsummaryCall
-                                                            .summaryResult(
-                                                          (_model.summary
-                                                                  ?.jsonBody ??
-                                                              ''),
-                                                        ),
+                                                        summary: _model.summary,
                                                       ));
                                                 }
                                               } else {

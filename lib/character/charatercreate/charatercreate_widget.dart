@@ -1,7 +1,6 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/backend/firebase_storage/storage.dart';
-import '/backend/schema/structs/index.dart';
 import '/character/dialogue_input_item/dialogue_input_item_widget.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -11,15 +10,12 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/upload_data.dart';
 import '/shared/situation/situation_widget.dart';
-import 'dart:ui';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'charatercreate_model.dart';
 export 'charatercreate_model.dart';
 
@@ -51,9 +47,9 @@ class _CharatercreateWidgetState extends State<CharatercreateWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (widget!.characterDoc != null) {
+      if (widget.characterDoc != null) {
         _model.editcharacter = await CharacterRecord.getDocumentOnce(
-            widget!.characterDoc!.reference);
+            widget.characterDoc!.reference);
         _model.name = _model.editcharacter?.name;
         _model.setting = _model.editcharacter?.setting;
         _model.dialogueExample =
@@ -339,6 +335,8 @@ class _CharatercreateWidgetState extends State<CharatercreateWidget>
                                                                     ?.width,
                                                                 blurHash:
                                                                     m.blurHash,
+                                                                originalFilename:
+                                                                    m.originalFilename,
                                                               ))
                                                           .toList();
 
@@ -1554,6 +1552,8 @@ class _CharatercreateWidgetState extends State<CharatercreateWidget>
                                                                     ?.width,
                                                                 blurHash:
                                                                     m.blurHash,
+                                                                originalFilename:
+                                                                    m.originalFilename,
                                                               ))
                                                           .toList();
 
@@ -2499,8 +2499,8 @@ class _CharatercreateWidgetState extends State<CharatercreateWidget>
                       ),
                       child: FFButtonWidget(
                         onPressed: () async {
-                          if (widget!.characterDoc != null) {
-                            await widget!.characterDoc!.reference.update({
+                          if (widget.characterDoc != null) {
+                            await widget.characterDoc!.reference.update({
                               ...createCharacterRecordData(
                                 name: _model.name,
                                 setting: _model.setting,
@@ -2529,7 +2529,7 @@ class _CharatercreateWidgetState extends State<CharatercreateWidget>
                               CharactermainWidget.routeName,
                               queryParameters: {
                                 'characterRef': serializeParam(
-                                  widget!.characterDoc?.reference,
+                                  widget.characterDoc?.reference,
                                   ParamType.DocumentReference,
                                 ),
                               }.withoutNulls,
@@ -2600,7 +2600,7 @@ class _CharatercreateWidgetState extends State<CharatercreateWidget>
 
                           safeSetState(() {});
                         },
-                        text: widget!.characterDoc != null ? '수정하기' : '생성하기',
+                        text: widget.characterDoc != null ? '수정하기' : '생성하기',
                         options: FFButtonOptions(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 0.0, 16.0, 0.0),

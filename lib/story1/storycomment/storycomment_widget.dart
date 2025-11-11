@@ -1,19 +1,14 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/backend/custom_cloud_functions/custom_cloud_function_response_manager.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_toggle_icon.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'storycomment_model.dart';
 export 'storycomment_model.dart';
@@ -51,7 +46,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.isLikedByUser = functions.didUserLike(
-          widget!.commentDocument?.likedBy?.toList(), currentUserReference);
+          widget.commentDocument?.likedBy.toList(), currentUserReference);
       safeSetState(() {});
     });
 
@@ -88,7 +83,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                     shape: BoxShape.circle,
                   ),
                   child: Image.network(
-                    widget!.commentDocument!.userProfileImage,
+                    widget.commentDocument!.userProfileImage,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -104,7 +99,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                             EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 3.0),
                         child: Text(
                           valueOrDefault<String>(
-                            widget!.commentDocument?.userName,
+                            widget.commentDocument?.userName,
                             'No name',
                           ),
                           style:
@@ -130,7 +125,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                       Text(
                         dateTimeFormat(
                           "relative",
-                          widget!.commentDocument!.timestamp!,
+                          widget.commentDocument!.timestamp!,
                           locale: FFLocalizations.of(context).languageCode,
                         ),
                         style: FlutterFlowTheme.of(context).labelSmall.override(
@@ -156,14 +151,14 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                 ),
               ],
             ),
-            if (currentUserReference == widget!.commentDocument?.userRef)
+            if (currentUserReference == widget.commentDocument?.userRef)
               InkWell(
                 splashColor: Colors.transparent,
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 onTap: () async {
-                  if (widget!.isReply) {
+                  if (widget.isReply) {
                     var confirmDialogResponse = await showDialog<bool>(
                           context: context,
                           builder: (alertDialogContext) {
@@ -188,7 +183,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                           },
                         ) ??
                         false;
-                    await widget!.commentDocument!.reference.delete();
+                    await widget.commentDocument!.reference.delete();
                   } else {
                     var confirmDialogResponse = await showDialog<bool>(
                           context: context,
@@ -219,7 +214,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                               region: 'asia-northeast3')
                           .httpsCallable('deleteCommentAndReplies')
                           .call({
-                        "commentId": widget!.commentDocument!.reference.id,
+                        "commentId": widget.commentDocument!.reference.id,
                       });
                       _model.cloudFunction =
                           DeleteCommentAndRepliesCloudFunctionCallResponse(
@@ -253,7 +248,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
             padding: EdgeInsetsDirectional.fromSTEB(40.0, 10.0, 0.0, 0.0),
             child: Text(
               valueOrDefault<String>(
-                widget!.commentDocument?.content,
+                widget.commentDocument?.content,
                 'No comment',
               ),
               style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -279,7 +274,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               if (valueOrDefault<bool>(
-                widget!.isReply,
+                widget.isReply,
                 false,
               ))
                 Row(
@@ -306,7 +301,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                     ),
                     Text(
                       formatNumber(
-                        widget!.commentDocument!.replyCount,
+                        widget.commentDocument!.replyCount,
                         formatType: FormatType.compact,
                       ),
                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -330,7 +325,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                   ],
                 ),
               if (valueOrDefault<bool>(
-                widget!.isReply,
+                widget.isReply,
                 false,
               ))
                 Padding(
@@ -343,7 +338,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                           safeSetState(() =>
                               _model.isLikedByUser = !_model.isLikedByUser);
                           if (_model.isLikedByUser == true) {
-                            await widget!.commentDocument!.reference.update({
+                            await widget.commentDocument!.reference.update({
                               ...mapToFirestore(
                                 {
                                   'like_count': FieldValue.increment(-(1)),
@@ -353,7 +348,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                               ),
                             });
                           } else {
-                            await widget!.commentDocument!.reference.update({
+                            await widget.commentDocument!.reference.update({
                               ...mapToFirestore(
                                 {
                                   'like_count': FieldValue.increment(1),
@@ -381,7 +376,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                       ),
                       Text(
                         formatNumber(
-                          widget!.commentDocument!.likeCount,
+                          widget.commentDocument!.likeCount,
                           formatType: FormatType.compact,
                         ),
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -421,7 +416,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                   queryBuilder: (commentsRecord) => commentsRecord
                       .where(
                         'parent_comment_ref',
-                        isEqualTo: widget!.commentDocument?.reference,
+                        isEqualTo: widget.commentDocument?.reference,
                       )
                       .orderBy('timestamp'),
                 ),
@@ -459,7 +454,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                               'Keymne_${listViewIndex}_of_${listViewCommentsRecordList.length}'),
                           isReply: true,
                           commentDocument: listViewCommentsRecord,
-                          parentStoryRef: widget!.parentStoryRef,
+                          parentStoryRef: widget.parentStoryRef,
                         ),
                       );
                     },
@@ -467,7 +462,7 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                 },
               ),
               if (valueOrDefault<bool>(
-                widget!.isReply,
+                widget.isReply,
                 false,
               ))
                 Padding(
@@ -601,20 +596,20 @@ class _StorycommentWidgetState extends State<StorycommentWidget> {
                             await CommentsRecord.collection
                                 .doc()
                                 .set(createCommentsRecordData(
-                                  storyRef: widget!.parentStoryRef,
+                                  storyRef: widget.parentStoryRef,
                                   userRef: currentUserReference,
                                   userName: currentUserDisplayName,
                                   userProfileImage: currentUserPhoto,
                                   content: _model.textController.text,
                                   timestamp: getCurrentTimestamp,
                                   parentCommentRef:
-                                      widget!.commentDocument?.reference,
+                                      widget.commentDocument?.reference,
                                 ));
                             safeSetState(() {
                               _model.textController?.clear();
                             });
 
-                            await widget!.commentDocument!.reference.update({
+                            await widget.commentDocument!.reference.update({
                               ...mapToFirestore(
                                 {
                                   'reply_count': FieldValue.increment(1),

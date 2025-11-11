@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 
 import '/backend/schema/util/firestore_util.dart';
-import '/backend/schema/util/schema_util.dart';
 
 import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -30,11 +29,6 @@ class CharactermessagesRecord extends FirestoreRecord {
   String? _messageId;
   String get messageId => _messageId ?? '';
   bool hasMessageId() => _messageId != null;
-
-  // "options" field.
-  List<OptionStructStruct>? _options;
-  List<OptionStructStruct> get options => _options ?? const [];
-  bool hasOptions() => _options != null;
 
   // "name" field.
   String? _name;
@@ -72,10 +66,6 @@ class CharactermessagesRecord extends FirestoreRecord {
     _senderImage = snapshotData['sender_image'] as String?;
     _timestamp = snapshotData['timestamp'] as DateTime?;
     _messageId = snapshotData['messageId'] as String?;
-    _options = getStructList(
-      snapshotData['options'],
-      OptionStructStruct.fromMap,
-    );
     _name = snapshotData['name'] as String?;
     _text = snapshotData['text'] as String?;
     _type = snapshotData['type'] as String?;
@@ -160,11 +150,9 @@ class CharactermessagesRecordDocumentEquality
 
   @override
   bool equals(CharactermessagesRecord? e1, CharactermessagesRecord? e2) {
-    const listEquality = ListEquality();
     return e1?.senderImage == e2?.senderImage &&
         e1?.timestamp == e2?.timestamp &&
         e1?.messageId == e2?.messageId &&
-        listEquality.equals(e1?.options, e2?.options) &&
         e1?.name == e2?.name &&
         e1?.text == e2?.text &&
         e1?.type == e2?.type &&
@@ -178,7 +166,6 @@ class CharactermessagesRecordDocumentEquality
         e?.senderImage,
         e?.timestamp,
         e?.messageId,
-        e?.options,
         e?.name,
         e?.text,
         e?.type,

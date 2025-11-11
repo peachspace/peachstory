@@ -1,8 +1,8 @@
 import '/flutter_flow/flutter_flow_util.dart';
-import 'creatorrequest_widget.dart' show CreatorrequestWidget;
+import 'icon_menu_popup_widget.dart' show IconMenuPopupWidget;
 import 'package:flutter/material.dart';
 
-class CreatorrequestModel extends FlutterFlowModel<CreatorrequestWidget> {
+class IconMenuPopupModel extends FlutterFlowModel<IconMenuPopupWidget> {
   @override
   void initState(BuildContext context) {}
 

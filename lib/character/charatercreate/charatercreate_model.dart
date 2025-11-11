@@ -1,26 +1,9 @@
-import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
-import '/backend/firebase_storage/storage.dart';
-import '/backend/schema/structs/index.dart';
-import '/character/dialogue_input_item/dialogue_input_item_widget.dart';
-import '/flutter_flow/flutter_flow_drop_down.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
-import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
-import '/flutter_flow/upload_data.dart';
-import '/shared/situation/situation_widget.dart';
-import 'dart:ui';
-import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'charatercreate_widget.dart' show CharatercreateWidget;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 class CharatercreateModel extends FlutterFlowModel<CharatercreateWidget> {
   ///  Local state fields for this page.
@@ -89,7 +72,7 @@ class CharatercreateModel extends FlutterFlowModel<CharatercreateWidget> {
 
   bool isDataUploading_characterimagefile = false;
   FFUploadedFile uploadedLocalFile_characterimagefile =
-      FFUploadedFile(bytes: Uint8List.fromList([]));
+      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
   String uploadedFileUrl_characterimagefile = '';
 
   // State field(s) for Name widget.
@@ -109,7 +92,7 @@ class CharatercreateModel extends FlutterFlowModel<CharatercreateWidget> {
   String? Function(BuildContext, String?)? firstgreetingTextControllerValidator;
   bool isDataUploading_mainImageFile = false;
   FFUploadedFile uploadedLocalFile_mainImageFile =
-      FFUploadedFile(bytes: Uint8List.fromList([]));
+      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
   String uploadedFileUrl_mainImageFile = '';
 
   // State field(s) for introduce widget.

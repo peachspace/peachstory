@@ -2,14 +2,11 @@ import '/backend/firebase_storage/storage.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
-import 'dart:ui';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'background_model.dart';
 export 'background_model.dart';
 
@@ -48,7 +45,7 @@ class _BackgroundWidgetState extends State<BackgroundWidget> {
     _model = createModel(context, () => BackgroundModel());
 
     _model.textController ??=
-        TextEditingController(text: widget!.locationItem?.locationName);
+        TextEditingController(text: widget.locationItem?.locationName);
     _model.textFieldFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
@@ -95,7 +92,7 @@ class _BackgroundWidgetState extends State<BackgroundWidget> {
                         () async {
                           await widget.onNameChanged?.call(
                             _model.textController.text,
-                            widget!.index!,
+                            widget.index!,
                           );
                         },
                       ),
@@ -213,7 +210,7 @@ class _BackgroundWidgetState extends State<BackgroundWidget> {
                   highlightColor: Colors.transparent,
                   onTap: () async {
                     await widget.onDelete?.call(
-                      widget!.index!,
+                      widget.index!,
                     );
                   },
                   child: Icon(
@@ -261,6 +258,7 @@ class _BackgroundWidgetState extends State<BackgroundWidget> {
                                 height: m.dimensions?.height,
                                 width: m.dimensions?.width,
                                 blurHash: m.blurHash,
+                                originalFilename: m.originalFilename,
                               ))
                           .toList();
 
@@ -290,14 +288,14 @@ class _BackgroundWidgetState extends State<BackgroundWidget> {
 
                   await widget.onImageChanged?.call(
                     _model.uploadedFileUrl_uploadimage,
-                    widget!.index!,
+                    widget.index!,
                   );
                 },
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
                   child: Image.network(
                     valueOrDefault<String>(
-                      widget!.locationItem?.imageUrl,
+                      widget.locationItem?.imageUrl,
                       'https://t3.ftcdn.net/jpg/11/40/90/46/240_F_1140904604_Bgl5UkXYSBRNRUh96jQFOCyeFzl6ffY0.jpg',
                     ),
                     width: 320.0,

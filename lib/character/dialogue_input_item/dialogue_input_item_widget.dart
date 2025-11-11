@@ -1,11 +1,8 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'dialogue_input_item_model.dart';
 export 'dialogue_input_item_model.dart';
 
@@ -42,7 +39,7 @@ class _DialogueInputItemWidgetState extends State<DialogueInputItemWidget> {
     super.initState();
     _model = createModel(context, () => DialogueInputItemModel());
 
-    _model.textController ??= TextEditingController(text: widget!.dialogueText);
+    _model.textController ??= TextEditingController(text: widget.dialogueText);
     _model.textFieldFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
@@ -84,7 +81,7 @@ class _DialogueInputItemWidgetState extends State<DialogueInputItemWidget> {
                   () async {
                     await widget.onTextChanged?.call(
                       _model.textController.text,
-                      widget!.index!,
+                      widget.index!,
                     );
                   },
                 ),
@@ -192,7 +189,7 @@ class _DialogueInputItemWidgetState extends State<DialogueInputItemWidget> {
               highlightColor: Colors.transparent,
               onTap: () async {
                 await widget.onDelete?.call(
-                  widget!.index!,
+                  widget.index!,
                 );
               },
               child: Icon(

@@ -19,19 +19,30 @@ Future<List<CombinedListItemStructStruct>> loadRankingData(
   } else if (period == 'monthly') {
     duration = Duration(days: 30);
   } else {
+    // 기본값
     duration = Duration(days: 1);
   }
 
   final startTime = DateTime.now().subtract(duration);
   final db = FirebaseFirestore.instance;
+
+  // 1. 'stories' 컬렉션에서 상위 30개 쿼리
+  //    - created_timestamp로 기간 필터링
+  //    - heartCount로 정렬
+  //    - limit(30)으로 30개만 가져오기
   final storyQuery = await db
       .collection('stories')
       .where('created_timestamp', isGreaterThanOrEqualTo: startTime)
+      .orderBy('heartCount', descending: true)
+      .limit(30)
       .get();
 
+  // 2. 'character' 컬렉션에서 상위 30개 쿼리 (동일한 로직)
   final characterQuery = await db
       .collection('character')
       .where('created_timestamp', isGreaterThanOrEqualTo: startTime)
+      .orderBy('heartCount', descending: true)
+      .limit(30)
       .get();
 
   final storyList =
@@ -42,6 +53,7 @@ Future<List<CombinedListItemStructStruct>> loadRankingData(
 
   final combinedList = <CombinedListItemStructStruct>[];
 
+  // 3. 쿼리 결과를 CombinedListItemStructStruct로 변환 (기존 코드와 동일)
   for (var story in storyList) {
     combinedList.add(CombinedListItemStructStruct(
       type: 'story',
@@ -80,9 +92,12 @@ Future<List<CombinedListItemStructStruct>> loadRankingData(
     ));
   }
 
+  // 4. 앱 메모리에서 최종 정렬
+  // (최대 60개(30+30) 아이템만 정렬하므로 매우 빠름)
   combinedList.sort((a, b) => (b.heartCount ?? 0).compareTo(a.heartCount ?? 0));
 
-  return combinedList;
+  // 5. 실제 상위 30개만 반환 (선택 사항이지만 권장)
+  return combinedList.take(30).toList();
 }
 
 // Set your action name, define your arguments and return parameter,

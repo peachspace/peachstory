@@ -1,21 +1,15 @@
-import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_button_tabbar.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
-import 'dart:ui';
 import '/custom_code/actions/index.dart' as actions;
 import '/index.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'home_model.dart';
 export 'home_model.dart';
@@ -1694,148 +1688,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                         child: Column(
                           mainAxisSize: MainAxisSize.max,
                           children: [
-                            Container(
-                              height: 30.0,
-                              decoration: BoxDecoration(),
-                              child: Align(
-                                alignment: AlignmentDirectional(-1.0, 0.0),
-                                child: StreamBuilder<List<CategoriesRecord>>(
-                                  stream: queryCategoriesRecord(
-                                    queryBuilder: (categoriesRecord) =>
-                                        categoriesRecord.where(
-                                      'type',
-                                      isEqualTo: 'character',
-                                    ),
-                                  ),
-                                  builder: (context, snapshot) {
-                                    // Customize what your widget looks like when it's loading.
-                                    if (!snapshot.hasData) {
-                                      return Center(
-                                        child: SizedBox(
-                                          width: 50.0,
-                                          height: 50.0,
-                                          child: CircularProgressIndicator(
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                              FlutterFlowTheme.of(context)
-                                                  .primary,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                    List<CategoriesRecord>
-                                        listViewCategoriesRecordList =
-                                        snapshot.data!;
-
-                                    return ListView.separated(
-                                      padding: EdgeInsets.zero,
-                                      shrinkWrap: true,
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount:
-                                          listViewCategoriesRecordList.length,
-                                      separatorBuilder: (_, __) =>
-                                          SizedBox(width: 10.0),
-                                      itemBuilder: (context, listViewIndex) {
-                                        final listViewCategoriesRecord =
-                                            listViewCategoriesRecordList[
-                                                listViewIndex];
-                                        return Align(
-                                          alignment:
-                                              AlignmentDirectional(0.0, 0.0),
-                                          child: InkWell(
-                                            splashColor: Colors.transparent,
-                                            focusColor: Colors.transparent,
-                                            hoverColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            onTap: () async {
-                                              _model.selectedCategoryName =
-                                                  listViewCategoriesRecord
-                                                      .categoryName;
-                                              _model.selectedCategoryType =
-                                                  listViewCategoriesRecord.type;
-                                              safeSetState(() {});
-                                              _model.categoryItemsResult =
-                                                  await actions
-                                                      .loadCategoryRanking(
-                                                _model.selectedCategoryName,
-                                                _model.selectedSort,
-                                                _model.selectedCategoryType,
-                                              );
-                                              _model.categoryItemList = _model
-                                                  .categoryItemsResult!
-                                                  .toList()
-                                                  .cast<
-                                                      CombinedListItemStructStruct>();
-                                              safeSetState(() {});
-
-                                              safeSetState(() {});
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: listViewCategoriesRecord
-                                                            .categoryName ==
-                                                        _model.selectedCategory
-                                                    ? Color(0x00000000)
-                                                    : Color(0x00000000),
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                                border: Border.all(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryText,
-                                                  width: 0.5,
-                                                ),
-                                              ),
-                                              child: Align(
-                                                alignment: AlignmentDirectional(
-                                                    0.0, 0.0),
-                                                child: Padding(
-                                                  padding: EdgeInsets.all(5.0),
-                                                  child: Text(
-                                                    listViewCategoriesRecord
-                                                        .categoryName,
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 10.0, 0.0, 0.0),
@@ -1910,7 +1762,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                   _model.selectedCategoryType,
                                                 );
                                                 _model.categoryItemList = _model
-                                                    .categoryItemsResult!
+                                                    .categoryItemsResult1!
                                                     .toList()
                                                     .cast<
                                                         CombinedListItemStructStruct>();
@@ -2133,27 +1985,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                   'storymainRef':
                                                       serializeParam(
                                                     itemItem.storyRef,
-                                                    ParamType.DocumentReference,
-                                                  ),
-                                                }.withoutNulls,
-                                              );
-                                            } else {
-                                              await itemItem.characterRef!
-                                                  .update({
-                                                ...mapToFirestore(
-                                                  {
-                                                    'view_count':
-                                                        FieldValue.increment(1),
-                                                  },
-                                                ),
-                                              });
-
-                                              context.pushNamed(
-                                                CharactermainWidget.routeName,
-                                                queryParameters: {
-                                                  'characterRef':
-                                                      serializeParam(
-                                                    itemItem.characterRef,
                                                     ParamType.DocumentReference,
                                                   ),
                                                 }.withoutNulls,

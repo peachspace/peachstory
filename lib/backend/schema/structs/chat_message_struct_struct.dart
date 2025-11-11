@@ -3,9 +3,7 @@ import '/backend/algolia/serialization_util.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '/backend/schema/util/firestore_util.dart';
-import '/backend/schema/util/schema_util.dart';
 
-import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
 class ChatMessageStructStruct extends FFFirebaseStruct {
@@ -17,7 +15,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
     String? messageId,
     String? type,
     bool? isPredefinedCharacter,
-    List<OptionStructStruct>? options,
     String? action,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _name = name,
@@ -27,7 +24,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
         _messageId = messageId,
         _type = type,
         _isPredefinedCharacter = isPredefinedCharacter,
-        _options = options,
         _action = action,
         super(firestoreUtilData);
 
@@ -81,17 +77,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
 
   bool hasIsPredefinedCharacter() => _isPredefinedCharacter != null;
 
-  // "options" field.
-  List<OptionStructStruct>? _options;
-  List<OptionStructStruct> get options => _options ?? const [];
-  set options(List<OptionStructStruct>? val) => _options = val;
-
-  void updateOptions(Function(List<OptionStructStruct>) updateFn) {
-    updateFn(_options ??= []);
-  }
-
-  bool hasOptions() => _options != null;
-
   // "action" field.
   String? _action;
   String get action => _action ?? '';
@@ -108,10 +93,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
         messageId: data['messageId'] as String?,
         type: data['type'] as String?,
         isPredefinedCharacter: data['isPredefinedCharacter'] as bool?,
-        options: getStructList(
-          data['options'],
-          OptionStructStruct.fromMap,
-        ),
         action: data['action'] as String?,
       );
 
@@ -127,7 +108,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
         'messageId': _messageId,
         'type': _type,
         'isPredefinedCharacter': _isPredefinedCharacter,
-        'options': _options?.map((e) => e.toMap()).toList(),
         'action': _action,
       }.withoutNulls;
 
@@ -160,11 +140,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
         'isPredefinedCharacter': serializeParam(
           _isPredefinedCharacter,
           ParamType.bool,
-        ),
-        'options': serializeParam(
-          _options,
-          ParamType.DataStruct,
-          isList: true,
         ),
         'action': serializeParam(
           _action,
@@ -210,12 +185,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
           ParamType.bool,
           false,
         ),
-        options: deserializeStructParam<OptionStructStruct>(
-          data['options'],
-          ParamType.DataStruct,
-          true,
-          structBuilder: OptionStructStruct.fromSerializableMap,
-        ),
         action: deserializeParam(
           data['action'],
           ParamType.String,
@@ -260,12 +229,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
           ParamType.bool,
           false,
         ),
-        options: convertAlgoliaParam<OptionStructStruct>(
-          data['options'],
-          ParamType.DataStruct,
-          true,
-          structBuilder: OptionStructStruct.fromAlgoliaData,
-        ),
         action: convertAlgoliaParam(
           data['action'],
           ParamType.String,
@@ -282,7 +245,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
 
   @override
   bool operator ==(Object other) {
-    const listEquality = ListEquality();
     return other is ChatMessageStructStruct &&
         name == other.name &&
         timestamp == other.timestamp &&
@@ -291,7 +253,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
         messageId == other.messageId &&
         type == other.type &&
         isPredefinedCharacter == other.isPredefinedCharacter &&
-        listEquality.equals(options, other.options) &&
         action == other.action;
   }
 
@@ -304,7 +265,6 @@ class ChatMessageStructStruct extends FFFirebaseStruct {
         messageId,
         type,
         isPredefinedCharacter,
-        options,
         action
       ]);
 }

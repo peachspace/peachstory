@@ -4,13 +4,10 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_toggle_icon.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:ui';
 import '/index.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'charactermain_model.dart';
 export 'charactermain_model.dart';
 
@@ -42,11 +39,11 @@ class _CharactermainWidgetState extends State<CharactermainWidget> {
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.loadedCharacter =
-          await CharacterRecord.getDocumentOnce(widget!.characterRef!);
+          await CharacterRecord.getDocumentOnce(widget.characterRef!);
       _model.currentUserDoc =
           await UsersRecord.getDocumentOnce(currentUserReference!);
       if (_model.currentUserDoc!.heartedPostPaths
-          .contains(widget!.characterRef?.path)) {
+          .contains(widget.characterRef?.path)) {
         _model.isHearted = !_model.isHearted;
         safeSetState(() {});
       }
@@ -188,12 +185,12 @@ class _CharactermainWidgetState extends State<CharactermainWidget> {
                                         {
                                           'hearted_post_paths':
                                               FieldValue.arrayUnion(
-                                                  [widget!.characterRef?.path]),
+                                                  [widget.characterRef?.path]),
                                         },
                                       ),
                                     });
 
-                                    await widget!.characterRef!.update({
+                                    await widget.characterRef!.update({
                                       ...mapToFirestore(
                                         {
                                           'heart_count':
@@ -207,12 +204,12 @@ class _CharactermainWidgetState extends State<CharactermainWidget> {
                                         {
                                           'hearted_post_paths':
                                               FieldValue.arrayRemove(
-                                                  [widget!.characterRef?.path]),
+                                                  [widget.characterRef?.path]),
                                         },
                                       ),
                                     });
 
-                                    await widget!.characterRef!.update({
+                                    await widget.characterRef!.update({
                                       ...mapToFirestore(
                                         {
                                           'heart_count':
@@ -310,7 +307,7 @@ class _CharactermainWidgetState extends State<CharactermainWidget> {
                               builder: (context) {
                                 final hashtagItem = (_model
                                             .loadedCharacter?.hashtags
-                                            ?.toList() ??
+                                            .toList() ??
                                         [])
                                     .take(10)
                                     .toList();
@@ -607,7 +604,7 @@ class _CharactermainWidgetState extends State<CharactermainWidget> {
                                     CharactercommentlistWidget.routeName,
                                     queryParameters: {
                                       'characterRef': serializeParam(
-                                        widget!.characterRef,
+                                        widget.characterRef,
                                         ParamType.DocumentReference,
                                       ),
                                     }.withoutNulls,
@@ -652,7 +649,7 @@ class _CharactermainWidgetState extends State<CharactermainWidget> {
                                   characterCommentsRecord
                                       .where(
                                         'character_ref',
-                                        isEqualTo: widget!.characterRef,
+                                        isEqualTo: widget.characterRef,
                                       )
                                       .where(
                                         'parent_comment_ref',
@@ -898,7 +895,7 @@ class _CharactermainWidgetState extends State<CharactermainWidget> {
                             CharacterchatWidget.routeName,
                             queryParameters: {
                               'characterRef': serializeParam(
-                                widget!.characterRef,
+                                widget.characterRef,
                                 ParamType.DocumentReference,
                               ),
                             }.withoutNulls,

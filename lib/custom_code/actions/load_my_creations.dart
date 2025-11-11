@@ -12,29 +12,46 @@ import 'package:flutter/material.dart';
 import '/auth/firebase_auth/auth_util.dart';
 
 Future<List<CombinedListItemStructStruct>> loadMyCreations() async {
+  final db = FirebaseFirestore.instance;
+
+  // 1. 현재 유저의 Reference 가져오기
   final currentUserRef = currentUserReference;
   if (currentUserRef == null) {
+    // 로그인하지 않았으면 빈 리스트 반환
     return [];
   }
 
-  final combinedList = <CombinedListItemStructStruct>[];
-
-  final storiesSnapshot = await FirebaseFirestore.instance
+  // 2. 'stories'에서 내가 만든 것 쿼리
+  final storyQuery = await db
       .collection('stories')
-      .where('creator_ref', isEqualTo: currentUserRef)
+      .where('creatorRef', isEqualTo: currentUserRef)
+      .orderBy('created_timestamp', descending: true)
       .get();
 
-  for (var doc in storiesSnapshot.docs) {
-    final story = StoriesRecord.fromSnapshot(doc);
+  // 3. 'character'에서 내가 만든 것 쿼리
+  final characterQuery = await db
+      .collection('character')
+      .where('creatorRef', isEqualTo: currentUserRef)
+      .orderBy('created_timestamp', descending: true)
+      .get();
+
+  final storyList =
+      storyQuery.docs.map((doc) => StoriesRecord.fromSnapshot(doc)).toList();
+  final characterList = characterQuery.docs
+      .map((doc) => CharacterRecord.fromSnapshot(doc))
+      .toList();
+
+  final combinedList = <CombinedListItemStructStruct>[];
+
+  // 4. 'stories' 리스트 변환
+  for (var story in storyList) {
     combinedList.add(CombinedListItemStructStruct(
       type: 'story',
       title: story.title,
       imageUrl: story.mainImage,
       timestamp: story.createdTimestamp,
-      characterRef: null,
       storyRef: story.reference,
       category: story.category,
-      userRole: story.userRole,
       introduction: story.description,
       viewCount: story.viewCount,
       heartCount: story.heartCount,
@@ -44,22 +61,15 @@ Future<List<CombinedListItemStructStruct>> loadMyCreations() async {
     ));
   }
 
-  final charactersSnapshot = await FirebaseFirestore.instance
-      .collection('character')
-      .where('creator_ref', isEqualTo: currentUserRef)
-      .get();
-
-  for (var doc in charactersSnapshot.docs) {
-    final char = CharacterRecord.fromSnapshot(doc);
+  // 5. 'character' 리스트 변환
+  for (var char in characterList) {
     combinedList.add(CombinedListItemStructStruct(
       type: 'character',
       title: char.name,
       imageUrl: char.characterimage,
       timestamp: char.createdTimestamp,
       characterRef: char.reference,
-      storyRef: null,
       category: char.genre,
-      userRole: '',
       introduction: char.introduce,
       viewCount: char.viewCount,
       heartCount: char.heartCount,
@@ -69,11 +79,9 @@ Future<List<CombinedListItemStructStruct>> loadMyCreations() async {
     ));
   }
 
-  combinedList.sort((a, b) {
-    final aTime = a.timestamp ?? DateTime(1970);
-    final bTime = b.timestamp ?? DateTime(1970);
-    return bTime.compareTo(aTime);
-  });
+  // 6. 두 리스트를 합쳐서 다시 시간순으로 정렬
+  combinedList.sort((a, b) => (b.timestamp!).compareTo(a.timestamp!));
+
   return combinedList;
 }
 // Set your action name, define your arguments and return parameter,
