@@ -10,399 +10,328 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'index.dart'; // Imports other custom widgets
+
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/scheduler.dart';
-import '/auth/firebase_auth/auth_util.dart';
 
 class NotifierChatList extends StatefulWidget {
   const NotifierChatList({
-    super.key,
+    Key? key,
     this.width,
     this.height,
-    this.initialMessages,
-    required this.newResponseScript,
-    this.userInChatName,
-    this.preDefinedCharacters,
-    this.backgroundList,
-    this.situationalImageList,
-    this.onBackgroundChange,
-    this.onTurnComplete,
-  });
+    this.newResponseScript,
+    required this.initialMessages,
+    required this.preDefinedCharacters,
+    required this.userInChatName,
+    // backgroundList 파라미터 삭제됨
+    required this.situationalImageList,
+    // onBackgroundChange 파라미터 삭제됨
+    required this.onTurnComplete,
+  }) : super(key: key);
 
   final double? width;
   final double? height;
-  final List<StoryChatMessageStructStruct>? initialMessages;
-  final String newResponseScript;
+  final String? newResponseScript;
+  final List<StoryChatMessageStructStruct> initialMessages;
+  final List<CharacterStructStruct> preDefinedCharacters;
   final String? userInChatName;
-  final List<CharacterStructStruct>? preDefinedCharacters;
-  final List<LocationBackgroundStructStruct>? backgroundList;
-  final List<SituationalImageStructStruct>? situationalImageList;
-  // [수정됨] 콜백 파라미터 타입을 다시 String?으로 변경
-  final Future<dynamic> Function(String? newBgUrl)? onBackgroundChange;
-  final Future<dynamic> Function(List<dynamic>? scenes)? onTurnComplete;
+  final List<SituationalImageStructStruct> situationalImageList;
+  final Future<dynamic> Function(List<dynamic>? scenes) onTurnComplete;
 
   @override
-  State<NotifierChatList> createState() => _NotifierChatListState();
+  _NotifierChatListState createState() => _NotifierChatListState();
 }
 
 class _NotifierChatListState extends State<NotifierChatList> {
-  late ValueNotifier<List<StoryChatMessageStructStruct>> _messagesNotifier;
   final ScrollController _scrollController = ScrollController();
-  List<dynamic> _scenes = [];
-  int _currentSceneIndex = 0;
+  List<StoryChatMessageStructStruct> _messages = [];
+  bool _isTyping = false;
 
   @override
   void initState() {
     super.initState();
-    // 페이지가 처음 로드될 때만 initialMessages로 초기화합니다.
-    _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
-    _messagesNotifier.addListener(_scrollToBottom);
+    _messages = List.from(widget.initialMessages);
+    // 화면 로드 시 스크롤을 맨 아래로 이동
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 
   @override
-  void didUpdateWidget(covariant NotifierChatList oldWidget) {
+  void didUpdateWidget(NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // 1. 부모의 메시지 리스트(initialMessages)와 위젯 내부의 리스트를 동기화합니다.
-    //    사용자가 새 메시지를 보내면 이 부분이 실행되어 목록에 반영됩니다.
-    final newMsgs = widget.initialMessages ?? [];
-    if (newMsgs.length > _messagesNotifier.value.length) {
-      _messagesNotifier.value = List.from(newMsgs);
+    // 새로운 AI 스크립트가 들어오면 파싱 및 스트리밍 시작
+    if (widget.newResponseScript != null &&
+        widget.newResponseScript != oldWidget.newResponseScript &&
+        widget.newResponseScript!.isNotEmpty) {
+      _processAiResponse(widget.newResponseScript!);
     }
-
-    // 2. 새로운 AI 스크립트가 도착했을 때만 연출을 시작합니다.
-    //    이제 상태를 덮어쓰지 않고 바로 연출을 시작하여 깜빡임이 없습니다.
-    if (widget.newResponseScript != oldWidget.newResponseScript &&
-        widget.newResponseScript.isNotEmpty &&
-        widget.newResponseScript != '""' &&
-        widget.newResponseScript != '" "') {
-      SchedulerBinding.instance.addPostFrameCallback((_) => _startDirecting());
+    // 초기 메시지 목록이 바뀌었을 때 업데이트
+    if (widget.initialMessages.length != oldWidget.initialMessages.length) {
+      setState(() {
+        _messages = List.from(widget.initialMessages);
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
-  }
-
-  @override
-  void dispose() {
-    _messagesNotifier.removeListener(_scrollToBottom);
-    _messagesNotifier.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _startDirecting() {
-    if (!mounted) return;
-    _scenes = _parseScriptIntoScenes(widget.newResponseScript);
-    _currentSceneIndex = 0;
-    _processNextScene();
-  }
-
-  void _processNextScene() async {
-    if (!mounted || _currentSceneIndex >= _scenes.length) {
-      if (widget.onTurnComplete != null) {
-        SchedulerBinding.instance
-            .addPostFrameCallback((_) => widget.onTurnComplete!(_scenes));
-      }
-      return;
-    }
-    final scene = _scenes[_currentSceneIndex];
-    _currentSceneIndex++;
-    final type = scene['type'] ?? 'narration';
-
-    if (type == 'background_change') {
-      final location = scene['location'] ?? '';
-      String foundUrl = '';
-      if (widget.backgroundList != null) {
-        for (final bg in widget.backgroundList!) {
-          if (bg.locationName == location) {
-            foundUrl = bg.imageUrl;
-            break;
-          }
-        }
-      }
-      if (widget.onBackgroundChange != null) {
-        await widget.onBackgroundChange!(foundUrl);
-      }
-      _processNextScene();
-    } else if (type == 'show_image') {
-      final imageUrl = _findSituationalImageUrlByCondition(
-          scene['condition'] ?? '', widget.situationalImageList ?? []);
-      if (imageUrl.isNotEmpty) {
-        // 👇 타입 수정
-        final imageMessage = createStoryChatMessageStructStruct(
-            type: 'story_image', storyImageUrl: imageUrl, isStreaming: false);
-        _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
-      }
-      await Future.delayed(const Duration(milliseconds: 300));
-      _processNextScene();
-    } else {
-      await _animateTextScene(scene);
-      if (mounted) {
-        _processNextScene();
-      }
-    }
-  }
-
-  Future<void> _animateTextScene(dynamic scene) async {
-    final placeholder = _createStructFromScene(scene, '', true);
-    if (placeholder == null) return;
-    _messagesNotifier.value = [..._messagesNotifier.value, placeholder];
-    final String fullText = scene['content'] ?? '';
-    for (int i = 0; i <= fullText.length; i++) {
-      if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 20)); // 속도 조절
-      final currentList = _messagesNotifier.value;
-      if (currentList.isEmpty) return;
-      final updatedMessage =
-          _createStructFromScene(scene, fullText.substring(0, i), true);
-      if (updatedMessage == null) continue;
-      currentList[currentList.length - 1] = updatedMessage;
-      _messagesNotifier.value = List.from(currentList);
-    }
-    final currentList = _messagesNotifier.value;
-    if (currentList.isNotEmpty) {
-      final finalMessage = _createStructFromScene(scene, fullText, false);
-      if (finalMessage != null) {
-        currentList[currentList.length - 1] = finalMessage;
-        _messagesNotifier.value = List.from(currentList);
-      }
-    }
-    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   void _scrollToBottom() {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  // AI 응답(JSON String)을 파싱하여 메시지 리스트에 순차적으로 추가하는 함수
+  Future<void> _processAiResponse(String responseScript) async {
+    try {
+      setState(() => _isTyping = true);
+
+      // JSON 파싱 (대괄호 등으로 감싸져 있지 않은 경우 처리 등 필요시 로직 추가)
+      // 여기서는 단순 JSON 리스트로 가정하거나, custom function을 활용할 수 있습니다.
+      // 편의상 responseScript가 Valid JSON List String이라고 가정합니다.
+      List<dynamic> scenes = jsonDecode(responseScript);
+
+      for (var scene in scenes) {
+        String type = scene['type'] ?? 'narration';
+        String content = scene['content'] ?? '';
+        String speaker = scene['speaker'] ?? '';
+        String action = scene['action'] ?? '';
+        String condition = scene['condition'] ?? '';
+
+        // 배경 변경(set_background) 로직은 삭제됨
+
+        // 메시지 구조체 생성
+        StoryChatMessageStructStruct newMessage = StoryChatMessageStructStruct(
+          type: type,
+          text: content,
+          speakerName: speaker,
+          actionText: action,
+          isStreaming: false, // 타이핑 효과가 필요하면 true로 설정 후 별도 로직 구현
         );
+
+        // 캐릭터 이미지 찾기
+        if (type == 'dialogue') {
+          // custom function 활용 또는 직접 찾기
+          var char = widget.preDefinedCharacters.firstWhere(
+            (c) => c.name == speaker,
+            orElse: () => CharacterStructStruct(image: ''),
+          );
+          newMessage.speakerImage = char.image;
+        } else if (type == 'show_image') {
+          // 상황 이미지 찾기
+          // (custom function: findSituationalImageUrlByCondition 로직 내장)
+          var sitImg = widget.situationalImageList.firstWhere(
+            (s) => s.condition == condition,
+            orElse: () => SituationalImageStructStruct(imageUrl: ''),
+          );
+          newMessage.storyImageUrl = sitImg.imageUrl;
+        }
+
+        // 메시지 추가 및 딜레이 (자연스러운 연출을 위해)
+        if (mounted) {
+          setState(() {
+            _messages.add(newMessage);
+          });
+          _scrollToBottom();
+        }
+        await Future.delayed(const Duration(milliseconds: 800));
       }
-    });
+
+      // 턴 종료 콜백 호출
+      if (mounted) {
+        setState(() => _isTyping = false);
+        widget.onTurnComplete(scenes);
+      }
+    } catch (e) {
+      print('Error parsing AI response: $e');
+      setState(() => _isTyping = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // 👇 타입 수정
-    return ValueListenableBuilder<List<StoryChatMessageStructStruct>>(
-      valueListenable: _messagesNotifier,
-      builder: (context, chatMessages, child) {
-        return ListView.builder(
-          controller: _scrollController,
-          padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          itemCount: chatMessages.length,
-          itemBuilder: (context, index) {
-            final chatItem = chatMessages[index];
-            if (chatItem.type == 'user') {
-              return _buildUserMessage(chatItem);
-            } else {
-              return _buildAiMessage(chatItem);
-            }
-          },
-        );
-      },
-    );
-  }
-
-  List<dynamic> _parseScriptIntoScenes(String scriptText) {
-    final List<dynamic> scenes = [];
-    final RegExp exp = RegExp(
-        r'(\[SET_BACKGROUND="(.*?)"\])|(\[SHOW_IMAGE="(.*?)"\])|(\[NARRATION\](.*?)\[/NARRATION\])|(\[DIALOGUE SPEAKER="(.*?)"(?: ACTION="(.*?)")?\](.*?)\[/DIALOGUE\])',
-        dotAll: true,
-        multiLine: true);
-    final matches = exp.allMatches(scriptText);
-    for (final m in matches) {
-      if (m.group(1) != null) {
-        scenes.add({
-          "type": "background_change",
-          "location": m.group(2)?.trim() ?? ''
-        });
-      } else if (m.group(3) != null) {
-        scenes
-            .add({"type": "show_image", "condition": m.group(4)?.trim() ?? ''});
-      } else if (m.group(5) != null) {
-        scenes.add({"type": "narration", "content": m.group(6)?.trim() ?? ''});
-      } else if (m.group(7) != null) {
-        scenes.add({
-          "type": "dialogue",
-          "speaker": m.group(8)?.trim() ?? '',
-          "action": m.group(9)?.trim(),
-          "content": m.group(10)?.trim() ?? ''
-        });
-      }
-    }
-    return scenes;
-  }
-
-  // 👇 타입 수정
-  StoryChatMessageStructStruct? _createStructFromScene(
-      dynamic scene, String text, bool isStreaming) {
-    if (scene == null) return null;
-    // 👇 타입 수정
-    return createStoryChatMessageStructStruct(
-      type: scene['type'] ?? 'narration',
-      speakerName: scene['speaker'],
-      actionText: scene['action'],
-      text: text,
-      isStreaming: isStreaming,
-    );
-  }
-
-  String _findSituationalImageUrlByCondition(
-      String condition, List<SituationalImageStructStruct> imageList) {
-    for (final img in imageList) {
-      if (img.condition == condition) {
-        return img.imageUrl;
-      }
-    }
-    return '';
-  }
-
-  String? _findCharacterImageByName(
-      String name, List<CharacterStructStruct> characters) {
-    for (final char in characters) {
-      if (char.name == name) {
-        return char.image;
-      }
-    }
-    return null;
-  }
-
-  // 👇 타입 수정
-  Widget _buildUserMessage(StoryChatMessageStructStruct chatItem) {
-    return _buildDialogueMessage(chatItem);
-  }
-
-  // 👇 타입 수정
-  Widget _buildAiMessage(StoryChatMessageStructStruct chatItem) {
-    final messageType = chatItem.type;
-    if (messageType == 'narration') {
-      return _buildNarration(chatItem);
-    } else if (messageType == 'dialogue') {
-      return _buildDialogueMessage(chatItem);
-    } else if (messageType == 'story_image') {
-      return _buildStoryImage(chatItem);
-    } else if (messageType == 'thinking') {
-      return _buildThinkingIndicator();
-    }
-    return Container();
-  }
-
-  Widget _buildNarration(StoryChatMessageStructStruct message) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-      child: Text(
-        message.text?.trim() ?? '',
-        style: FlutterFlowTheme.of(context).bodyMedium.override(
-              fontFamily: 'Readex Pro',
-              color: Color(0xFF8A2BE2),
-              fontStyle: FontStyle.italic,
-              fontWeight: FontWeight.normal,
-            ),
+    return Container(
+      width: widget.width,
+      height: widget.height,
+      // 배경색은 투명하게 하여 상위 위젯의 배경색을 따르게 함
+      color: Colors.transparent,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.only(bottom: 20),
+        itemCount: _messages.length + (_isTyping ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == _messages.length) {
+            // 로딩 인디케이터 (Typing...)
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Color(0xFFFFD1BA))),
+              ),
+            );
+          }
+          final msg = _messages[index];
+          return _buildMessageItem(msg);
+        },
       ),
     );
   }
 
-  Widget _buildDialogueMessage(StoryChatMessageStructStruct chatItem) {
-    final isUserMessage = chatItem.type == 'user';
-
-    String speaker = isUserMessage
-        ? (widget.userInChatName ?? chatItem.speakerName ?? 'User')
-        : (chatItem.speakerName ?? 'Unknown');
-
-    String speakerImage = isUserMessage
-        ? (currentUserPhoto)
-        : (chatItem.speakerImage ??
-            _findCharacterImageByName(
-                speaker, widget.preDefinedCharacters ?? []) ??
-            'https://cdn-icons-png.flaticon.com/512/12428/12428135.png');
-
-    Color speakerNameColor;
-    if (isUserMessage) {
-      speakerNameColor = Color(0xFFee8b60);
-    } else {
-      final isPreDefined =
-          widget.preDefinedCharacters?.any((char) => char.name == speaker) ??
-              false;
-      speakerNameColor = isPreDefined
-          ? Color(0xFF4B39EF)
-          : FlutterFlowTheme.of(context).primaryText;
-    }
-
-    final speakerStyle = FlutterFlowTheme.of(context).bodyMedium.override(
-          fontFamily: 'Readex Pro',
-          fontWeight: FontWeight.bold,
-          color: speakerNameColor,
-        );
-
-    // 모든 대화는 이제 왼쪽 정렬
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 4.0),
-            child: CircleAvatar(
-              backgroundImage: NetworkImage(speakerImage),
-              radius: 12.5,
-              onBackgroundImageError: (e, s) {},
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(speaker, style: speakerStyle),
-                SizedBox(height: 4.0),
-                Text(
-                  (chatItem.actionText != null &&
-                              chatItem.actionText!.isNotEmpty
-                          ? '(${chatItem.actionText}) '
-                          : '') +
-                      (chatItem.text ?? ''),
-                  style: FlutterFlowTheme.of(context).bodyMedium,
+  Widget _buildMessageItem(StoryChatMessageStructStruct message) {
+    // 1. 유저 메시지
+    if (message.type == 'user') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFD1BA), // 유저 말풍선 색상
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
+                child: Text(
+                  message.text,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily: 'Inter',
+                        color: Colors.white,
+                      ),
+                ),
+              ),
             ),
+          ],
+        ),
+      );
+    }
+
+    // 2. 나레이션 (일반적 설명/묘사)
+    // [요청사항 반영] 기울기 제거, 검은색(연하게), 크기 작게
+    else if (message.type == 'narration') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 8.0),
+        child: Text(
+          message.text,
+          textAlign: TextAlign.center,
+          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                fontFamily: 'Inter',
+                color: const Color(0xFF4A4A4A), // 검은색보다 약간 연한 진회색
+                fontSize: 13.0, // 대사보다 약간 작게
+                fontWeight: FontWeight.normal, // 기울기 없음 (Normal)
+                fontStyle: FontStyle.normal, // 확실하게 Normal로 지정
+                lineHeight: 1.5,
+              ),
+        ),
+      );
+    }
+
+    // 3. 캐릭터 대사
+    else if (message.type == 'dialogue') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // [요청사항 반영] 원형 -> 둥근 사각형 이미지
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12.0), // 둥근 사각형 (반경 12)
+              child: Image.network(
+                message.speakerImage != null && message.speakerImage.isNotEmpty
+                    ? message.speakerImage
+                    : 'https://via.placeholder.com/150', // 기본 이미지
+                width: 40.0,
+                height: 40.0,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 캐릭터 이름
+                  Text(
+                    message.speakerName,
+                    style: FlutterFlowTheme.of(context).labelSmall.override(
+                          fontFamily: 'Inter',
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                          fontSize: 12.0,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  // 말풍선
+                  Container(
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE0E3E7)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // (선택 사항) 지문/행동 묘사가 있다면 작게 표시
+                        if (message.actionText != null &&
+                            message.actionText.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4.0),
+                            child: Text(
+                              "(${message.actionText})",
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                  fontStyle: FontStyle.italic),
+                            ),
+                          ),
+                        Text(
+                          message.text,
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    fontFamily: 'Inter',
+                                    color: Colors.black87,
+                                    fontSize: 15.0,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 4. 이미지 보여주기 (show_image)
+    else if (message.type == 'story_image' || message.type == 'show_image') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8.0),
+          child: Image.network(
+            message.storyImageUrl ?? '',
+            width: double.infinity,
+            height: 200,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+                height: 200,
+                color: Colors.grey[200],
+                child: Center(
+                    child: Icon(Icons.broken_image, color: Colors.grey))),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      );
+    }
 
-  // [수정됨] 생략되었던 함수들 추가
-  Widget _buildThinkingIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
-      child: Row(children: [
-        SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator.adaptive(strokeWidth: 2)),
-        SizedBox(width: 12),
-        Text('이야기를 생각하고 있어요...',
-            style: FlutterFlowTheme.of(context).bodyMedium.override(
-                fontFamily: 'Readex Pro',
-                color: FlutterFlowTheme.of(context).secondaryText,
-                fontStyle: FontStyle.italic)),
-      ]),
-    );
-  }
-
-  Widget _buildStoryImage(StoryChatMessageStructStruct message) {
-    final imageUrl = message.storyImageUrl;
-    if (imageUrl == null || imageUrl.isEmpty) return Container();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12.0),
-        child: Image.network(imageUrl, fit: BoxFit.fitWidth),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }
-// Set your widget name, define your parameter, and then add the
-// boilerplate code using the green button on the right!

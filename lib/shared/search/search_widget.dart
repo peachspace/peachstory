@@ -54,7 +54,7 @@ class _SearchWidgetState extends State<SearchWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: Color(0xFFFFF8F9),
+        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
         appBar: AppBar(
           backgroundColor: Color(0xFFFFF8F9),
           automaticallyImplyLeading: false,
@@ -98,7 +98,7 @@ class _SearchWidgetState extends State<SearchWidget> {
         body: SafeArea(
           top: true,
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(25.0, 10.0, 25.0, 0.0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
@@ -110,7 +110,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                       borderRadius: BorderRadius.circular(10.0),
                       border: Border.all(
                         color: FlutterFlowTheme.of(context).alternate,
-                        width: 0.5,
+                        width: 1.0,
                       ),
                     ),
                     child: Row(
@@ -387,7 +387,8 @@ class _SearchWidgetState extends State<SearchWidget> {
                           color: FlutterFlowTheme.of(context).secondaryText,
                           size: 23.0,
                         ),
-                        fillColor: Color(0xFFFFF8F9),
+                        fillColor:
+                            FlutterFlowTheme.of(context).secondaryBackground,
                         elevation: 2.0,
                         borderColor: Colors.transparent,
                         borderWidth: 0.0,

@@ -21,13 +21,6 @@ class CreatelistModel extends FlutterFlowModel<CreatelistWidget> {
           int index, Function(CombinedListItemStructStruct) updateFn) =>
       combinedList[index] = updateFn(combinedList[index]);
 
-  ///  State fields for stateful widgets in this page.
-
-  // Stores action output result for [Custom Action - loadMyCreations] action in createlist widget.
-  List<CombinedListItemStructStruct>? creations;
-  // Stores action output result for [Custom Action - loadMyCreations] action in Icon widget.
-  List<CombinedListItemStructStruct>? refreshedList;
-
   @override
   void initState(BuildContext context) {}
 

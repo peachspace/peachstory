@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/story1/storyusername/storyusername_widget.dart';
 import '/index.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -44,6 +45,8 @@ class _StorymainWidgetState extends State<StorymainWidget> {
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.loadedStory =
           await StoriesRecord.getDocumentOnce(widget.storymainRef!);
+      _model.loadStory = _model.loadedStory;
+      safeSetState(() {});
       _model.currentUserDoc =
           await UsersRecord.getDocumentOnce(currentUserReference!);
       if (_model.currentUserDoc!.heartedPostPaths
@@ -152,7 +155,7 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                                 alignment: AlignmentDirectional(-1.0, 0.0),
                                 child: Text(
                                   valueOrDefault<String>(
-                                    _model.loadedStory?.title,
+                                    _model.loadStory?.title,
                                     '제목없음',
                                   ),
                                   style: FlutterFlowTheme.of(context)
@@ -242,8 +245,8 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                           alignment: AlignmentDirectional(-1.0, 0.0),
                           child: Text(
                             valueOrDefault<String>(
-                              _model.loadedStory?.category,
-                              'dd',
+                              _model.loadStory?.category,
+                              '일반',
                             ),
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
@@ -276,8 +279,8 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                                 0.0, 20.0, 0.0, 20.0),
                             child: Text(
                               valueOrDefault<String>(
-                                _model.loadedStory?.description,
-                                'No',
+                                _model.loadStory?.description,
+                                '설명없음',
                               ),
                               style: FlutterFlowTheme.of(context)
                                   .bodyMedium
@@ -1038,45 +1041,80 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                       child: Builder(
                         builder: (context) => FFButtonWidget(
                           onPressed: () async {
-                            await showDialog(
-                              context: context,
-                              builder: (dialogContext) {
-                                return Dialog(
-                                  elevation: 0,
-                                  insetPadding: EdgeInsets.zero,
-                                  backgroundColor: Colors.transparent,
-                                  alignment: AlignmentDirectional(0.0, 0.0)
-                                      .resolve(Directionality.of(context)),
-                                  child: WebViewAware(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        FocusScope.of(dialogContext).unfocus();
-                                        FocusManager.instance.primaryFocus
-                                            ?.unfocus();
-                                      },
-                                      child: StoryusernameWidget(
-                                        storyRef: widget.storymainRef!,
-                                        onNameConfirmed: (enteredName) async {
-                                          context.pushNamed(
-                                            StorychatWidget.routeName,
-                                            queryParameters: {
-                                              'storyRef': serializeParam(
-                                                widget.storymainRef,
-                                                ParamType.DocumentReference,
-                                              ),
-                                              'userInChatName': serializeParam(
-                                                enteredName,
-                                                ParamType.String,
-                                              ),
-                                            }.withoutNulls,
-                                          );
+                            _model.existingChat =
+                                await queryStorychatsRecordOnce(
+                              queryBuilder: (storychatsRecord) =>
+                                  storychatsRecord
+                                      .where(
+                                        'user_ref',
+                                        isEqualTo: currentUserReference,
+                                      )
+                                      .where(
+                                        'story_ref',
+                                        isEqualTo: widget.storymainRef,
+                                      ),
+                            );
+                            if (_model.existingChat!.length > 0) {
+                              context.pushNamed(
+                                StorychatWidget.routeName,
+                                queryParameters: {
+                                  'storyRef': serializeParam(
+                                    widget.storymainRef,
+                                    ParamType.DocumentReference,
+                                  ),
+                                  'userInChatName': serializeParam(
+                                    _model.existingChat
+                                        ?.elementAtOrNull(0)
+                                        ?.userInChatName,
+                                    ParamType.String,
+                                  ),
+                                }.withoutNulls,
+                              );
+                            } else {
+                              await showDialog(
+                                context: context,
+                                builder: (dialogContext) {
+                                  return Dialog(
+                                    elevation: 0,
+                                    insetPadding: EdgeInsets.zero,
+                                    backgroundColor: Colors.transparent,
+                                    alignment: AlignmentDirectional(0.0, 0.0)
+                                        .resolve(Directionality.of(context)),
+                                    child: WebViewAware(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          FocusScope.of(dialogContext)
+                                              .unfocus();
+                                          FocusManager.instance.primaryFocus
+                                              ?.unfocus();
                                         },
+                                        child: StoryusernameWidget(
+                                          storyRef: widget.storymainRef!,
+                                          onNameConfirmed: (enteredName) async {
+                                            context.pushNamed(
+                                              StorychatWidget.routeName,
+                                              queryParameters: {
+                                                'storyRef': serializeParam(
+                                                  widget.storymainRef,
+                                                  ParamType.DocumentReference,
+                                                ),
+                                                'userInChatName':
+                                                    serializeParam(
+                                                  enteredName,
+                                                  ParamType.String,
+                                                ),
+                                              }.withoutNulls,
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
-                            );
+                                  );
+                                },
+                              );
+                            }
+
+                            safeSetState(() {});
                           },
                           text: '시작하기',
                           options: FFButtonOptions(

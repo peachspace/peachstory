@@ -1,8 +1,8 @@
 import '/flutter_flow/flutter_flow_util.dart';
-import 'icon_menu_popup_widget.dart' show IconMenuPopupWidget;
+import 'chatsheet_widget.dart' show ChatsheetWidget;
 import 'package:flutter/material.dart';
 
-class IconMenuPopupModel extends FlutterFlowModel<IconMenuPopupWidget> {
+class ChatsheetModel extends FlutterFlowModel<ChatsheetWidget> {
   @override
   void initState(BuildContext context) {}
 

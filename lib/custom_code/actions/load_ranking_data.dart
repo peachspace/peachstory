@@ -12,11 +12,14 @@ import 'package:flutter/material.dart';
 Future<List<CombinedListItemStructStruct>> loadRankingData(
     String period) async {
   Duration duration;
-  if (period == 'daily') {
+  if (period == '일간') {
+    // [!code correction]
     duration = Duration(days: 1);
-  } else if (period == 'weekly') {
+  } else if (period == '주간') {
+    // [!code correction]
     duration = Duration(days: 7);
-  } else if (period == 'monthly') {
+  } else if (period == '월간') {
+    // [!code correction]
     duration = Duration(days: 30);
   } else {
     // 기본값

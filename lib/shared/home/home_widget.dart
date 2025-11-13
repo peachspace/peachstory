@@ -78,7 +78,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: Color(0xFFFFF8F9),
+        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
         drawer: Drawer(
           elevation: 16.0,
           child: WebViewAware(
@@ -615,7 +615,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       height: 280.0,
                                       child: Builder(
                                         builder: (context) {
-                                          final item2 = _model.combinedList
+                                          final item2 = _model.newlist
                                               .toList()
                                               .take(10)
                                               .toList();
@@ -639,8 +639,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                 onTap: () async {
                                                   if (item2Item.type ==
                                                       'story') {
-                                                    await item2Item
-                                                        .characterRef!
+                                                    await item2Item.storyRef!
                                                         .update({
                                                       ...mapToFirestore(
                                                         {
@@ -657,31 +656,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                         'storymainRef':
                                                             serializeParam(
                                                           item2Item.storyRef,
-                                                          ParamType
-                                                              .DocumentReference,
-                                                        ),
-                                                      }.withoutNulls,
-                                                    );
-                                                  } else {
-                                                    await item2Item.storyRef!
-                                                        .update({
-                                                      ...mapToFirestore(
-                                                        {
-                                                          'view_count':
-                                                              FieldValue
-                                                                  .increment(1),
-                                                        },
-                                                      ),
-                                                    });
-
-                                                    context.pushNamed(
-                                                      CharactermainWidget
-                                                          .routeName,
-                                                      queryParameters: {
-                                                        'characterRef':
-                                                            serializeParam(
-                                                          item2Item
-                                                              .characterRef,
                                                           ParamType
                                                               .DocumentReference,
                                                         ),

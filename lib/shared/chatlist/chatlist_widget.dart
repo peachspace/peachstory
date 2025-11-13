@@ -2,10 +2,8 @@ import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/custom_code/actions/index.dart' as actions;
-import '/flutter_flow/custom_functions.dart' as functions;
+import '/shared/chatsheet/chatsheet_widget.dart';
 import '/index.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -35,14 +33,7 @@ class _ChatlistWidgetState extends State<ChatlistWidget> {
     _model = createModel(context, () => ChatlistModel());
 
     // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (FFAppState().cachedMyChats.length == 0) {
-        _model.chats = await actions.loadMyChats();
-        FFAppState().cachedMyChats =
-            _model.chats!.toList().cast<CombinedListItemStructStruct>();
-        safeSetState(() {});
-      }
-    });
+    SchedulerBinding.instance.addPostFrameCallback((_) async {});
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -65,7 +56,7 @@ class _ChatlistWidgetState extends State<ChatlistWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: Color(0xFFFFF8F9),
+        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
         drawer: Drawer(
           elevation: 16.0,
           child: WebViewAware(
@@ -322,7 +313,7 @@ class _ChatlistWidgetState extends State<ChatlistWidget> {
             ),
           ),
           title: Text(
-            '대화내역',
+            '대화목록',
             style: FlutterFlowTheme.of(context).bodyMedium.override(
                   font: GoogleFonts.inter(
                     fontWeight: FontWeight.w600,
@@ -353,313 +344,282 @@ class _ChatlistWidgetState extends State<ChatlistWidget> {
                   child: Padding(
                     padding:
                         EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
-                    child: Builder(
-                      builder: (context) {
-                        final item = FFAppState().cachedMyChats.toList();
+                    child: StreamBuilder<List<StorychatsRecord>>(
+                      stream: queryStorychatsRecord(
+                        queryBuilder: (storychatsRecord) => storychatsRecord
+                            .where(
+                              'user_ref',
+                              isEqualTo: currentUserReference,
+                            )
+                            .orderBy('last_timestamp', descending: true),
+                      ),
+                      builder: (context, snapshot) {
+                        // Customize what your widget looks like when it's loading.
+                        if (!snapshot.hasData) {
+                          return Center(
+                            child: SizedBox(
+                              width: 50.0,
+                              height: 50.0,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  FlutterFlowTheme.of(context).primary,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        List<StorychatsRecord> listViewStorychatsRecordList =
+                            snapshot.data!;
 
                         return ListView.builder(
                           padding: EdgeInsets.zero,
                           shrinkWrap: true,
                           scrollDirection: Axis.vertical,
-                          itemCount: item.length,
-                          itemBuilder: (context, itemIndex) {
-                            final itemItem = item[itemIndex];
-                            return Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Color(0xFFFFF8F9),
-                                boxShadow: [
-                                  BoxShadow(
-                                    blurRadius: 0.0,
-                                    color:
-                                        FlutterFlowTheme.of(context).alternate,
-                                    offset: Offset(
-                                      0.0,
-                                      1.0,
+                          itemCount: listViewStorychatsRecordList.length,
+                          itemBuilder: (context, listViewIndex) {
+                            final listViewStorychatsRecord =
+                                listViewStorychatsRecordList[listViewIndex];
+                            return StreamBuilder<StoriesRecord>(
+                              stream: StoriesRecord.getDocument(
+                                  listViewStorychatsRecord.storyRef!),
+                              builder: (context, snapshot) {
+                                // Customize what your widget looks like when it's loading.
+                                if (!snapshot.hasData) {
+                                  return Center(
+                                    child: SizedBox(
+                                      width: 50.0,
+                                      height: 50.0,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          FlutterFlowTheme.of(context).primary,
+                                        ),
+                                      ),
                                     ),
-                                  )
-                                ],
-                              ),
-                              child: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 12.0, 0.0, 12.0),
-                                child: InkWell(
-                                  splashColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: () async {
-                                    if (functions.isCharacterType(itemItem)) {
-                                      context.pushNamed(
-                                        CharacterchatWidget.routeName,
-                                        queryParameters: {
-                                          'characterRef': serializeParam(
-                                            itemItem.characterRef,
-                                            ParamType.DocumentReference,
-                                          ),
-                                        }.withoutNulls,
-                                      );
-                                    } else {
-                                      context.pushNamed(
-                                        StorychatWidget.routeName,
-                                        queryParameters: {
-                                          'storyRef': serializeParam(
-                                            itemItem.storyRef,
-                                            ParamType.DocumentReference,
-                                          ),
-                                          'userInChatName': serializeParam(
-                                            itemItem.userRole,
-                                            ParamType.String,
-                                          ),
-                                        }.withoutNulls,
-                                      );
-                                    }
-                                  },
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Container(
-                                        width: 60.0,
-                                        height: 60.0,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
-                                          border: Border.all(
-                                            color: FlutterFlowTheme.of(context)
-                                                .alternate,
-                                          ),
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
-                                          child: Image.network(
-                                            itemItem.imageUrl,
-                                            width: 60.0,
-                                            height: 60.0,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 4,
-                                        child: Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  15.0, 0.0, 0.0, 0.0),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.max,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        0.0, 0.0, 0.0, 10.0),
-                                                child: Text(
-                                                  itemItem.title,
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyLarge
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyLarge
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyLarge
-                                                                  .fontStyle,
-                                                        ),
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyLarge
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyLarge
-                                                                .fontStyle,
-                                                      ),
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        0.0, 0.0, 12.0, 0.0),
-                                                child: Text(
-                                                  itemItem.category,
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .labelSmall
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelSmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelSmall
-                                                                  .fontStyle,
-                                                        ),
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .secondaryText,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelSmall
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelSmall
-                                                                .fontStyle,
-                                                      ),
-                                                ),
-                                              ),
-                                            ].divide(SizedBox(height: 4.0)),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          children: [
-                                            InkWell(
-                                              splashColor: Colors.transparent,
-                                              focusColor: Colors.transparent,
-                                              hoverColor: Colors.transparent,
-                                              highlightColor:
-                                                  Colors.transparent,
-                                              onTap: () async {
-                                                var confirmDialogResponse =
-                                                    await showDialog<bool>(
-                                                          context: context,
-                                                          builder:
-                                                              (alertDialogContext) {
-                                                            return WebViewAware(
-                                                              child:
-                                                                  AlertDialog(
-                                                                title:
-                                                                    Text('삭제'),
-                                                                content: Text(
-                                                                    '정말 삭제하시겠습니까?'),
-                                                                actions: [
-                                                                  TextButton(
-                                                                    onPressed: () =>
-                                                                        Navigator.pop(
-                                                                            alertDialogContext,
-                                                                            false),
-                                                                    child: Text(
-                                                                        '취소'),
-                                                                  ),
-                                                                  TextButton(
-                                                                    onPressed: () =>
-                                                                        Navigator.pop(
-                                                                            alertDialogContext,
-                                                                            true),
-                                                                    child: Text(
-                                                                        '확인'),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            );
-                                                          },
-                                                        ) ??
-                                                        false;
-                                                if (confirmDialogResponse) {
-                                                  if (itemItem.type ==
-                                                      'story') {
-                                                    _model.deletestory =
-                                                        await queryStorychatsRecordOnce(
-                                                      queryBuilder:
-                                                          (storychatsRecord) =>
-                                                              storychatsRecord
-                                                                  .where(
-                                                                    'user_ref',
-                                                                    isEqualTo:
-                                                                        currentUserReference,
-                                                                  )
-                                                                  .where(
-                                                                    'story_ref',
-                                                                    isEqualTo:
-                                                                        itemItem
-                                                                            .storyRef,
-                                                                  ),
-                                                      singleRecord: true,
-                                                    ).then((s) =>
-                                                            s.firstOrNull);
-                                                    await _model
-                                                        .deletestory!.reference
-                                                        .delete();
-                                                  } else {
-                                                    _model.deletecharacter =
-                                                        await queryCharacterchatsRecordOnce(
-                                                      queryBuilder:
-                                                          (characterchatsRecord) =>
-                                                              characterchatsRecord
-                                                                  .where(
-                                                                    'user_ref',
-                                                                    isEqualTo:
-                                                                        currentUserReference,
-                                                                  )
-                                                                  .where(
-                                                                    'character_ref',
-                                                                    isEqualTo:
-                                                                        itemItem
-                                                                            .characterRef,
-                                                                  ),
-                                                      singleRecord: true,
-                                                    ).then((s) =>
-                                                            s.firstOrNull);
-                                                    await _model
-                                                        .deletecharacter!
-                                                        .reference
-                                                        .delete();
-                                                  }
+                                  );
+                                }
 
-                                                  _model.mychat = await actions
-                                                      .loadMyChats();
-                                                  _model.combinedList = _model
-                                                      .mychat!
-                                                      .toList()
-                                                      .cast<
-                                                          CombinedListItemStructStruct>();
-                                                  safeSetState(() {});
-                                                }
+                                final containerStoriesRecord = snapshot.data!;
 
-                                                safeSetState(() {});
-                                              },
-                                              child: Icon(
-                                                Icons.delete_outline,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryText,
-                                                size: 25.0,
-                                              ),
-                                            ),
-                                          ],
+                                return Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryBackground,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 0.0,
+                                        color: FlutterFlowTheme.of(context)
+                                            .alternate,
+                                        offset: Offset(
+                                          0.0,
+                                          1.0,
                                         ),
-                                      ),
+                                      )
                                     ],
                                   ),
-                                ),
-                              ),
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        0.0, 12.0, 0.0, 12.0),
+                                    child: InkWell(
+                                      splashColor: Colors.transparent,
+                                      focusColor: Colors.transparent,
+                                      hoverColor: Colors.transparent,
+                                      highlightColor: Colors.transparent,
+                                      onTap: () async {
+                                        context.pushNamed(
+                                          StorychatWidget.routeName,
+                                          queryParameters: {
+                                            'storyRef': serializeParam(
+                                              containerStoriesRecord.reference,
+                                              ParamType.DocumentReference,
+                                            ),
+                                            'userInChatName': serializeParam(
+                                              listViewStorychatsRecord
+                                                  .userInChatName,
+                                              ParamType.String,
+                                            ),
+                                          }.withoutNulls,
+                                        );
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Container(
+                                            width: 60.0,
+                                            height: 60.0,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                              border: Border.all(
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .alternate,
+                                              ),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                              child: Image.network(
+                                                containerStoriesRecord
+                                                    .mainImage,
+                                                width: 60.0,
+                                                height: 60.0,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 4,
+                                            child: Padding(
+                                              padding: EdgeInsetsDirectional
+                                                  .fromSTEB(
+                                                      15.0, 0.0, 0.0, 0.0),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.max,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(0.0, 0.0,
+                                                                0.0, 10.0),
+                                                    child: Text(
+                                                      containerStoriesRecord
+                                                          .title,
+                                                      style:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyLarge
+                                                              .override(
+                                                                font:
+                                                                    GoogleFonts
+                                                                        .inter(
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyLarge
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyLarge
+                                                                      .fontStyle,
+                                                                ),
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyLarge
+                                                                    .fontWeight,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyLarge
+                                                                    .fontStyle,
+                                                              ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(0.0, 0.0,
+                                                                12.0, 0.0),
+                                                    child: Text(
+                                                      valueOrDefault<String>(
+                                                        listViewStorychatsRecord
+                                                            .lastMessage,
+                                                        '대화를 시작해보세요!',
+                                                      ),
+                                                      style:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .labelSmall
+                                                              .override(
+                                                                font:
+                                                                    GoogleFonts
+                                                                        .inter(
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelSmall
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelSmall
+                                                                      .fontStyle,
+                                                                ),
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .secondaryText,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelSmall
+                                                                    .fontWeight,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelSmall
+                                                                    .fontStyle,
+                                                              ),
+                                                    ),
+                                                  ),
+                                                ].divide(SizedBox(height: 4.0)),
+                                              ),
+                                            ),
+                                          ),
+                                          InkWell(
+                                            splashColor: Colors.transparent,
+                                            focusColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            onTap: () async {
+                                              await showModalBottomSheet(
+                                                isScrollControlled: true,
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                enableDrag: false,
+                                                context: context,
+                                                builder: (context) {
+                                                  return WebViewAware(
+                                                    child: GestureDetector(
+                                                      onTap: () {
+                                                        FocusScope.of(context)
+                                                            .unfocus();
+                                                        FocusManager.instance
+                                                            .primaryFocus
+                                                            ?.unfocus();
+                                                      },
+                                                      child: Padding(
+                                                        padding: MediaQuery
+                                                            .viewInsetsOf(
+                                                                context),
+                                                        child: ChatsheetWidget(
+                                                          chatRef:
+                                                              listViewStorychatsRecord
+                                                                  .reference,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ).then((value) =>
+                                                  safeSetState(() {}));
+                                            },
+                                            child: Icon(
+                                              Icons.more_vert_sharp,
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .secondaryText,
+                                              size: 22.0,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             );
                           },
                         );
