@@ -140,7 +140,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
               '',
               _model.updatedChatDoc!.userInChatName),
           functions.prologue('도입부를 생성하라.').toList(),
-          ' ',
+          '\" \"',
         );
         _model.aiResponseScript = _model.aitext!;
         safeSetState(() {});

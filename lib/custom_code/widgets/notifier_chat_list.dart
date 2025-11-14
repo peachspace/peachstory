@@ -11,8 +11,6 @@ import 'package:flutter/material.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'index.dart'; // Imports other custom widgets
-import 'package.flutter/material.dart';
-
 import 'dart:async';
 import 'dart:convert';
 

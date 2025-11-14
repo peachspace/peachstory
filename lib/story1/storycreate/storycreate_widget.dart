@@ -7,7 +7,6 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/upload_data.dart';
-import '/shared/background/background_widget.dart';
 import '/shared/situation/situation_widget.dart';
 import '/story1/character/character_widget.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
@@ -1287,211 +1286,6 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                   Padding(
                                     padding: EdgeInsetsDirectional.fromSTEB(
                                         25.0, 0.0, 25.0, 0.0),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        Align(
-                                          alignment:
-                                              AlignmentDirectional(-1.0, 0.0),
-                                          child: Padding(
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    0.0, 20.0, 0.0, 20.0),
-                                            child: Text(
-                                              '배경 이미지',
-                                              style:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        fontSize: 18.0,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                            ),
-                                          ),
-                                        ),
-                                        Builder(
-                                          builder: (context) {
-                                            final backgroundItem = _model
-                                                .backgroundsList
-                                                .toList()
-                                                .take(30)
-                                                .toList();
-
-                                            return ListView.builder(
-                                              padding: EdgeInsets.zero,
-                                              shrinkWrap: true,
-                                              scrollDirection: Axis.vertical,
-                                              itemCount: backgroundItem.length,
-                                              itemBuilder: (context,
-                                                  backgroundItemIndex) {
-                                                final backgroundItemItem =
-                                                    backgroundItem[
-                                                        backgroundItemIndex];
-                                                return BackgroundWidget(
-                                                  key: Key(
-                                                      'Key9gs_${backgroundItemIndex}_of_${backgroundItem.length}'),
-                                                  index: backgroundItemIndex,
-                                                  locationItem:
-                                                      backgroundItemItem,
-                                                  onNameChanged:
-                                                      (name, index) async {
-                                                    _model
-                                                        .updateBackgroundsListAtIndex(
-                                                      index,
-                                                      (e) => e
-                                                        ..locationName = name,
-                                                    );
-                                                    safeSetState(() {});
-                                                  },
-                                                  onImageChanged:
-                                                      (imageUrl, index) async {
-                                                    _model
-                                                        .updateBackgroundsListAtIndex(
-                                                      index,
-                                                      (e) => e
-                                                        ..imageUrl = imageUrl,
-                                                    );
-                                                    safeSetState(() {});
-                                                  },
-                                                  onDelete: (index) async {
-                                                    _model
-                                                        .removeAtIndexFromBackgroundsList(
-                                                            index);
-                                                    safeSetState(() {});
-                                                  },
-                                                );
-                                              },
-                                            );
-                                          },
-                                        ),
-                                        if (_model.backgroundsList.length < 10)
-                                          Padding(
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    0.0, 20.0, 0.0, 0.0),
-                                            child: InkWell(
-                                              splashColor: Colors.transparent,
-                                              focusColor: Colors.transparent,
-                                              hoverColor: Colors.transparent,
-                                              highlightColor:
-                                                  Colors.transparent,
-                                              onTap: () async {
-                                                _model.addToBackgroundsList(
-                                                    LocationBackgroundStructStruct(
-                                                  locationName: '',
-                                                  imageUrl: '',
-                                                ));
-                                                safeSetState(() {});
-                                              },
-                                              child: Container(
-                                                width: double.infinity,
-                                                height: 100.0,
-                                                decoration: BoxDecoration(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryBackground,
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      blurRadius: 2.0,
-                                                      color: Color(0x33000000),
-                                                      offset: Offset(
-                                                        0.0,
-                                                        2.0,
-                                                      ),
-                                                    )
-                                                  ],
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10.0),
-                                                  border: Border.all(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .alternate,
-                                                  ),
-                                                ),
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.add,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primaryText,
-                                                      size: 40.0,
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  10.0,
-                                                                  0.0,
-                                                                  10.0,
-                                                                  5.0),
-                                                      child: Text(
-                                                        '설정한 조건에 따라 변경될 이미지를 등록해 주세요.     이미지는 10개까지 추가할 수 있어요.',
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  font:
-                                                                      GoogleFonts
-                                                                          .inter(
-                                                                    fontWeight: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontWeight,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        25.0, 0.0, 25.0, 0.0),
                                     child: SingleChildScrollView(
                                       child: Column(
                                         mainAxisSize: MainAxisSize.max,
@@ -1537,7 +1331,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                               final situationItem = _model
                                                   .newSituationalImages
                                                   .toList()
-                                                  .take(30)
+                                                  .take(50)
                                                   .toList();
 
                                               return ListView.builder(
@@ -1660,7 +1454,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                     10.0,
                                                                     5.0),
                                                         child: Text(
-                                                          '설정한 조건에 따라 출력될 이미지를 등록해 주세요.     이미지는 10개까지 추가할 수 있어요.',
+                                                          '설정한 조건에 따라 출력될 이미지를 등록해 주세요.     이미지는 50개까지 추가할 수 있어요.',
                                                           textAlign:
                                                               TextAlign.center,
                                                           style: FlutterFlowTheme
