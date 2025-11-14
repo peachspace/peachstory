@@ -612,6 +612,7 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
                                               _model.situation.toList(),
                                               _model.updatedChatDoc?.userNote),
                                           _model.formattedHistory?.toList(),
+                                          ' ',
                                         );
                                         _model.aiResponseScript =
                                             _model.aiFullResponse!;

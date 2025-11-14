@@ -75,13 +75,6 @@ class _StorychatWidgetState extends State<StorychatWidget>
         _model.storyDoc?.prologue,
         '무제',
       );
-      _model.pageBackgrounds = _model.storyDoc!.backgroundImages
-          .toList()
-          .cast<LocationBackgroundStructStruct>();
-      _model.currentBackground = valueOrDefault<String>(
-        _model.pageBackgrounds.firstOrNull?.imageUrl,
-        '무제',
-      );
       _model.pageSituationalImages = _model.storyDoc!.situationalImages
           .toList()
           .cast<SituationalImageStructStruct>();
@@ -90,14 +83,6 @@ class _StorychatWidgetState extends State<StorychatWidget>
         'claude-3-haiku-20240307',
       );
       safeSetState(() {});
-      if (_model.pageBackgrounds.length > 0) {
-        _model.currentBackground = _model.pageBackgrounds.firstOrNull!.imageUrl;
-        safeSetState(() {});
-      } else {
-        _model.currentBackground = '';
-        safeSetState(() {});
-      }
-
       _model.existingChatRoom = await queryStorychatsRecordOnce(
         queryBuilder: (storychatsRecord) => storychatsRecord
             .where(
@@ -151,11 +136,11 @@ class _StorychatWidgetState extends State<StorychatWidget>
               _model.characters.toList(),
               _model.userrole,
               _model.prologue,
-              _model.pageBackgrounds.toList(),
               _model.pageSituationalImages.toList(),
               '',
-              widget.userInChatName!),
+              _model.updatedChatDoc!.userInChatName),
           functions.prologue('도입부를 생성하라.').toList(),
+          ' ',
         );
         _model.aiResponseScript = _model.aitext!;
         safeSetState(() {});
@@ -302,14 +287,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                 flex: 1,
                 child: Container(
                   width: double.infinity,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: Image.network(
-                        _model.currentBackground,
-                      ).image,
-                    ),
-                  ),
+                  decoration: BoxDecoration(),
                   child: Padding(
                     padding:
                         EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
@@ -732,8 +710,6 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                     _model.characters.toList(),
                                                     _model.userrole,
                                                     '',
-                                                    _model.pageBackgrounds
-                                                        .toList(),
                                                     _model.pageSituationalImages
                                                         .toList(),
                                                     _model.updatedChatDoc!
@@ -741,6 +717,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                     widget.userInChatName!),
                                                 _model.formattedHistory
                                                     ?.toList(),
+                                                _model.textController.text,
                                               );
                                               _model.aiResponseScript =
                                                   _model.aiFullText!;

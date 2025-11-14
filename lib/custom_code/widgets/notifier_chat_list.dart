@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'index.dart'; // Imports other custom widgets
+import 'package.flutter/material.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -24,9 +25,9 @@ class NotifierChatList extends StatefulWidget {
     required this.initialMessages,
     required this.preDefinedCharacters,
     required this.userInChatName,
-    // backgroundList 파라미터 삭제됨
+    // [삭제됨] backgroundList 파라미터
     required this.situationalImageList,
-    // onBackgroundChange 파라미터 삭제됨
+    // [삭제됨] onBackgroundChange 파라미터
     required this.onTurnComplete,
   }) : super(key: key);
 
@@ -52,20 +53,17 @@ class _NotifierChatListState extends State<NotifierChatList> {
   void initState() {
     super.initState();
     _messages = List.from(widget.initialMessages);
-    // 화면 로드 시 스크롤을 맨 아래로 이동
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 
   @override
   void didUpdateWidget(NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // 새로운 AI 스크립트가 들어오면 파싱 및 스트리밍 시작
     if (widget.newResponseScript != null &&
         widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript!.isNotEmpty) {
       _processAiResponse(widget.newResponseScript!);
     }
-    // 초기 메시지 목록이 바뀌었을 때 업데이트
     if (widget.initialMessages.length != oldWidget.initialMessages.length) {
       setState(() {
         _messages = List.from(widget.initialMessages);
@@ -84,45 +82,40 @@ class _NotifierChatListState extends State<NotifierChatList> {
     }
   }
 
-  // AI 응답(JSON String)을 파싱하여 메시지 리스트에 순차적으로 추가하는 함수
   Future<void> _processAiResponse(String responseScript) async {
     try {
       setState(() => _isTyping = true);
-
-      // JSON 파싱 (대괄호 등으로 감싸져 있지 않은 경우 처리 등 필요시 로직 추가)
-      // 여기서는 단순 JSON 리스트로 가정하거나, custom function을 활용할 수 있습니다.
-      // 편의상 responseScript가 Valid JSON List String이라고 가정합니다.
       List<dynamic> scenes = jsonDecode(responseScript);
 
       for (var scene in scenes) {
         String type = scene['type'] ?? 'narration';
+
+        // [삭제됨] 배경 변경 로직
+        // if (type == 'set_background') {
+        //   ...
+        //   continue;
+        // }
+
         String content = scene['content'] ?? '';
         String speaker = scene['speaker'] ?? '';
         String action = scene['action'] ?? '';
         String condition = scene['condition'] ?? '';
 
-        // 배경 변경(set_background) 로직은 삭제됨
-
-        // 메시지 구조체 생성
         StoryChatMessageStructStruct newMessage = StoryChatMessageStructStruct(
           type: type,
           text: content,
           speakerName: speaker,
           actionText: action,
-          isStreaming: false, // 타이핑 효과가 필요하면 true로 설정 후 별도 로직 구현
+          isStreaming: false,
         );
 
-        // 캐릭터 이미지 찾기
         if (type == 'dialogue') {
-          // custom function 활용 또는 직접 찾기
           var char = widget.preDefinedCharacters.firstWhere(
             (c) => c.name == speaker,
             orElse: () => CharacterStructStruct(image: ''),
           );
           newMessage.speakerImage = char.image;
         } else if (type == 'show_image') {
-          // 상황 이미지 찾기
-          // (custom function: findSituationalImageUrlByCondition 로직 내장)
           var sitImg = widget.situationalImageList.firstWhere(
             (s) => s.condition == condition,
             orElse: () => SituationalImageStructStruct(imageUrl: ''),
@@ -130,7 +123,6 @@ class _NotifierChatListState extends State<NotifierChatList> {
           newMessage.storyImageUrl = sitImg.imageUrl;
         }
 
-        // 메시지 추가 및 딜레이 (자연스러운 연출을 위해)
         if (mounted) {
           setState(() {
             _messages.add(newMessage);
@@ -140,7 +132,6 @@ class _NotifierChatListState extends State<NotifierChatList> {
         await Future.delayed(const Duration(milliseconds: 800));
       }
 
-      // 턴 종료 콜백 호출
       if (mounted) {
         setState(() => _isTyping = false);
         widget.onTurnComplete(scenes);
@@ -156,7 +147,6 @@ class _NotifierChatListState extends State<NotifierChatList> {
     return Container(
       width: widget.width,
       height: widget.height,
-      // 배경색은 투명하게 하여 상위 위젯의 배경색을 따르게 함
       color: Colors.transparent,
       child: ListView.builder(
         controller: _scrollController,
@@ -164,7 +154,6 @@ class _NotifierChatListState extends State<NotifierChatList> {
         itemCount: _messages.length + (_isTyping ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == _messages.length) {
-            // 로딩 인디케이터 (Typing...)
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
@@ -196,7 +185,7 @@ class _NotifierChatListState extends State<NotifierChatList> {
               child: Container(
                 padding: const EdgeInsets.all(12.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFD1BA), // 유저 말풍선 색상
+                  color: const Color(0xFFFFD1BA),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -212,9 +201,7 @@ class _NotifierChatListState extends State<NotifierChatList> {
         ),
       );
     }
-
-    // 2. 나레이션 (일반적 설명/묘사)
-    // [요청사항 반영] 기울기 제거, 검은색(연하게), 크기 작게
+    // 2. 나레이션 (디자인 수정됨)
     else if (message.type == 'narration') {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 8.0),
@@ -223,30 +210,28 @@ class _NotifierChatListState extends State<NotifierChatList> {
           textAlign: TextAlign.center,
           style: FlutterFlowTheme.of(context).bodyMedium.override(
                 fontFamily: 'Inter',
-                color: const Color(0xFF4A4A4A), // 검은색보다 약간 연한 진회색
-                fontSize: 13.0, // 대사보다 약간 작게
-                fontWeight: FontWeight.normal, // 기울기 없음 (Normal)
-                fontStyle: FontStyle.normal, // 확실하게 Normal로 지정
+                color: const Color(0xFF4A4A4A), // 연한 검은색
+                fontSize: 13.0, // 크기 축소
+                fontStyle: FontStyle.normal, // 기울임 제거
                 lineHeight: 1.5,
               ),
         ),
       );
     }
-
-    // 3. 캐릭터 대사
+    // 3. 캐릭터 대사 (디자인 수정됨)
     else if (message.type == 'dialogue') {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // [요청사항 반영] 원형 -> 둥근 사각형 이미지
+            // [수정됨] 원형 -> 둥근 사각형 이미지
             ClipRRect(
-              borderRadius: BorderRadius.circular(12.0), // 둥근 사각형 (반경 12)
+              borderRadius: BorderRadius.circular(12.0),
               child: Image.network(
                 message.speakerImage != null && message.speakerImage.isNotEmpty
                     ? message.speakerImage
-                    : 'https://via.placeholder.com/150', // 기본 이미지
+                    : 'https://via.placeholder.com/150',
                 width: 40.0,
                 height: 40.0,
                 fit: BoxFit.cover,
@@ -257,7 +242,6 @@ class _NotifierChatListState extends State<NotifierChatList> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 캐릭터 이름
                   Text(
                     message.speakerName,
                     style: FlutterFlowTheme.of(context).labelSmall.override(
@@ -267,7 +251,6 @@ class _NotifierChatListState extends State<NotifierChatList> {
                         ),
                   ),
                   const SizedBox(height: 4),
-                  // 말풍선
                   Container(
                     padding: const EdgeInsets.all(12.0),
                     decoration: BoxDecoration(
@@ -278,7 +261,6 @@ class _NotifierChatListState extends State<NotifierChatList> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // (선택 사항) 지문/행동 묘사가 있다면 작게 표시
                         if (message.actionText != null &&
                             message.actionText.isNotEmpty)
                           Padding(
@@ -310,8 +292,7 @@ class _NotifierChatListState extends State<NotifierChatList> {
         ),
       );
     }
-
-    // 4. 이미지 보여주기 (show_image)
+    // 4. 상황 이미지 (유지)
     else if (message.type == 'story_image' || message.type == 'show_image') {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),

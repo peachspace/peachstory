@@ -231,7 +231,6 @@ String buildStoryPrompt(
   List<CharacterStructStruct> characters,
   String userRole,
   String prologue,
-  List<LocationBackgroundStructStruct> backgroundImages,
   List<SituationalImageStructStruct> situationalImages,
   String userNote,
   String userInChatName,
@@ -245,22 +244,7 @@ String buildStoryPrompt(
     characterDescriptions.writeln('</character>');
   }
 
-  // 1. 배경 관련 프롬프트 섹션을 조건부로 생성
-  final backgroundListXml = StringBuffer();
-  for (final bg in backgroundImages) {
-    backgroundListXml.writeln('  <background location="${bg.locationName}" />');
-  }
-  final backgroundSection = backgroundImages.isNotEmpty
-      ? '''
-<backgrounds>
-${backgroundListXml.toString()}
-</backgrounds>
-
-- To change the background image, you MUST use the format: [SET_BACKGROUND="locationName"]. This tag must be on its own line.
-'''
-      : '';
-
-  // 2. 상황 이미지 관련 프롬프트 섹션을 조건부로 생성
+  // 2. 상황 이미지 관련 프롬프트 섹션을 조건부로 생성 (유지)
   final situationalImageListXml = StringBuffer();
   for (final img in situationalImages) {
     situationalImageListXml.writeln('  <image condition="${img.condition}" />');
@@ -275,7 +259,7 @@ ${situationalImageListXml.toString()}
 '''
       : '';
 
-  // 3. 유저 노트 섹션을 조건부로 생성
+  // 3. 유저 노트 섹션을 조건부로 생성 (유지)
   final userNoteSection = (userNote != null && userNote.isNotEmpty)
       ? '<user_note>\n${userNote}\n</user_note>'
       : '';
@@ -286,15 +270,16 @@ ${situationalImageListXml.toString()}
 You are an interactive storyteller AI. Your one and only purpose is to generate the next part of a story based on the user's input and the established setting and characters.
 
 ### OUTPUT FORMAT (CRITICAL)
-- You MUST generate your response using a combination of specific tags ONLY: [NARRATION], [DIALOGUE], [SET_BACKGROUND], [SHOW_IMAGE].
+- You MUST generate your response using a combination of specific tags ONLY: [NARRATION], [DIALOGUE], [SHOW_IMAGE].
+- (수정됨: [SET_BACKGROUND] 태그 삭제)
 - For descriptive text, events, and scenery, enclose the text in [NARRATION]...[/NARRATION] tags.
 - For character speech, use the format: [DIALOGUE SPEAKER="CharacterName" ACTION="optional action"]...[/DIALOGUE].
 - Do NOT write any text outside of these tags.
 - You must refer to the user as "${userInChatName}".
 
 ### DIRECTING CONTROL
-${backgroundSection}
 ${imageSection}
+// (수정됨: backgroundSection 삭제)
 
 ### Creative Freedom
 - You have the freedom to introduce new, minor characters spontaneously. Their dialogue must also use the [DIALOGUE] format.
@@ -303,7 +288,7 @@ ${imageSection}
 [NARRATION]붉은 노을이 도시에 내려앉았다.[/NARRATION]
 [SHOW_IMAGE="창 밖을 보는 고양이"]
 [DIALOGUE SPEAKER="냥냥" ACTION="미소를 지으며"]어서 와. 기다리고 있었어.[/DIALOGUE]
-[SET_BACKGROUND="어두운 방"]
+// (수정됨: [SET_BACKGROUND] 예시 삭제)
 
 ### STORY BIBLE
 
@@ -315,11 +300,6 @@ ${userNoteSection}
 <characters>
 ${characterDescriptions.toString()}
 </characters>
-
-// 아래 두 섹션은 DIRECTING CONTROL로 옮겨졌으므로 STORY BIBLE 에는 포함되지 않아도 됩니다.
-// 만약 AI가 잘 인식하지 못할 경우, 아래 두 섹션을 다시 여기에 포함시킬 수 있습니다.
-// <backgrounds>...</backgrounds>
-// <situational_images>...</situational_images>
 
 <prologue_instruction>
 ${prologue}

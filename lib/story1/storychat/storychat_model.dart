@@ -45,22 +45,6 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
 
   String prologue = '\" \"';
 
-  List<LocationBackgroundStructStruct> pageBackgrounds = [];
-  void addToPageBackgrounds(LocationBackgroundStructStruct item) =>
-      pageBackgrounds.add(item);
-  void removeFromPageBackgrounds(LocationBackgroundStructStruct item) =>
-      pageBackgrounds.remove(item);
-  void removeAtIndexFromPageBackgrounds(int index) =>
-      pageBackgrounds.removeAt(index);
-  void insertAtIndexInPageBackgrounds(
-          int index, LocationBackgroundStructStruct item) =>
-      pageBackgrounds.insert(index, item);
-  void updatePageBackgroundsAtIndex(
-          int index, Function(LocationBackgroundStructStruct) updateFn) =>
-      pageBackgrounds[index] = updateFn(pageBackgrounds[index]);
-
-  String currentBackground = '\" \"';
-
   List<SituationalImageStructStruct> pageSituationalImages = [];
   void addToPageSituationalImages(SituationalImageStructStruct item) =>
       pageSituationalImages.add(item);

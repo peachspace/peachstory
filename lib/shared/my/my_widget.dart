@@ -377,7 +377,7 @@ class _MyWidgetState extends State<MyWidget> {
                               0.0, 25.0, 0.0, 25.0),
                           child: Container(
                             width: double.infinity,
-                            height: 195.0,
+                            height: 175.0,
                             decoration: BoxDecoration(
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
@@ -388,7 +388,8 @@ class _MyWidgetState extends State<MyWidget> {
                               ),
                             ),
                             child: Padding(
-                              padding: EdgeInsets.all(15.0),
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  15.0, 15.0, 15.0, 0.0),
                               child: Column(
                                 mainAxisSize: MainAxisSize.max,
                                 children: [
@@ -403,47 +404,23 @@ class _MyWidgetState extends State<MyWidget> {
                                         Row(
                                           mainAxisSize: MainAxisSize.max,
                                           children: [
-                                            Align(
-                                              alignment: AlignmentDirectional(
-                                                  0.0, 0.0),
-                                              child: Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        0.0, 0.0, 20.0, 0.0),
-                                                child: Container(
-                                                  width: 60.0,
-                                                  height: 60.0,
-                                                  decoration: BoxDecoration(
-                                                    image: DecorationImage(
-                                                      fit: BoxFit.cover,
-                                                      image: Image.network(
-                                                        '500x500?person#1',
-                                                      ).image,
+                                            Padding(
+                                              padding: EdgeInsetsDirectional
+                                                  .fromSTEB(
+                                                      0.0, 0.0, 10.0, 0.0),
+                                              child: AuthUserStreamWidget(
+                                                builder: (context) => ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          15.0),
+                                                  child: Image.network(
+                                                    valueOrDefault<String>(
+                                                      currentUserPhoto,
+                                                      'https://picsum.photos/seed/638/600',
                                                     ),
-                                                    shape: BoxShape.circle,
-                                                    border: Border.all(
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .alternate,
-                                                      width: 2.0,
-                                                    ),
-                                                  ),
-                                                  child: AuthUserStreamWidget(
-                                                    builder: (context) =>
-                                                        Container(
-                                                      width: 200.0,
-                                                      height: 200.0,
-                                                      clipBehavior:
-                                                          Clip.antiAlias,
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                      child: Image.network(
-                                                        currentUserPhoto,
-                                                        fit: BoxFit.cover,
-                                                      ),
-                                                    ),
+                                                    width: 50.0,
+                                                    height: 50.0,
+                                                    fit: BoxFit.cover,
                                                   ),
                                                 ),
                                               ),
@@ -465,7 +442,7 @@ class _MyWidgetState extends State<MyWidget> {
                                                               .fromSTEB(
                                                                   0.0,
                                                                   0.0,
-                                                                  10.0,
+                                                                  5.0,
                                                                   0.0),
                                                       child:
                                                           AuthUserStreamWidget(
@@ -578,7 +555,7 @@ class _MyWidgetState extends State<MyWidget> {
                                   ),
                                   Padding(
                                     padding: EdgeInsetsDirectional.fromSTEB(
-                                        0.0, 10.0, 0.0, 2.0),
+                                        0.0, 5.0, 0.0, 2.0),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.max,
                                       mainAxisAlignment:
