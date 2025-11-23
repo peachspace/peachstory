@@ -244,7 +244,7 @@ String buildStoryPrompt(
     characterDescriptions.writeln('</character>');
   }
 
-  // 2. 상황 이미지 관련 프롬프트 섹션을 조건부로 생성 (유지)
+  // 2. 상황 이미지 관련 프롬프트 섹션 (유지)
   final situationalImageListXml = StringBuffer();
   for (final img in situationalImages) {
     situationalImageListXml.writeln('  <image condition="${img.condition}" />');
@@ -259,13 +259,14 @@ ${situationalImageListXml.toString()}
 '''
       : '';
 
-  // 3. 유저 노트 섹션을 조건부로 생성 (유지)
+  // 3. 유저 노트 섹션 (유지)
   final userNoteSection = (userNote != null && userNote.isNotEmpty)
       ? '<user_note>\n${userNote}\n</user_note>'
       : '';
 
   // 4. 최종 프롬프트 조립
   return '''
+
 ### ABSOLUTE ROLE
 You are an interactive storyteller AI. Your one and only purpose is to generate the next part of a story based on the user's input and the established setting and characters.
 
@@ -279,7 +280,6 @@ You are an interactive storyteller AI. Your one and only purpose is to generate 
 
 ### DIRECTING CONTROL
 ${imageSection}
-// (수정됨: backgroundSection 삭제)
 
 ### Creative Freedom
 - You have the freedom to introduce new, minor characters spontaneously. Their dialogue must also use the [DIALOGUE] format.
@@ -288,7 +288,6 @@ ${imageSection}
 [NARRATION]붉은 노을이 도시에 내려앉았다.[/NARRATION]
 [SHOW_IMAGE="창 밖을 보는 고양이"]
 [DIALOGUE SPEAKER="냥냥" ACTION="미소를 지으며"]어서 와. 기다리고 있었어.[/DIALOGUE]
-// (수정됨: [SET_BACKGROUND] 예시 삭제)
 
 ### STORY BIBLE
 
