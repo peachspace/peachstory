@@ -142,6 +142,18 @@ class _StorychatWidgetState extends State<StorychatWidget>
           functions.prologue('도입부를 생성하라.').toList(),
           '',
         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _model.aitext!,
+              style: TextStyle(
+                color: FlutterFlowTheme.of(context).primaryText,
+              ),
+            ),
+            duration: Duration(milliseconds: 4000),
+            backgroundColor: FlutterFlowTheme.of(context).secondary,
+          ),
+        );
         _model.aiResponseScript = _model.aitext!;
         safeSetState(() {});
       }
