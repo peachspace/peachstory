@@ -138,9 +138,9 @@ class _StorychatWidgetState extends State<StorychatWidget>
               _model.prologue,
               _model.pageSituationalImages.toList(),
               '',
-              _model.updatedChatDoc!.userInChatName),
+              widget.userInChatName!),
           functions.prologue('도입부를 생성하라.').toList(),
-          '\" \"',
+          '',
         );
         _model.aiResponseScript = _model.aitext!;
         safeSetState(() {});

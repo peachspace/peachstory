@@ -77,46 +77,28 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
       initialIndex: 0,
     )..addListener(() => safeSetState(() {}));
 
-    _model.storyNameTextController ??= TextEditingController(
-        text: valueOrDefault<String>(
-      widget.storyToEdit?.title,
-      '제목을 입력하세요.',
-    ));
+    _model.storyNameTextController ??=
+        TextEditingController(text: widget.storyToEdit?.title);
     _model.storyNameFocusNode ??= FocusNode();
 
-    _model.worldSettingsTextController ??= TextEditingController(
-        text: valueOrDefault<String>(
-      widget.storyToEdit?.worldview,
-      '이야기가 벌어지는 세계의 분위기와 전체적인 설정을 구체적으로 입력하세요.',
-    ));
+    _model.worldSettingsTextController ??=
+        TextEditingController(text: widget.storyToEdit?.worldview);
     _model.worldSettingsFocusNode ??= FocusNode();
 
-    _model.prologueTextController ??= TextEditingController(
-        text: valueOrDefault<String>(
-      widget.storyToEdit?.prologue,
-      '이야기의 첫 장면을 입력하세요.',
-    ));
+    _model.prologueTextController ??=
+        TextEditingController(text: widget.storyToEdit?.prologue);
     _model.prologueFocusNode ??= FocusNode();
 
-    _model.userRoleInfoTextController ??= TextEditingController(
-        text: valueOrDefault<String>(
-      widget.storyToEdit?.userRole,
-      '이야기 내에서 유저의 역할에 대해 입력하세요.',
-    ));
+    _model.userRoleInfoTextController ??=
+        TextEditingController(text: widget.storyToEdit?.userRole);
     _model.userRoleInfoFocusNode ??= FocusNode();
 
-    _model.introduceTextController ??= TextEditingController(
-        text: valueOrDefault<String>(
-      widget.storyToEdit?.description,
-      '유저들에게 보여질 이야기의 설정이나 줄거리 등을 입력하세요.',
-    ));
+    _model.introduceTextController ??=
+        TextEditingController(text: widget.storyToEdit?.description);
     _model.introduceFocusNode ??= FocusNode();
 
-    _model.authorCommentTextController ??= TextEditingController(
-        text: valueOrDefault<String>(
-      widget.storyToEdit?.authorNotes,
-      '작가로서 하고 싶은 말들을 입력하세요.',
-    ));
+    _model.authorCommentTextController ??=
+        TextEditingController(text: widget.storyToEdit?.authorNotes);
     _model.authorCommentFocusNode ??= FocusNode();
 
     _model.hashitagTextController ??= TextEditingController();
@@ -349,7 +331,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                              hintText: '이야기의 제목을 입력하세요...',
+                                              hintText: '제목을 입력하세요.',
                                               hintStyle:
                                                   FlutterFlowTheme.of(context)
                                                       .labelMedium
@@ -552,7 +534,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                   .fontStyle,
                                                         ),
                                                 hintText:
-                                                    '이야기의 배경이 되는 전반적인 설정과 구조, 규칙 등을 구체적으로 입력하세요...',
+                                                    '이야기가 벌어지는 세계의 분위기와 전체적인 설정을 구체적으로 입력하세요.',
                                                 hintStyle:
                                                     FlutterFlowTheme.of(context)
                                                         .labelMedium
@@ -740,8 +722,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                 obscureText: false,
                                                 decoration: InputDecoration(
                                                   isDense: true,
-                                                  hintText:
-                                                      '이야기의 도입부를 어떻게 설정할지 설명해주세요...',
+                                                  hintText: '이야기의 첫 장면을 입력하세요.',
                                                   hintStyle: FlutterFlowTheme
                                                           .of(context)
                                                       .labelMedium
@@ -1175,7 +1156,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                   .fontStyle,
                                                         ),
                                                 hintText:
-                                                    '이야기 속에서 유저의 역할, 다른 인물들과의 관계 등을 구체적으로 입력하세요...',
+                                                    '이야기 내에서 유저의 역할에 대해 입력하세요.',
                                                 hintStyle:
                                                     FlutterFlowTheme.of(context)
                                                         .labelMedium
@@ -1785,7 +1766,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                   .fontStyle,
                                                         ),
                                                 hintText:
-                                                    '이야기에 대한 소개를 입력하세요...',
+                                                    '유저들에게 소개할 이야기의 설정이나 줄거리 등을 입력하세요.',
                                                 hintStyle:
                                                     FlutterFlowTheme.of(context)
                                                         .labelMedium
@@ -1998,6 +1979,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
+                                                hintText:
+                                                    '작가로서 하고 싶은 말들을 입력하세요.',
                                                 hintStyle:
                                                     FlutterFlowTheme.of(context)
                                                         .labelMedium

@@ -58,7 +58,7 @@ exports.deleteStoryWithData = functions
       const batch = db.batch();
 
       // (중요) 실제 DB의 하위 컬렉션 이름으로 변경하세요. (예: 'story_comments', 'comments' 등)
-      const subCollectionName = "story_comments";
+      const subCollectionName = "comments";
       const subCollectionSnapshot = await storyRef
         .collection(subCollectionName)
         .get();
