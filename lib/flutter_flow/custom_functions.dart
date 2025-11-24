@@ -244,7 +244,6 @@ String buildStoryPrompt(
     characterDescriptions.writeln('</character>');
   }
 
-  // 2. 상황 이미지 관련 프롬프트 섹션 (유지)
   final situationalImageListXml = StringBuffer();
   for (final img in situationalImages) {
     situationalImageListXml.writeln('  <image condition="${img.condition}" />');
@@ -254,43 +253,41 @@ String buildStoryPrompt(
 <situational_images>
 ${situationalImageListXml.toString()}
 </situational_images>
-
-- To show a situational image, you MUST use the format: [SHOW_IMAGE="condition"]. This tag must be on its own line.
 '''
       : '';
 
-  // 3. 유저 노트 섹션 (유지)
   final userNoteSection = (userNote != null && userNote.isNotEmpty)
       ? '<user_note>\n${userNote}\n</user_note>'
       : '';
 
-  // 4. 최종 프롬프트 조립
+  // [수정됨] JSON 포맷을 강력하게 요구하는 프롬프트
   return '''
-
 ### ABSOLUTE ROLE
-You are an interactive storyteller AI. Your one and only purpose is to generate the next part of a story based on the user's input and the established setting and characters.
+You are an interactive storyteller AI. Your goal is to generate the next part of the story based on the user's input.
 
 ### OUTPUT FORMAT (CRITICAL)
-- You MUST generate your response using a combination of specific tags ONLY: [NARRATION], [DIALOGUE], [SHOW_IMAGE].
-- (수정됨: [SET_BACKGROUND] 태그 삭제)
-- For descriptive text, events, and scenery, enclose the text in [NARRATION]...[/NARRATION] tags.
-- For character speech, use the format: [DIALOGUE SPEAKER="CharacterName" ACTION="optional action"]...[/DIALOGUE].
-- Do NOT write any text outside of these tags.
-- You must refer to the user as "${userInChatName}".
+**You must output a valid JSON list of objects.** Do not output any text outside the JSON block.
+Each object in the list represents a scene and must have the following structure:
+
+1. **Narration:**
+   `{"type": "narration", "content": "Description of the scene..."}`
+2. **Dialogue:**
+   `{"type": "dialogue", "speaker": "CharacterName", "content": "Speech text...", "action": "Expression or action (optional)"}`
+3. **Show Image:**
+   `{"type": "show_image", "condition": "Exact condition from available images"}`
 
 ### DIRECTING CONTROL
 ${imageSection}
-
-### Creative Freedom
-- You have the freedom to introduce new, minor characters spontaneously. Their dialogue must also use the [DIALOGUE] format.
+- To show a situational image, add a JSON object with type "show_image". The "condition" field must match exactly one of the conditions provided above.
 
 ### CORRECT OUTPUT EXAMPLE
-[NARRATION]붉은 노을이 도시에 내려앉았다.[/NARRATION]
-[SHOW_IMAGE="창 밖을 보는 고양이"]
-[DIALOGUE SPEAKER="냥냥" ACTION="미소를 지으며"]어서 와. 기다리고 있었어.[/DIALOGUE]
+[
+  {"type": "narration", "content": "붉은 노을이 도시에 내려앉았다."},
+  {"type": "show_image", "condition": "창 밖을 보는 고양이"},
+  {"type": "dialogue", "speaker": "냥냥", "content": "어서 와. 기다리고 있었어.", "action": "미소를 지으며"}
+]
 
 ### STORY BIBLE
-
 <title>${storyTitle}</title>
 <setting>${storySetting}</setting>
 <user_role>${userRole}</user_role>
@@ -304,7 +301,7 @@ ${characterDescriptions.toString()}
 ${prologue}
 </prologue_instruction>
 
-Now, begin the story based on the prologue instruction and the user's first message, or continue the story based on the user's last message.
+Now, generate the response as a JSON list.
 ''';
 }
 
