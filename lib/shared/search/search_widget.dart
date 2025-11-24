@@ -98,7 +98,7 @@ class _SearchWidgetState extends State<SearchWidget> {
         body: SafeArea(
           top: true,
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(25.0, 10.0, 25.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(25.0, 15.0, 25.0, 0.0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
@@ -145,7 +145,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                                           .labelMedium
                                           .fontStyle,
                                     ),
-                                hintText: 'TextField',
+                                hintText: '검색어를 입력하세요.',
                                 hintStyle: FlutterFlowTheme.of(context)
                                     .labelMedium
                                     .override(
@@ -238,9 +238,11 @@ class _SearchWidgetState extends State<SearchWidget> {
                               );
 
                               if ((_model.apiResult?.succeeded ?? true)) {
-                                _model.searchResults = ((_model
-                                                    .apiResult?.jsonBody ??
-                                                '')
+                                _model.searchResults = (getJsonField(
+                                  (_model.apiResult?.jsonBody ?? ''),
+                                  r'''$.result.results''',
+                                  true,
+                                )!
                                             .toList()
                                             .map<CombinedListItemStructStruct?>(
                                                 CombinedListItemStructStruct
@@ -336,15 +338,15 @@ class _SearchWidgetState extends State<SearchWidget> {
                           safeSetState(() => _model.dropDownValue = val);
                           _model.searchSortOption = _model.dropDownValue!;
                           safeSetState(() {});
-                          _model.sortedApiResult = await ApiSearchAllCall.call(
+                          _model.apiResult1 = await ApiSearchAllCall.call(
                             query: _model.textController.text,
-                            sortOption: _model.searchSortOption,
+                            sortOption: _model.dropDownValue,
                           );
 
-                          if ((_model.sortedApiResult?.succeeded ?? true)) {
+                          if ((_model.apiResult1?.succeeded ?? true)) {
                             _model.searchResults = (getJsonField(
-                              (_model.sortedApiResult?.jsonBody ?? ''),
-                              r'''$.results''',
+                              (_model.apiResult1?.jsonBody ?? ''),
+                              r'''$.result.results''',
                               true,
                             )!
                                         .toList()
@@ -430,27 +432,15 @@ class _SearchWidgetState extends State<SearchWidget> {
                               hoverColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                               onTap: () async {
-                                if (searchitemItem.type == 'story') {
-                                  context.pushNamed(
-                                    StorymainWidget.routeName,
-                                    queryParameters: {
-                                      'storymainRef': serializeParam(
-                                        searchitemItem.storyRef,
-                                        ParamType.DocumentReference,
-                                      ),
-                                    }.withoutNulls,
-                                  );
-                                } else {
-                                  context.pushNamed(
-                                    CharactermainWidget.routeName,
-                                    queryParameters: {
-                                      'characterRef': serializeParam(
-                                        searchitemItem.characterRef,
-                                        ParamType.DocumentReference,
-                                      ),
-                                    }.withoutNulls,
-                                  );
-                                }
+                                context.pushNamed(
+                                  StorymainWidget.routeName,
+                                  queryParameters: {
+                                    'storymainRef': serializeParam(
+                                      searchitemItem.storyRef,
+                                      ParamType.DocumentReference,
+                                    ),
+                                  }.withoutNulls,
+                                );
                               },
                               child: Container(
                                 width: 160.0,
@@ -605,7 +595,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                                                 EdgeInsetsDirectional.fromSTEB(
                                                     0.0, 10.0, 0.0, 10.0),
                                             child: Text(
-                                              searchitemItem.introduction,
+                                              searchitemItem.category,
                                               style:
                                                   FlutterFlowTheme.of(context)
                                                       .bodyMedium

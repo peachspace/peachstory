@@ -631,6 +631,9 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                               type: 'user',
                                             ));
                                             safeSetState(() {});
+                                            _model.userinput =
+                                                _model.textController.text;
+                                            safeSetState(() {});
 
                                             firestoreBatch.set(
                                                 StorymessagesRecord.createDoc(
@@ -638,8 +641,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                 createStorymessagesRecordData(
                                                   timestamp:
                                                       getCurrentTimestamp,
-                                                  text: _model
-                                                      .textController.text,
+                                                  text: _model.userinput,
                                                   type: 'user',
                                                   speakerName:
                                                       widget.userInChatName,
@@ -717,7 +719,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                     widget.userInChatName!),
                                                 _model.formattedHistory
                                                     ?.toList(),
-                                                _model.textController.text,
+                                                _model.userinput,
                                               );
                                               _model.aiResponseScript =
                                                   _model.aiFullText!;

@@ -23,9 +23,11 @@ class StorycreateWidget extends StatefulWidget {
   const StorycreateWidget({
     super.key,
     this.storyDoc,
+    this.storyToEdit,
   });
 
   final StoriesRecord? storyDoc;
+  final StoriesRecord? storyToEdit;
 
   static String routeName = 'storycreate';
   static String routePath = '/storycreate';
@@ -75,28 +77,46 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
       initialIndex: 0,
     )..addListener(() => safeSetState(() {}));
 
-    _model.storyNameTextController ??=
-        TextEditingController(text: _model.title);
+    _model.storyNameTextController ??= TextEditingController(
+        text: valueOrDefault<String>(
+      widget.storyToEdit?.title,
+      '제목을 입력하세요.',
+    ));
     _model.storyNameFocusNode ??= FocusNode();
 
-    _model.worldSettingsTextController ??=
-        TextEditingController(text: _model.worldview);
+    _model.worldSettingsTextController ??= TextEditingController(
+        text: valueOrDefault<String>(
+      widget.storyToEdit?.worldview,
+      '이야기가 벌어지는 세계의 분위기와 전체적인 설정을 구체적으로 입력하세요.',
+    ));
     _model.worldSettingsFocusNode ??= FocusNode();
 
-    _model.prologueTextController ??=
-        TextEditingController(text: _model.prologue);
+    _model.prologueTextController ??= TextEditingController(
+        text: valueOrDefault<String>(
+      widget.storyToEdit?.prologue,
+      '이야기의 첫 장면을 입력하세요.',
+    ));
     _model.prologueFocusNode ??= FocusNode();
 
-    _model.userRoleInfoTextController ??=
-        TextEditingController(text: _model.userrole);
+    _model.userRoleInfoTextController ??= TextEditingController(
+        text: valueOrDefault<String>(
+      widget.storyToEdit?.userRole,
+      '이야기 내에서 유저의 역할에 대해 입력하세요.',
+    ));
     _model.userRoleInfoFocusNode ??= FocusNode();
 
-    _model.introduceTextController ??=
-        TextEditingController(text: _model.introduce);
+    _model.introduceTextController ??= TextEditingController(
+        text: valueOrDefault<String>(
+      widget.storyToEdit?.description,
+      '유저들에게 보여질 이야기의 설정이나 줄거리 등을 입력하세요.',
+    ));
     _model.introduceFocusNode ??= FocusNode();
 
-    _model.authorCommentTextController ??=
-        TextEditingController(text: _model.author);
+    _model.authorCommentTextController ??= TextEditingController(
+        text: valueOrDefault<String>(
+      widget.storyToEdit?.authorNotes,
+      '작가로서 하고 싶은 말들을 입력하세요.',
+    ));
     _model.authorCommentFocusNode ??= FocusNode();
 
     _model.hashitagTextController ??= TextEditingController();
@@ -1657,7 +1677,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                     BorderRadius.circular(8.0),
                                                 child: Image.network(
                                                   valueOrDefault<String>(
-                                                    _model.mainImage,
+                                                    widget
+                                                        .storyToEdit?.mainImage,
                                                     'https://t3.ftcdn.net/jpg/11/40/90/46/240_F_1140904604_Bgl5UkXYSBRNRUh96jQFOCyeFzl6ffY0.jpg',
                                                   ),
                                                   width: 350.0,
@@ -1977,8 +1998,6 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                hintText:
-                                                    '유저들에게 하고 싶은 말을 입력하세요...',
                                                 hintStyle:
                                                     FlutterFlowTheme.of(context)
                                                         .labelMedium
@@ -2132,7 +2151,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                       controller:
                                           _model.genreValueController ??=
                                               FormFieldController<String>(
-                                        _model.genreValue ??= _model.genre,
+                                        _model.genreValue ??=
+                                            widget.storyToEdit?.category,
                                       ),
                                       options: [
                                         '판타지',
@@ -2533,7 +2553,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                       ),
                       child: FFButtonWidget(
                         onPressed: () async {
-                          if (widget.storyDoc == null) {
+                          if (widget.storyToEdit == null) {
                             var storiesRecordReference =
                                 StoriesRecord.collection.doc();
                             await storiesRecordReference.set({
@@ -2562,10 +2582,6 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                     _model.characters,
                                   ),
                                   'hashtags': _model.hashitags,
-                                  'backgroundImages':
-                                      getLocationBackgroundStructListFirestoreData(
-                                    _model.backgroundsList,
-                                  ),
                                   'situationalImages':
                                       getSituationalImageStructListFirestoreData(
                                     _model.newSituationalImages,
@@ -2600,10 +2616,6 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                     _model.characters,
                                   ),
                                   'hashtags': _model.hashitags,
-                                  'backgroundImages':
-                                      getLocationBackgroundStructListFirestoreData(
-                                    _model.backgroundsList,
-                                  ),
                                   'situationalImages':
                                       getSituationalImageStructListFirestoreData(
                                     _model.newSituationalImages,
@@ -2624,14 +2636,16 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                           } else {
                             await widget.storyDoc!.reference.update({
                               ...createStoriesRecordData(
-                                title: _model.title,
-                                worldview: _model.worldview,
-                                category: _model.genre,
-                                userRole: _model.userrole,
-                                mainImage: _model.mainImage,
-                                description: _model.introduce,
-                                authorNotes: _model.author,
-                                prologue: _model.prologue,
+                                title: _model.storyNameTextController.text,
+                                worldview:
+                                    _model.worldSettingsTextController.text,
+                                category: _model.genreValue,
+                                userRole:
+                                    _model.userRoleInfoTextController.text,
+                                mainImage: widget.storyToEdit?.mainImage,
+                                description: widget.storyToEdit?.description,
+                                authorNotes: widget.storyToEdit?.authorNotes,
+                                prologue: widget.storyToEdit?.prologue,
                                 creatorRef: currentUserReference,
                                 createdAt: getCurrentTimestamp,
                                 creatorNickname: currentUserDisplayName,
@@ -2648,10 +2662,6 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                     _model.characters,
                                   ),
                                   'hashtags': _model.hashitags,
-                                  'backgroundImages':
-                                      getLocationBackgroundStructListFirestoreData(
-                                    _model.backgroundsList,
-                                  ),
                                   'situationalImages':
                                       getSituationalImageStructListFirestoreData(
                                     _model.newSituationalImages,

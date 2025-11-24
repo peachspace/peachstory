@@ -1,7 +1,8 @@
+import '/backend/custom_cloud_functions/custom_cloud_function_response_manager.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/index.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
@@ -80,19 +81,31 @@ class _ChatsheetWidgetState extends State<ChatsheetWidget> {
                   ) ??
                   false;
               if (confirmDialogResponse) {
-                await widget.chatRef!.delete();
+                try {
+                  final result = await FirebaseFunctions.instanceFor(
+                          region: 'asia-northeast3')
+                      .httpsCallable('deleteChatWithMessages')
+                      .call({
+                    "chatDocPath": widget.chatRef!.path,
+                  });
+                  _model.delete =
+                      DeleteChatWithMessagesCloudFunctionCallResponse(
+                    data: result.data,
+                    succeeded: true,
+                    resultAsString: result.data.toString(),
+                    jsonBody: result.data,
+                  );
+                } on FirebaseFunctionsException catch (error) {
+                  _model.delete =
+                      DeleteChatWithMessagesCloudFunctionCallResponse(
+                    errorCode: error.code,
+                    succeeded: false,
+                  );
+                }
               }
+              Navigator.pop(context);
 
-              context.pushNamed(
-                ChatlistWidget.routeName,
-                extra: <String, dynamic>{
-                  kTransitionInfoKey: TransitionInfo(
-                    hasTransition: true,
-                    transitionType: PageTransitionType.fade,
-                    duration: Duration(milliseconds: 0),
-                  ),
-                },
-              );
+              safeSetState(() {});
             },
             text: '삭제하기',
             options: FFButtonOptions(

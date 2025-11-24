@@ -1,8 +1,10 @@
 import '/backend/backend.dart';
+import '/backend/custom_cloud_functions/custom_cloud_function_response_manager.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/index.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
@@ -64,9 +66,14 @@ class _CreatesheetWidgetState extends State<CreatesheetWidget> {
                     widget.storyDoc,
                     ParamType.Document,
                   ),
+                  'storyToEdit': serializeParam(
+                    widget.storyDoc,
+                    ParamType.Document,
+                  ),
                 }.withoutNulls,
                 extra: <String, dynamic>{
                   'storyDoc': widget.storyDoc,
+                  'storyToEdit': widget.storyDoc,
                 },
               );
             },
@@ -133,19 +140,31 @@ class _CreatesheetWidgetState extends State<CreatesheetWidget> {
                   ) ??
                   false;
               if (confirmDialogResponse) {
-                await widget.storyDoc!.reference.delete();
+                try {
+                  final result =
+                      await FirebaseFunctions.instanceFor(region: 'us-central1')
+                          .httpsCallable('deleteStoryWithData')
+                          .call({
+                    "storyPath": widget.storyDoc!.reference.path,
+                  });
+                  _model.cloudFunction =
+                      DeleteStoryWithDataCloudFunctionCallResponse(
+                    data: result.data,
+                    succeeded: true,
+                    resultAsString: result.data.toString(),
+                    jsonBody: result.data,
+                  );
+                } on FirebaseFunctionsException catch (error) {
+                  _model.cloudFunction =
+                      DeleteStoryWithDataCloudFunctionCallResponse(
+                    errorCode: error.code,
+                    succeeded: false,
+                  );
+                }
               }
+              Navigator.pop(context);
 
-              context.pushNamed(
-                CreatelistWidget.routeName,
-                extra: <String, dynamic>{
-                  kTransitionInfoKey: TransitionInfo(
-                    hasTransition: true,
-                    transitionType: PageTransitionType.fade,
-                    duration: Duration(milliseconds: 0),
-                  ),
-                },
-              );
+              safeSetState(() {});
             },
             text: '삭제하기',
             options: FFButtonOptions(

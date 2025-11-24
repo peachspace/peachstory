@@ -157,10 +157,15 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           requireAuth: true,
           asyncParams: {
             'storyDoc': getDoc(['stories'], StoriesRecord.fromSnapshot),
+            'storyToEdit': getDoc(['stories'], StoriesRecord.fromSnapshot),
           },
           builder: (context, params) => StorycreateWidget(
             storyDoc: params.getParam(
               'storyDoc',
+              ParamType.Document,
+            ),
+            storyToEdit: params.getParam(
+              'storyToEdit',
               ParamType.Document,
             ),
           ),

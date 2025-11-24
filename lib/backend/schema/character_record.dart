@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import '/backend/algolia/serialization_util.dart';
-import '/backend/algolia/algolia_manager.dart';
 import 'package:collection/collection.dart';
 
 import '/backend/schema/util/firestore_util.dart';
@@ -171,81 +169,6 @@ class CharacterRecord extends FirestoreRecord {
     DocumentReference reference,
   ) =>
       CharacterRecord._(reference, mapFromFirestore(data));
-
-  static CharacterRecord fromAlgolia(AlgoliaObjectSnapshot snapshot) =>
-      CharacterRecord.getDocumentFromData(
-        {
-          'name': snapshot.data['name'],
-          'setting': snapshot.data['setting'],
-          'voice': snapshot.data['voice'],
-          'firstgreeting': snapshot.data['firstgreeting'],
-          'mainimage': snapshot.data['mainimage'],
-          'characterimage': snapshot.data['characterimage'],
-          'introduce': snapshot.data['introduce'],
-          'author': snapshot.data['author'],
-          'genre': snapshot.data['genre'],
-          'dialogueExample': safeGet(
-            () => snapshot.data['dialogueExample'].toList(),
-          ),
-          'creator_ref': convertAlgoliaParam(
-            snapshot.data['creator_ref'],
-            ParamType.DocumentReference,
-            false,
-          ),
-          'aiModel': snapshot.data['aiModel'],
-          'situational_images': safeGet(
-            () => (snapshot.data['situational_images'] as Iterable)
-                .map((d) =>
-                    SituationalImageStructStruct.fromAlgoliaData(d).toMap())
-                .toList(),
-          ),
-          'user_ref': convertAlgoliaParam(
-            snapshot.data['user_ref'],
-            ParamType.DocumentReference,
-            false,
-          ),
-          'view_count': convertAlgoliaParam(
-            snapshot.data['view_count'],
-            ParamType.int,
-            false,
-          ),
-          'heart_count': convertAlgoliaParam(
-            snapshot.data['heart_count'],
-            ParamType.int,
-            false,
-          ),
-          'creator_nickname': snapshot.data['creator_nickname'],
-          'type': snapshot.data['type'],
-          'authorIsCreator': snapshot.data['authorIsCreator'],
-          'hashtags': safeGet(
-            () => snapshot.data['hashtags'].toList(),
-          ),
-          'created_timestamp': convertAlgoliaParam(
-            snapshot.data['created_timestamp'],
-            ParamType.DateTime,
-            false,
-          ),
-        },
-        CharacterRecord.collection.doc(snapshot.objectID),
-      );
-
-  static Future<List<CharacterRecord>> search({
-    String? term,
-    FutureOr<LatLng>? location,
-    int? maxResults,
-    double? searchRadiusMeters,
-    bool useCache = false,
-  }) =>
-      FFAlgoliaManager.instance
-          .algoliaQuery(
-            index: 'character',
-            term: term,
-            maxResults: maxResults,
-            location: location,
-            searchRadiusMeters: searchRadiusMeters,
-            useCache: useCache,
-          )
-          .then((r) => r.map(fromAlgolia).toList());
 
   @override
   String toString() =>

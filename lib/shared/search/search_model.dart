@@ -30,6 +30,8 @@ class SearchModel extends FlutterFlowModel<SearchWidget> {
 
   String constcharacter = 'character';
 
+  String? searchTerm;
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TextField widget.
@@ -42,7 +44,7 @@ class SearchModel extends FlutterFlowModel<SearchWidget> {
   String? dropDownValue;
   FormFieldController<String>? dropDownValueController;
   // Stores action output result for [Backend Call - API (apiSearchAll)] action in DropDown widget.
-  ApiCallResponse? sortedApiResult;
+  ApiCallResponse? apiResult1;
 
   @override
   void initState(BuildContext context) {}
