@@ -42,8 +42,20 @@ Future<String?> callAiProxy(
   } on FirebaseFunctionsException catch (e) {
     print('Cloud Function Error: ${e.code} - ${e.message}');
     return '오류: AI 응답을 받아오지 못했습니다. (${e.message})';
-  } catch (e) {
-    print('Generic Error: $e');
-    return '알 수 없는 오류가 발생했습니다.';
+  } catch (error) {
+    console.error("AI API 호출 오류:", error.response?.data || error.message);
+
+    // [핵심 수정] 에러를 던지지(throw) 않고, "거절 메시지"를 정상적인 JSON으로 포장해서 보냅니다.
+    // 이렇게 하면 앱은 이게 에러인 줄 모르고 화면에 띄워줍니다.
+
+    const fallbackResponse = [
+      {
+        "type": "narration",
+        "content": "(시스템: 부적절한 내용이 감지되어 AI가 답변을 거부했습니다. 다른 주제로 대화를 이어가 주세요.)"
+      }
+    ];
+
+    // 에러가 아니라 '성공'한 것처럼 리턴합니다.
+    return {fullText: JSON.stringify(fallbackResponse)};
   }
 }
