@@ -731,33 +731,57 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                   _model.chatMessages
                                                       .lastOrNull!);
                                               safeSetState(() {});
-                                              _model.aiResponseScript =
-                                                  _model.aiFullText!;
-                                              safeSetState(() {});
-                                              _model.messageCount =
-                                                  await queryStorymessagesRecordCount(
-                                                parent: widget.storychatRef,
-                                              );
-                                              _model.characterChatDoc =
-                                                  await StorychatsRecord
-                                                      .getDocumentOnce(_model
-                                                          .currentDocRef!);
-                                              if (functions.shouldSummarize(
-                                                  _model.messageCount!,
-                                                  _model.characterChatDoc!
-                                                      .lastSummaryMessageCount)) {
-                                                _model.summary = await actions
-                                                    .callAiSummaryAction(
-                                                  _model.currentDocRef,
+                                              if (_model.aiFullText ==
+                                                  'BLOCKED_CONTENT') {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      '부적절한 내용이라 답변할 수 없습니다.',
+                                                      style: TextStyle(
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .secondaryText,
+                                                      ),
+                                                    ),
+                                                    duration: Duration(
+                                                        milliseconds: 2000),
+                                                    backgroundColor:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .info,
+                                                  ),
                                                 );
+                                              } else {
+                                                _model.aiResponseScript =
+                                                    _model.aiFullText!;
+                                                safeSetState(() {});
+                                                _model.messageCount =
+                                                    await queryStorymessagesRecordCount(
+                                                  parent: widget.storychatRef,
+                                                );
+                                                _model.characterChatDoc =
+                                                    await StorychatsRecord
+                                                        .getDocumentOnce(_model
+                                                            .currentDocRef!);
+                                                if (functions.shouldSummarize(
+                                                    _model.messageCount!,
+                                                    _model.characterChatDoc!
+                                                        .lastSummaryMessageCount)) {
+                                                  _model.summary = await actions
+                                                      .callAiSummaryAction(
+                                                    _model.currentDocRef,
+                                                  );
 
-                                                firestoreBatch.update(
-                                                    _model.currentDocRef!,
-                                                    createStorychatsRecordData(
-                                                      lastSummaryMessageCount:
-                                                          _model.messageCount,
-                                                      summary: _model.summary,
-                                                    ));
+                                                  firestoreBatch.update(
+                                                      _model.currentDocRef!,
+                                                      createStorychatsRecordData(
+                                                        lastSummaryMessageCount:
+                                                            _model.messageCount,
+                                                        summary: _model.summary,
+                                                      ));
+                                                }
                                               }
                                             } else {
                                               var confirmDialogResponse =
