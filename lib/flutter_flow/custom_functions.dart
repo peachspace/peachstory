@@ -269,8 +269,12 @@ You are an interactive storyteller AI. Your goal is to generate the next part of
 **You must output a valid JSON list of objects.** Do not output any text outside the JSON block.
 Each object in the list represents a scene and must have the following structure:
 
+### WRITING STYLE (CRITICAL)
+- **Narration:** You MUST write detailed, immersive, and descriptive narration. Aim for **500~1000 characters** for the narration parts to fully set the scene, atmosphere, and internal thoughts. Do not be brief.
+- **Dialogue:** Keep dialogues natural and consistent with the character's personality.
+
 1. **Narration:**
-   `{"type": "narration", "content": "Description of the scene..."}`
+   `{"type": "narration", "content": "Long and detailed description of the scene (approx 500-1000 chars)..."}`
 2. **Dialogue:**
    `{"type": "dialogue", "speaker": "CharacterName", "content": "Speech text...", "action": "Expression or action (optional)"}`
 3. **Show Image:**

@@ -41,17 +41,34 @@ class NotifierChatList extends StatefulWidget {
   State<NotifierChatList> createState() => _NotifierChatListState();
 }
 
-class _NotifierChatListState extends State<NotifierChatList> {
+// [수정] 애니메이션 사용을 위해 Mixin 추가 (with SingleTickerProviderStateMixin)
+class _NotifierChatListState extends State<NotifierChatList>
+    with SingleTickerProviderStateMixin {
   late ValueNotifier<List<StoryChatMessageStructStruct>> _messagesNotifier;
   final ScrollController _scrollController = ScrollController();
   List<dynamic> _scenes = [];
   int _currentSceneIndex = 0;
+
+  // [추가] 로딩 애니메이션 컨트롤러
+  late AnimationController _loadingController;
+  late Animation<double> _loadingAnimation;
 
   @override
   void initState() {
     super.initState();
     _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+
+    // [추가] 애니메이션 초기화 (부드럽게 깜빡임)
+    _loadingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000), // 1초 동안 변함
+    )..repeat(reverse: true); // 무한 반복 (밝아졌다 어두워졌다)
+
+    // 투명도 범위 설정 (0.4 ~ 1.0 사이를 오가도록)
+    _loadingAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _loadingController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -59,10 +76,18 @@ class _NotifierChatListState extends State<NotifierChatList> {
     super.didUpdateWidget(oldWidget);
 
     // 1. 내 메시지 실시간 반영
-    if (widget.initialMessages != null &&
-        widget.initialMessages!.length != oldWidget.initialMessages?.length) {
-      _messagesNotifier.value = List.from(widget.initialMessages!);
-      _scrollToBottom();
+    if (widget.initialMessages != null) {
+      final currentLen = _messagesNotifier.value.length;
+      final newLen = widget.initialMessages!.length;
+
+      if (currentLen != newLen ||
+          (newLen > 0 &&
+              _messagesNotifier.value.isNotEmpty &&
+              widget.initialMessages!.last.text !=
+                  _messagesNotifier.value.last.text)) {
+        _messagesNotifier.value = List.from(widget.initialMessages!);
+        _scrollToBottom();
+      }
     }
 
     // 2. AI 스크립트 연출 시작
@@ -78,6 +103,8 @@ class _NotifierChatListState extends State<NotifierChatList> {
   void dispose() {
     _messagesNotifier.dispose();
     _scrollController.dispose();
+    // [추가] 컨트롤러 해제 (메모리 누수 방지)
+    _loadingController.dispose();
     super.dispose();
   }
 
@@ -116,19 +143,18 @@ class _NotifierChatListState extends State<NotifierChatList> {
           scene['condition'] ?? '', widget.situationalImageList ?? []);
 
       if (imageUrl.isNotEmpty) {
-        // [에러 해결] 모든 필드를 명시적으로 채워줍니다.
-        final imageMessage = StoryChatMessageStructStruct(
+        final imageMessage = createStoryChatMessageStructStruct(
           type: 'story_image',
           storyImageUrl: imageUrl,
           isStreaming: false,
-          text: '', // 빈 값으로라도 채워야 함
+          text: '',
           speakerName: '',
           actionText: '',
           speakerImage: '',
         );
         _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
         _scrollToBottom();
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 300));
       }
       _processNextScene();
     } else if (type == 'narration' || type == 'dialogue') {
@@ -152,7 +178,7 @@ class _NotifierChatListState extends State<NotifierChatList> {
 
     for (int i = 0; i <= content.length; i++) {
       if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 30));
+      await Future.delayed(const Duration(milliseconds: 10));
 
       final currentList =
           List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
@@ -175,7 +201,7 @@ class _NotifierChatListState extends State<NotifierChatList> {
       _messagesNotifier.value = currentList;
     }
     _scrollToBottom();
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 100));
   }
 
   void _scrollToBottom() {
@@ -201,12 +227,46 @@ class _NotifierChatListState extends State<NotifierChatList> {
             final chatItem = chatMessages[index];
             if (chatItem.type == 'user') {
               return _buildUserMessage(chatItem);
+            } else if (chatItem.type == 'thinking') {
+              // [로딩] 애니메이션 적용된 위젯 호출
+              return _buildThinkingIndicator();
             } else {
               return _buildAiMessage(chatItem);
             }
           },
         );
       },
+    );
+  }
+
+  // [수정] 애니메이션(FadeTransition)이 적용된 생각 중 표시
+  Widget _buildThinkingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+      child: FadeTransition(
+        opacity: _loadingAnimation, // 애니메이션 연결
+        child: Row(
+          children: [
+            // 스피너는 그대로 유지하거나, 텍스트만 깜빡이게 할 수도 있음 (현재는 전체 깜빡임)
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Color(0xFFFFD1BA)),
+            ),
+            SizedBox(width: 10),
+            Text(
+              "생각하는 중...",
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'Inter',
+                    color: Colors.grey[500], // 회색
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                  ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -222,7 +282,7 @@ class _NotifierChatListState extends State<NotifierChatList> {
                 fontFamily: 'Inter',
                 color: Color(0xFF666666),
                 fontSize: 14.0,
-                lineHeight: 1.5,
+                lineHeight: 1.6,
               ),
         ),
       ),
@@ -257,35 +317,33 @@ class _NotifierChatListState extends State<NotifierChatList> {
         _findCharacterImageByName(speaker, widget.preDefinedCharacters ?? []) ??
         '';
 
-    String fullText = chatItem.text;
-    if (chatItem.actionText != null && chatItem.actionText!.isNotEmpty) {
-      fullText = "(${chatItem.actionText}) $fullText";
-    }
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (speakerImage.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(right: 12.0),
-              child: CircleAvatar(
-                backgroundImage: NetworkImage(speakerImage),
-                radius: 18,
-                backgroundColor: Colors.grey[200],
-              ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.only(right: 12.0),
-              child: CircleAvatar(
-                backgroundColor: Color(0xFFFFD1BA),
-                radius: 18,
-                child: Text(speaker.isNotEmpty ? speaker[0] : '?',
-                    style: TextStyle(color: Colors.white, fontSize: 12)),
-              ),
+          Container(
+            margin: const EdgeInsets.only(right: 12.0),
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.grey[200],
             ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: speakerImage.isNotEmpty
+                  ? Image.network(speakerImage, fit: BoxFit.cover)
+                  : Center(
+                      child: Text(
+                        speaker.isNotEmpty ? speaker[0] : '?',
+                        style: TextStyle(
+                            color: Colors.grey[500],
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,14 +358,31 @@ class _NotifierChatListState extends State<NotifierChatList> {
                       ),
                 ),
                 SizedBox(height: 4),
-                Text(
-                  fullText,
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily: 'Inter',
-                        color: Colors.black87,
-                        fontSize: 15.0,
-                        lineHeight: 1.5,
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      if (chatItem.actionText != null &&
+                          chatItem.actionText!.isNotEmpty)
+                        TextSpan(
+                          text: "(${chatItem.actionText}) ",
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    fontFamily: 'Inter',
+                                    color: Color(0xFF95A1AC),
+                                    fontSize: 12.5,
+                                  ),
+                        ),
+                      TextSpan(
+                        text: chatItem.text,
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              fontFamily: 'Inter',
+                              color: Colors.black87,
+                              fontSize: 15.0,
+                              lineHeight: 1.5,
+                            ),
                       ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -371,14 +446,13 @@ class _NotifierChatListState extends State<NotifierChatList> {
   StoryChatMessageStructStruct? _createStructFromScene(
       dynamic scene, String text, bool isStreaming) {
     if (scene == null) return null;
-    // [에러 해결] 여기도 모든 필드를 채워줍니다.
-    return StoryChatMessageStructStruct(
+
+    return createStoryChatMessageStructStruct(
       type: scene['type'] ?? 'narration',
       speakerName: scene['speaker'] ?? '',
       actionText: scene['action'] ?? '',
       text: text,
       isStreaming: isStreaming,
-      // 누락 방지용 빈 값
       storyImageUrl: '',
       speakerImage: '',
     );

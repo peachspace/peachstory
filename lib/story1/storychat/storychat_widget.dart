@@ -142,18 +142,6 @@ class _StorychatWidgetState extends State<StorychatWidget>
           functions.prologue('도입부를 생성하라.').toList(),
           '',
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _model.aitext!,
-              style: TextStyle(
-                color: FlutterFlowTheme.of(context).primaryText,
-              ),
-            ),
-            duration: Duration(milliseconds: 4000),
-            backgroundColor: FlutterFlowTheme.of(context).secondary,
-          ),
-        );
         _model.aiResponseScript = _model.aitext!;
         safeSetState(() {});
       }
@@ -659,6 +647,12 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                       widget.userInChatName,
                                                   userRef: currentUserReference,
                                                 ));
+                                            _model.addToChatMessages(
+                                                StoryChatMessageStructStruct(
+                                              text: '생각 중',
+                                              type: 'thinking',
+                                            ));
+                                            safeSetState(() {});
                                             safeSetState(() {
                                               _model.textController?.clear();
                                             });
@@ -733,6 +727,10 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                     ?.toList(),
                                                 _model.userinput,
                                               );
+                                              _model.removeFromChatMessages(
+                                                  _model.chatMessages
+                                                      .lastOrNull!);
+                                              safeSetState(() {});
                                               _model.aiResponseScript =
                                                   _model.aiFullText!;
                                               safeSetState(() {});
