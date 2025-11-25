@@ -123,9 +123,9 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: Color(0xFFFFF8F9),
+        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
         appBar: AppBar(
-          backgroundColor: Color(0xFFFFF8F9),
+          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
           iconTheme:
               IconThemeData(color: FlutterFlowTheme.of(context).primaryText),
           automaticallyImplyLeading: true,

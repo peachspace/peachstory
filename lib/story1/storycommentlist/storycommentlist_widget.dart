@@ -75,9 +75,9 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: Color(0xFFFFF8F9),
+        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
         appBar: AppBar(
-          backgroundColor: Color(0xFFFFF8F9),
+          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
           iconTheme:
               IconThemeData(color: FlutterFlowTheme.of(context).primaryText),
           automaticallyImplyLeading: true,
@@ -104,6 +104,7 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                     fontStyle:
                         FlutterFlowTheme.of(context).titleLarge.fontStyle,
                   ),
+                  color: FlutterFlowTheme.of(context).tertiary,
                   letterSpacing: 0.0,
                   fontWeight:
                       FlutterFlowTheme.of(context).titleLarge.fontWeight,
@@ -232,7 +233,8 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                               color: FlutterFlowTheme.of(context).secondaryText,
                               size: 24.0,
                             ),
-                            fillColor: Color(0xFFFFF8F9),
+                            fillColor: FlutterFlowTheme.of(context)
+                                .secondaryBackground,
                             elevation: 2.0,
                             borderColor: Colors.transparent,
                             borderWidth: 0.0,
