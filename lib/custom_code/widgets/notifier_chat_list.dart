@@ -55,9 +55,8 @@ class _NotifierChatListState extends State<NotifierChatList>
   void initState() {
     super.initState();
     _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _forceScrollToBottom());
 
-    // 깜빡임 애니메이션 설정
     _loadingController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -72,26 +71,28 @@ class _NotifierChatListState extends State<NotifierChatList>
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // 유저 메시지 동기화
+    // 내 메시지 동기화
     if (widget.initialMessages != null) {
-      final currentLen = _messagesNotifier.value.length;
-      final newLen = widget.initialMessages!.length;
+      final parentList = widget.initialMessages!;
+      final currentList = _messagesNotifier.value;
 
-      if (currentLen != newLen ||
-          (newLen > 0 &&
-              _messagesNotifier.value.isNotEmpty &&
-              widget.initialMessages!.last.text !=
-                  _messagesNotifier.value.last.text)) {
-        _messagesNotifier.value = List.from(widget.initialMessages!);
-        _scrollToBottom();
+      if (parentList.length > currentList.length) {
+        _messagesNotifier.value = List.from(parentList);
+        _forceScrollToBottom();
+      } else if (parentList.isEmpty && currentList.isNotEmpty) {
+        _messagesNotifier.value = List.from(parentList);
       }
     }
 
-    // AI 응답 처리
+    // AI 스크립트 처리
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
         widget.newResponseScript != '" "') {
+      if (widget.newResponseScript.contains("BLOCKED_CONTENT")) {
+        return;
+      }
+
       SchedulerBinding.instance.addPostFrameCallback((_) => _startDirecting());
     }
   }
@@ -121,12 +122,8 @@ class _NotifierChatListState extends State<NotifierChatList>
       _scenes = _parseScriptIntoScenes(script);
     }
 
-    // [안전장치] 파싱 실패하거나 빈 내용일 경우, 원본 텍스트를 그대로 출력 (무응답 방지)
     if (_scenes.isEmpty && script.isNotEmpty) {
-      _scenes.add({
-        "type": "narration",
-        "content": script, // 파싱 실패한 내용을 나레이션으로 보여줌
-      });
+      _scenes.add({"type": "narration", "content": script});
     }
 
     _currentSceneIndex = 0;
@@ -138,12 +135,15 @@ class _NotifierChatListState extends State<NotifierChatList>
       if (widget.onTurnComplete != null) {
         widget.onTurnComplete!(_scenes);
       }
+      _forceScrollToBottom();
       return;
     }
 
     final scene = _scenes[_currentSceneIndex];
     _currentSceneIndex++;
     final type = scene['type'] ?? 'narration';
+
+    _forceScrollToBottom();
 
     if (type == 'show_image') {
       final imageUrl = _findSituationalImageUrlByCondition(
@@ -160,7 +160,7 @@ class _NotifierChatListState extends State<NotifierChatList>
           speakerImage: '',
         );
         _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
-        _scrollToBottom();
+        _forceScrollToBottom();
         await Future.delayed(const Duration(milliseconds: 300));
       }
       _processNextScene();
@@ -179,7 +179,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     if (placeholder == null) return;
 
     _messagesNotifier.value = [..._messagesNotifier.value, placeholder];
-    _scrollToBottom();
+    _forceScrollToBottom();
 
     final String content = scene['content'] ?? '';
 
@@ -196,7 +196,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       if (updatedMessage != null) {
         currentList[currentList.length - 1] = updatedMessage;
         _messagesNotifier.value = currentList;
-        if (i % 10 == 0) _scrollToBottom();
+        if (i % 5 == 0) _forceScrollToBottom();
       }
     }
 
@@ -207,18 +207,20 @@ class _NotifierChatListState extends State<NotifierChatList>
       currentList[currentList.length - 1] = finalMessage;
       _messagesNotifier.value = currentList;
     }
-    _scrollToBottom();
+    _forceScrollToBottom();
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
+  void _forceScrollToBottom() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent + 100,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
@@ -232,8 +234,8 @@ class _NotifierChatListState extends State<NotifierChatList>
           itemCount: chatMessages.length,
           itemBuilder: (context, index) {
             final chatItem = chatMessages[index];
+
             if (chatItem.type == 'user') {
-              // [수정 1] 유저 메시지도 '대화' 형식으로 표시
               return _buildUserAsDialogue(chatItem);
             } else if (chatItem.type == 'thinking') {
               return _buildThinkingIndicator();
@@ -246,7 +248,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
-  // [수정 3] 로딩: 아이콘 삭제, 글자만 깜빡임
   Widget _buildThinkingIndicator() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
@@ -284,17 +285,15 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
-  // [수정 1 구현] 유저 메시지를 대화 형식으로 변환하여 출력
   Widget _buildUserAsDialogue(StoryChatMessageStructStruct chatItem) {
     return _buildDialogueMessage(
       chatItem,
-      overrideSpeaker: widget.userInChatName ?? 'User',
-      overrideImage: currentUserPhoto, // 내 프로필 사진
+      overrideSpeaker: widget.userInChatName ?? '나',
+      overrideImage: currentUserPhoto,
       isUser: true,
     );
   }
 
-  // [통합] 대사 출력 위젯 (유저/AI 공용)
   Widget _buildDialogueMessage(StoryChatMessageStructStruct chatItem,
       {String? overrideSpeaker, String? overrideImage, bool isUser = false}) {
     String speaker = overrideSpeaker ?? chatItem.speakerName;
@@ -307,8 +306,9 @@ class _NotifierChatListState extends State<NotifierChatList>
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
+        // [수정 완료] 에러가 나던 textDirection 줄을 삭제했습니다.
+        // Row는 기본적으로 왼쪽 정렬(LTR)이므로 삭제해도 무방합니다.
         children: [
-          // 프로필 이미지 (모두 둥근 네모)
           Container(
             margin: const EdgeInsets.only(right: 12.0),
             width: 36,
@@ -323,37 +323,30 @@ class _NotifierChatListState extends State<NotifierChatList>
                   ? Image.network(
                       speakerImage,
                       fit: BoxFit.cover,
-                      // 이미지가 깨지거나 없으면 투명 처리 (냥 글자 방지)
                       errorBuilder: (context, error, stackTrace) =>
                           Container(color: Colors.transparent),
                     )
-                  : Container(color: Colors.transparent), // 이미지가 없으면 빈 공간
+                  : Container(color: Colors.transparent),
             ),
           ),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 이름
                 Text(
                   speaker,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.bold,
-                        color: isUser
-                            ? Color(0xFF4B39EF)
-                            : Colors.black87, // 내 이름은 색상 다르게
+                        color: isUser ? Color(0xFF4B39EF) : Colors.black87,
                         fontSize: 14.0,
                       ),
                 ),
                 SizedBox(height: 4),
-
-                // 대사 + 지문
                 RichText(
+                  textAlign: TextAlign.start,
                   text: TextSpan(
                     children: [
-                      // [수정 2] (null) 텍스트 숨김 처리
                       if (chatItem.actionText != null &&
                           chatItem.actionText!.isNotEmpty &&
                           chatItem.actionText != 'null')
@@ -414,7 +407,6 @@ class _NotifierChatListState extends State<NotifierChatList>
 
   List<dynamic> _parseScriptIntoScenes(String scriptText) {
     final List<dynamic> scenes = [];
-    // 간단한 파싱 로직 (JSON 실패시 작동)
     scenes.add({"type": "narration", "content": scriptText});
     return scenes;
   }
@@ -447,7 +439,6 @@ class _NotifierChatListState extends State<NotifierChatList>
   String? _findCharacterImageByName(
       String name, List<CharacterStructStruct> characters) {
     for (final char in characters) {
-      // 이름에 공백이 있을 수 있으므로 trim() 후 비교
       if (char.name.trim() == name.trim()) {
         return char.image;
       }

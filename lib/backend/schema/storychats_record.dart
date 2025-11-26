@@ -65,6 +65,11 @@ class StorychatsRecord extends FirestoreRecord {
   DocumentReference? get creatorRef => _creatorRef;
   bool hasCreatorRef() => _creatorRef != null;
 
+  // "isNovelMode" field.
+  bool? _isNovelMode;
+  bool get isNovelMode => _isNovelMode ?? false;
+  bool hasIsNovelMode() => _isNovelMode != null;
+
   void _initializeFields() {
     _storyRef = snapshotData['story_ref'] as DocumentReference?;
     _userRef = snapshotData['user_ref'] as DocumentReference?;
@@ -77,6 +82,7 @@ class StorychatsRecord extends FirestoreRecord {
     _userNote = snapshotData['userNote'] as String?;
     _selectedAiModel = snapshotData['selectedAiModel'] as String?;
     _creatorRef = snapshotData['creator_ref'] as DocumentReference?;
+    _isNovelMode = snapshotData['isNovelMode'] as bool?;
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -125,6 +131,7 @@ Map<String, dynamic> createStorychatsRecordData({
   String? userNote,
   String? selectedAiModel,
   DocumentReference? creatorRef,
+  bool? isNovelMode,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -138,6 +145,7 @@ Map<String, dynamic> createStorychatsRecordData({
       'userNote': userNote,
       'selectedAiModel': selectedAiModel,
       'creator_ref': creatorRef,
+      'isNovelMode': isNovelMode,
     }.withoutNulls,
   );
 
@@ -158,7 +166,8 @@ class StorychatsRecordDocumentEquality implements Equality<StorychatsRecord> {
         e1?.userInChatName == e2?.userInChatName &&
         e1?.userNote == e2?.userNote &&
         e1?.selectedAiModel == e2?.selectedAiModel &&
-        e1?.creatorRef == e2?.creatorRef;
+        e1?.creatorRef == e2?.creatorRef &&
+        e1?.isNovelMode == e2?.isNovelMode;
   }
 
   @override
@@ -172,7 +181,8 @@ class StorychatsRecordDocumentEquality implements Equality<StorychatsRecord> {
         e?.userInChatName,
         e?.userNote,
         e?.selectedAiModel,
-        e?.creatorRef
+        e?.creatorRef,
+        e?.isNovelMode
       ]);
 
   @override

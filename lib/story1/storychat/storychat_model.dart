@@ -67,6 +67,8 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
 
   StorychatsRecord? currentChatDoc;
 
+  bool istyping = false;
+
   ///  State fields for stateful widgets in this page.
 
   // Stores action output result for [Backend Call - Read Document] action in storychat widget.
@@ -101,6 +103,24 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
   StorychatsRecord? characterChatDoc;
   // Stores action output result for [Custom Action - callAiSummaryAction] action in messagesendbutton widget.
   String? summary;
+  // Stores action output result for [Custom Action - getAndProcessHistory] action in messagesendbutton widget.
+  List<dynamic>? formattedHistory1;
+  // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.
+  StorychatsRecord? updatedChatDoc1;
+  // Stores action output result for [Custom Action - getPointCostAction] action in messagesendbutton widget.
+  int? pointsToDeduct1;
+  // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in messagesendbutton widget.
+  int? creatorShare1;
+  // Stores action output result for [Custom Action - getNextPhaseCommand] action in messagesendbutton widget.
+  String? nextCommand;
+  // Stores action output result for [Custom Action - callAiProxy] action in messagesendbutton widget.
+  String? aiFullText1;
+  // Stores action output result for [Firestore Query - Query a collection] action in messagesendbutton widget.
+  int? messageCount2;
+  // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.
+  StorychatsRecord? characterChatDoc1;
+  // Stores action output result for [Custom Action - callAiSummaryAction] action in messagesendbutton widget.
+  String? summary1;
 
   @override
   void initState(BuildContext context) {}

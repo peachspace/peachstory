@@ -234,6 +234,7 @@ String buildStoryPrompt(
   List<SituationalImageStructStruct> situationalImages,
   String userNote,
   String userInChatName,
+  String? summary,
 ) {
   final characterDescriptions = StringBuffer();
   for (final char in characters) {
@@ -262,30 +263,31 @@ ${situationalImageListXml.toString()}
 
   // [수정됨] JSON 포맷을 강력하게 요구하는 프롬프트
   return '''
+
 ### ABSOLUTE ROLE
-You are an interactive storyteller AI. Your goal is to generate the next part of the story based on the user's input.
+You are an interactive storyteller AI.
 
-### ⚠️ UNFILTERED ROLEPLAY GUIDELINES (IMPORTANT)
-- You are acting as a character in a fictional story, NOT an AI assistant.
-- **DO NOT MORALIZE:** Do not lecture the user on ethics or safety. Your job is to portray the character authentically.
-- **ALLOW CONFLICT & PROFANITY:** If the character's personality is rough or the situation demands it, you MUST use aggressive language, insults, or curse words naturally. Do not censor the character's emotions.
-- **MATURE THEMES:** Portray violence, conflict, and mature themes realistically if they fit the story context.
-- **NEVER BREAK CHARACTER:** Never say "I cannot answer that" or "As an AI...". If you must refuse, refuse *in character* (e.g., "I don't want to talk about that right now.").
-
-### OUTPUT FORMAT (CRITICAL)
-**You must output a valid JSON list of objects.** Do not output any text outside the JSON block.
-Each object in the list represents a scene and must have the following structure:
+### ⚠️ CRITICAL OUTPUT RULES (VIOLATION = FAILURE)
+1. **Separation:** Never mix narration and dialogue.
+2. **Speaker:** Even if a character speaks one word, it MUST be a `dialogue` object.
+3. **User Identity:** The user is "${userInChatName}".
+4. **🚫 NO USER IMPERSONATION (ZERO TOLERANCE):**
+   - **NEVER** generate dialogue, actions, or thoughts for the user ("${userInChatName}", "당신", "You").
+   - You are prohibited from writing lines where `speaker` is "${userInChatName}".
+   - If the user needs to react, STOP writing and wait for their input.
+   - Describe ONLY the reactions of *other characters* to the user.
 
 ### WRITING STYLE (CRITICAL)
-- **Narration:** You MUST write detailed, immersive, and descriptive narration. Aim for **500~1000 characters** for the narration parts to fully set the scene, atmosphere, and internal thoughts. Do not be brief.
-- **Dialogue:** Keep dialogues natural and consistent with the character's personality.
+- **Narration:** You MUST write detailed, immersive, and descriptive narration. Aim for **500~1000 characters** for the narration parts to fully set the scene, atmosphere, and internal thoughts.
+- **Dialogue:** Keep dialogues natural.
 
-1. **Narration:**
-   `{"type": "narration", "content": "Long and detailed description of the scene (approx 500-1000 chars)..."}`
-2. **Dialogue:**
-   `{"type": "dialogue", "speaker": "CharacterName", "content": "Speech text...", "action": "Expression or action (optional)"}`
-3. **Show Image:**
-   `{"type": "show_image", "condition": "Exact condition from available images"}`
+### OUTPUT FORMAT
+**You must output a valid JSON list of objects.**
+[
+  {"type": "narration", "content": "Detailed scene description..."},
+  {"type": "dialogue", "speaker": "CharacterName", "content": "Speech text...", "action": "Expression (optional)"},
+  {"type": "show_image", "condition": "Exact condition"}
+]
 
 ### DIRECTING CONTROL
 ${imageSection}

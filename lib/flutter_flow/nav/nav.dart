@@ -186,6 +186,10 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               isList: false,
               collectionNamePath: ['storychats'],
             ),
+            isNovelMode: params.getParam(
+              'isNovelMode',
+              ParamType.bool,
+            ),
           ),
         ),
         FFRoute(
@@ -220,6 +224,10 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
             userInChatName: params.getParam(
               'userInChatName',
               ParamType.String,
+            ),
+            isNovelMode: params.getParam(
+              'isNovelMode',
+              ParamType.bool,
             ),
           ),
         ),

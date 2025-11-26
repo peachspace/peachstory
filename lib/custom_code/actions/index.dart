@@ -13,3 +13,4 @@ export 'load_my_creations.dart' show loadMyCreations;
 export 'load_my_chats.dart' show loadMyChats;
 export 'load_ranking_data.dart' show loadRankingData;
 export 'call_ai_summary_action.dart' show callAiSummaryAction;
+export 'get_next_phase_command.dart' show getNextPhaseCommand;

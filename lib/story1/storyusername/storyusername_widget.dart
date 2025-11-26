@@ -1,6 +1,8 @@
+import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,12 +12,10 @@ export 'storyusername_model.dart';
 class StoryusernameWidget extends StatefulWidget {
   const StoryusernameWidget({
     super.key,
-    this.onNameConfirmed,
-    required this.storyRef,
+    required this.storydoc,
   });
 
-  final Future Function(String enteredName)? onNameConfirmed;
-  final DocumentReference? storyRef;
+  final StoriesRecord? storydoc;
 
   @override
   State<StoryusernameWidget> createState() => _StoryusernameWidgetState();
@@ -208,10 +208,23 @@ class _StoryusernameWidgetState extends State<StoryusernameWidget> {
                   ),
                   showLoadingIndicator: true,
                   onPressed: () async {
-                    await widget.onNameConfirmed?.call(
-                      _model.textController.text,
+                    context.pushNamed(
+                      StorychatWidget.routeName,
+                      queryParameters: {
+                        'storyRef': serializeParam(
+                          widget.storydoc?.reference,
+                          ParamType.DocumentReference,
+                        ),
+                        'userInChatName': serializeParam(
+                          _model.textController.text,
+                          ParamType.String,
+                        ),
+                        'isNovelMode': serializeParam(
+                          false,
+                          ParamType.bool,
+                        ),
+                      }.withoutNulls,
                     );
-                    Navigator.pop(context);
                   },
                 ),
               ],
