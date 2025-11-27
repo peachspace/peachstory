@@ -966,8 +966,6 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                     type: 'user',
                                   ));
                                   safeSetState(() {});
-                                  _model.userinput = _model.textController.text;
-                                  safeSetState(() {});
                                   _model.addToChatMessages(
                                       StoryChatMessageStructStruct(
                                     text: '생각 중',

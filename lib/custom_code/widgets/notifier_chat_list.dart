@@ -60,9 +60,7 @@ class _NotifierChatListState extends State<NotifierChatList>
   void initState() {
     super.initState();
     _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
-    // 초기 로딩 시 스크롤 (애니메이션 없이 즉시 이동)
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _scrollToBottom(animated: false));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
 
     _loadingController = AnimationController(
       vsync: this,
@@ -78,25 +76,26 @@ class _NotifierChatListState extends State<NotifierChatList>
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // [핵심 수정 1] 리스트 동기화 로직 (삭제 감지 강화)
+    // [문제 해결 1] 리스트 동기화 (생각 중 삭제 감지)
     if (widget.initialMessages != null) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
 
-      // 부모 리스트가 변경되었으면(추가/삭제/내용변경) 무조건 동기화
+      // 리스트 길이 변경(삭제/추가) 또는 마지막 내용 변경 시 무조건 업데이트
+      bool shouldUpdate = false;
       if (parentList.length != currentList.length) {
-        _messagesNotifier.value = List.from(parentList);
-        // 메시지가 추가된 경우에만 스크롤 내림 (삭제 시엔 유지)
-        if (parentList.length > currentList.length) {
-          _scrollToBottom(animated: false);
-        }
-      }
-      // 길이는 같지만 내용이 바뀐 경우 (예: 로딩 -> 실제 메시지)
-      else if (parentList.isNotEmpty && currentList.isNotEmpty) {
+        shouldUpdate = true;
+      } else if (parentList.isNotEmpty && currentList.isNotEmpty) {
         if (parentList.last.text != currentList.last.text ||
             parentList.last.type != currentList.last.type) {
-          _messagesNotifier.value = List.from(parentList);
+          shouldUpdate = true;
         }
+      }
+
+      if (shouldUpdate) {
+        _messagesNotifier.value = List.from(parentList);
+        // 변경 시에는 애니메이션 없이 즉시 이동 (깜빡임/울렁임 방지)
+        WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
       }
     }
 
@@ -105,10 +104,7 @@ class _NotifierChatListState extends State<NotifierChatList>
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
         widget.newResponseScript != '" "') {
-      if (widget.newResponseScript.contains("BLOCKED_CONTENT")) {
-        return;
-      }
-
+      if (widget.newResponseScript.contains("BLOCKED_CONTENT")) return;
       if (_isTyping) return;
 
       SchedulerBinding.instance.addPostFrameCallback((_) => _startDirecting());
@@ -155,7 +151,8 @@ class _NotifierChatListState extends State<NotifierChatList>
       if (widget.onTurnComplete != null) {
         widget.onTurnComplete!(_scenes);
       }
-      _scrollToBottom(animated: true); // 다 끝나면 부드럽게 확인 사살
+      // 모든 씬이 끝나면 부드럽게 마무리 스크롤
+      _animateToBottom();
       return;
     }
 
@@ -163,7 +160,8 @@ class _NotifierChatListState extends State<NotifierChatList>
     _currentSceneIndex++;
     final type = scene['type'] ?? 'narration';
 
-    _scrollToBottom(animated: false); // 씬 시작 시 즉시 이동
+    // 씬 시작 시 즉시 이동
+    _jumpToBottom();
 
     if (type == 'show_image') {
       final imageUrl = _findSituationalImageUrlByCondition(
@@ -180,7 +178,7 @@ class _NotifierChatListState extends State<NotifierChatList>
           speakerImage: '',
         );
         _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
-        _scrollToBottom(animated: true);
+        _jumpToBottom();
         await Future.delayed(const Duration(milliseconds: 300));
       }
       _processNextScene();
@@ -199,7 +197,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     if (placeholder == null) return;
 
     _messagesNotifier.value = [..._messagesNotifier.value, placeholder];
-    _scrollToBottom(animated: false);
+    _jumpToBottom();
 
     final String content = scene['content'] ?? '';
 
@@ -217,8 +215,8 @@ class _NotifierChatListState extends State<NotifierChatList>
         currentList[currentList.length - 1] = updatedMessage;
         _messagesNotifier.value = currentList;
 
-        // [핵심 수정 2] 타이핑 중에는 애니메이션 없이 즉시 이동 (떨림 방지)
-        if (i % 20 == 0) _scrollToBottom(animated: false);
+        // [문제 해결 2] 타이핑 중에는 애니메이션 없이 '점프' (떨림 해결)
+        if (i % 20 == 0) _jumpToBottom();
       }
     }
 
@@ -229,27 +227,29 @@ class _NotifierChatListState extends State<NotifierChatList>
       currentList[currentList.length - 1] = finalMessage;
       _messagesNotifier.value = currentList;
     }
-    _scrollToBottom(animated: false);
+    _jumpToBottom();
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
-  // [핵심 수정 3] 스크롤 함수 통합 및 최적화
-  void _scrollToBottom({bool animated = false}) {
+  // [스크롤 함수 1] 즉시 이동 (타이핑 중, 메시지 추가/삭제 시)
+  void _jumpToBottom() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        final maxScroll = _scrollController.position.maxScrollExtent;
+        _scrollController
+            .jumpTo(_scrollController.position.maxScrollExtent + 150);
+      }
+    });
+  }
 
-        if (animated) {
-          // 씬이 끝났을 때만 부드럽게
-          _scrollController.animateTo(
-            maxScroll + 100,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        } else {
-          // 타이핑 중에는 즉시 이동 (튐 방지)
-          _scrollController.jumpTo(maxScroll + 100);
-        }
+  // [스크롤 함수 2] 부드러운 이동 (모든 씬 종료 시)
+  void _animateToBottom() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent + 150,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutQuad,
+        );
       }
     });
   }
@@ -261,30 +261,18 @@ class _NotifierChatListState extends State<NotifierChatList>
       builder: (context, chatMessages, child) {
         return ListView.builder(
           controller: _scrollController,
+          // [문제 해결 3] 버튼에 가려지지 않도록 하단 패딩 150px 확보
           padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 150),
           itemCount: chatMessages.length,
           itemBuilder: (context, index) {
             final chatItem = chatMessages[index];
 
-            // [핵심 수정 4] 독자 차단 로직 강화
-            // 1. 유저 메시지 중 '[SYSTEM' 명령은 무조건 숨김
-            if (chatItem.type == 'user' &&
-                chatItem.text.startsWith('[SYSTEM')) {
-              return SizedBox.shrink();
-            }
-
-            // 2. AI가 생성한 메시지 중 '독자', '나', 유저이름이 화자면 무조건 숨김
-            if (chatItem.type != 'user') {
-              // AI 메시지일 때
+            if (chatItem.type == 'user') {
+              // [안전장치] 혹시라도 독자 메시지가 리스트에 들어오면 여기서 숨김
               if (chatItem.speakerName == '독자' ||
-                  chatItem.speakerName == '나' ||
-                  (widget.userInChatName != null &&
-                      chatItem.speakerName == widget.userInChatName)) {
+                  chatItem.text.trim().isEmpty) {
                 return SizedBox.shrink();
               }
-            }
-
-            if (chatItem.type == 'user') {
               return _buildUserAsDialogue(chatItem);
             } else if (chatItem.type == 'thinking') {
               return _buildThinkingIndicator();
@@ -297,7 +285,12 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
-  // ... (이하 UI 빌더 함수들은 기존 코드와 동일합니다.) ...
+  // ... (나머지 UI 빌더 함수들은 기존과 동일) ...
+  // _buildThinkingIndicator, _buildNarration, _buildUserAsDialogue, _buildDialogueMessage,
+  // _buildStoryImage, _buildAiMessage, _parseScriptIntoScenes, _createStructFromScene,
+  // _findSituationalImageUrlByCondition, _findCharacterImageByName
+
+  // [주의] 아래 함수들도 반드시 포함되어야 합니다. 이전 답변의 코드를 그대로 쓰세요.
 
   Widget _buildThinkingIndicator() {
     return Padding(
