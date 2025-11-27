@@ -10,7 +10,9 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import '/flutter_flow/custom_functions.dart'; // Custom functions are fine
+import '/custom_code/widgets/index.dart';
+import '/custom_code/actions/index.dart';
+import '/flutter_flow/custom_functions.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -58,7 +60,9 @@ class _NotifierChatListState extends State<NotifierChatList>
   void initState() {
     super.initState();
     _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
-    WidgetsBinding.instance.addPostFrameCallback((_) => _forceScrollToBottom());
+    // 초기 로딩 시 스크롤 (애니메이션 없이 즉시 이동)
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _scrollToBottom(animated: false));
 
     _loadingController = AnimationController(
       vsync: this,
@@ -74,18 +78,29 @@ class _NotifierChatListState extends State<NotifierChatList>
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    // [핵심 수정 1] 리스트 동기화 로직 (삭제 감지 강화)
     if (widget.initialMessages != null) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
 
-      if (parentList.length > currentList.length) {
+      // 부모 리스트가 변경되었으면(추가/삭제/내용변경) 무조건 동기화
+      if (parentList.length != currentList.length) {
         _messagesNotifier.value = List.from(parentList);
-        _forceScrollToBottom();
-      } else if (parentList.isEmpty && currentList.isNotEmpty) {
-        _messagesNotifier.value = List.from(parentList);
+        // 메시지가 추가된 경우에만 스크롤 내림 (삭제 시엔 유지)
+        if (parentList.length > currentList.length) {
+          _scrollToBottom(animated: false);
+        }
+      }
+      // 길이는 같지만 내용이 바뀐 경우 (예: 로딩 -> 실제 메시지)
+      else if (parentList.isNotEmpty && currentList.isNotEmpty) {
+        if (parentList.last.text != currentList.last.text ||
+            parentList.last.type != currentList.last.type) {
+          _messagesNotifier.value = List.from(parentList);
+        }
       }
     }
 
+    // 2. AI 스크립트 처리
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
@@ -140,7 +155,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       if (widget.onTurnComplete != null) {
         widget.onTurnComplete!(_scenes);
       }
-      _forceScrollToBottom();
+      _scrollToBottom(animated: true); // 다 끝나면 부드럽게 확인 사살
       return;
     }
 
@@ -148,7 +163,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     _currentSceneIndex++;
     final type = scene['type'] ?? 'narration';
 
-    _forceScrollToBottom();
+    _scrollToBottom(animated: false); // 씬 시작 시 즉시 이동
 
     if (type == 'show_image') {
       final imageUrl = _findSituationalImageUrlByCondition(
@@ -165,7 +180,7 @@ class _NotifierChatListState extends State<NotifierChatList>
           speakerImage: '',
         );
         _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
-        _forceScrollToBottom();
+        _scrollToBottom(animated: true);
         await Future.delayed(const Duration(milliseconds: 300));
       }
       _processNextScene();
@@ -184,7 +199,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     if (placeholder == null) return;
 
     _messagesNotifier.value = [..._messagesNotifier.value, placeholder];
-    _forceScrollToBottom();
+    _scrollToBottom(animated: false);
 
     final String content = scene['content'] ?? '';
 
@@ -202,7 +217,8 @@ class _NotifierChatListState extends State<NotifierChatList>
         currentList[currentList.length - 1] = updatedMessage;
         _messagesNotifier.value = currentList;
 
-        if (i % 20 == 0) _forceScrollToBottom();
+        // [핵심 수정 2] 타이핑 중에는 애니메이션 없이 즉시 이동 (떨림 방지)
+        if (i % 20 == 0) _scrollToBottom(animated: false);
       }
     }
 
@@ -213,18 +229,27 @@ class _NotifierChatListState extends State<NotifierChatList>
       currentList[currentList.length - 1] = finalMessage;
       _messagesNotifier.value = currentList;
     }
-    _forceScrollToBottom();
+    _scrollToBottom(animated: false);
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
-  void _forceScrollToBottom() {
+  // [핵심 수정 3] 스크롤 함수 통합 및 최적화
+  void _scrollToBottom({bool animated = false}) {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 200,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeOutQuad,
-        );
+        final maxScroll = _scrollController.position.maxScrollExtent;
+
+        if (animated) {
+          // 씬이 끝났을 때만 부드럽게
+          _scrollController.animateTo(
+            maxScroll + 100,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        } else {
+          // 타이핑 중에는 즉시 이동 (튐 방지)
+          _scrollController.jumpTo(maxScroll + 100);
+        }
       }
     });
   }
@@ -241,11 +266,25 @@ class _NotifierChatListState extends State<NotifierChatList>
           itemBuilder: (context, index) {
             final chatItem = chatMessages[index];
 
-            if (chatItem.type == 'user') {
+            // [핵심 수정 4] 독자 차단 로직 강화
+            // 1. 유저 메시지 중 '[SYSTEM' 명령은 무조건 숨김
+            if (chatItem.type == 'user' &&
+                chatItem.text.startsWith('[SYSTEM')) {
+              return SizedBox.shrink();
+            }
+
+            // 2. AI가 생성한 메시지 중 '독자', '나', 유저이름이 화자면 무조건 숨김
+            if (chatItem.type != 'user') {
+              // AI 메시지일 때
               if (chatItem.speakerName == '독자' ||
-                  chatItem.text.startsWith('[SYSTEM')) {
+                  chatItem.speakerName == '나' ||
+                  (widget.userInChatName != null &&
+                      chatItem.speakerName == widget.userInChatName)) {
                 return SizedBox.shrink();
               }
+            }
+
+            if (chatItem.type == 'user') {
               return _buildUserAsDialogue(chatItem);
             } else if (chatItem.type == 'thinking') {
               return _buildThinkingIndicator();
@@ -257,6 +296,8 @@ class _NotifierChatListState extends State<NotifierChatList>
       },
     );
   }
+
+  // ... (이하 UI 빌더 함수들은 기존 코드와 동일합니다.) ...
 
   Widget _buildThinkingIndicator() {
     return Padding(
@@ -299,7 +340,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     return _buildDialogueMessage(
       chatItem,
       overrideSpeaker: widget.userInChatName ?? '나',
-      overrideImage: currentUserPhoto,
+      overrideImage: currentUserPhoto ?? '',
       isUser: true,
     );
   }
