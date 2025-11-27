@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import '/flutter_flow/custom_functions.dart'; // Custom functions are fine
+
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/scheduler.dart';
@@ -72,7 +74,6 @@ class _NotifierChatListState extends State<NotifierChatList>
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // 1. 메시지 리스트 동기화
     if (widget.initialMessages != null) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
@@ -85,7 +86,6 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
     }
 
-    // 2. AI 스크립트 처리
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
@@ -236,19 +236,16 @@ class _NotifierChatListState extends State<NotifierChatList>
       builder: (context, chatMessages, child) {
         return ListView.builder(
           controller: _scrollController,
-          // [화면 잘림 해결] 하단 패딩을 150으로 설정하여 버튼 뒤로 내용이 가려지지 않게 함
           padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 150),
           itemCount: chatMessages.length,
           itemBuilder: (context, index) {
             final chatItem = chatMessages[index];
 
             if (chatItem.type == 'user') {
-              // [독자 숨기기] 소설모드에서 '독자' 이름이거나 시스템 명령([SYSTEM...)이면 숨김
               if (chatItem.speakerName == '독자' ||
                   chatItem.text.startsWith('[SYSTEM')) {
                 return SizedBox.shrink();
               }
-              // 자유모드 메시지는 왼쪽 정렬로 표시
               return _buildUserAsDialogue(chatItem);
             } else if (chatItem.type == 'thinking') {
               return _buildThinkingIndicator();

@@ -776,10 +776,17 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                           ?.toList(),
                                                       _model.userinput,
                                                     );
-                                                    _model
-                                                        .removeFromChatMessages(
-                                                            _model.chatMessages
-                                                                .lastOrNull!);
+                                                    _model.cleanList =
+                                                        await actions
+                                                            .removeThinkingMessage(
+                                                      _model.chatMessages
+                                                          .toList(),
+                                                    );
+                                                    _model.chatMessages = _model
+                                                        .cleanList!
+                                                        .toList()
+                                                        .cast<
+                                                            StoryChatMessageStructStruct>();
                                                     safeSetState(() {});
                                                     if (_model.aiFullText ==
                                                         'BLOCKED_CONTENT') {
@@ -925,222 +932,236 @@ class _StorychatWidgetState extends State<StorychatWidget>
                     ),
                 ],
               ),
-              Align(
-                alignment: AlignmentDirectional(1.0, 1.0),
-                child: Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 25.0, 15.0),
-                  child: FlutterFlowIconButton(
-                    borderRadius: 10.0,
-                    buttonSize: 35.0,
-                    fillColor: Color(0xFFFFD1BA),
-                    icon: Icon(
-                      Icons.arrow_downward,
-                      color: Colors.white,
-                      size: 20.0,
-                    ),
-                    showLoadingIndicator: true,
-                    onPressed: (currentUserReference == null)
-                        ? null
-                        : () async {
-                            final firestoreBatch =
-                                FirebaseFirestore.instanceFor(
-                                        app: Firebase.app(),
-                                        databaseId: '(default)')
-                                    .batch();
-                            try {
-                              if (loggedIn) {
-                                _model.istyping = true;
-                                safeSetState(() {});
-                                _model.addToChatMessages(
-                                    StoryChatMessageStructStruct(
-                                  text: _model.textController.text,
-                                  type: 'user',
-                                ));
-                                safeSetState(() {});
-                                _model.userinput = _model.textController.text;
-                                safeSetState(() {});
-                                _model.addToChatMessages(
-                                    StoryChatMessageStructStruct(
-                                  text: '생각 중',
-                                  type: 'thinking',
-                                ));
-                                safeSetState(() {});
-                                safeSetState(() {
-                                  _model.textController?.clear();
-                                });
-                                _model.formattedHistory1 =
-                                    await actions.getAndProcessHistory(
-                                  _model.currentDocRef,
-                                );
-                                _model.updatedChatDoc1 =
-                                    await StorychatsRecord.getDocumentOnce(
-                                        _model.currentDocRef!);
-                                _model.currentChatDoc = _model.updatedChatDoc1;
-                                safeSetState(() {});
-                                _model.pointsToDeduct1 =
-                                    await actions.getPointCostAction(
-                                  _model.currentChatDoc?.selectedAiModel,
-                                );
-                                _model.creatorShare1 =
-                                    await actions.calculateCreatorEarningAction(
-                                  _model.currentChatDoc?.selectedAiModel,
-                                );
-                                if (valueOrDefault(
-                                        currentUserDocument?.points, 0) >=
-                                    _model.pointsToDeduct1!) {
-                                  firestoreBatch.update(currentUserReference!, {
-                                    ...mapToFirestore(
-                                      {
-                                        'points': FieldValue.increment(
-                                            -(_model.pointsToDeduct1!)),
-                                      },
-                                    ),
+              if (widget.isNovelMode == true)
+                Align(
+                  alignment: AlignmentDirectional(1.0, 1.0),
+                  child: Padding(
+                    padding:
+                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 25.0, 15.0),
+                    child: FlutterFlowIconButton(
+                      borderRadius: 10.0,
+                      buttonSize: 35.0,
+                      fillColor: Color(0xFFFFD1BA),
+                      icon: Icon(
+                        Icons.arrow_downward,
+                        color: Colors.white,
+                        size: 20.0,
+                      ),
+                      showLoadingIndicator: true,
+                      onPressed: (currentUserReference == null)
+                          ? null
+                          : () async {
+                              final firestoreBatch =
+                                  FirebaseFirestore.instanceFor(
+                                          app: Firebase.app(),
+                                          databaseId: '(default)')
+                                      .batch();
+                              try {
+                                if (loggedIn) {
+                                  _model.istyping = true;
+                                  safeSetState(() {});
+                                  _model.addToChatMessages(
+                                      StoryChatMessageStructStruct(
+                                    text: _model.textController.text,
+                                    type: 'user',
+                                  ));
+                                  safeSetState(() {});
+                                  _model.userinput = _model.textController.text;
+                                  safeSetState(() {});
+                                  _model.addToChatMessages(
+                                      StoryChatMessageStructStruct(
+                                    text: '생각 중',
+                                    type: 'thinking',
+                                  ));
+                                  safeSetState(() {});
+                                  safeSetState(() {
+                                    _model.textController?.clear();
                                   });
-                                  if (currentUserReference !=
-                                      _model.currentStory?.creatorRef) {
-                                    firestoreBatch.update(
-                                        _model.currentChatDoc!.creatorRef!, {
+                                  _model.formattedHistory1 =
+                                      await actions.getAndProcessHistory(
+                                    _model.currentDocRef,
+                                  );
+                                  _model.updatedChatDoc1 =
+                                      await StorychatsRecord.getDocumentOnce(
+                                          _model.currentDocRef!);
+                                  _model.currentChatDoc =
+                                      _model.updatedChatDoc1;
+                                  safeSetState(() {});
+                                  _model.pointsToDeduct1 =
+                                      await actions.getPointCostAction(
+                                    _model.currentChatDoc?.selectedAiModel,
+                                  );
+                                  _model.creatorShare1 = await actions
+                                      .calculateCreatorEarningAction(
+                                    _model.currentChatDoc?.selectedAiModel,
+                                  );
+                                  if (valueOrDefault(
+                                          currentUserDocument?.points, 0) >=
+                                      _model.pointsToDeduct1!) {
+                                    firestoreBatch
+                                        .update(currentUserReference!, {
                                       ...mapToFirestore(
                                         {
-                                          'earnings': FieldValue.increment(
-                                              _model.creatorShare1!),
+                                          'points': FieldValue.increment(
+                                              -(_model.pointsToDeduct1!)),
                                         },
                                       ),
                                     });
-                                  }
-                                  _model.nextCommand =
-                                      await actions.getNextPhaseCommand(
-                                    _model.chatMessages.length,
-                                  );
-                                  _model.aiFullText1 =
-                                      await actions.callAiProxy(
-                                    _model.pageSelectedModel,
-                                    functions.buildStoryPrompt(
-                                        _model.title,
-                                        _model.worldview,
-                                        _model.characters.toList(),
-                                        _model.userrole,
-                                        '',
-                                        _model.pageSituationalImages.toList(),
-                                        _model.updatedChatDoc1!.userNote,
-                                        widget.userInChatName!,
-                                        _model.updatedChatDoc1?.summary),
-                                    _model.formattedHistory1?.toList(),
-                                    _model.nextCommand,
-                                  );
-                                  _model.removeFromChatMessages(
-                                      _model.chatMessages.lastOrNull!);
-                                  safeSetState(() {});
-                                  if (_model.aiFullText1 == 'BLOCKED_CONTENT') {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          '부적절한 내용이라 답변할 수 없습니다.',
-                                          style: TextStyle(
-                                            color: FlutterFlowTheme.of(context)
-                                                .secondaryText,
-                                          ),
-                                        ),
-                                        duration: Duration(milliseconds: 2000),
-                                        backgroundColor:
-                                            FlutterFlowTheme.of(context).info,
-                                      ),
-                                    );
-                                  } else {
-                                    _model.aiResponseScript =
-                                        _model.aiFullText1!;
-                                    safeSetState(() {});
-                                    _model.messageCount2 =
-                                        await queryStorymessagesRecordCount(
-                                      parent: widget.storychatRef,
-                                    );
-                                    _model.characterChatDoc1 =
-                                        await StorychatsRecord.getDocumentOnce(
-                                            _model.currentDocRef!);
-                                    if (functions.shouldSummarize(
-                                        _model.messageCount2!,
-                                        _model.characterChatDoc1!
-                                            .lastSummaryMessageCount)) {
-                                      _model.summary1 =
-                                          await actions.callAiSummaryAction(
-                                        _model.currentDocRef,
-                                      );
-
+                                    if (currentUserReference !=
+                                        _model.currentStory?.creatorRef) {
                                       firestoreBatch.update(
-                                          _model.currentDocRef!,
-                                          createStorychatsRecordData(
-                                            lastSummaryMessageCount:
-                                                _model.messageCount2,
-                                            summary: _model.summary1,
-                                          ));
+                                          _model.currentChatDoc!.creatorRef!, {
+                                        ...mapToFirestore(
+                                          {
+                                            'earnings': FieldValue.increment(
+                                                _model.creatorShare1!),
+                                          },
+                                        ),
+                                      });
                                     }
+                                    _model.nextCommand =
+                                        await actions.getNextPhaseCommand(
+                                      _model.chatMessages.length,
+                                    );
+                                    _model.aiFullText1 =
+                                        await actions.callAiProxy(
+                                      _model.pageSelectedModel,
+                                      functions.buildStoryPrompt(
+                                          _model.title,
+                                          _model.worldview,
+                                          _model.characters.toList(),
+                                          _model.userrole,
+                                          '',
+                                          _model.pageSituationalImages.toList(),
+                                          _model.updatedChatDoc1!.userNote,
+                                          widget.userInChatName!,
+                                          _model.updatedChatDoc1?.summary),
+                                      _model.formattedHistory1?.toList(),
+                                      _model.nextCommand,
+                                    );
+                                    _model.cleanList1 =
+                                        await actions.removeThinkingMessage(
+                                      _model.chatMessages.toList(),
+                                    );
+                                    _model.chatMessages = _model.cleanList1!
+                                        .toList()
+                                        .cast<StoryChatMessageStructStruct>();
+                                    safeSetState(() {});
+                                    if (_model.aiFullText1 ==
+                                        'BLOCKED_CONTENT') {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            '부적절한 내용이라 답변할 수 없습니다.',
+                                            style: TextStyle(
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .secondaryText,
+                                            ),
+                                          ),
+                                          duration:
+                                              Duration(milliseconds: 2000),
+                                          backgroundColor:
+                                              FlutterFlowTheme.of(context).info,
+                                        ),
+                                      );
+                                    } else {
+                                      _model.aiResponseScript =
+                                          _model.aiFullText1!;
+                                      safeSetState(() {});
+                                      _model.messageCount2 =
+                                          await queryStorymessagesRecordCount(
+                                        parent: widget.storychatRef,
+                                      );
+                                      _model.characterChatDoc1 =
+                                          await StorychatsRecord
+                                              .getDocumentOnce(
+                                                  _model.currentDocRef!);
+                                      if (functions.shouldSummarize(
+                                          _model.messageCount2!,
+                                          _model.characterChatDoc1!
+                                              .lastSummaryMessageCount)) {
+                                        _model.summary1 =
+                                            await actions.callAiSummaryAction(
+                                          _model.currentDocRef,
+                                        );
+
+                                        firestoreBatch.update(
+                                            _model.currentDocRef!,
+                                            createStorychatsRecordData(
+                                              lastSummaryMessageCount:
+                                                  _model.messageCount2,
+                                              summary: _model.summary1,
+                                            ));
+                                      }
+                                    }
+                                  } else {
+                                    var confirmDialogResponse =
+                                        await showDialog<bool>(
+                                              context: context,
+                                              builder: (alertDialogContext) {
+                                                return WebViewAware(
+                                                  child: AlertDialog(
+                                                    title: Text('피치 부족'),
+                                                    content: Text(
+                                                        '피치가 부족합니다. 충전하시겠습니까?'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                alertDialogContext,
+                                                                false),
+                                                        child: Text('이동'),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                alertDialogContext,
+                                                                true),
+                                                        child: Text('취소'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            ) ??
+                                            false;
                                   }
                                 } else {
-                                  var confirmDialogResponse =
-                                      await showDialog<bool>(
-                                            context: context,
-                                            builder: (alertDialogContext) {
-                                              return WebViewAware(
-                                                child: AlertDialog(
-                                                  title: Text('피치 부족'),
-                                                  content: Text(
-                                                      '피치가 부족합니다. 충전하시겠습니까?'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              alertDialogContext,
-                                                              false),
-                                                      child: Text('이동'),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              alertDialogContext,
-                                                              true),
-                                                      child: Text('취소'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            },
-                                          ) ??
-                                          false;
-                                }
-                              } else {
-                                await showModalBottomSheet(
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  enableDrag: false,
-                                  context: context,
-                                  builder: (context) {
-                                    return WebViewAware(
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          FocusScope.of(context).unfocus();
-                                          FocusManager.instance.primaryFocus
-                                              ?.unfocus();
-                                        },
-                                        child: Padding(
-                                          padding:
-                                              MediaQuery.viewInsetsOf(context),
-                                          child: LoginWidget(),
+                                  await showModalBottomSheet(
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    enableDrag: false,
+                                    context: context,
+                                    builder: (context) {
+                                      return WebViewAware(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            FocusScope.of(context).unfocus();
+                                            FocusManager.instance.primaryFocus
+                                                ?.unfocus();
+                                          },
+                                          child: Padding(
+                                            padding: MediaQuery.viewInsetsOf(
+                                                context),
+                                            child: LoginWidget(),
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                ).then((value) => safeSetState(() {}));
+                                      );
+                                    },
+                                  ).then((value) => safeSetState(() {}));
+                                }
+                              } finally {
+                                await firestoreBatch.commit();
                               }
-                            } finally {
-                              await firestoreBatch.commit();
-                            }
 
-                            safeSetState(() {});
-                          },
-                  ).animateOnPageLoad(
-                      animationsMap['iconButtonOnPageLoadAnimation']!),
+                              safeSetState(() {});
+                            },
+                    ).animateOnPageLoad(
+                        animationsMap['iconButtonOnPageLoadAnimation']!),
+                  ),
                 ),
-              ),
             ],
           ),
         ),

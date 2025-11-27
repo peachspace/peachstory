@@ -97,6 +97,8 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
   int? creatorShare;
   // Stores action output result for [Custom Action - callAiProxy] action in messagesendbutton widget.
   String? aiFullText;
+  // Stores action output result for [Custom Action - removeThinkingMessage] action in messagesendbutton widget.
+  List<StoryChatMessageStructStruct>? cleanList;
   // Stores action output result for [Firestore Query - Query a collection] action in messagesendbutton widget.
   int? messageCount;
   // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.
@@ -115,6 +117,8 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
   String? nextCommand;
   // Stores action output result for [Custom Action - callAiProxy] action in messagesendbutton widget.
   String? aiFullText1;
+  // Stores action output result for [Custom Action - removeThinkingMessage] action in messagesendbutton widget.
+  List<StoryChatMessageStructStruct>? cleanList1;
   // Stores action output result for [Firestore Query - Query a collection] action in messagesendbutton widget.
   int? messageCount2;
   // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.
