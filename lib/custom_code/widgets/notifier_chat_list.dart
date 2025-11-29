@@ -72,7 +72,6 @@ class _NotifierChatListState extends State<NotifierChatList>
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // 1. 리스트 동기화 (삭제/추가 감지)
     if (widget.initialMessages != null) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
@@ -93,7 +92,6 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
     }
 
-    // 2. AI 스크립트 처리
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
@@ -121,36 +119,65 @@ class _NotifierChatListState extends State<NotifierChatList>
     _scenes = [];
 
     try {
-      // [핵심 수정] JSON 시작점('[')을 찾아서 그 앞의 잡담은 버립니다.
-      int jsonStartIndex = script.indexOf('[');
-      if (jsonStartIndex != -1) {
-        String jsonPart = script.substring(jsonStartIndex);
-        // 혹시 뒤에 잡담이 있을 수도 있으니 마지막 ']'를 찾습니다.
-        int jsonEndIndex = jsonPart.lastIndexOf(']');
-        if (jsonEndIndex != -1) {
-          jsonPart = jsonPart.substring(0, jsonEndIndex + 1);
-          _scenes = jsonDecode(jsonPart);
-        } else {
-          // 닫는 괄호가 없으면 그냥 시도
-          _scenes = jsonDecode(jsonPart);
+      // [패치 적용 1] JSON 파싱 로직 강화 (잡담 제거)
+      int bracketIndex = script.indexOf('[');
+      if (bracketIndex != -1) {
+        String jsonPart = script.substring(bracketIndex).trim();
+        try {
+          // 뒤에 불필요한 문자가 있을 수 있으니 마지막 ] 찾기 시도
+          int lastBracket = jsonPart.lastIndexOf(']');
+          if (lastBracket != -1) {
+            jsonPart = jsonPart.substring(0, lastBracket + 1);
+          }
+          final dynamic decoded = jsonDecode(jsonPart);
+          if (decoded is List) {
+            _scenes = decoded;
+          }
+        } catch (_) {
+          // JSON 파싱 실패 시 아래 로직으로 넘어감
         }
-      } else {
-        // 대괄호가 없으면 기존 방식(정규식) 시도
-        _scenes = _parseScriptIntoScenes(script);
+      }
+
+      // 위에서 실패했거나 대괄호가 없으면 기존 방식 시도
+      if (_scenes.isEmpty) {
+        if (script.startsWith('[')) {
+          _scenes = jsonDecode(script);
+        } else {
+          _scenes = _parseScriptIntoScenes(script);
+        }
       }
     } catch (e) {
       print("JSON Parse Error: $e");
-      // 파싱 실패 시 정규식으로 재시도하거나 전체를 나레이션으로 처리
       _scenes = _parseScriptIntoScenes(script);
     }
 
     if (_scenes.isEmpty && script.isNotEmpty) {
-      // 정규식으로도 안 되면 전체 텍스트를 나레이션으로 표시 (최후의 수단)
       _scenes.add({"type": "narration", "content": script});
+    }
+
+    // [패치 적용 2] 중복 장면 제거 (말 반복 방지)
+    if (_scenes.length > 1) {
+      final List<dynamic> deduped = [];
+      for (final scene in _scenes) {
+        if (deduped.isEmpty || !_areScenesEqual(deduped.last, scene)) {
+          deduped.add(scene);
+        }
+      }
+      _scenes = deduped;
     }
 
     _currentSceneIndex = 0;
     _processNextScene();
+  }
+
+  // [패치 적용] 장면 비교 헬퍼 함수
+  bool _areScenesEqual(dynamic a, dynamic b) {
+    if (a == null || b == null) return false;
+    if (a['type'] != b['type']) return false;
+    if (a['content'] != b['content']) return false;
+    if (a['speaker'] != b['speaker']) return false;
+    if ((a['action'] ?? '') != (b['action'] ?? '')) return false;
+    return true;
   }
 
   void _processNextScene() async {
@@ -236,11 +263,11 @@ class _NotifierChatListState extends State<NotifierChatList>
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
+  // [패치 적용 3] 스크롤 오프셋(+150) 제거 -> 흔들림 해결
   void _jumpToBottom() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController
-            .jumpTo(_scrollController.position.maxScrollExtent + 150);
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
     });
   }
@@ -249,7 +276,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 150,
+          _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutQuad,
         );
@@ -264,6 +291,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       builder: (context, chatMessages, child) {
         return ListView.builder(
           controller: _scrollController,
+          // 하단 패딩은 여기서 충분히 줌
           padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 150),
           itemCount: chatMessages.length,
           itemBuilder: (context, index) {
@@ -286,6 +314,8 @@ class _NotifierChatListState extends State<NotifierChatList>
       },
     );
   }
+
+  // ... (이하 UI 빌더 함수들은 기존과 동일) ...
 
   Widget _buildThinkingIndicator() {
     return Padding(
@@ -399,21 +429,6 @@ class _NotifierChatListState extends State<NotifierChatList>
 
   List<dynamic> _parseScriptIntoScenes(String scriptText) {
     final List<dynamic> scenes = [];
-    // 정규식으로도 JSON 배열처럼 보이는 것을 찾으려고 시도
-    try {
-      int jsonStartIndex = scriptText.indexOf('[');
-      if (jsonStartIndex != -1) {
-        String jsonPart = scriptText.substring(jsonStartIndex);
-        // 닫는 대괄호 찾기
-        int jsonEndIndex = jsonPart.lastIndexOf(']');
-        if (jsonEndIndex != -1) {
-          jsonPart = jsonPart.substring(0, jsonEndIndex + 1);
-          return jsonDecode(jsonPart);
-        }
-      }
-    } catch (e) {}
-
-    // 실패하면 그냥 나레이션
     scenes.add({"type": "narration", "content": scriptText});
     return scenes;
   }
