@@ -72,40 +72,27 @@ class _NotifierChatListState extends State<NotifierChatList>
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // [핵심 수정] 리스트 갱신 로직 개선 (깜빡임 방지)
-    if (widget.initialMessages != null) {
+    // [핵심 수정 1] 타이핑 중에는 리스트 덮어쓰기 방지 (깜빡임 해결)
+    if (widget.initialMessages != null && !_isTyping) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
 
-      // 1. 리스트가 초기화되었거나 완전히 바뀐 경우 (길이가 줄어듦 -> 예: 생각중 삭제)
-      if (parentList.length < currentList.length) {
-        // 이때만 전체 교체 (삭제 반영을 위해)
-        _messagesNotifier.value = List.from(parentList);
-      }
-      // 2. 새로운 메시지가 추가된 경우 (길이가 늘어남)
-      else if (parentList.length > currentList.length) {
-        // 기존 리스트를 유지하고, 추가된 부분만 덧붙임 (화면 깜빡임 방지)
-        // 단, 타이핑 중에는 AI가 직접 그리고 있으므로, 부모 리스트 동기화를 잠시 미룸
-        if (!_isTyping) {
-          final newItems = parentList.sublist(currentList.length);
-          _messagesNotifier.value = [...currentList, ...newItems];
-          WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
-        }
-      }
-      // 3. 길이는 같지만 내용이 바뀐 경우 (생각중 -> 텍스트)
-      else if (parentList.isNotEmpty && currentList.isNotEmpty) {
+      bool shouldUpdate = false;
+      if (parentList.length != currentList.length) {
+        shouldUpdate = true;
+      } else if (parentList.isNotEmpty && currentList.isNotEmpty) {
         if (parentList.last.text != currentList.last.text ||
             parentList.last.type != currentList.last.type) {
-          // 마지막 아이템만 교체
-          final updatedList =
-              List<StoryChatMessageStructStruct>.from(currentList);
-          updatedList[updatedList.length - 1] = parentList.last;
-          _messagesNotifier.value = updatedList;
+          shouldUpdate = true;
         }
+      }
+
+      if (shouldUpdate) {
+        _messagesNotifier.value = List.from(parentList);
+        WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
       }
     }
 
-    // AI 스크립트 처리
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
@@ -133,7 +120,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     _scenes = [];
 
     try {
-      // JSON 파싱 (앞부분 잡담 제거)
+      // [핵심 수정 2] JSON 파싱 강화 (잡담 제거)
       int bracketIndex = script.indexOf('[');
       if (bracketIndex != -1) {
         String jsonPart = script.substring(bracketIndex).trim();
@@ -147,8 +134,14 @@ class _NotifierChatListState extends State<NotifierChatList>
             _scenes = decoded;
           }
         } catch (_) {}
-      } else {
-        _scenes = _parseScriptIntoScenes(script);
+      }
+
+      if (_scenes.isEmpty) {
+        if (script.startsWith('[')) {
+          _scenes = jsonDecode(script);
+        } else {
+          _scenes = _parseScriptIntoScenes(script);
+        }
       }
     } catch (e) {
       print("JSON Parse Error: $e");
@@ -159,34 +152,44 @@ class _NotifierChatListState extends State<NotifierChatList>
       _scenes.add({"type": "narration", "content": script});
     }
 
-    // 중복 제거
+    // [핵심 수정 3] 중복 장면 제거 (말 반복 해결)
     if (_scenes.length > 1) {
-      var uniqueScenes = <dynamic>[];
-      for (var s in _scenes) {
-        if (uniqueScenes.isEmpty ||
-            uniqueScenes.last['content'] != s['content']) {
-          uniqueScenes.add(s);
+      final List<dynamic> deduped = [];
+      for (final scene in _scenes) {
+        if (deduped.isEmpty || !_areScenesEqual(deduped.last, scene)) {
+          deduped.add(scene);
         }
       }
-      _scenes = uniqueScenes;
+      _scenes = deduped;
     }
 
     _currentSceneIndex = 0;
     _processNextScene();
   }
 
+  // 장면 비교 함수
+  bool _areScenesEqual(dynamic a, dynamic b) {
+    if (a == null || b == null) return false;
+    if (a['type'] != b['type']) return false;
+    if (a['content'] != b['content']) return false;
+    if (a['speaker'] != b['speaker']) return false;
+    return true;
+  }
+
   void _processNextScene() async {
     if (!mounted || _currentSceneIndex >= _scenes.length) {
       setState(() => _isTyping = false);
-
-      // [중요] 타이핑이 끝난 후 최종 데이터 동기화
       if (widget.onTurnComplete != null) {
-        await widget.onTurnComplete!(_scenes);
+        widget.onTurnComplete!(_scenes);
       }
 
-      // 부모 리스트와 최종 동기화 (타이핑 중 무시했던 데이터 맞추기)
+      // 타이핑 종료 후 최종 동기화 (누락 데이터 방지)
       if (widget.initialMessages != null) {
-        _messagesNotifier.value = List.from(widget.initialMessages!);
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            _messagesNotifier.value = List.from(widget.initialMessages!);
+          }
+        });
       }
 
       _animateToBottom();
@@ -232,7 +235,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     final placeholder = _createStructFromScene(scene, '', true);
     if (placeholder == null) return;
 
-    // 새 메시지를 리스트에 추가 (기존 리스트 유지 + 새 항목)
     _messagesNotifier.value = [..._messagesNotifier.value, placeholder];
     _jumpToBottom();
 
@@ -242,7 +244,6 @@ class _NotifierChatListState extends State<NotifierChatList>
       if (!mounted) return;
       await Future.delayed(const Duration(milliseconds: 10));
 
-      // 현재 화면에 있는 리스트를 가져와서 마지막 항목만 수정
       final currentList =
           List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
       if (currentList.isEmpty) return;
@@ -251,13 +252,12 @@ class _NotifierChatListState extends State<NotifierChatList>
           _createStructFromScene(scene, content.substring(0, i), true);
       if (updatedMessage != null) {
         currentList[currentList.length - 1] = updatedMessage;
-        _messagesNotifier.value = currentList; // 교체 (화면 갱신)
+        _messagesNotifier.value = currentList;
 
         if (i % 20 == 0) _jumpToBottom();
       }
     }
 
-    // 완료 처리
     final currentList =
         List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
     final finalMessage = _createStructFromScene(scene, content, false);
@@ -269,6 +269,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
+  // [핵심 수정 4] 스크롤 오프셋 제거 (흔들림 해결)
   void _jumpToBottom() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -302,7 +303,6 @@ class _NotifierChatListState extends State<NotifierChatList>
             final chatItem = chatMessages[index];
 
             if (chatItem.type == 'user') {
-              // [독자 숨기기]
               if (chatItem.speakerName == '독자' ||
                   chatItem.text.startsWith('[SYSTEM') ||
                   chatItem.text.trim().isEmpty) {
@@ -320,19 +320,23 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
+  // [핵심 수정 5] 생각 중 메시지 스타일 변경 (왼쪽 정렬, 기울임 X)
   Widget _buildThinkingIndicator() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-      child: FadeTransition(
-        opacity: _loadingAnimation,
-        child: Text(
-          "생각하는 중...",
-          style: FlutterFlowTheme.of(context).bodyMedium.override(
-                fontFamily: 'Inter',
-                color: Colors.grey[500],
-                fontSize: 13,
-                fontStyle: FontStyle.italic,
-              ),
+      child: Align(
+        alignment: Alignment.centerLeft, // 왼쪽 정렬
+        child: FadeTransition(
+          opacity: _loadingAnimation,
+          child: Text(
+            "생각하는 중...",
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: 'Inter',
+                  color: Colors.grey[500],
+                  fontSize: 13,
+                  fontStyle: FontStyle.normal, // 기울임 제거
+                ),
+          ),
         ),
       ),
     );
@@ -432,18 +436,6 @@ class _NotifierChatListState extends State<NotifierChatList>
 
   List<dynamic> _parseScriptIntoScenes(String scriptText) {
     final List<dynamic> scenes = [];
-    try {
-      int jsonStartIndex = scriptText.indexOf('[');
-      if (jsonStartIndex != -1) {
-        String jsonPart = scriptText.substring(jsonStartIndex);
-        int jsonEndIndex = jsonPart.lastIndexOf(']');
-        if (jsonEndIndex != -1) {
-          jsonPart = jsonPart.substring(0, jsonEndIndex + 1);
-          return jsonDecode(jsonPart);
-        }
-      }
-    } catch (e) {}
-
     scenes.add({"type": "narration", "content": scriptText});
     return scenes;
   }
