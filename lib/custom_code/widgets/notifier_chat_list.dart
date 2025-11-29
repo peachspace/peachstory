@@ -10,12 +10,13 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import '/flutter_flow/custom_functions.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/scheduler.dart';
 import '/auth/firebase_auth/auth_util.dart';
 
-/// [중요] 아래 코드를 복사해서 붙여넣으세요.
 class NotifierChatList extends StatefulWidget {
   const NotifierChatList({
     super.key,
@@ -116,7 +117,11 @@ class _NotifierChatListState extends State<NotifierChatList>
     if (!mounted) return;
     setState(() => _isTyping = true);
 
-    String script = widget.newResponseScript.trim();
+    // [수정 1] 마크다운 제거 및 공백 제거
+    String script = widget.newResponseScript
+        .replaceAll('```json', '')
+        .replaceAll('```', '')
+        .trim();
     _scenes = [];
 
     try {
@@ -133,14 +138,8 @@ class _NotifierChatListState extends State<NotifierChatList>
             _scenes = decoded;
           }
         } catch (_) {}
-      }
-
-      if (_scenes.isEmpty) {
-        if (script.startsWith('[')) {
-          _scenes = jsonDecode(script);
-        } else {
-          _scenes = _parseScriptIntoScenes(script);
-        }
+      } else {
+        _scenes = _parseScriptIntoScenes(script);
       }
     } catch (e) {
       print("JSON Parse Error: $e");
@@ -151,27 +150,21 @@ class _NotifierChatListState extends State<NotifierChatList>
       _scenes.add({"type": "narration", "content": script});
     }
 
-    // 중복 제거
+    // [수정 2] 중복 씬 제거 (AI 반복 말하기 방지)
     if (_scenes.length > 1) {
-      final List<dynamic> deduped = [];
-      for (final scene in _scenes) {
-        if (deduped.isEmpty || !_areScenesEqual(deduped.last, scene)) {
-          deduped.add(scene);
+      // 간단한 중복 제거
+      var uniqueScenes = <dynamic>[];
+      for (var s in _scenes) {
+        if (uniqueScenes.isEmpty ||
+            uniqueScenes.last['content'] != s['content']) {
+          uniqueScenes.add(s);
         }
       }
-      _scenes = deduped;
+      _scenes = uniqueScenes;
     }
 
     _currentSceneIndex = 0;
     _processNextScene();
-  }
-
-  bool _areScenesEqual(dynamic a, dynamic b) {
-    if (a == null || b == null) return false;
-    if (a['type'] != b['type']) return false;
-    if (a['content'] != b['content']) return false;
-    if (a['speaker'] != b['speaker']) return false;
-    return true;
   }
 
   void _processNextScene() async {
@@ -188,7 +181,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     _currentSceneIndex++;
     final type = scene['type'] ?? 'narration';
 
-    _jumpToBottom();
+    _smartJumpToBottom(); // 씬 시작 시엔 스마트 점프
 
     if (type == 'show_image') {
       final imageUrl = _findSituationalImageUrlByCondition(
@@ -205,7 +198,7 @@ class _NotifierChatListState extends State<NotifierChatList>
           speakerImage: '',
         );
         _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
-        _jumpToBottom();
+        _jumpToBottom(); // 이미지는 높이가 크므로 강제 점프
         await Future.delayed(const Duration(milliseconds: 300));
       }
       _processNextScene();
@@ -224,7 +217,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     if (placeholder == null) return;
 
     _messagesNotifier.value = [..._messagesNotifier.value, placeholder];
-    _jumpToBottom();
+    _smartJumpToBottom();
 
     final String content = scene['content'] ?? '';
 
@@ -239,11 +232,11 @@ class _NotifierChatListState extends State<NotifierChatList>
       final updatedMessage =
           _createStructFromScene(scene, content.substring(0, i), true);
       if (updatedMessage != null) {
-        // [중복 방지] 마지막 메시지 교체 (추가 아님)
         currentList[currentList.length - 1] = updatedMessage;
         _messagesNotifier.value = currentList;
 
-        if (i % 20 == 0) _jumpToBottom();
+        // [수정 3] 20글자마다 스마트 스크롤 (흔들림 방지 핵심)
+        if (i % 20 == 0) _smartJumpToBottom();
       }
     }
 
@@ -254,8 +247,22 @@ class _NotifierChatListState extends State<NotifierChatList>
       currentList[currentList.length - 1] = finalMessage;
       _messagesNotifier.value = currentList;
     }
-    _jumpToBottom();
+    _smartJumpToBottom();
     await Future.delayed(const Duration(milliseconds: 100));
+  }
+
+  // [핵심] 화면이 맨 아래에 가까울 때만 스크롤 (흔들림 방지)
+  void _smartJumpToBottom() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        final currentScroll = _scrollController.position.pixels;
+        // 150px 이내의 오차범위에 있을 때만 이동
+        if ((maxScroll - currentScroll) < 150) {
+          _scrollController.jumpTo(maxScroll);
+        }
+      }
+    });
   }
 
   void _jumpToBottom() {
