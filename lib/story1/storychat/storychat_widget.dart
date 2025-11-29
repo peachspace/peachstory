@@ -964,12 +964,6 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                   safeSetState(() {});
                                   _model.addToChatMessages(
                                       StoryChatMessageStructStruct(
-                                    text: _model.textController.text,
-                                    type: 'user',
-                                  ));
-                                  safeSetState(() {});
-                                  _model.addToChatMessages(
-                                      StoryChatMessageStructStruct(
                                     text: '생각 중',
                                     type: 'thinking',
                                   ));
