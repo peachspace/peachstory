@@ -141,7 +141,8 @@ class _StorychatWidgetState extends State<StorychatWidget>
               _model.pageSituationalImages.toList(),
               '',
               widget.userInChatName!,
-              _model.updatedChatDoc?.summary),
+              _model.updatedChatDoc?.summary,
+              widget.isNovelMode!),
           functions.prologue('도입부를 생성하라.').toList(),
           '',
         );
@@ -771,7 +772,8 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                           widget
                                                               .userInChatName!,
                                                           _model.updatedChatDoc
-                                                              ?.summary),
+                                                              ?.summary,
+                                                          false),
                                                       _model.formattedHistory
                                                           ?.toList(),
                                                       _model.userinput,
@@ -1033,7 +1035,8 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                           _model.pageSituationalImages.toList(),
                                           _model.updatedChatDoc1!.userNote,
                                           widget.userInChatName!,
-                                          _model.updatedChatDoc1?.summary),
+                                          _model.updatedChatDoc1?.summary,
+                                          true),
                                       _model.formattedHistory1?.toList(),
                                       _model.nextCommand,
                                     );

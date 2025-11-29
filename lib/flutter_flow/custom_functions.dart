@@ -235,6 +235,7 @@ String buildStoryPrompt(
   String userNote,
   String userInChatName,
   String? summary,
+  bool isNovelMode,
 ) {
   final characterDescriptions = StringBuffer();
   for (final char in characters) {
