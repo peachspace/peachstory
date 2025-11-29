@@ -15,6 +15,7 @@ import 'dart:convert';
 import 'package:flutter/scheduler.dart';
 import '/auth/firebase_auth/auth_util.dart';
 
+/// [중요] 아래 코드를 복사해서 붙여넣으세요.
 class NotifierChatList extends StatefulWidget {
   const NotifierChatList({
     super.key,
@@ -119,12 +120,10 @@ class _NotifierChatListState extends State<NotifierChatList>
     _scenes = [];
 
     try {
-      // [패치 적용 1] JSON 파싱 로직 강화 (잡담 제거)
       int bracketIndex = script.indexOf('[');
       if (bracketIndex != -1) {
         String jsonPart = script.substring(bracketIndex).trim();
         try {
-          // 뒤에 불필요한 문자가 있을 수 있으니 마지막 ] 찾기 시도
           int lastBracket = jsonPart.lastIndexOf(']');
           if (lastBracket != -1) {
             jsonPart = jsonPart.substring(0, lastBracket + 1);
@@ -133,12 +132,9 @@ class _NotifierChatListState extends State<NotifierChatList>
           if (decoded is List) {
             _scenes = decoded;
           }
-        } catch (_) {
-          // JSON 파싱 실패 시 아래 로직으로 넘어감
-        }
+        } catch (_) {}
       }
 
-      // 위에서 실패했거나 대괄호가 없으면 기존 방식 시도
       if (_scenes.isEmpty) {
         if (script.startsWith('[')) {
           _scenes = jsonDecode(script);
@@ -155,7 +151,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       _scenes.add({"type": "narration", "content": script});
     }
 
-    // [패치 적용 2] 중복 장면 제거 (말 반복 방지)
+    // 중복 제거
     if (_scenes.length > 1) {
       final List<dynamic> deduped = [];
       for (final scene in _scenes) {
@@ -170,13 +166,11 @@ class _NotifierChatListState extends State<NotifierChatList>
     _processNextScene();
   }
 
-  // [패치 적용] 장면 비교 헬퍼 함수
   bool _areScenesEqual(dynamic a, dynamic b) {
     if (a == null || b == null) return false;
     if (a['type'] != b['type']) return false;
     if (a['content'] != b['content']) return false;
     if (a['speaker'] != b['speaker']) return false;
-    if ((a['action'] ?? '') != (b['action'] ?? '')) return false;
     return true;
   }
 
@@ -245,6 +239,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       final updatedMessage =
           _createStructFromScene(scene, content.substring(0, i), true);
       if (updatedMessage != null) {
+        // [중복 방지] 마지막 메시지 교체 (추가 아님)
         currentList[currentList.length - 1] = updatedMessage;
         _messagesNotifier.value = currentList;
 
@@ -263,7 +258,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
-  // [패치 적용 3] 스크롤 오프셋(+150) 제거 -> 흔들림 해결
   void _jumpToBottom() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -291,7 +285,6 @@ class _NotifierChatListState extends State<NotifierChatList>
       builder: (context, chatMessages, child) {
         return ListView.builder(
           controller: _scrollController,
-          // 하단 패딩은 여기서 충분히 줌
           padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 150),
           itemCount: chatMessages.length,
           itemBuilder: (context, index) {
@@ -314,8 +307,6 @@ class _NotifierChatListState extends State<NotifierChatList>
       },
     );
   }
-
-  // ... (이하 UI 빌더 함수들은 기존과 동일) ...
 
   Widget _buildThinkingIndicator() {
     return Padding(
