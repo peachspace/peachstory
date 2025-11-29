@@ -26,6 +26,7 @@ class NotifierChatList extends StatefulWidget {
     this.preDefinedCharacters,
     this.situationalImageList,
     this.onTurnComplete,
+    this.isNovelMode,
   });
 
   final double? width;
@@ -36,6 +37,7 @@ class NotifierChatList extends StatefulWidget {
   final List<CharacterStructStruct>? preDefinedCharacters;
   final List<SituationalImageStructStruct>? situationalImageList;
   final Future<dynamic> Function(List<dynamic>? scenes)? onTurnComplete;
+  final bool? isNovelMode;
 
   @override
   State<NotifierChatList> createState() => _NotifierChatListState();
@@ -56,6 +58,7 @@ class _NotifierChatListState extends State<NotifierChatList>
   void initState() {
     super.initState();
     _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
+    // 초기 로딩 시 즉시 이동 (애니메이션 없이)
     WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
 
     _loadingController = AnimationController(
@@ -72,7 +75,7 @@ class _NotifierChatListState extends State<NotifierChatList>
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // [핵심 수정 1] 타이핑 중에는 리스트 덮어쓰기 방지 (깜빡임 해결)
+    // 1. 리스트 동기화 (삭제/추가 감지, 타이핑 중엔 방해 금지)
     if (widget.initialMessages != null && !_isTyping) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
@@ -93,6 +96,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
     }
 
+    // 2. AI 스크립트 처리
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
@@ -116,11 +120,15 @@ class _NotifierChatListState extends State<NotifierChatList>
     if (!mounted) return;
     setState(() => _isTyping = true);
 
-    String script = widget.newResponseScript.trim();
+    // 마크다운 및 공백 제거
+    String script = widget.newResponseScript
+        .replaceAll('```json', '')
+        .replaceAll('```', '')
+        .trim();
     _scenes = [];
 
     try {
-      // [핵심 수정 2] JSON 파싱 강화 (잡담 제거)
+      // JSON 파싱 (잡담 제거 포함)
       int bracketIndex = script.indexOf('[');
       if (bracketIndex != -1) {
         String jsonPart = script.substring(bracketIndex).trim();
@@ -136,12 +144,9 @@ class _NotifierChatListState extends State<NotifierChatList>
         } catch (_) {}
       }
 
+      // 파싱 실패 시 정규식으로 재시도
       if (_scenes.isEmpty) {
-        if (script.startsWith('[')) {
-          _scenes = jsonDecode(script);
-        } else {
-          _scenes = _parseScriptIntoScenes(script);
-        }
+        _scenes = _parseScriptIntoScenes(script);
       }
     } catch (e) {
       print("JSON Parse Error: $e");
@@ -152,22 +157,21 @@ class _NotifierChatListState extends State<NotifierChatList>
       _scenes.add({"type": "narration", "content": script});
     }
 
-    // [핵심 수정 3] 중복 장면 제거 (말 반복 해결)
+    // 중복 제거
     if (_scenes.length > 1) {
-      final List<dynamic> deduped = [];
-      for (final scene in _scenes) {
-        if (deduped.isEmpty || !_areScenesEqual(deduped.last, scene)) {
-          deduped.add(scene);
+      var uniqueScenes = <dynamic>[];
+      for (var s in _scenes) {
+        if (uniqueScenes.isEmpty || !_areScenesEqual(uniqueScenes.last, s)) {
+          uniqueScenes.add(s);
         }
       }
-      _scenes = deduped;
+      _scenes = uniqueScenes;
     }
 
     _currentSceneIndex = 0;
     _processNextScene();
   }
 
-  // 장면 비교 함수
   bool _areScenesEqual(dynamic a, dynamic b) {
     if (a == null || b == null) return false;
     if (a['type'] != b['type']) return false;
@@ -179,11 +183,12 @@ class _NotifierChatListState extends State<NotifierChatList>
   void _processNextScene() async {
     if (!mounted || _currentSceneIndex >= _scenes.length) {
       setState(() => _isTyping = false);
+
       if (widget.onTurnComplete != null) {
-        widget.onTurnComplete!(_scenes);
+        await widget.onTurnComplete!(_scenes);
       }
 
-      // 타이핑 종료 후 최종 동기화 (누락 데이터 방지)
+      // 타이핑 종료 후 최종 동기화
       if (widget.initialMessages != null) {
         Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) {
@@ -254,6 +259,7 @@ class _NotifierChatListState extends State<NotifierChatList>
         currentList[currentList.length - 1] = updatedMessage;
         _messagesNotifier.value = currentList;
 
+        // 20글자마다 스크롤 점프 (흔들림 방지)
         if (i % 20 == 0) _jumpToBottom();
       }
     }
@@ -269,7 +275,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
-  // [핵심 수정 4] 스크롤 오프셋 제거 (흔들림 해결)
   void _jumpToBottom() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -297,6 +302,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       builder: (context, chatMessages, child) {
         return ListView.builder(
           controller: _scrollController,
+          // 하단 패딩 150px (버튼 가림 방지)
           padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 150),
           itemCount: chatMessages.length,
           itemBuilder: (context, index) {
@@ -320,12 +326,12 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
-  // [핵심 수정 5] 생각 중 메시지 스타일 변경 (왼쪽 정렬, 기울임 X)
+  // [수정] 왼쪽 여백 제거하여 정렬 맞춤
   Widget _buildThinkingIndicator() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+      padding: const EdgeInsets.only(top: 12.0, bottom: 12.0), // horizontal 제거
       child: Align(
-        alignment: Alignment.centerLeft, // 왼쪽 정렬
+        alignment: Alignment.centerLeft,
         child: FadeTransition(
           opacity: _loadingAnimation,
           child: Text(
@@ -334,7 +340,7 @@ class _NotifierChatListState extends State<NotifierChatList>
                   fontFamily: 'Inter',
                   color: Colors.grey[500],
                   fontSize: 13,
-                  fontStyle: FontStyle.normal, // 기울임 제거
+                  fontStyle: FontStyle.normal,
                 ),
           ),
         ),
@@ -436,7 +442,34 @@ class _NotifierChatListState extends State<NotifierChatList>
 
   List<dynamic> _parseScriptIntoScenes(String scriptText) {
     final List<dynamic> scenes = [];
-    scenes.add({"type": "narration", "content": scriptText});
+    // 태그 포맷 파싱 시도
+    final RegExp exp = RegExp(
+        r'(\[SHOW_IMAGE="(.*?)"\])|(\[NARRATION\](.*?)\[/NARRATION\])|(\[DIALOGUE SPEAKER="(.*?)"(?: ACTION="(.*?)")?\](.*?)\[/DIALOGUE\])',
+        dotAll: true,
+        multiLine: true);
+    final matches = exp.allMatches(scriptText);
+
+    if (matches.isNotEmpty) {
+      for (final m in matches) {
+        if (m.group(3) != null) {
+          scenes
+              .add({"type": "narration", "content": m.group(4)?.trim() ?? ''});
+        } else if (m.group(5) != null) {
+          scenes.add({
+            "type": "dialogue",
+            "speaker": m.group(6)?.trim() ?? '',
+            "action": m.group(7)?.trim(),
+            "content": m.group(8)?.trim() ?? ''
+          });
+        } else if (m.group(1) != null) {
+          scenes.add(
+              {"type": "show_image", "condition": m.group(2)?.trim() ?? ''});
+        }
+      }
+    } else {
+      // 실패 시 전체 나레이션
+      scenes.add({"type": "narration", "content": scriptText});
+    }
     return scenes;
   }
 

@@ -237,6 +237,7 @@ String buildStoryPrompt(
   String? summary,
   bool isNovelMode,
 ) {
+  // 1. 캐릭터 설명
   final characterDescriptions = StringBuffer();
   for (final char in characters) {
     characterDescriptions.writeln('<character>');
@@ -246,6 +247,7 @@ String buildStoryPrompt(
     characterDescriptions.writeln('</character>');
   }
 
+  // 2. 상황 이미지
   final situationalImageListXml = StringBuffer();
   for (final img in situationalImages) {
     situationalImageListXml.writeln('  <image condition="${img.condition}" />');
@@ -255,53 +257,77 @@ String buildStoryPrompt(
 <situational_images>
 ${situationalImageListXml.toString()}
 </situational_images>
+- Use [SHOW_IMAGE="condition"] to display an image when the scene matches.
 '''
       : '';
 
+  // 3. 유저 노트
   final userNoteSection = (userNote != null && userNote.isNotEmpty)
       ? '<user_note>\n${userNote}\n</user_note>'
       : '';
 
-  // [수정됨] JSON 포맷을 강력하게 요구하는 프롬프트
+  // 4. 요약
+  final summarySection = (summary != null && summary.isNotEmpty)
+      ? '''
+### 📜 PREVIOUS STORY SUMMARY (MEMORY)
+The story so far:
+<memory>
+${summary}
+</memory>
+'''
+      : '';
+
+  // 5. 모드별 지침 (강화됨)
+  String modeGuidelines;
+
+  if (isNovelMode) {
+    modeGuidelines = '''
+### 🖋️ MODE: WEB NOVEL AUTHOR (PASSIVE / TAP NOVEL)
+You are the sole author of a high-quality web novel.
+1.  **Protagonist:** You have full control. The user ("${userInChatName}") is an observer.
+2.  **Length:** 500~800 characters per response.
+3.  **NO Actions in Dialogue:** Do NOT use parenthetical actions (e.g., "(smiling)") inside dialogue. Describe actions in **Narration**.
+4.  **★ STRICT FORMATTING RULE (DO NOT FAIL):**
+    - Even in Novel Mode, you **MUST** separate direct speech into `dialogue` objects.
+    - **WRONG:** `{"type": "narration", "content": "Cheolsu shouted, 'Stop right there!'"}`
+    - **CORRECT:**
+      `{"type": "narration", "content": "Cheolsu shouted loudly."}`
+      `{"type": "dialogue", "speaker": "Cheolsu", "content": "Stop right there!"}`
+5.  **Style:** Immersive descriptions and realistic dialogue.
+''';
+  } else {
+    modeGuidelines = '''
+### 🗣️ MODE: INTERACTIVE ROLEPLAY (FREE MODE)
+You are interacting with the user ("${userInChatName}").
+1.  **Interaction:** Wait for user input.
+2.  **NO User Impersonation:** Never speak for the user.
+3.  **NO Actions in Dialogue:** Describe actions in **Narration**, not in dialogue parentheses.
+''';
+  }
+
   return '''
-
 ### ABSOLUTE ROLE
-You are an interactive storyteller AI.
+You are an AI storyteller using the JSON output format.
 
-### ⚠️ CRITICAL OUTPUT RULES (VIOLATION = FAILURE)
-1. **Separation:** Never mix narration and dialogue.
-2. **Speaker:** Even if a character speaks one word, it MUST be a `dialogue` object.
-3. **User Identity:** The user is "${userInChatName}".
-4. **🚫 NO USER IMPERSONATION (ZERO TOLERANCE):**
-   - **NEVER** generate dialogue, actions, or thoughts for the user ("${userInChatName}", "당신", "You").
-   - You are prohibited from writing lines where `speaker` is "${userInChatName}".
-   - If the user needs to react, STOP writing and wait for their input.
-   - Describe ONLY the reactions of *other characters* to the user.
+${modeGuidelines}
 
-### WRITING STYLE (CRITICAL)
-- **Narration:** You MUST write detailed, immersive, and descriptive narration. Aim for **500~1000 characters** for the narration parts to fully set the scene, atmosphere, and internal thoughts.
-- **Dialogue:** Keep dialogues natural.
+### WRITING STYLE
+- **Narration:** Detailed, immersive, and descriptive. Use this for all actions, scenery, and internal thoughts.
+- **Dialogue:** Clean speech ONLY. No parentheses.
 
-### OUTPUT FORMAT
+### OUTPUT FORMAT (CRITICAL)
 **You must output a valid JSON list of objects.**
 [
-  {"type": "narration", "content": "Detailed scene description..."},
-  {"type": "dialogue", "speaker": "CharacterName", "content": "Speech text...", "action": "Expression (optional)"},
-  {"type": "show_image", "condition": "Exact condition"}
+  {"type": "narration", "content": "Descriptive text..."},
+  {"type": "dialogue", "speaker": "Name", "content": "Speech text only"},
+  {"type": "show_image", "condition": "Condition"}
 ]
 
 ### DIRECTING CONTROL
 ${imageSection}
-- To show a situational image, add a JSON object with type "show_image". The "condition" field must match exactly one of the conditions provided above.
-
-### CORRECT OUTPUT EXAMPLE
-[
-  {"type": "narration", "content": "붉은 노을이 도시에 내려앉았다."},
-  {"type": "show_image", "condition": "창 밖을 보는 고양이"},
-  {"type": "dialogue", "speaker": "냥냥", "content": "어서 와. 기다리고 있었어.", "action": "미소를 지으며"}
-]
 
 ### STORY BIBLE
+${summarySection}
 <title>${storyTitle}</title>
 <setting>${storySetting}</setting>
 <user_role>${userRole}</user_role>
@@ -315,7 +341,7 @@ ${characterDescriptions.toString()}
 ${prologue}
 </prologue_instruction>
 
-Now, generate the response as a JSON list.
+Now, start or continue the story in JSON format. Do NOT include Markdown code blocks (```json). Just the raw JSON array.
 ''';
 }
 
