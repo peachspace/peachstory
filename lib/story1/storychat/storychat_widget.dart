@@ -145,7 +145,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
               widget.isNovelMode!),
           functions.prologue('도입부를 생성하라.').toList(),
           '',
-          _model.currentChatDoc?.summary,
+          '',
         );
         _model.aiResponseScript = _model.aitext!;
         safeSetState(() {});
@@ -822,8 +822,8 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                       safeSetState(() {});
                                                       _model.messageCount =
                                                           await queryStorymessagesRecordCount(
-                                                        parent: widget
-                                                            .storychatRef,
+                                                        parent: _model
+                                                            .currentDocRef,
                                                       );
                                                       _model.characterChatDoc =
                                                           await StorychatsRecord
@@ -1071,7 +1071,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                       safeSetState(() {});
                                       _model.messageCount2 =
                                           await queryStorymessagesRecordCount(
-                                        parent: widget.storychatRef,
+                                        parent: _model.currentDocRef,
                                       );
                                       _model.characterChatDoc1 =
                                           await StorychatsRecord

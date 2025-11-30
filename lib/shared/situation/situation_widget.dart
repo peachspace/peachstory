@@ -61,8 +61,8 @@ class _SituationWidgetState extends State<SituationWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 280.0,
-      height: 400.0,
+      width: double.infinity,
+      height: 500.0,
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
         borderRadius: BorderRadius.circular(10.0),
@@ -71,16 +71,150 @@ class _SituationWidgetState extends State<SituationWidget> {
           width: 1.0,
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding:
-                      EdgeInsetsDirectional.fromSTEB(10.0, 10.0, 10.0, 0.0),
+      child: Padding(
+        padding: EdgeInsets.all(15.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+                  child: Text(
+                    '이미지',
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          font: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontStyle,
+                          ),
+                          fontSize: 18.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                  ),
+                ),
+                InkWell(
+                  splashColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onTap: () async {
+                    await widget.onDelete?.call(
+                      widget.index!,
+                    );
+                  },
+                  child: Icon(
+                    Icons.clear,
+                    color: FlutterFlowTheme.of(context).primaryText,
+                    size: 24.0,
+                  ),
+                ),
+              ],
+            ),
+            InkWell(
+              splashColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              onTap: () async {
+                final selectedMedia = await selectMediaWithSourceBottomSheet(
+                  context: context,
+                  allowPhoto: true,
+                );
+                if (selectedMedia != null &&
+                    selectedMedia.every(
+                        (m) => validateFileFormat(m.storagePath, context))) {
+                  safeSetState(
+                      () => _model.isDataUploading_uploadsituationimage = true);
+                  var selectedUploadedFiles = <FFUploadedFile>[];
+
+                  var downloadUrls = <String>[];
+                  try {
+                    selectedUploadedFiles = selectedMedia
+                        .map((m) => FFUploadedFile(
+                              name: m.storagePath.split('/').last,
+                              bytes: m.bytes,
+                              height: m.dimensions?.height,
+                              width: m.dimensions?.width,
+                              blurHash: m.blurHash,
+                              originalFilename: m.originalFilename,
+                            ))
+                        .toList();
+
+                    downloadUrls = (await Future.wait(
+                      selectedMedia.map(
+                        (m) async => await uploadData(m.storagePath, m.bytes),
+                      ),
+                    ))
+                        .where((u) => u != null)
+                        .map((u) => u!)
+                        .toList();
+                  } finally {
+                    _model.isDataUploading_uploadsituationimage = false;
+                  }
+                  if (selectedUploadedFiles.length == selectedMedia.length &&
+                      downloadUrls.length == selectedMedia.length) {
+                    safeSetState(() {
+                      _model.uploadedLocalFile_uploadsituationimage =
+                          selectedUploadedFiles.first;
+                      _model.uploadedFileUrl_uploadsituationimage =
+                          downloadUrls.first;
+                    });
+                  } else {
+                    safeSetState(() {});
+                    return;
+                  }
+                }
+
+                await widget.onImageChanged?.call(
+                  _model.uploadedFileUrl_uploadsituationimage,
+                  widget.index!,
+                );
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10.0),
+                child: Image.network(
+                  valueOrDefault<String>(
+                    widget.situationItem?.imageUrl,
+                    'https://t3.ftcdn.net/jpg/11/40/90/46/240_F_1140904604_Bgl5UkXYSBRNRUh96jQFOCyeFzl6ffY0.jpg',
+                  ),
+                  width: 320.0,
+                  height: 320.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Align(
+              alignment: AlignmentDirectional(-1.0, 0.0),
+              child: Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 10.0),
+                child: Text(
+                  '상황',
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        font: GoogleFonts.inter(
+                          fontWeight: FontWeight.w600,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                        fontSize: 18.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w600,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                      ),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Expanded(
                   child: Container(
                     width: double.infinity,
                     child: TextFormField(
@@ -189,125 +323,16 @@ class _SituationWidgetState extends State<SituationWidget> {
                       maxLines: null,
                       maxLength: 100,
                       maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                      buildCounter: (context,
-                              {required currentLength,
-                              required isFocused,
-                              maxLength}) =>
-                          null,
                       cursorColor: FlutterFlowTheme.of(context).primaryText,
                       validator:
                           _model.textControllerValidator.asValidator(context),
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 10.0, 0.0),
-                child: InkWell(
-                  splashColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  onTap: () async {
-                    await widget.onDelete?.call(
-                      widget.index!,
-                    );
-                  },
-                  child: Icon(
-                    Icons.clear,
-                    color: FlutterFlowTheme.of(context).primaryText,
-                    size: 24.0,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-                border: Border.all(
-                  color: FlutterFlowTheme.of(context).alternate,
-                  width: 1.0,
-                ),
-              ),
-              child: InkWell(
-                splashColor: Colors.transparent,
-                focusColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                onTap: () async {
-                  final selectedMedia = await selectMediaWithSourceBottomSheet(
-                    context: context,
-                    allowPhoto: true,
-                  );
-                  if (selectedMedia != null &&
-                      selectedMedia.every(
-                          (m) => validateFileFormat(m.storagePath, context))) {
-                    safeSetState(() =>
-                        _model.isDataUploading_uploadsituationimage = true);
-                    var selectedUploadedFiles = <FFUploadedFile>[];
-
-                    var downloadUrls = <String>[];
-                    try {
-                      selectedUploadedFiles = selectedMedia
-                          .map((m) => FFUploadedFile(
-                                name: m.storagePath.split('/').last,
-                                bytes: m.bytes,
-                                height: m.dimensions?.height,
-                                width: m.dimensions?.width,
-                                blurHash: m.blurHash,
-                                originalFilename: m.originalFilename,
-                              ))
-                          .toList();
-
-                      downloadUrls = (await Future.wait(
-                        selectedMedia.map(
-                          (m) async => await uploadData(m.storagePath, m.bytes),
-                        ),
-                      ))
-                          .where((u) => u != null)
-                          .map((u) => u!)
-                          .toList();
-                    } finally {
-                      _model.isDataUploading_uploadsituationimage = false;
-                    }
-                    if (selectedUploadedFiles.length == selectedMedia.length &&
-                        downloadUrls.length == selectedMedia.length) {
-                      safeSetState(() {
-                        _model.uploadedLocalFile_uploadsituationimage =
-                            selectedUploadedFiles.first;
-                        _model.uploadedFileUrl_uploadsituationimage =
-                            downloadUrls.first;
-                      });
-                    } else {
-                      safeSetState(() {});
-                      return;
-                    }
-                  }
-
-                  await widget.onImageChanged?.call(
-                    _model.uploadedFileUrl_uploadsituationimage,
-                    widget.index!,
-                  );
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
-                  child: Image.network(
-                    valueOrDefault<String>(
-                      widget.situationItem?.imageUrl,
-                      'https://t3.ftcdn.net/jpg/11/40/90/46/240_F_1140904604_Bgl5UkXYSBRNRUh96jQFOCyeFzl6ffY0.jpg',
-                    ),
-                    width: 320.0,
-                    height: 320.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

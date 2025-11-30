@@ -11,24 +11,31 @@ class CharacterModel extends FlutterFlowModel<CharacterWidget> {
   String uploadedFileUrl_uploadCharImage = '';
 
   // State field(s) for charName widget.
-  FocusNode? charNameFocusNode;
-  TextEditingController? charNameTextController;
-  String? Function(BuildContext, String?)? charNameTextControllerValidator;
+  FocusNode? charNameFocusNode1;
+  TextEditingController? charNameTextController1;
+  String? Function(BuildContext, String?)? charNameTextController1Validator;
   // State field(s) for charPersonailty widget.
   FocusNode? charPersonailtyFocusNode;
   TextEditingController? charPersonailtyTextController;
   String? Function(BuildContext, String?)?
       charPersonailtyTextControllerValidator;
+  // State field(s) for charName widget.
+  FocusNode? charNameFocusNode2;
+  TextEditingController? charNameTextController2;
+  String? Function(BuildContext, String?)? charNameTextController2Validator;
 
   @override
   void initState(BuildContext context) {}
 
   @override
   void dispose() {
-    charNameFocusNode?.dispose();
-    charNameTextController?.dispose();
+    charNameFocusNode1?.dispose();
+    charNameTextController1?.dispose();
 
     charPersonailtyFocusNode?.dispose();
     charPersonailtyTextController?.dispose();
+
+    charNameFocusNode2?.dispose();
+    charNameTextController2?.dispose();
   }
 }

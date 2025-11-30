@@ -5,14 +5,15 @@ import 'package:flutter/material.dart';
 class SituationModel extends FlutterFlowModel<SituationWidget> {
   ///  State fields for stateful widgets in this component.
 
-  // State field(s) for TextField widget.
-  FocusNode? textFieldFocusNode;
-  TextEditingController? textController;
-  String? Function(BuildContext, String?)? textControllerValidator;
   bool isDataUploading_uploadsituationimage = false;
   FFUploadedFile uploadedLocalFile_uploadsituationimage =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
   String uploadedFileUrl_uploadsituationimage = '';
+
+  // State field(s) for TextField widget.
+  FocusNode? textFieldFocusNode;
+  TextEditingController? textController;
+  String? Function(BuildContext, String?)? textControllerValidator;
 
   @override
   void initState(BuildContext context) {}
