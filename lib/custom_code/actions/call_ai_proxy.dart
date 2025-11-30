@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'index.dart'; // Imports other custom actions
+
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String?> callAiProxy(
@@ -16,29 +18,30 @@ Future<String?> callAiProxy(
   String? systemPrompt,
   List<dynamic>? messages,
   String? recentUserMessage,
-  String? summary, // [Step A에서 추가한 Argument 이름과 똑같아야 합니다]
+  String? summary, // 이전에 추가한 summary 파라미터
 ) async {
   final HttpsCallable callable =
       FirebaseFunctions.instance.httpsCallable('callAiProxy');
 
-  // 1. 시스템 프롬프트 강화
-  // 요약이 존재하면 AI에게 "이 요약을 기억하라"고 지시합니다.
-  String finalSystemPrompt =
-      systemPrompt ?? "You are a helpful story assistant.";
+  // [핵심] 시스템 프롬프트 강력 수정
+  String reinforcedSystemPrompt = """
+${systemPrompt ?? "You are a professional story writer."}
+
+[CRITICAL RULES]
+1. Output MUST be a valid JSON array only (e.g., [{"type": "dialogue", ...}]). 
+2. DO NOT include any introductory or concluding text outside the JSON.
+3. NO REPETITION: Do not repeat any dialogue or narration that has already occurred in the history or summary. Write the NEXT scene.
+4. If a 'Summary' is provided, use it as context but do not rewrite it.
+""";
 
   if (summary != null && summary.isNotEmpty) {
-    finalSystemPrompt +=
-        "\n\n[STORY SUMMARY]\n$summary\n\n[INSTRUCTION]\nUse the summary above to maintain continuity. Do NOT repeat events from the summary.";
+    reinforcedSystemPrompt += "\n\n[STORY SUMMARY]\n$summary";
   }
 
-  // 2. 메시지 리스트 구성
+  // 메시지 리스트 구성
   List<dynamic> finalMessages = messages != null ? List.from(messages) : [];
 
-  // (선택 사항) 시스템 메시지를 메시지 리스트의 첫 번째로 넣거나,
-  // 클라우드 함수의 systemPrompt 인자로 별도로 보냅니다.
-  // 여기서는 클라우드 함수가 systemPrompt를 처리한다고 가정하고 그대로 둡니다.
-
-  // 유저의 최신 메시지 추가
+  // 유저 메시지 추가
   if (recentUserMessage != null && recentUserMessage.isNotEmpty) {
     finalMessages.add({
       'role': 'user',
@@ -49,15 +52,13 @@ Future<String?> callAiProxy(
   try {
     final HttpsCallableResult result = await callable.call(<String, dynamic>{
       'modelName': modelName,
-      'systemPrompt': finalSystemPrompt, // 강화된 프롬프트 전달
+      'systemPrompt': reinforcedSystemPrompt,
       'messages': finalMessages,
     });
     return result.data['fullText'];
   } on FirebaseFunctionsException catch (e) {
-    print('Cloud Function Error: ${e.code} - ${e.message}');
     return 'ERROR: ${e.message}';
   } catch (e) {
-    print('Generic Error: $e');
     return 'ERROR: 알 수 없는 오류 발생';
   }
 }
