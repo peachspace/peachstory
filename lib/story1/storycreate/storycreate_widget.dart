@@ -1198,7 +1198,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                   onUpdate: (index,
                                                       name,
                                                       personality,
-                                                      image) async {
+                                                      image,
+                                                      introduce) async {
                                                     _model
                                                         .updateCharactersAtIndex(
                                                       index,
@@ -1206,7 +1207,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         ..name = name
                                                         ..personality =
                                                             personality
-                                                        ..image = image,
+                                                        ..image = image
+                                                        ..introduce = introduce,
                                                     );
                                                     safeSetState(() {});
                                                   },

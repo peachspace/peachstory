@@ -507,7 +507,7 @@ class _StorymainWidgetState extends State<StorymainWidget> {
                                                 ),
                                               ),
                                               Text(
-                                                item2Item.personality,
+                                                item2Item.introduce,
                                                 style: FlutterFlowTheme.of(
                                                         context)
                                                     .bodyMedium

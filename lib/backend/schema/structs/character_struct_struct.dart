@@ -11,10 +11,12 @@ class CharacterStructStruct extends FFFirebaseStruct {
     String? name,
     String? personality,
     String? image,
+    String? introduce,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _name = name,
         _personality = personality,
         _image = image,
+        _introduce = introduce,
         super(firestoreUtilData);
 
   // "name" field.
@@ -38,11 +40,19 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   bool hasImage() => _image != null;
 
+  // "introduce" field.
+  String? _introduce;
+  String get introduce => _introduce ?? '';
+  set introduce(String? val) => _introduce = val;
+
+  bool hasIntroduce() => _introduce != null;
+
   static CharacterStructStruct fromMap(Map<String, dynamic> data) =>
       CharacterStructStruct(
         name: data['name'] as String?,
         personality: data['personality'] as String?,
         image: data['image'] as String?,
+        introduce: data['introduce'] as String?,
       );
 
   static CharacterStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -53,6 +63,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         'name': _name,
         'personality': _personality,
         'image': _image,
+        'introduce': _introduce,
       }.withoutNulls;
 
   @override
@@ -67,6 +78,10 @@ class CharacterStructStruct extends FFFirebaseStruct {
         ),
         'image': serializeParam(
           _image,
+          ParamType.String,
+        ),
+        'introduce': serializeParam(
+          _introduce,
           ParamType.String,
         ),
       }.withoutNulls;
@@ -85,6 +100,11 @@ class CharacterStructStruct extends FFFirebaseStruct {
         ),
         image: deserializeParam(
           data['image'],
+          ParamType.String,
+          false,
+        ),
+        introduce: deserializeParam(
+          data['introduce'],
           ParamType.String,
           false,
         ),
@@ -107,6 +127,11 @@ class CharacterStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
+        introduce: convertAlgoliaParam(
+          data['introduce'],
+          ParamType.String,
+          false,
+        ),
         firestoreUtilData: FirestoreUtilData(
           clearUnsetFields: false,
           create: true,
@@ -121,17 +146,20 @@ class CharacterStructStruct extends FFFirebaseStruct {
     return other is CharacterStructStruct &&
         name == other.name &&
         personality == other.personality &&
-        image == other.image;
+        image == other.image &&
+        introduce == other.introduce;
   }
 
   @override
-  int get hashCode => const ListEquality().hash([name, personality, image]);
+  int get hashCode =>
+      const ListEquality().hash([name, personality, image, introduce]);
 }
 
 CharacterStructStruct createCharacterStructStruct({
   String? name,
   String? personality,
   String? image,
+  String? introduce,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
@@ -141,6 +169,7 @@ CharacterStructStruct createCharacterStructStruct({
       name: name,
       personality: personality,
       image: image,
+      introduce: introduce,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,

@@ -22,8 +22,8 @@ class CharacterWidget extends StatefulWidget {
   final CharacterStructStruct? characterData;
   final int? index;
   final Future Function(int indexToDelete)? onDelete;
-  final Future Function(
-      int index, String name, String personality, String image)? onUpdate;
+  final Future Function(int index, String name, String personality,
+      String image, String introduce)? onUpdate;
 
   @override
   State<CharacterWidget> createState() => _CharacterWidgetState();
@@ -52,7 +52,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
     _model.charPersonailtyFocusNode ??= FocusNode();
 
     _model.charNameTextController2 ??=
-        TextEditingController(text: widget.characterData?.name);
+        TextEditingController(text: widget.characterData?.introduce);
     _model.charNameFocusNode2 ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
@@ -521,7 +521,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                   .labelMedium
                                   .fontStyle,
                             ),
-                    hintText: '캐릭터의 이름을 입력하세요...',
+                    hintText: '캐릭터에 대해 소개해주세요...',
                     hintStyle:
                         FlutterFlowTheme.of(context).labelMedium.override(
                               font: GoogleFonts.inter(
