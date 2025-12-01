@@ -62,7 +62,7 @@ class _SituationWidgetState extends State<SituationWidget> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 600.0,
+      height: 700.0,
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
         borderRadius: BorderRadius.circular(10.0),
@@ -77,7 +77,7 @@ class _SituationWidgetState extends State<SituationWidget> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 20.0),
+              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -152,8 +152,12 @@ class _SituationWidgetState extends State<SituationWidget> {
                 ],
               ),
             ),
+            Divider(
+              thickness: 1.0,
+              color: FlutterFlowTheme.of(context).alternate,
+            ),
             Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+              padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 10.0),
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -179,89 +183,147 @@ class _SituationWidgetState extends State<SituationWidget> {
                           ),
                     ),
                   ),
-                  Icon(
-                    Icons.auto_awesome,
-                    color: FlutterFlowTheme.of(context).primary,
-                    size: 20.0,
-                  ),
                 ],
               ),
             ),
-            InkWell(
-              splashColor: Colors.transparent,
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              onTap: () async {
-                final selectedMedia = await selectMediaWithSourceBottomSheet(
-                  context: context,
-                  allowPhoto: true,
-                );
-                if (selectedMedia != null &&
-                    selectedMedia.every(
-                        (m) => validateFileFormat(m.storagePath, context))) {
-                  safeSetState(
-                      () => _model.isDataUploading_uploadsituationimage = true);
-                  var selectedUploadedFiles = <FFUploadedFile>[];
+            Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                InkWell(
+                  splashColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onTap: () async {
+                    final selectedMedia =
+                        await selectMediaWithSourceBottomSheet(
+                      context: context,
+                      allowPhoto: true,
+                    );
+                    if (selectedMedia != null &&
+                        selectedMedia.every((m) =>
+                            validateFileFormat(m.storagePath, context))) {
+                      safeSetState(() =>
+                          _model.isDataUploading_uploadsituationimage = true);
+                      var selectedUploadedFiles = <FFUploadedFile>[];
 
-                  var downloadUrls = <String>[];
-                  try {
-                    selectedUploadedFiles = selectedMedia
-                        .map((m) => FFUploadedFile(
-                              name: m.storagePath.split('/').last,
-                              bytes: m.bytes,
-                              height: m.dimensions?.height,
-                              width: m.dimensions?.width,
-                              blurHash: m.blurHash,
-                              originalFilename: m.originalFilename,
-                            ))
-                        .toList();
+                      var downloadUrls = <String>[];
+                      try {
+                        selectedUploadedFiles = selectedMedia
+                            .map((m) => FFUploadedFile(
+                                  name: m.storagePath.split('/').last,
+                                  bytes: m.bytes,
+                                  height: m.dimensions?.height,
+                                  width: m.dimensions?.width,
+                                  blurHash: m.blurHash,
+                                  originalFilename: m.originalFilename,
+                                ))
+                            .toList();
 
-                    downloadUrls = (await Future.wait(
-                      selectedMedia.map(
-                        (m) async => await uploadData(m.storagePath, m.bytes),
+                        downloadUrls = (await Future.wait(
+                          selectedMedia.map(
+                            (m) async =>
+                                await uploadData(m.storagePath, m.bytes),
+                          ),
+                        ))
+                            .where((u) => u != null)
+                            .map((u) => u!)
+                            .toList();
+                      } finally {
+                        _model.isDataUploading_uploadsituationimage = false;
+                      }
+                      if (selectedUploadedFiles.length ==
+                              selectedMedia.length &&
+                          downloadUrls.length == selectedMedia.length) {
+                        safeSetState(() {
+                          _model.uploadedLocalFile_uploadsituationimage =
+                              selectedUploadedFiles.first;
+                          _model.uploadedFileUrl_uploadsituationimage =
+                              downloadUrls.first;
+                        });
+                      } else {
+                        safeSetState(() {});
+                        return;
+                      }
+                    }
+
+                    await widget.onImageChanged?.call(
+                      _model.uploadedFileUrl_uploadsituationimage,
+                      widget.index!,
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: Image.network(
+                      valueOrDefault<String>(
+                        widget.situationItem?.imageUrl,
+                        'https://t3.ftcdn.net/jpg/11/40/90/46/240_F_1140904604_Bgl5UkXYSBRNRUh96jQFOCyeFzl6ffY0.jpg',
                       ),
-                    ))
-                        .where((u) => u != null)
-                        .map((u) => u!)
-                        .toList();
-                  } finally {
-                    _model.isDataUploading_uploadsituationimage = false;
-                  }
-                  if (selectedUploadedFiles.length == selectedMedia.length &&
-                      downloadUrls.length == selectedMedia.length) {
-                    safeSetState(() {
-                      _model.uploadedLocalFile_uploadsituationimage =
-                          selectedUploadedFiles.first;
-                      _model.uploadedFileUrl_uploadsituationimage =
-                          downloadUrls.first;
-                    });
-                  } else {
-                    safeSetState(() {});
-                    return;
-                  }
-                }
-
-                await widget.onImageChanged?.call(
-                  _model.uploadedFileUrl_uploadsituationimage,
-                  widget.index!,
-                );
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10.0),
-                child: Image.network(
-                  valueOrDefault<String>(
-                    widget.situationItem?.imageUrl,
-                    'https://t3.ftcdn.net/jpg/11/40/90/46/240_F_1140904604_Bgl5UkXYSBRNRUh96jQFOCyeFzl6ffY0.jpg',
+                      width: 320.0,
+                      height: 320.0,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  width: 320.0,
-                  height: 320.0,
-                  fit: BoxFit.cover,
                 ),
-              ),
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
+                  child: Container(
+                    width: 70.0,
+                    height: 25.0,
+                    decoration: BoxDecoration(
+                      color: FlutterFlowTheme.of(context).secondaryBackground,
+                      borderRadius: BorderRadius.circular(10.0),
+                      border: Border.all(
+                        color: FlutterFlowTheme.of(context).alternate,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.auto_awesome,
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                          size: 13.0,
+                        ),
+                        Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              5.0, 0.0, 0.0, 0.0),
+                          child: Text(
+                            'AI생성',
+                            style: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  font: GoogleFonts.inter(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryText,
+                                  fontSize: 13.0,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 15.0, 0.0, 10.0),
+              padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 10.0),
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -290,40 +352,52 @@ class _SituationWidgetState extends State<SituationWidget> {
                       ),
                     ),
                   ),
-                  Icon(
-                    Icons.auto_awesome,
-                    color: FlutterFlowTheme.of(context).primary,
-                    size: 20.0,
-                  ),
                 ],
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    child: TextFormField(
-                      controller: _model.textController,
-                      focusNode: _model.textFieldFocusNode,
-                      onChanged: (_) => EasyDebounce.debounce(
-                        '_model.textController',
-                        Duration(milliseconds: 2000),
-                        () async {
-                          await widget.onNameChanged?.call(
-                            _model.textController.text,
-                            widget.index!,
-                          );
-                        },
-                      ),
-                      autofocus: false,
-                      obscureText: false,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        labelStyle:
-                            FlutterFlowTheme.of(context).labelMedium.override(
-                                  font: GoogleFonts.inter(
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15.0),
+                border: Border.all(
+                  color: FlutterFlowTheme.of(context).alternate,
+                ),
+              ),
+              child: Stack(
+                alignment: AlignmentDirectional(-1.0, 1.0),
+                children: [
+                  Padding(
+                    padding:
+                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+                    child: Container(
+                      width: double.infinity,
+                      child: TextFormField(
+                        controller: _model.textController,
+                        focusNode: _model.textFieldFocusNode,
+                        onChanged: (_) => EasyDebounce.debounce(
+                          '_model.textController',
+                          Duration(milliseconds: 2000),
+                          () async {
+                            await widget.onNameChanged?.call(
+                              _model.textController.text,
+                              widget.index!,
+                            );
+                          },
+                        ),
+                        autofocus: false,
+                        obscureText: false,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          labelStyle:
+                              FlutterFlowTheme.of(context).labelMedium.override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .labelMedium
                                         .fontWeight,
@@ -331,18 +405,18 @@ class _SituationWidgetState extends State<SituationWidget> {
                                         .labelMedium
                                         .fontStyle,
                                   ),
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .labelMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .labelMedium
-                                      .fontStyle,
-                                ),
-                        hintText: '이미지가 생성될 조건을 입력하세요...',
-                        hintStyle:
-                            FlutterFlowTheme.of(context).labelMedium.override(
-                                  font: GoogleFonts.inter(
+                          hintText: '이미지가 생성될 조건을 입력하세요...',
+                          hintStyle:
+                              FlutterFlowTheme.of(context).labelMedium.override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .labelMedium
                                         .fontWeight,
@@ -350,48 +424,50 @@ class _SituationWidgetState extends State<SituationWidget> {
                                         .labelMedium
                                         .fontStyle,
                                   ),
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .labelMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .labelMedium
-                                      .fontStyle,
-                                ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: FlutterFlowTheme.of(context).alternate,
-                            width: 1.0,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Color(0x00000000),
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(20.0),
                           ),
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0x00000000),
-                            width: 1.0,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Color(0x00000000),
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(20.0),
                           ),
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0x00000000),
-                            width: 1.0,
+                          errorBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Color(0x00000000),
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(20.0),
                           ),
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0x00000000),
-                            width: 1.0,
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Color(0x00000000),
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(20.0),
                           ),
-                          borderRadius: BorderRadius.circular(10.0),
+                          filled: true,
+                          fillColor:
+                              FlutterFlowTheme.of(context).secondaryBackground,
+                          contentPadding: EdgeInsetsDirectional.fromSTEB(
+                              10.0, 15.0, 10.0, 15.0),
                         ),
-                        filled: true,
-                        fillColor:
-                            FlutterFlowTheme.of(context).secondaryBackground,
-                      ),
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            font: GoogleFonts.inter(
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontWeight,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              letterSpacing: 0.0,
                               fontWeight: FlutterFlowTheme.of(context)
                                   .bodyMedium
                                   .fontWeight,
@@ -399,24 +475,72 @@ class _SituationWidgetState extends State<SituationWidget> {
                                   .bodyMedium
                                   .fontStyle,
                             ),
-                            letterSpacing: 0.0,
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
-                      maxLines: null,
-                      maxLength: 100,
-                      maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                      cursorColor: FlutterFlowTheme.of(context).primaryText,
-                      validator:
-                          _model.textControllerValidator.asValidator(context),
+                        maxLines: 4,
+                        maxLength: 100,
+                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                        cursorColor: FlutterFlowTheme.of(context).primaryText,
+                        validator:
+                            _model.textControllerValidator.asValidator(context),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(7.0, 0.0, 0.0, 7.0),
+                    child: Container(
+                      width: 70.0,
+                      height: 25.0,
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                          color: FlutterFlowTheme.of(context).alternate,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.auto_awesome,
+                            color: FlutterFlowTheme.of(context).secondaryText,
+                            size: 13.0,
+                          ),
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                                5.0, 0.0, 0.0, 0.0),
+                            child: Text(
+                              'AI생성',
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText,
+                                    fontSize: 13.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
