@@ -543,3 +543,48 @@ int calculateCreatorEarning(String? modelName) {
       return 200; // 목록에 없는 모델은 기본값으로 처리
   }
 }
+
+String convertCharactersToString(List<CharacterStructStruct> charList) {
+  if (charList == null || charList.isEmpty) {
+    return "설정된 캐릭터 없음";
+  }
+
+  String result = "";
+
+  for (var char in charList) {
+    // 이름, 성격, 소개 등 필요한 필드를 가져옵니다.
+    // 구조체 필드명(name, personality 등)은 사용자님 DB에 맞춰 수정하세요.
+    String name = char.name;
+    String desc = char.personality; // 혹은 char.intro 등
+
+    result += "- 이름: $name\n  설정: $desc\n\n";
+  }
+
+  return result.trim();
+}
+
+String getImageSystemPrompt(String imageMode) {
+  if (imageMode == 'character') {
+    return "You are a character designer. Write a detailed Stable Diffusion prompt (English) for a character appearance based on the context.";
+  } else if (imageMode == 'situation') {
+    return "You are a storyboard artist. Write a detailed Stable Diffusion prompt (English) for a specific scene based on the context.";
+  } else {
+    // main
+    return "You are a book cover designer. Write a highly artistic Stable Diffusion prompt (English) for a fantasy novel cover.";
+  }
+}
+
+String stringToImagePath(String imageUrl) {
+  return imageUrl;
+}
+
+List<dynamic> getEmptyList() {
+  return [];
+}
+
+bool isValidImage(String? imageUrl) {
+  if (imageUrl == null || imageUrl.isEmpty || imageUrl == 'null') {
+    return false;
+  }
+  return true;
+}

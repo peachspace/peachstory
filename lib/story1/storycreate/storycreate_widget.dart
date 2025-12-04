@@ -8,7 +8,9 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/upload_data.dart';
 import '/story1/character/character_widget.dart';
+import '/story1/imagecreate/imagecreate_widget.dart';
 import '/story1/situation/situation_widget.dart';
+import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:easy_debounce/easy_debounce.dart';
@@ -16,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:webviewx_plus/webviewx_plus.dart';
 import 'storycreate_model.dart';
 export 'storycreate_model.dart';
 
@@ -56,14 +59,11 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
             widget.storyDoc!.characters.toList().cast<CharacterStructStruct>();
         _model.userrole = widget.storyDoc?.userRole;
         _model.prologue = widget.storyDoc?.prologue;
-        _model.mainImage = widget.storyDoc!.mainImage;
+        _model.tempmainImage = widget.storyDoc?.mainImage;
         _model.introduce = widget.storyDoc?.description;
         _model.author = widget.storyDoc?.authorNotes;
         _model.genre = widget.storyDoc?.category;
         _model.hashitags = widget.storyDoc!.hashtags.toList().cast<String>();
-        _model.backgroundsList = widget.storyDoc!.backgroundImages
-            .toList()
-            .cast<LocationBackgroundStructStruct>();
         _model.newSituationalImages = widget.storyDoc!.situationalImages
             .toList()
             .cast<SituationalImageStructStruct>();
@@ -541,58 +541,98 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                 padding: EdgeInsetsDirectional
                                                     .fromSTEB(
                                                         7.0, 0.0, 0.0, 7.0),
-                                                child: Container(
-                                                  width: 70.0,
-                                                  height: 20.0,
-                                                  decoration: BoxDecoration(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .secondaryBackground,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10.0),
-                                                    border: Border.all(
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .alternate,
-                                                    ),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.max,
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.auto_awesome,
+                                                child: InkWell(
+                                                  splashColor:
+                                                      Colors.transparent,
+                                                  focusColor:
+                                                      Colors.transparent,
+                                                  hoverColor:
+                                                      Colors.transparent,
+                                                  highlightColor:
+                                                      Colors.transparent,
+                                                  onTap: () async {
+                                                    _model.generatedtitle =
+                                                        await actions
+                                                            .generateSingleTextField(
+                                                      'title',
+                                                      '[Worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[Prologue]: \"${_model.prologueTextController.text}\"\\n\\n[Characters]: \"${_model.userRoleInfoTextController.text}${_model.introduceTextController.text}',
+                                                    );
+                                                    safeSetState(() {
+                                                      _model.storyNameTextController
+                                                              ?.text =
+                                                          _model
+                                                              .generatedtitle!;
+                                                    });
+
+                                                    safeSetState(() {});
+                                                  },
+                                                  child: Container(
+                                                    width: 70.0,
+                                                    height: 20.0,
+                                                    decoration: BoxDecoration(
+                                                      color: FlutterFlowTheme
+                                                              .of(context)
+                                                          .secondaryBackground,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10.0),
+                                                      border: Border.all(
                                                         color:
                                                             FlutterFlowTheme.of(
                                                                     context)
-                                                                .secondaryText,
-                                                        size: 13.0,
+                                                                .alternate,
                                                       ),
-                                                      Padding(
-                                                        padding:
-                                                            EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    5.0,
-                                                                    0.0,
-                                                                    0.0,
-                                                                    0.0),
-                                                        child: Text(
-                                                          'AI생성',
-                                                          style: FlutterFlowTheme
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.auto_awesome,
+                                                          color: FlutterFlowTheme
                                                                   .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                font:
-                                                                    GoogleFonts
-                                                                        .inter(
+                                                              .secondaryText,
+                                                          size: 13.0,
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                      5.0,
+                                                                      0.0,
+                                                                      0.0,
+                                                                      0.0),
+                                                          child: Text(
+                                                            'AI생성',
+                                                            style: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font:
+                                                                      GoogleFonts
+                                                                          .inter(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondaryText,
+                                                                  fontSize:
+                                                                      13.0,
+                                                                  letterSpacing:
+                                                                      0.0,
                                                                   fontWeight: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
@@ -602,24 +642,10 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                       .bodyMedium
                                                                       .fontStyle,
                                                                 ),
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .secondaryText,
-                                                                fontSize: 13.0,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ],
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
@@ -944,57 +970,96 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                   padding: EdgeInsetsDirectional
                                                       .fromSTEB(
                                                           7.0, 0.0, 0.0, 7.0),
-                                                  child: Container(
-                                                    width: 70.0,
-                                                    height: 25.0,
-                                                    decoration: BoxDecoration(
-                                                      color: FlutterFlowTheme
-                                                              .of(context)
-                                                          .secondaryBackground,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10.0),
-                                                      border: Border.all(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .alternate,
-                                                      ),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.max,
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.auto_awesome,
+                                                  child: InkWell(
+                                                    splashColor:
+                                                        Colors.transparent,
+                                                    focusColor:
+                                                        Colors.transparent,
+                                                    hoverColor:
+                                                        Colors.transparent,
+                                                    highlightColor:
+                                                        Colors.transparent,
+                                                    onTap: () async {
+                                                      _model.generatedworldview =
+                                                          await actions
+                                                              .generateSingleTextField(
+                                                        'worldview',
+                                                        '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(_model.characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
+                                                      );
+                                                      safeSetState(() {
+                                                        _model.worldSettingsTextController
+                                                                ?.text =
+                                                            _model
+                                                                .generatedworldview!;
+                                                      });
+
+                                                      safeSetState(() {});
+                                                    },
+                                                    child: Container(
+                                                      width: 70.0,
+                                                      height: 25.0,
+                                                      decoration: BoxDecoration(
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10.0),
+                                                        border: Border.all(
                                                           color: FlutterFlowTheme
                                                                   .of(context)
-                                                              .secondaryText,
-                                                          size: 13.0,
+                                                              .alternate,
                                                         ),
-                                                        Padding(
-                                                          padding:
-                                                              EdgeInsetsDirectional
-                                                                  .fromSTEB(
-                                                                      5.0,
-                                                                      0.0,
-                                                                      0.0,
-                                                                      0.0),
-                                                          child: Text(
-                                                            'AI생성',
-                                                            style: FlutterFlowTheme
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.max,
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.auto_awesome,
+                                                            color: FlutterFlowTheme
                                                                     .of(context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  font:
-                                                                      GoogleFonts
-                                                                          .inter(
+                                                                .secondaryText,
+                                                            size: 13.0,
+                                                          ),
+                                                          Padding(
+                                                            padding:
+                                                                EdgeInsetsDirectional
+                                                                    .fromSTEB(
+                                                                        5.0,
+                                                                        0.0,
+                                                                        0.0,
+                                                                        0.0),
+                                                            child: Text(
+                                                              'AI생성',
+                                                              style: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .inter(
+                                                                      fontWeight: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontWeight,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondaryText,
+                                                                    fontSize:
+                                                                        13.0,
+                                                                    letterSpacing:
+                                                                        0.0,
                                                                     fontWeight: FlutterFlowTheme.of(
                                                                             context)
                                                                         .bodyMedium
@@ -1004,25 +1069,10 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                         .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .secondaryText,
-                                                                  fontSize:
-                                                                      13.0,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
+                                                            ),
                                                           ),
-                                                        ),
-                                                      ],
+                                                        ],
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
@@ -1328,55 +1378,97 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         EdgeInsetsDirectional
                                                             .fromSTEB(7.0, 0.0,
                                                                 0.0, 7.0),
-                                                    child: Container(
-                                                      width: 70.0,
-                                                      height: 25.0,
-                                                      decoration: BoxDecoration(
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10.0),
-                                                        border: Border.all(
+                                                    child: InkWell(
+                                                      splashColor:
+                                                          Colors.transparent,
+                                                      focusColor:
+                                                          Colors.transparent,
+                                                      hoverColor:
+                                                          Colors.transparent,
+                                                      highlightColor:
+                                                          Colors.transparent,
+                                                      onTap: () async {
+                                                        _model.generatedprologue =
+                                                            await actions
+                                                                .generateSingleTextField(
+                                                          'prologue',
+                                                          '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(_model.characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
+                                                        );
+                                                        safeSetState(() {
+                                                          _model.storyNameTextController
+                                                                  ?.text =
+                                                              _model
+                                                                  .generatedprologue!;
+                                                        });
+
+                                                        safeSetState(() {});
+                                                      },
+                                                      child: Container(
+                                                        width: 70.0,
+                                                        height: 25.0,
+                                                        decoration:
+                                                            BoxDecoration(
                                                           color: FlutterFlowTheme
                                                                   .of(context)
-                                                              .alternate,
-                                                        ),
-                                                      ),
-                                                      child: Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.max,
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Icon(
-                                                            Icons.auto_awesome,
+                                                              .secondaryBackground,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      10.0),
+                                                          border: Border.all(
                                                             color: FlutterFlowTheme
                                                                     .of(context)
-                                                                .secondaryText,
-                                                            size: 13.0,
+                                                                .alternate,
                                                           ),
-                                                          Padding(
-                                                            padding:
-                                                                EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        5.0,
-                                                                        0.0,
-                                                                        0.0,
-                                                                        0.0),
-                                                            child: Text(
-                                                              'AI생성',
-                                                              style: FlutterFlowTheme
+                                                        ),
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.max,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Icon(
+                                                              Icons
+                                                                  .auto_awesome,
+                                                              color: FlutterFlowTheme
                                                                       .of(context)
-                                                                  .bodyMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .inter(
+                                                                  .secondaryText,
+                                                              size: 13.0,
+                                                            ),
+                                                            Padding(
+                                                              padding:
+                                                                  EdgeInsetsDirectional
+                                                                      .fromSTEB(
+                                                                          5.0,
+                                                                          0.0,
+                                                                          0.0,
+                                                                          0.0),
+                                                              child: Text(
+                                                                'AI생성',
+                                                                style: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .inter(
+                                                                        fontWeight: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .fontWeight,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      color: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .secondaryText,
+                                                                      fontSize:
+                                                                          13.0,
+                                                                      letterSpacing:
+                                                                          0.0,
                                                                       fontWeight: FlutterFlowTheme.of(
                                                                               context)
                                                                           .bodyMedium
@@ -1386,25 +1478,10 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                           .bodyMedium
                                                                           .fontStyle,
                                                                     ),
-                                                                    color: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .secondaryText,
-                                                                    fontSize:
-                                                                        13.0,
-                                                                    letterSpacing:
-                                                                        0.0,
-                                                                    fontWeight: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontWeight,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                                  ),
+                                                              ),
                                                             ),
-                                                          ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
@@ -1546,6 +1623,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                   index: characterItemsIndex,
                                                   characterData:
                                                       characterItemsItem,
+                                                  storyContext:
+                                                      '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(_model.characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
                                                   onDelete:
                                                       (indexToDelete) async {
                                                     _model
@@ -2429,7 +2508,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                       }
                                                     }
 
-                                                    _model.mainImage = _model
+                                                    _model.tempmainImage = _model
                                                         .uploadedFileUrl_uploadedMainImage;
                                                     safeSetState(() {});
                                                   },
@@ -2438,11 +2517,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         BorderRadius.circular(
                                                             8.0),
                                                     child: Image.network(
-                                                      valueOrDefault<String>(
-                                                        widget.storyToEdit
-                                                            ?.mainImage,
-                                                        'https://t3.ftcdn.net/jpg/11/40/90/46/240_F_1140904604_Bgl5UkXYSBRNRUh96jQFOCyeFzl6ffY0.jpg',
-                                                      ),
+                                                      _model.tempmainImage!,
                                                       width: 350.0,
                                                       height: 350.0,
                                                       fit: BoxFit.cover,
@@ -2454,58 +2529,132 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                 padding: EdgeInsetsDirectional
                                                     .fromSTEB(
                                                         0.0, 10.0, 0.0, 0.0),
-                                                child: Container(
-                                                  width: 70.0,
-                                                  height: 25.0,
-                                                  decoration: BoxDecoration(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .secondaryBackground,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10.0),
-                                                    border: Border.all(
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .alternate,
-                                                    ),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.max,
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.auto_awesome,
+                                                child: InkWell(
+                                                  splashColor:
+                                                      Colors.transparent,
+                                                  focusColor:
+                                                      Colors.transparent,
+                                                  hoverColor:
+                                                      Colors.transparent,
+                                                  highlightColor:
+                                                      Colors.transparent,
+                                                  onTap: () async {
+                                                    await showModalBottomSheet(
+                                                      isScrollControlled: true,
+                                                      backgroundColor:
+                                                          Colors.transparent,
+                                                      enableDrag: false,
+                                                      context: context,
+                                                      builder: (context) {
+                                                        return WebViewAware(
+                                                          child:
+                                                              GestureDetector(
+                                                            onTap: () {
+                                                              FocusScope.of(
+                                                                      context)
+                                                                  .unfocus();
+                                                              FocusManager
+                                                                  .instance
+                                                                  .primaryFocus
+                                                                  ?.unfocus();
+                                                            },
+                                                            child: Padding(
+                                                              padding: MediaQuery
+                                                                  .viewInsetsOf(
+                                                                      context),
+                                                              child:
+                                                                  ImagecreateWidget(
+                                                                generationContext:
+                                                                    '${widget.storyContext}\"\\n\\n[Character Info]: \"${_model.charNameTextController1.text}${_model.charPersonailtyTextController.text}\"',
+                                                                imageMode: '',
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
+                                                    ).then((value) =>
+                                                        safeSetState(() =>
+                                                            _model.createdImage =
+                                                                value));
+
+                                                    if (functions.isValidImage(
+                                                            _model
+                                                                .createdImage) ==
+                                                        true) {
+                                                      _model.tempmainImage =
+                                                          _model.createdImage;
+                                                      safeSetState(() {});
+                                                    }
+
+                                                    safeSetState(() {});
+                                                  },
+                                                  child: Container(
+                                                    width: 70.0,
+                                                    height: 25.0,
+                                                    decoration: BoxDecoration(
+                                                      color: FlutterFlowTheme
+                                                              .of(context)
+                                                          .secondaryBackground,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10.0),
+                                                      border: Border.all(
                                                         color:
                                                             FlutterFlowTheme.of(
                                                                     context)
-                                                                .secondaryText,
-                                                        size: 13.0,
+                                                                .alternate,
                                                       ),
-                                                      Padding(
-                                                        padding:
-                                                            EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    5.0,
-                                                                    0.0,
-                                                                    0.0,
-                                                                    0.0),
-                                                        child: Text(
-                                                          'AI생성',
-                                                          style: FlutterFlowTheme
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.auto_awesome,
+                                                          color: FlutterFlowTheme
                                                                   .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                font:
-                                                                    GoogleFonts
-                                                                        .inter(
+                                                              .secondaryText,
+                                                          size: 13.0,
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                      5.0,
+                                                                      0.0,
+                                                                      0.0,
+                                                                      0.0),
+                                                          child: Text(
+                                                            'AI생성',
+                                                            style: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font:
+                                                                      GoogleFonts
+                                                                          .inter(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondaryText,
+                                                                  fontSize:
+                                                                      13.0,
+                                                                  letterSpacing:
+                                                                      0.0,
                                                                   fontWeight: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
@@ -2515,24 +2664,10 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                       .bodyMedium
                                                                       .fontStyle,
                                                                 ),
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .secondaryText,
-                                                                fontSize: 13.0,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ],
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
@@ -3749,7 +3884,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                 category: _model.genre,
                                 creatorRef: currentUserReference,
                                 userRole: _model.userrole,
-                                mainImage: _model.mainImage,
+                                mainImage: _model.tempmainImage,
                                 description: _model.introduce,
                                 authorNotes: _model.author,
                                 createdAt: getCurrentTimestamp,
@@ -3783,7 +3918,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                 category: _model.genre,
                                 creatorRef: currentUserReference,
                                 userRole: _model.userrole,
-                                mainImage: _model.mainImage,
+                                mainImage: _model.tempmainImage,
                                 description: _model.introduce,
                                 authorNotes: _model.author,
                                 createdAt: getCurrentTimestamp,

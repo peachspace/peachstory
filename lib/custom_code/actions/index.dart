@@ -15,3 +15,5 @@ export 'load_ranking_data.dart' show loadRankingData;
 export 'call_ai_summary_action.dart' show callAiSummaryAction;
 export 'get_next_phase_command.dart' show getNextPhaseCommand;
 export 'remove_thinking_message.dart' show removeThinkingMessage;
+export 'generate_single_text_field.dart' show generateSingleTextField;
+export 'generate_stable_diffusion_image.dart' show generateStableDiffusionImage;

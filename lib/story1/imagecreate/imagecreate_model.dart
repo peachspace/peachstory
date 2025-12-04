@@ -3,12 +3,20 @@ import 'imagecreate_widget.dart' show ImagecreateWidget;
 import 'package:flutter/material.dart';
 
 class ImagecreateModel extends FlutterFlowModel<ImagecreateWidget> {
+  ///  Local state fields for this component.
+
+  String? generatedImageUrl;
+
   ///  State fields for stateful widgets in this component.
 
   // State field(s) for TextField widget.
   FocusNode? textFieldFocusNode;
   TextEditingController? textController;
   String? Function(BuildContext, String?)? textControllerValidator;
+  // Stores action output result for [Custom Action - callAiProxy] action in Container widget.
+  String? suggestedPrompt;
+  // Stores action output result for [Custom Action - generateStableDiffusionImage] action in Button widget.
+  String? newImageResult;
 
   @override
   void initState(BuildContext context) {}

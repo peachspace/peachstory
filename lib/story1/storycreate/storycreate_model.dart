@@ -19,7 +19,7 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
           int index, Function(CharacterStructStruct) updateFn) =>
       characters[index] = updateFn(characters[index]);
 
-  String mainImage = '\" \"';
+  String? tempmainImage = '';
 
   List<String> hashitags = [];
   void addToHashitags(String item) => hashitags.add(item);
@@ -43,20 +43,6 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   String? author = '';
 
   String? genre = '';
-
-  List<LocationBackgroundStructStruct> backgroundsList = [];
-  void addToBackgroundsList(LocationBackgroundStructStruct item) =>
-      backgroundsList.add(item);
-  void removeFromBackgroundsList(LocationBackgroundStructStruct item) =>
-      backgroundsList.remove(item);
-  void removeAtIndexFromBackgroundsList(int index) =>
-      backgroundsList.removeAt(index);
-  void insertAtIndexInBackgroundsList(
-          int index, LocationBackgroundStructStruct item) =>
-      backgroundsList.insert(index, item);
-  void updateBackgroundsListAtIndex(
-          int index, Function(LocationBackgroundStructStruct) updateFn) =>
-      backgroundsList[index] = updateFn(backgroundsList[index]);
 
   List<SituationalImageStructStruct> newSituationalImages = [];
   void addToNewSituationalImages(SituationalImageStructStruct item) =>
@@ -85,14 +71,20 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   FocusNode? storyNameFocusNode;
   TextEditingController? storyNameTextController;
   String? Function(BuildContext, String?)? storyNameTextControllerValidator;
+  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  String? generatedtitle;
   // State field(s) for worldSettings widget.
   FocusNode? worldSettingsFocusNode;
   TextEditingController? worldSettingsTextController;
   String? Function(BuildContext, String?)? worldSettingsTextControllerValidator;
+  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  String? generatedworldview;
   // State field(s) for prologue widget.
   FocusNode? prologueFocusNode;
   TextEditingController? prologueTextController;
   String? Function(BuildContext, String?)? prologueTextControllerValidator;
+  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  String? generatedprologue;
   // State field(s) for UserRoleInfo widget.
   FocusNode? userRoleInfoFocusNode;
   TextEditingController? userRoleInfoTextController;
@@ -102,6 +94,8 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
   String uploadedFileUrl_uploadedMainImage = '';
 
+  // Stores action output result for [Bottom Sheet - imagecreate] action in Container widget.
+  String? createdImage;
   // State field(s) for introduce widget.
   FocusNode? introduceFocusNode;
   TextEditingController? introduceTextController;
