@@ -1,10 +1,13 @@
+import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 import 'imagecreate_model.dart';
 export 'imagecreate_model.dart';
 
@@ -22,8 +25,11 @@ class ImagecreateWidget extends StatefulWidget {
   State<ImagecreateWidget> createState() => _ImagecreateWidgetState();
 }
 
-class _ImagecreateWidgetState extends State<ImagecreateWidget> {
+class _ImagecreateWidgetState extends State<ImagecreateWidget>
+    with TickerProviderStateMixin {
   late ImagecreateModel _model;
+
+  final animationsMap = <String, AnimationInfo>{};
 
   @override
   void setState(VoidCallback callback) {
@@ -36,8 +42,24 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
     super.initState();
     _model = createModel(context, () => ImagecreateModel());
 
-    _model.textController ??= TextEditingController();
-    _model.textFieldFocusNode ??= FocusNode();
+    _model.imagemakepromptTextController ??= TextEditingController();
+    _model.imagemakepromptFocusNode ??= FocusNode();
+
+    animationsMap.addAll({
+      'progressBarOnPageLoadAnimation': AnimationInfo(
+        loop: true,
+        trigger: AnimationTrigger.onPageLoad,
+        effectsBuilder: () => [
+          RotateEffect(
+            curve: Curves.easeInOut,
+            delay: 0.0.ms,
+            duration: 600.0.ms,
+            begin: 0.0,
+            end: 1.0,
+          ),
+        ],
+      ),
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -61,6 +83,7 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
         mainAxisSize: MainAxisSize.max,
         children: [
           Stack(
+            alignment: AlignmentDirectional(0.0, 0.0),
             children: [
               if (_model.isImageLoading == false)
                 ClipRRect(
@@ -73,13 +96,15 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
                   ),
                 ),
               if (_model.isImageLoading == true)
-                Container(
-                  width: 200.0,
-                  height: 200.0,
-                  decoration: BoxDecoration(
-                    color: FlutterFlowTheme.of(context).secondaryBackground,
-                  ),
-                ),
+                CircularPercentIndicator(
+                  percent: 0.75,
+                  radius: 50.0,
+                  lineWidth: 12.0,
+                  animation: true,
+                  animateFromLastPercent: true,
+                  progressColor: FlutterFlowTheme.of(context).primary,
+                ).animateOnPageLoad(
+                    animationsMap['progressBarOnPageLoadAnimation']!),
             ],
           ),
           Container(
@@ -95,8 +120,8 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
                 Container(
                   width: 200.0,
                   child: TextFormField(
-                    controller: _model.textController,
-                    focusNode: _model.textFieldFocusNode,
+                    controller: _model.imagemakepromptTextController,
+                    focusNode: _model.imagemakepromptFocusNode,
                     autofocus: false,
                     enabled: true,
                     obscureText: false,
@@ -180,6 +205,9 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
                                 .bodyMedium
                                 .fontStyle,
                           ),
+                          color: _model.isImageLoading == true
+                              ? FlutterFlowTheme.of(context).primary
+                              : FlutterFlowTheme.of(context).primaryText,
                           letterSpacing: 0.0,
                           fontWeight: FlutterFlowTheme.of(context)
                               .bodyMedium
@@ -189,8 +217,8 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
                         ),
                     cursorColor: FlutterFlowTheme.of(context).primaryText,
                     enableInteractiveSelection: true,
-                    validator:
-                        _model.textControllerValidator.asValidator(context),
+                    validator: _model.imagemakepromptTextControllerValidator
+                        .asValidator(context),
                   ),
                 ),
                 Padding(
@@ -201,12 +229,16 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onTap: () async {
+                      safeSetState(() {
+                        _model.imagemakepromptTextController?.text = '생성 중...';
+                      });
                       _model.suggestedPrompt =
                           await actions.generateImagePrompt(
                         widget.generationContext!,
                       );
                       safeSetState(() {
-                        _model.textController?.text = _model.suggestedPrompt!;
+                        _model.imagemakepromptTextController?.text =
+                            _model.suggestedPrompt!;
                       });
 
                       safeSetState(() {});
@@ -278,7 +310,7 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
                   safeSetState(() {});
                   _model.newImageResult =
                       await actions.generateStableDiffusionImage(
-                    _model.textController.text,
+                    _model.imagemakepromptTextController.text,
                   );
                   _model.generatedImageUrl =
                       functions.stringToImagePath(_model.newImageResult!);

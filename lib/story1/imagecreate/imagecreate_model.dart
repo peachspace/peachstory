@@ -9,12 +9,15 @@ class ImagecreateModel extends FlutterFlowModel<ImagecreateWidget> {
 
   bool isImageLoading = false;
 
+  bool isGenerating = false;
+
   ///  State fields for stateful widgets in this component.
 
-  // State field(s) for TextField widget.
-  FocusNode? textFieldFocusNode;
-  TextEditingController? textController;
-  String? Function(BuildContext, String?)? textControllerValidator;
+  // State field(s) for imagemakeprompt widget.
+  FocusNode? imagemakepromptFocusNode;
+  TextEditingController? imagemakepromptTextController;
+  String? Function(BuildContext, String?)?
+      imagemakepromptTextControllerValidator;
   // Stores action output result for [Custom Action - generateImagePrompt] action in Container widget.
   String? suggestedPrompt;
   // Stores action output result for [Custom Action - generateStableDiffusionImage] action in Button widget.
@@ -25,7 +28,7 @@ class ImagecreateModel extends FlutterFlowModel<ImagecreateWidget> {
 
   @override
   void dispose() {
-    textFieldFocusNode?.dispose();
-    textController?.dispose();
+    imagemakepromptFocusNode?.dispose();
+    imagemakepromptTextController?.dispose();
   }
 }
