@@ -58,6 +58,8 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
           int index, Function(SituationalImageStructStruct) updateFn) =>
       newSituationalImages[index] = updateFn(newSituationalImages[index]);
 
+  bool isGenerating = false;
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TabBar widget.
@@ -89,6 +91,8 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   FocusNode? userRoleInfoFocusNode;
   TextEditingController? userRoleInfoTextController;
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
+  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  String? generateduserrole;
   bool isDataUploading_uploadedMainImage = false;
   FFUploadedFile uploadedLocalFile_uploadedMainImage =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
@@ -100,6 +104,8 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   FocusNode? introduceFocusNode;
   TextEditingController? introduceTextController;
   String? Function(BuildContext, String?)? introduceTextControllerValidator;
+  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  String? generatedintroduce;
   // State field(s) for authorComment widget.
   FocusNode? authorCommentFocusNode;
   TextEditingController? authorCommentTextController;

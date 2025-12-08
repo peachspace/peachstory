@@ -14,7 +14,7 @@ import 'package:http/http.dart' as http;
 
 Future<String?> generateStableDiffusionImage(String prompt) async {
   // Stability AI API Key (Secret Manager 등에 저장하는 것이 좋습니다)
-  const String apiKey = 'YOUR_STABILITY_AI_API_KEY';
+  const String apiKey = 'sk-Ua3OUI4YD0QZGr1t8upUwWU0jjx7PgYLSlXyQrzX5wf7aPMt';
   const String engineId = 'stable-diffusion-xl-1024-v1-0';
   final Uri apiUri = Uri.parse(
       'https://api.stability.ai/v1/generation/$engineId/text-to-image');

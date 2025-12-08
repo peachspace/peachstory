@@ -60,14 +60,27 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: Image.network(
-              _model.generatedImageUrl!,
-              width: 200.0,
-              height: 200.0,
-              fit: BoxFit.cover,
-            ),
+          Stack(
+            children: [
+              if (_model.isImageLoading == false)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: Image.network(
+                    _model.generatedImageUrl!,
+                    width: 200.0,
+                    height: 200.0,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              if (_model.isImageLoading == true)
+                Container(
+                  width: 200.0,
+                  height: 200.0,
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).secondaryBackground,
+                  ),
+                ),
+            ],
           ),
           Container(
             decoration: BoxDecoration(
@@ -188,12 +201,9 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onTap: () async {
-                      _model.suggestedPrompt = await actions.callAiProxy(
-                        'gpt-4o',
-                        functions.getImageSystemPrompt(widget.imageMode!),
-                        functions.getEmptyList().toList(),
-                        widget.generationContext,
-                        '',
+                      _model.suggestedPrompt =
+                          await actions.generateImagePrompt(
+                        widget.generationContext!,
                       );
                       safeSetState(() {
                         _model.textController?.text = _model.suggestedPrompt!;
@@ -264,12 +274,15 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget> {
             children: [
               FFButtonWidget(
                 onPressed: () async {
+                  _model.isImageLoading = true;
+                  safeSetState(() {});
                   _model.newImageResult =
                       await actions.generateStableDiffusionImage(
                     _model.textController.text,
                   );
                   _model.generatedImageUrl =
                       functions.stringToImagePath(_model.newImageResult!);
+                  _model.isImageLoading = false;
                   safeSetState(() {});
 
                   safeSetState(() {});

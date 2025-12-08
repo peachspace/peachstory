@@ -17,3 +17,4 @@ export 'get_next_phase_command.dart' show getNextPhaseCommand;
 export 'remove_thinking_message.dart' show removeThinkingMessage;
 export 'generate_single_text_field.dart' show generateSingleTextField;
 export 'generate_stable_diffusion_image.dart' show generateStableDiffusionImage;
+export 'generate_image_prompt.dart' show generateImagePrompt;
