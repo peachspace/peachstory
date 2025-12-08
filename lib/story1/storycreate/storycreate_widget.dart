@@ -579,7 +579,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                     _model.generatedtitle =
                                                         await actions
                                                             .generateSingleTextField(
-                                                      '제목',
+                                                      '[제목]',
                                                       '[세계관]:  ${_model.worldSettingsTextController.text}\\n[프롤로그]:  ${_model.prologueTextController.text}\"\\n\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                     );
                                                     safeSetState(() {
@@ -1030,7 +1030,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                       _model.generatedworldview =
                                                           await actions
                                                               .generateSingleTextField(
-                                                        '세계관',
+                                                        '[세계관]',
                                                         '[제목]: ${_model.storyNameTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                       );
                                                       safeSetState(() {
@@ -1459,7 +1459,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         _model.generatedprologue =
                                                             await actions
                                                                 .generateSingleTextField(
-                                                          '프롤로그',
+                                                          '[프롤로그]',
                                                           '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                         );
                                                         safeSetState(() {
@@ -2162,7 +2162,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                       _model.generateduserrole =
                                                           await actions
                                                               .generateSingleTextField(
-                                                        '유저역할',
+                                                        '[유저역할]',
                                                         '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}',
                                                       );
                                                       safeSetState(() {
@@ -3241,7 +3241,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                       _model.generatedintroduce =
                                                           await actions
                                                               .generateSingleTextField(
-                                                        '스토리 소개',
+                                                        '[스토리 소개]',
                                                         '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                       );
                                                       safeSetState(() {
