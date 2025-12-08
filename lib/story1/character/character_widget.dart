@@ -433,6 +433,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                 _model.charNameTextController1.text,
                                 _model.charPersonailtyTextController.text,
                                 _model.uploadedFileUrl_uploadCharImage,
+                                _model.charNameTextController2.text,
                               );
                             },
                           ),
@@ -680,6 +681,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               _model.charNameTextController1.text,
                               _model.charPersonailtyTextController.text,
                               _model.uploadedFileUrl_uploadCharImage,
+                              _model.charNameTextController2.text,
                             );
                           },
                         ),
@@ -924,6 +926,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                 _model.charNameTextController2.text,
                                 _model.charPersonailtyTextController.text,
                                 _model.uploadedFileUrl_uploadCharImage,
+                                _model.charNameTextController2.text,
                               );
                             },
                           ),
