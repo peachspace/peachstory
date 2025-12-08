@@ -302,7 +302,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                             child: ImagecreateWidget(
                               generationContext:
                                   '${widget.storyContext}\"\\n\\n[Character Info]: \"${_model.charNameTextController1.text}${_model.charPersonailtyTextController.text}\"',
-                              imageMode: '',
+                              imageMode: 'character',
                             ),
                           ),
                         );

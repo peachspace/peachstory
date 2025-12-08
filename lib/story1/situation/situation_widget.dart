@@ -4,6 +4,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/upload_data.dart';
 import '/story1/imagecreate/imagecreate_widget.dart';
+import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ class SituationWidget extends StatefulWidget {
     this.onNameChanged,
     this.onImageChanged,
     this.onDelete,
+    required this.storyContext,
   });
 
   final SituationalImageStructStruct? situationItem;
@@ -28,6 +30,7 @@ class SituationWidget extends StatefulWidget {
   final Future Function(String name, int index)? onNameChanged;
   final Future Function(String imageUrl, int index)? onImageChanged;
   final Future Function(int index)? onDelete;
+  final String? storyContext;
 
   @override
   State<SituationWidget> createState() => _SituationWidgetState();
@@ -290,8 +293,8 @@ class _SituationWidgetState extends State<SituationWidget> {
                               padding: MediaQuery.viewInsetsOf(context),
                               child: ImagecreateWidget(
                                 generationContext:
-                                    '${widget.storyContext}\"\\n\\n[Character Info]: \"${_model.charNameTextController1.text}${_model.charPersonailtyTextController.text}\"',
-                                imageMode: '',
+                                    '${widget.storyContext}\\n[Current Situation]: ${_model.textController.text}',
+                                imageMode: 'situation',
                               ),
                             ),
                           );
@@ -299,7 +302,8 @@ class _SituationWidgetState extends State<SituationWidget> {
                       ).then((value) =>
                           safeSetState(() => _model.createdImage = value));
 
-                      if (functions.isValidImage() == true) {
+                      if (functions.isValidImage(_model.createdImage) == true) {
+                        _model.tempSituationImage = _model.createdImage;
                         safeSetState(() {});
                       }
 
@@ -525,35 +529,65 @@ class _SituationWidgetState extends State<SituationWidget> {
                   ),
                   Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(7.0, 0.0, 0.0, 7.0),
-                    child: Container(
-                      width: 70.0,
-                      height: 25.0,
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                        borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(
-                          color: FlutterFlowTheme.of(context).alternate,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.auto_awesome,
-                            color: FlutterFlowTheme.of(context).secondaryText,
-                            size: 13.0,
+                    child: InkWell(
+                      splashColor: Colors.transparent,
+                      focusColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      onTap: () async {
+                        _model.generatedCondition =
+                            await actions.generateSingleTextField(
+                          'situation',
+                          widget.storyContext!,
+                        );
+                        safeSetState(() {
+                          _model.textController?.text =
+                              _model.generatedCondition!;
+                        });
+
+                        safeSetState(() {});
+                      },
+                      child: Container(
+                        width: 70.0,
+                        height: 25.0,
+                        decoration: BoxDecoration(
+                          color:
+                              FlutterFlowTheme.of(context).secondaryBackground,
+                          borderRadius: BorderRadius.circular(10.0),
+                          border: Border.all(
+                            color: FlutterFlowTheme.of(context).alternate,
                           ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                5.0, 0.0, 0.0, 0.0),
-                            child: Text(
-                              'AI생성',
-                              style: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    font: GoogleFonts.inter(
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.auto_awesome,
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                              size: 13.0,
+                            ),
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  5.0, 0.0, 0.0, 0.0),
+                              child: Text(
+                                'AI생성',
+                                style: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      font: GoogleFonts.inter(
+                                        fontWeight: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontWeight,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontStyle,
+                                      ),
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryText,
+                                      fontSize: 13.0,
+                                      letterSpacing: 0.0,
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .bodyMedium
                                           .fontWeight,
@@ -561,20 +595,10 @@ class _SituationWidgetState extends State<SituationWidget> {
                                           .bodyMedium
                                           .fontStyle,
                                     ),
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                    fontSize: 13.0,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

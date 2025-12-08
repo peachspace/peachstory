@@ -555,7 +555,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         await actions
                                                             .generateSingleTextField(
                                                       'title',
-                                                      '[Worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[Prologue]: \"${_model.prologueTextController.text}\"\\n\\n[Characters]: \"${_model.userRoleInfoTextController.text}${_model.introduceTextController.text}',
+                                                      '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(_model.characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
                                                     );
                                                     safeSetState(() {
                                                       _model.storyNameTextController
@@ -2140,6 +2140,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                     index: situationItemIndex,
                                                     situationItem:
                                                         situationItemItem,
+                                                    storyContext:
+                                                        '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(_model.characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
                                                     onNameChanged:
                                                         (name, index) async {
                                                       _model
@@ -2565,8 +2567,9 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                               child:
                                                                   ImagecreateWidget(
                                                                 generationContext:
-                                                                    '${widget.storyContext}\"\\n\\n[Character Info]: \"${_model.charNameTextController1.text}${_model.charPersonailtyTextController.text}\"',
-                                                                imageMode: '',
+                                                                    '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(_model.characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
+                                                                imageMode:
+                                                                    'main',
                                                               ),
                                                             ),
                                                           ),

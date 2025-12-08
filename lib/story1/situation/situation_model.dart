@@ -20,6 +20,8 @@ class SituationModel extends FlutterFlowModel<SituationWidget> {
   FocusNode? textFieldFocusNode;
   TextEditingController? textController;
   String? Function(BuildContext, String?)? textControllerValidator;
+  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  String? generatedCondition;
 
   @override
   void initState(BuildContext context) {}
