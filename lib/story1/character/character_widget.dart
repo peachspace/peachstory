@@ -49,17 +49,17 @@ class _CharacterWidgetState extends State<CharacterWidget> {
     super.initState();
     _model = createModel(context, () => CharacterModel());
 
-    _model.charNameTextController1 ??=
+    _model.charNameTextController ??=
         TextEditingController(text: widget.characterData?.name);
-    _model.charNameFocusNode1 ??= FocusNode();
+    _model.charNameFocusNode ??= FocusNode();
 
     _model.charPersonailtyTextController ??=
         TextEditingController(text: widget.characterData?.personality);
     _model.charPersonailtyFocusNode ??= FocusNode();
 
-    _model.charNameTextController2 ??=
+    _model.charintroduceTextController ??=
         TextEditingController(text: widget.characterData?.introduce);
-    _model.charNameFocusNode2 ??= FocusNode();
+    _model.charintroduceFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -264,10 +264,10 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       safeSetState(() {});
                       await widget.onUpdate?.call(
                         widget.index!,
-                        _model.charNameTextController1.text,
+                        _model.charNameTextController.text,
                         _model.charPersonailtyTextController.text,
                         _model.uploadedFileUrl_uploadCharImage,
-                        _model.charNameTextController2.text,
+                        _model.charintroduceTextController.text,
                       );
                     },
                     child: ClipRRect(
@@ -301,7 +301,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                             padding: MediaQuery.viewInsetsOf(context),
                             child: ImagecreateWidget(
                               generationContext:
-                                  '${widget.storyContext}\"\\n\\n[Character Info]: \"${_model.charNameTextController1.text}${_model.charPersonailtyTextController.text}\"',
+                                  '${widget.storyContext}\"\\n\\n[Character Info]: \"${_model.charNameTextController.text}${_model.charPersonailtyTextController.text}\"',
                               imageMode: 'character',
                             ),
                           ),
@@ -422,18 +422,18 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       child: Container(
                         width: double.infinity,
                         child: TextFormField(
-                          controller: _model.charNameTextController1,
-                          focusNode: _model.charNameFocusNode1,
+                          controller: _model.charNameTextController,
+                          focusNode: _model.charNameFocusNode,
                           onChanged: (_) => EasyDebounce.debounce(
-                            '_model.charNameTextController1',
+                            '_model.charNameTextController',
                             Duration(milliseconds: 2000),
                             () async {
                               await widget.onUpdate?.call(
                                 widget.index!,
-                                _model.charNameTextController1.text,
+                                _model.charNameTextController.text,
                                 _model.charPersonailtyTextController.text,
                                 _model.uploadedFileUrl_uploadCharImage,
-                                _model.charNameTextController2.text,
+                                _model.charintroduceTextController.text,
                               );
                             },
                           ),
@@ -535,7 +535,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           maxLength: 30,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           cursorColor: FlutterFlowTheme.of(context).primaryText,
-                          validator: _model.charNameTextController1Validator
+                          validator: _model.charNameTextControllerValidator
                               .asValidator(context),
                         ),
                       ),
@@ -551,10 +551,10 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         onTap: () async {
                           _model.name = await actions.generateSingleTextField(
                             'name',
-                            '${widget.storyContext}\"\\n\\n[Target Character Name]: \"${_model.charNameTextController1.text}\"',
+                            '${widget.storyContext}\"\\n\\n[Target Character Name]: \"${_model.charNameTextController.text}\"',
                           );
                           safeSetState(() {
-                            _model.charNameTextController1?.text = _model.name!;
+                            _model.charNameTextController?.text = _model.name!;
                           });
 
                           safeSetState(() {});
@@ -678,10 +678,10 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           () async {
                             await widget.onUpdate?.call(
                               widget.index!,
-                              _model.charNameTextController1.text,
+                              _model.charNameTextController.text,
                               _model.charPersonailtyTextController.text,
                               _model.uploadedFileUrl_uploadCharImage,
-                              _model.charNameTextController2.text,
+                              _model.charintroduceTextController.text,
                             );
                           },
                         ),
@@ -801,7 +801,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           '${widget.storyContext}\"\\n\\n[Target Character Personality]: \"${_model.charPersonailtyTextController.text}\"',
                         );
                         safeSetState(() {
-                          _model.charNameTextController1?.text =
+                          _model.charPersonailtyTextController?.text =
                               _model.personality!;
                         });
 
@@ -915,18 +915,18 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       child: Container(
                         width: double.infinity,
                         child: TextFormField(
-                          controller: _model.charNameTextController2,
-                          focusNode: _model.charNameFocusNode2,
+                          controller: _model.charintroduceTextController,
+                          focusNode: _model.charintroduceFocusNode,
                           onChanged: (_) => EasyDebounce.debounce(
-                            '_model.charNameTextController2',
+                            '_model.charintroduceTextController',
                             Duration(milliseconds: 2000),
                             () async {
                               await widget.onUpdate?.call(
                                 widget.index!,
-                                _model.charNameTextController2.text,
+                                _model.charintroduceTextController.text,
                                 _model.charPersonailtyTextController.text,
                                 _model.uploadedFileUrl_uploadCharImage,
-                                _model.charNameTextController2.text,
+                                _model.charintroduceTextController.text,
                               );
                             },
                           ),
@@ -953,7 +953,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                       .labelMedium
                                       .fontStyle,
                                 ),
-                            hintText: '캐릭터에 대해 소개해주세요...',
+                            hintText: '캐릭터에 대해  소개해주세요.',
                             hintStyle: FlutterFlowTheme.of(context)
                                 .labelMedium
                                 .override(
@@ -1028,7 +1028,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           maxLength: 30,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           cursorColor: FlutterFlowTheme.of(context).primaryText,
-                          validator: _model.charNameTextController2Validator
+                          validator: _model.charintroduceTextControllerValidator
                               .asValidator(context),
                         ),
                       ),
@@ -1045,10 +1045,10 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           _model.introduce =
                               await actions.generateSingleTextField(
                             'introduce',
-                            '${widget.storyContext}\"\\n\\n[Target Character Introduce]: \"${_model.charNameTextController2.text}\"',
+                            '${widget.storyContext}\"\\n\\n[Target Character Introduce]: \"${_model.charintroduceTextController.text}\"',
                           );
                           safeSetState(() {
-                            _model.charNameTextController1?.text =
+                            _model.charintroduceTextController?.text =
                                 _model.introduce!;
                           });
 

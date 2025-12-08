@@ -538,7 +538,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                         _model.generatedCondition =
                             await actions.generateSingleTextField(
                           'situation',
-                          widget.storyContext!,
+                          '${widget.storyContext}\\n[Situation]: ${_model.textController.text}',
                         );
                         safeSetState(() {
                           _model.textController?.text =

@@ -1395,7 +1395,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                           '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(_model.characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
                                                         );
                                                         safeSetState(() {
-                                                          _model.storyNameTextController
+                                                          _model.prologueTextController
                                                                   ?.text =
                                                               _model
                                                                   .generatedprologue!;

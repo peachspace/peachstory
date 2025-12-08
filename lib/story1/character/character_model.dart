@@ -17,9 +17,9 @@ class CharacterModel extends FlutterFlowModel<CharacterWidget> {
   // Stores action output result for [Bottom Sheet - imagecreate] action in Container widget.
   String? createdImage;
   // State field(s) for charName widget.
-  FocusNode? charNameFocusNode1;
-  TextEditingController? charNameTextController1;
-  String? Function(BuildContext, String?)? charNameTextController1Validator;
+  FocusNode? charNameFocusNode;
+  TextEditingController? charNameTextController;
+  String? Function(BuildContext, String?)? charNameTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
   String? name;
   // State field(s) for charPersonailty widget.
@@ -29,10 +29,10 @@ class CharacterModel extends FlutterFlowModel<CharacterWidget> {
       charPersonailtyTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
   String? personality;
-  // State field(s) for charName widget.
-  FocusNode? charNameFocusNode2;
-  TextEditingController? charNameTextController2;
-  String? Function(BuildContext, String?)? charNameTextController2Validator;
+  // State field(s) for charintroduce widget.
+  FocusNode? charintroduceFocusNode;
+  TextEditingController? charintroduceTextController;
+  String? Function(BuildContext, String?)? charintroduceTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
   String? introduce;
 
@@ -41,13 +41,13 @@ class CharacterModel extends FlutterFlowModel<CharacterWidget> {
 
   @override
   void dispose() {
-    charNameFocusNode1?.dispose();
-    charNameTextController1?.dispose();
+    charNameFocusNode?.dispose();
+    charNameTextController?.dispose();
 
     charPersonailtyFocusNode?.dispose();
     charPersonailtyTextController?.dispose();
 
-    charNameFocusNode2?.dispose();
-    charNameTextController2?.dispose();
+    charintroduceFocusNode?.dispose();
+    charintroduceTextController?.dispose();
   }
 }
