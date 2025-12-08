@@ -58,7 +58,15 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
           int index, Function(SituationalImageStructStruct) updateFn) =>
       newSituationalImages[index] = updateFn(newSituationalImages[index]);
 
-  bool isGenerating = false;
+  bool isGeneratingtitle = false;
+
+  bool isGeneratingworldview = false;
+
+  bool isGeneratingprologue = false;
+
+  bool isGeneratinguserrole = false;
+
+  bool isGeneratingintroduce = false;
 
   ///  State fields for stateful widgets in this page.
 
