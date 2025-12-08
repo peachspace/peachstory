@@ -75,7 +75,9 @@ class _CharacterWidgetState extends State<CharacterWidget> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 800.0,
+      constraints: BoxConstraints(
+        minHeight: 800.0,
+      ),
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
         borderRadius: BorderRadius.circular(15.0),
