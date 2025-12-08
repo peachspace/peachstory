@@ -555,8 +555,8 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         highlightColor: Colors.transparent,
                         onTap: () async {
                           _model.name = await actions.generateSingleTextField(
-                            'name',
-                            '${widget.storyContext}\"\\n\\n[Target Character Name]: \"${_model.charNameTextController.text}\"',
+                            '캐릭터 이름',
+                            '${widget.storyContext}\\n[캐릭터 설정]: ${_model.charPersonailtyTextController.text}',
                           );
                           safeSetState(() {
                             _model.charNameTextController?.text = _model.name!;
@@ -809,8 +809,8 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       onTap: () async {
                         _model.personality =
                             await actions.generateSingleTextField(
-                          'personality',
-                          '${widget.storyContext}\"\\n\\n[Target Character Personality]: \"${_model.charPersonailtyTextController.text}\"',
+                          '캐릭터 설정',
+                          '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}',
                         );
                         safeSetState(() {
                           _model.charPersonailtyTextController?.text =
@@ -1062,8 +1062,8 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         onTap: () async {
                           _model.introduce =
                               await actions.generateSingleTextField(
-                            'introduce',
-                            '${widget.storyContext}\"\\n\\n[Target Character Introduce]: \"${_model.charintroduceTextController.text}\"',
+                            '캐릭터 소개',
+                            '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}\\n[캐릭터 설정]: ${_model.charPersonailtyTextController.text}',
                           );
                           safeSetState(() {
                             _model.charintroduceTextController?.text =
