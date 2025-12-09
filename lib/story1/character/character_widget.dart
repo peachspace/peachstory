@@ -75,7 +75,6 @@ class _CharacterWidgetState extends State<CharacterWidget> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: double.infinity,
       constraints: BoxConstraints(
         minHeight: 800.0,
       ),
