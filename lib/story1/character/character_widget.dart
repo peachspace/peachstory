@@ -76,7 +76,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
     return Container(
       width: double.infinity,
       constraints: BoxConstraints(
-        minHeight: 800.0,
+        minHeight: 700.0,
       ),
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -88,7 +88,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
       child: Padding(
         padding: EdgeInsets.all(15.0),
         child: Column(
-          mainAxisSize: MainAxisSize.max,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
