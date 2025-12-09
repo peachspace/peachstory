@@ -74,8 +74,6 @@ class _CharacterWidgetState extends State<CharacterWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      height: 770.0,
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
         borderRadius: BorderRadius.circular(15.0),
@@ -550,6 +548,9 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () async {
+                        safeSetState(() {
+                          _model.charNameTextController?.text = '생성 중...';
+                        });
                         _model.name = await actions.generateSingleTextField(
                           '캐릭터 이름',
                           '${widget.storyContext}\\n[캐릭터 설정]: ${_model.charPersonailtyTextController.text}',
@@ -799,6 +800,10 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () async {
+                        safeSetState(() {
+                          _model.charPersonailtyTextController?.text =
+                              '생성 중...';
+                        });
                         _model.personality =
                             await actions.generateSingleTextField(
                           '캐릭터 설정',
@@ -1047,6 +1052,9 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () async {
+                        safeSetState(() {
+                          _model.charintroduceTextController?.text = '생성 중...';
+                        });
                         _model.introduce =
                             await actions.generateSingleTextField(
                           '캐릭터 소개',
