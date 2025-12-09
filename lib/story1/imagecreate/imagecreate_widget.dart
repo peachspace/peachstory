@@ -85,7 +85,9 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
           Stack(
             alignment: AlignmentDirectional(0.0, 0.0),
             children: [
-              if (_model.isImageLoading == false)
+              if ((_model.isImageLoading == false) &&
+                  (_model.generatedImageUrl != null &&
+                      _model.generatedImageUrl != ''))
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
                   child: Image.network(
