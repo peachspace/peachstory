@@ -98,11 +98,11 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
               if (_model.isImageLoading == true)
                 CircularPercentIndicator(
                   percent: 0.75,
-                  radius: 50.0,
-                  lineWidth: 12.0,
+                  radius: 25.0,
+                  lineWidth: 5.0,
                   animation: true,
                   animateFromLastPercent: true,
-                  progressColor: FlutterFlowTheme.of(context).primary,
+                  progressColor: FlutterFlowTheme.of(context).tertiary,
                 ).animateOnPageLoad(
                     animationsMap['progressBarOnPageLoadAnimation']!),
             ],
@@ -311,6 +311,8 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                   _model.newImageResult =
                       await actions.generateStableDiffusionImage(
                     _model.imagemakepromptTextController.text,
+                    widget.imageMode == 'situation' ? 1344 : 1024,
+                    widget.imageMode == 'situation' ? 768 : 1024,
                   );
                   _model.generatedImageUrl =
                       functions.stringToImagePath(_model.newImageResult!);

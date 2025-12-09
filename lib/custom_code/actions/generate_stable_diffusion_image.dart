@@ -12,9 +12,14 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-Future<String?> generateStableDiffusionImage(String prompt) async {
-  // Stability AI API Key (Secret Manager 등에 저장하는 것이 좋습니다)
-  const String apiKey = 'sk-Ua3OUI4YD0QZGr1t8upUwWU0jjx7PgYLSlXyQrzX5wf7aPMt';
+Future<String?> generateStableDiffusionImage(
+  String prompt,
+  int imageWidth, // [추가됨] 가로 크기
+  int imageHeight, // [추가됨] 세로 크기
+) async {
+  // Stability AI API Key
+  const String apiKey =
+      'sk-Ua3OUI4YD0QZGr1t8upUwWU0jjx7PgYLSlXyQrzX5wf7aPMt'; // 본인의 키 사용
   const String engineId = 'stable-diffusion-xl-1024-v1-0';
   final Uri apiUri = Uri.parse(
       'https://api.stability.ai/v1/generation/$engineId/text-to-image');
@@ -32,8 +37,9 @@ Future<String?> generateStableDiffusionImage(String prompt) async {
           {"text": prompt, "weight": 1}
         ],
         "cfg_scale": 7,
-        "height": 1024,
-        "width": 1024,
+        // [수정됨] 입력받은 크기를 API에 전달
+        "height": imageHeight,
+        "width": imageWidth,
         "samples": 1,
         "steps": 30,
       }),
@@ -41,10 +47,7 @@ Future<String?> generateStableDiffusionImage(String prompt) async {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      // 첫 번째 이미지의 Base64 데이터를 가져옵니다.
       String base64Image = data['artifacts'][0]['base64'];
-
-      // Flutter의 Image 위젯에서 바로 쓸 수 있는 포맷으로 반환합니다.
       return "data:image/png;base64,$base64Image";
     } else {
       print('Image Gen Error: ${response.body}');

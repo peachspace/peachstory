@@ -271,7 +271,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                         'https://t3.ftcdn.net/jpg/11/40/90/46/240_F_1140904604_Bgl5UkXYSBRNRUh96jQFOCyeFzl6ffY0.jpg',
                       ),
                       width: 320.0,
-                      height: 320.0,
+                      height: 180.0,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -539,7 +539,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                       onTap: () async {
                         _model.generatedCondition =
                             await actions.generateSingleTextField(
-                          '상황',
+                          '[상황]',
                           '${widget.storyContext}',
                         );
                         safeSetState(() {
