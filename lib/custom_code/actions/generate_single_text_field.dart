@@ -15,39 +15,59 @@ Future<String> generateSingleTextField(
   String targetFieldName,
   String currentStoryContext,
 ) async {
+  // 1. 기본 시스템 프롬프트 (페르소나 설정)
   String systemPrompt = """
 당신은 한국 웹소설 전문 AI 어시스턴트입니다.
-사용자가 제공하는 스토리 문맥(Context)을 바탕으로 '$targetFieldName' 항목에 들어갈 텍스트를 작성해야 합니다.
-
-[필수 규칙]
-1. 반드시 '한국어(Korean)'로 작성하세요.
-2. 문체는 장르에 어울리는 자연스러운 한국 웹소설 스타일을 사용하세요.
-3. '세계관'이나 '캐릭터' 같은 제목 라벨을 붙이지 말고, 바로 본문 내용만 출력하세요.
-4. 만약 요청받은 항목이 '이름', '호칭', '단어'와 같이 짧은 답변이 필요한 경우, 부가적인 설명이나 수식어 없이 **오직 그 단어만** 출력하세요. (예: "주인공 이름은 철수입니다." -> "철수")
+사용자가 제공하는 스토리 문맥(Context)을 바탕으로 '$targetFieldName' 항목을 작성해야 합니다.
+반드시 '한국어(Korean)'로 작성하세요.
 """;
 
+  // 2. 타겟 필드에 따라 '지시 사항'을 다르게 설정 (핵심 수정 부분)
+  String specificInstruction = "";
+
+  // '이름', '제목', '타이틀' 같은 단어가 포함되면 "단답형"으로 지시
+  if (targetFieldName.contains('이름') ||
+      targetFieldName.contains('제목') ||
+      targetFieldName.contains('타이틀') ||
+      targetFieldName.contains('호칭')) {
+    specificInstruction = """
+위 문맥에 가장 잘 어울리는 '$targetFieldName'을(를) 창작해 주세요.
+[절대 규칙]
+- 부연 설명, 따옴표, 수식어, 마침표를 절대 붙이지 마세요.
+- 오직 생성된 **단어 하나만** 출력하세요.
+(예시: "주인공 이름은 강철수입니다" (X) -> "강철수" (O))
+""";
+  } else {
+    // 그 외(세계관, 프롤로그, 소개 등)는 "상세하고 창의적"으로 지시
+    specificInstruction = """
+위 문맥과 설정을 바탕으로 '$targetFieldName' 부분을 상세하고 창의적으로 작성해 주세요.
+문체는 웹소설 독자들이 몰입할 수 있는 매력적인 어조를 사용하세요.
+""";
+  }
+
+  // 3. 최종 유저 프롬프트 조합
   String userPrompt = """
 [현재 스토리 문맥]
 $currentStoryContext
 
 [지시 사항]
-위 문맥과 설정을 바탕으로 '$targetFieldName' 부분을 상세하고 창의적으로 작성해 주세요.
+$specificInstruction
 """;
 
-  // 3. Cloud Function 호출 (기존 callAiProxy 재사용)
   try {
     final HttpsCallable callable =
         FirebaseFunctions.instance.httpsCallable('callAiProxy');
     final result = await callable.call(<String, dynamic>{
-      'modelName': 'gpt-4o-mini', // 또는 선호하는 모델
+      'modelName': 'gpt-4o-mini',
       'systemPrompt': systemPrompt,
       'messages': [
         {'role': 'user', 'content': userPrompt}
       ],
     });
-    return result.data['fullText'] ?? '';
+    // 혹시라도 공백이나 줄바꿈이 포함될 수 있으니 trim() 처리
+    return result.data['fullText']?.toString().trim() ?? '';
   } catch (e) {
-    return "Error generating text: $e";
+    return "Error: $e";
   }
 }
 // Set your action name, define your arguments and return parameter,
