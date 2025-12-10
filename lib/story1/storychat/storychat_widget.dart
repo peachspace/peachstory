@@ -145,6 +145,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
           functions.prologue('도입부를 생성하라.').toList(),
           '',
           '',
+          _model.pageSituationalImages.toList(),
         );
         _model.aiResponseScript = _model.aitext!;
         safeSetState(() {});
@@ -725,6 +726,9 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                       _model.userinput,
                                                       _model.currentChatDoc
                                                           ?.summary,
+                                                      _model
+                                                          .pageSituationalImages
+                                                          .toList(),
                                                     );
                                                     _model.cleanList =
                                                         await actions
@@ -982,6 +986,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                       _model.formattedHistory1?.toList(),
                                       _model.nextCommand,
                                       _model.currentChatDoc?.summary,
+                                      _model.pageSituationalImages.toList(),
                                     );
                                     _model.cleanList1 =
                                         await actions.removeThinkingMessage(

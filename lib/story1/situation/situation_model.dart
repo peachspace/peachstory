@@ -9,13 +9,13 @@ class SituationModel extends FlutterFlowModel<SituationWidget> {
 
   ///  State fields for stateful widgets in this component.
 
+  // Stores action output result for [Bottom Sheet - imagecreate] action in Button widget.
+  String? createdImage;
   bool isDataUploading_uploadsituationimage = false;
   FFUploadedFile uploadedLocalFile_uploadsituationimage =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
   String uploadedFileUrl_uploadsituationimage = '';
 
-  // Stores action output result for [Bottom Sheet - imagecreate] action in Container widget.
-  String? createdImage;
   // State field(s) for TextField widget.
   FocusNode? textFieldFocusNode;
   TextEditingController? textController;

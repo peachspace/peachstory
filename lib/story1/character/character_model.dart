@@ -9,13 +9,13 @@ class CharacterModel extends FlutterFlowModel<CharacterWidget> {
 
   ///  State fields for stateful widgets in this component.
 
+  // Stores action output result for [Bottom Sheet - imagecreate] action in Button widget.
+  String? createdImage;
   bool isDataUploading_uploadCharImage = false;
   FFUploadedFile uploadedLocalFile_uploadCharImage =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
   String uploadedFileUrl_uploadCharImage = '';
 
-  // Stores action output result for [Bottom Sheet - imagecreate] action in Container widget.
-  String? createdImage;
   // State field(s) for charName widget.
   FocusNode? charNameFocusNode;
   TextEditingController? charNameTextController;

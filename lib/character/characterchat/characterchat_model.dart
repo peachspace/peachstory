@@ -83,8 +83,6 @@ class CharacterchatModel extends FlutterFlowModel<CharacterchatWidget> {
   int? pointsToDeduct;
   // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in messagesendbutton widget.
   int? creatorShare;
-  // Stores action output result for [Custom Action - callAiProxy] action in messagesendbutton widget.
-  String? aiFullResponse;
   // Stores action output result for [Firestore Query - Query a collection] action in messagesendbutton widget.
   int? messageCount;
   // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.

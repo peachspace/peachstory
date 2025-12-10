@@ -601,23 +601,6 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
                                             ),
                                           });
                                         }
-                                        _model.aiFullResponse =
-                                            await actions.callAiProxy(
-                                          _model.pageSelectedModel,
-                                          functions.buildCharacterPrompt(
-                                              _model.name!,
-                                              _model.setting!,
-                                              _model.dialogueExample.toList(),
-                                              _model.userinput!,
-                                              _model.situation.toList(),
-                                              _model.updatedChatDoc?.userNote),
-                                          _model.formattedHistory?.toList(),
-                                          ' ',
-                                          _model.currentChatDoc?.summary,
-                                        );
-                                        _model.aiResponseScript =
-                                            _model.aiFullResponse!;
-                                        safeSetState(() {});
                                         _model.messageCount =
                                             await queryCharactermessagesRecordCount(
                                           parent: _model.currentDocRef,
