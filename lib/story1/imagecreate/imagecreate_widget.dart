@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:webviewx_plus/webviewx_plus.dart';
 import 'imagecreate_model.dart';
 export 'imagecreate_model.dart';
 
@@ -97,34 +98,79 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
             Stack(
               alignment: AlignmentDirectional(0.0, 0.0),
               children: [
-                if ((_model.isImageLoading == false) &&
-                    (_model.generatedImageUrl != null &&
-                        _model.generatedImageUrl != ''))
+                if (_model.generatedImageUrl == null ||
+                    _model.generatedImageUrl == '')
                   Padding(
                     padding:
                         EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 15.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15.0),
-                      child: Image.network(
-                        _model.generatedImageUrl!,
-                        width: 300.0,
-                        height: 300.0,
-                        fit: BoxFit.cover,
+                    child: Container(
+                      width: double.infinity,
+                      height: 300.0,
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).primaryBackground,
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      child: Align(
+                        alignment: AlignmentDirectional(0.0, 0.0),
+                        child: Text(
+                          '이곳에 이미지가 생성됩니다.',
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    fontSize: 16.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if ((_model.isImageLoading == false) &&
+                    (_model.generatedImageUrl != null &&
+                        _model.generatedImageUrl != ''))
+                  Align(
+                    alignment: AlignmentDirectional(0.0, 0.0),
+                    child: Padding(
+                      padding:
+                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 15.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15.0),
+                        child: Image.network(
+                          _model.generatedImageUrl!,
+                          width: double.infinity,
+                          height: 300.0,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),
                 if (_model.isImageLoading == true)
-                  CircularPercentIndicator(
-                    percent: 0.75,
-                    radius: 25.0,
-                    lineWidth: 5.0,
-                    animation: true,
-                    animateFromLastPercent: true,
-                    progressColor: FlutterFlowTheme.of(context).tertiary,
-                    backgroundColor:
-                        FlutterFlowTheme.of(context).secondaryBackground,
-                  ).animateOnPageLoad(
-                      animationsMap['progressBarOnPageLoadAnimation']!),
+                  Align(
+                    alignment: AlignmentDirectional(0.0, 0.0),
+                    child: CircularPercentIndicator(
+                      percent: 0.75,
+                      radius: 25.0,
+                      lineWidth: 5.0,
+                      animation: true,
+                      animateFromLastPercent: true,
+                      progressColor: FlutterFlowTheme.of(context).tertiary,
+                      backgroundColor:
+                          FlutterFlowTheme.of(context).secondaryBackground,
+                    ).animateOnPageLoad(
+                        animationsMap['progressBarOnPageLoadAnimation']!),
+                  ),
               ],
             ),
             Container(
@@ -267,21 +313,27 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () async {
+                        var _shouldSetState = false;
                         if (widget.isSourceEmpty == true) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                widget.warningMessage!,
-                                style: TextStyle(
-                                  color:
-                                      FlutterFlowTheme.of(context).primaryText,
+                          await showDialog(
+                            context: context,
+                            builder: (alertDialogContext) {
+                              return WebViewAware(
+                                child: AlertDialog(
+                                  content: Text(widget.warningMessage!),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(alertDialogContext),
+                                      child: Text('확인'),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              duration: Duration(milliseconds: 2000),
-                              backgroundColor:
-                                  FlutterFlowTheme.of(context).accent3,
-                            ),
+                              );
+                            },
                           );
+                          if (_shouldSetState) safeSetState(() {});
+                          return;
                         } else {
                           safeSetState(() {
                             _model.imagemakepromptTextController?.text =
@@ -291,13 +343,14 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                               await actions.generateImagePrompt(
                             widget.generationContext!,
                           );
+                          _shouldSetState = true;
                           safeSetState(() {
                             _model.imagemakepromptTextController?.text =
                                 _model.suggestedPrompt!;
                           });
                         }
 
-                        safeSetState(() {});
+                        if (_shouldSetState) safeSetState(() {});
                       },
                       child: Container(
                         width: 70.0,

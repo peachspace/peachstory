@@ -22,11 +22,10 @@ class CharacterModel extends FlutterFlowModel<CharacterWidget> {
   String? Function(BuildContext, String?)? charNameTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
   String? name;
-  // State field(s) for charPersonailty widget.
-  FocusNode? charPersonailtyFocusNode;
-  TextEditingController? charPersonailtyTextController;
-  String? Function(BuildContext, String?)?
-      charPersonailtyTextControllerValidator;
+  // State field(s) for charSetting widget.
+  FocusNode? charSettingFocusNode;
+  TextEditingController? charSettingTextController;
+  String? Function(BuildContext, String?)? charSettingTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
   String? personality;
   // State field(s) for charintroduce widget.
@@ -44,8 +43,8 @@ class CharacterModel extends FlutterFlowModel<CharacterWidget> {
     charNameFocusNode?.dispose();
     charNameTextController?.dispose();
 
-    charPersonailtyFocusNode?.dispose();
-    charPersonailtyTextController?.dispose();
+    charSettingFocusNode?.dispose();
+    charSettingTextController?.dispose();
 
     charintroduceFocusNode?.dispose();
     charintroduceTextController?.dispose();

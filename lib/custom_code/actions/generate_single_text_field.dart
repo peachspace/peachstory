@@ -59,6 +59,7 @@ Future<String> generateSingleTextField(
     // [캐릭터 설정]: 입체적인 캐릭터 빌딩
     specificInstruction = """
 - 이 캐릭터의 외모 묘사, 성격(MBTI 등), 특징적인 말투, 독특한 버릇, 숨겨진 과거 등을 상세히 서술하세요.
+- 캐릭터의 이름은 서술하지 마세요.
 - 단순한 정보 나열이 아니라, 이 캐릭터가 살아서 움직이는 듯한 '입체감'과 '매력 포인트'를 강조하세요.
 """;
   } else if (targetFieldName.contains('캐릭터 소개') ||

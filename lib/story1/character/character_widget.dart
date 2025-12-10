@@ -55,9 +55,9 @@ class _CharacterWidgetState extends State<CharacterWidget> {
         TextEditingController(text: widget.characterData?.name);
     _model.charNameFocusNode ??= FocusNode();
 
-    _model.charPersonailtyTextController ??=
+    _model.charSettingTextController ??=
         TextEditingController(text: widget.characterData?.personality);
-    _model.charPersonailtyFocusNode ??= FocusNode();
+    _model.charSettingFocusNode ??= FocusNode();
 
     _model.charintroduceTextController ??=
         TextEditingController(text: widget.characterData?.introduce);
@@ -265,7 +265,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       await widget.onUpdate?.call(
                         widget.index!,
                         _model.charNameTextController.text,
-                        _model.charPersonailtyTextController.text,
+                        _model.charSettingTextController.text,
                         _model.uploadedFileUrl_uploadCharImage,
                         _model.charintroduceTextController.text,
                       );
@@ -301,10 +301,9 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                             padding: MediaQuery.viewInsetsOf(context),
                             child: ImagecreateWidget(
                               generationContext:
-                                  '${widget.storyContext}\\n[캐릭터 정보]: ${_model.charNameTextController.text}${_model.charPersonailtyTextController.text}',
+                                  '${widget.storyContext}\\n[캐릭터 정보]: ${_model.charNameTextController.text}${_model.charSettingTextController.text}',
                               imageMode: 'character',
-                              isSourceEmpty: _model.charPersonailtyTextController.text ==
-                                      '',
+                              isSourceEmpty: _model.charSettingTextController.text == '',
                               warningMessage: '캐릭터 설정을 먼저 입력해주세요.',
                             ),
                           ),
@@ -435,7 +434,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               await widget.onUpdate?.call(
                                 widget.index!,
                                 _model.charNameTextController.text,
-                                _model.charPersonailtyTextController.text,
+                                _model.charSettingTextController.text,
                                 _model.uploadedFileUrl_uploadCharImage,
                                 _model.charintroduceTextController.text,
                               );
@@ -557,8 +556,8 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           _model.charNameTextController?.text = '생성 중...';
                         });
                         _model.name = await actions.generateSingleTextField(
-                          '캐릭터 이름',
-                          '${widget.storyContext}\\n[캐릭터 설정]: ${_model.charPersonailtyTextController.text}',
+                          '[캐릭터 이름]',
+                          '${widget.storyContext}\\n[캐릭터 설정]: ${_model.charSettingTextController.text}',
                         );
                         safeSetState(() {
                           _model.charNameTextController?.text = _model.name!;
@@ -675,16 +674,16 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       child: Container(
                         width: double.infinity,
                         child: TextFormField(
-                          controller: _model.charPersonailtyTextController,
-                          focusNode: _model.charPersonailtyFocusNode,
+                          controller: _model.charSettingTextController,
+                          focusNode: _model.charSettingFocusNode,
                           onChanged: (_) => EasyDebounce.debounce(
-                            '_model.charPersonailtyTextController',
+                            '_model.charSettingTextController',
                             Duration(milliseconds: 2000),
                             () async {
                               await widget.onUpdate?.call(
                                 widget.index!,
                                 _model.charNameTextController.text,
-                                _model.charPersonailtyTextController.text,
+                                _model.charSettingTextController.text,
                                 _model.uploadedFileUrl_uploadCharImage,
                                 _model.charintroduceTextController.text,
                               );
@@ -790,8 +789,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           maxLength: 1000,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           cursorColor: FlutterFlowTheme.of(context).primaryText,
-                          validator: _model
-                              .charPersonailtyTextControllerValidator
+                          validator: _model.charSettingTextControllerValidator
                               .asValidator(context),
                         ),
                       ),
@@ -825,17 +823,16 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           return;
                         } else {
                           safeSetState(() {
-                            _model.charPersonailtyTextController?.text =
-                                '생성 중...';
+                            _model.charSettingTextController?.text = '생성 중...';
                           });
                           _model.personality =
                               await actions.generateSingleTextField(
-                            '캐릭터 설정',
+                            '[캐릭터 설정]',
                             '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}',
                           );
                           _shouldSetState = true;
                           safeSetState(() {
-                            _model.charPersonailtyTextController?.text =
+                            _model.charSettingTextController?.text =
                                 _model.personality!;
                           });
                         }
@@ -960,7 +957,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               await widget.onUpdate?.call(
                                 widget.index!,
                                 _model.charintroduceTextController.text,
-                                _model.charPersonailtyTextController.text,
+                                _model.charSettingTextController.text,
                                 _model.uploadedFileUrl_uploadCharImage,
                                 _model.charintroduceTextController.text,
                               );
@@ -1084,7 +1081,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         _model.introduce =
                             await actions.generateSingleTextField(
                           '캐릭터 소개',
-                          '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}\\n[캐릭터 설정]: ${_model.charPersonailtyTextController.text}',
+                          '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}\\n[캐릭터 설정]: ${_model.charSettingTextController.text}',
                         );
                         safeSetState(() {
                           _model.charintroduceTextController?.text =
