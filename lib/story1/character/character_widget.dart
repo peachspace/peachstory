@@ -22,6 +22,7 @@ class CharacterWidget extends StatefulWidget {
     this.onDelete,
     this.onUpdate,
     required this.storyContext,
+    required this.isWorldviewEmpty,
   });
 
   final CharacterStructStruct? characterData;
@@ -30,6 +31,7 @@ class CharacterWidget extends StatefulWidget {
   final Future Function(int index, String name, String personality,
       String image, String introduce)? onUpdate;
   final String? storyContext;
+  final bool? isWorldviewEmpty;
 
   @override
   State<CharacterWidget> createState() => _CharacterWidgetState();
@@ -301,6 +303,9 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               generationContext:
                                   '${widget.storyContext}\\n[캐릭터 정보]: ${_model.charNameTextController.text}${_model.charPersonailtyTextController.text}',
                               imageMode: 'character',
+                              isSourceEmpty: _model.charPersonailtyTextController.text ==
+                                      '',
+                              warningMessage: '캐릭터 설정을 먼저 입력해주세요.',
                             ),
                           ),
                         );
@@ -800,21 +805,42 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () async {
-                        safeSetState(() {
-                          _model.charPersonailtyTextController?.text =
-                              '생성 중...';
-                        });
-                        _model.personality =
-                            await actions.generateSingleTextField(
-                          '캐릭터 설정',
-                          '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}',
-                        );
-                        safeSetState(() {
-                          _model.charPersonailtyTextController?.text =
-                              _model.personality!;
-                        });
+                        var _shouldSetState = false;
+                        if (widget.isWorldviewEmpty == true) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '세계관을 먼저 입력해주세요.',
+                                style: TextStyle(
+                                  color:
+                                      FlutterFlowTheme.of(context).primaryText,
+                                ),
+                              ),
+                              duration: Duration(milliseconds: 2000),
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).accent3,
+                            ),
+                          );
+                          if (_shouldSetState) safeSetState(() {});
+                          return;
+                        } else {
+                          safeSetState(() {
+                            _model.charPersonailtyTextController?.text =
+                                '생성 중...';
+                          });
+                          _model.personality =
+                              await actions.generateSingleTextField(
+                            '캐릭터 설정',
+                            '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}',
+                          );
+                          _shouldSetState = true;
+                          safeSetState(() {
+                            _model.charPersonailtyTextController?.text =
+                                _model.personality!;
+                          });
+                        }
 
-                        safeSetState(() {});
+                        if (_shouldSetState) safeSetState(() {});
                       },
                       child: Container(
                         width: 70.0,

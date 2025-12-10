@@ -1122,6 +1122,8 @@ class _CharatercreateWidgetState extends State<CharatercreateWidget>
                                                   situationItem:
                                                       situationItemItem,
                                                   storyContext: ' ',
+                                                  isWorldviewEmpty: true,
+                                                  isCharactersEmpty: true,
                                                   onNameChanged:
                                                       (name, index) async {
                                                     _model

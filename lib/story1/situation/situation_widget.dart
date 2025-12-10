@@ -23,6 +23,8 @@ class SituationWidget extends StatefulWidget {
     this.onImageChanged,
     this.onDelete,
     required this.storyContext,
+    required this.isWorldviewEmpty,
+    required this.isCharactersEmpty,
   });
 
   final SituationalImageStructStruct? situationItem;
@@ -31,6 +33,8 @@ class SituationWidget extends StatefulWidget {
   final Future Function(String imageUrl, int index)? onImageChanged;
   final Future Function(int index)? onDelete;
   final String? storyContext;
+  final bool? isWorldviewEmpty;
+  final bool? isCharactersEmpty;
 
   @override
   State<SituationWidget> createState() => _SituationWidgetState();
@@ -297,6 +301,9 @@ class _SituationWidgetState extends State<SituationWidget> {
                                 generationContext:
                                     '${widget.storyContext}\\n[Current Situation]: ${_model.textController.text}',
                                 imageMode: 'situation',
+                                isSourceEmpty:
+                                    _model.textController.text == '',
+                                warningMessage: '상황을 먼저 입력해주세요.',
                               ),
                             ),
                           );
@@ -537,17 +544,42 @@ class _SituationWidgetState extends State<SituationWidget> {
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () async {
-                        _model.generatedCondition =
-                            await actions.generateSingleTextField(
-                          '[상황]',
-                          '${widget.storyContext}',
-                        );
-                        safeSetState(() {
-                          _model.textController?.text =
-                              _model.generatedCondition!;
-                        });
+                        var _shouldSetState = false;
+                        if ((widget.isWorldviewEmpty == true) ||
+                            (widget.isCharactersEmpty == true)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '세계관과 캐릭터 설정을 먼저 입력해주세요.',
+                                style: TextStyle(
+                                  color:
+                                      FlutterFlowTheme.of(context).primaryText,
+                                ),
+                              ),
+                              duration: Duration(milliseconds: 2000),
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).accent3,
+                            ),
+                          );
+                          if (_shouldSetState) safeSetState(() {});
+                          return;
+                        } else {
+                          safeSetState(() {
+                            _model.textController?.text = '생성 중...';
+                          });
+                          _model.generatedCondition =
+                              await actions.generateSingleTextField(
+                            '[상황]',
+                            '${widget.storyContext}',
+                          );
+                          _shouldSetState = true;
+                          safeSetState(() {
+                            _model.textController?.text =
+                                _model.generatedCondition!;
+                          });
+                        }
 
-                        safeSetState(() {});
+                        if (_shouldSetState) safeSetState(() {});
                       },
                       child: Container(
                         width: 70.0,

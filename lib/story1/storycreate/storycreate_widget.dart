@@ -1566,7 +1566,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                             ),
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
-                                  25.0, 0.0, 25.0, 0.0),
+                                  25.0, 0.0, 25.0, 20.0),
                               child: SingleChildScrollView(
                                 child: Column(
                                   mainAxisSize: MainAxisSize.max,
@@ -1693,6 +1693,9 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                       characterItemsItem,
                                                   storyContext:
                                                       '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                  isWorldviewEmpty: _model.worldSettingsTextController
+                                                              .text ==
+                                                          '',
                                                   onDelete:
                                                       (indexToDelete) async {
                                                     _model
@@ -1878,7 +1881,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                           AlignmentDirectional(
                                                               -1.0, 0.0),
                                                       child: Text(
-                                                        '유저 설정',
+                                                        '유저 역할',
                                                         style: FlutterFlowTheme
                                                                 .of(context)
                                                             .bodyMedium
@@ -1905,51 +1908,6 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                       .bodyMedium
                                                                       .fontStyle,
                                                             ),
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  5.0,
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0),
-                                                      child: Text(
-                                                        '*',
-                                                        style:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  font:
-                                                                      GoogleFonts
-                                                                          .inter(
-                                                                    fontWeight: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontWeight,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .error,
-                                                                  fontSize:
-                                                                      18.0,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
                                                       ),
                                                     ),
                                                   ],
@@ -2377,6 +2335,13 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         situationItemItem,
                                                     storyContext:
                                                         '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                    isWorldviewEmpty: _model.worldSettingsTextController
+                                                                .text ==
+                                                            '',
+                                                    isCharactersEmpty: _model
+                                                            .characters
+                                                            .length ==
+                                                        0,
                                                     onNameChanged:
                                                         (name, index) async {
                                                       _model
@@ -2828,6 +2793,11 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                     '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(_model.characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
                                                                 imageMode:
                                                                     'main',
+                                                                isSourceEmpty: _model.worldSettingsTextController
+                                                                            .text ==
+                                                                        '',
+                                                                warningMessage:
+                                                                    '세계관을 먼저 입력해주세요.',
                                                               ),
                                                             ),
                                                           ),
