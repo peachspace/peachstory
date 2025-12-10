@@ -205,13 +205,20 @@ class _SituationWidgetState extends State<SituationWidget> {
                 Stack(
                   alignment: AlignmentDirectional(0.0, 0.0),
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).primaryBackground,
-                        borderRadius: BorderRadius.circular(15.0),
+                    if (_model.tempSituationImage == null ||
+                        _model.tempSituationImage == '')
+                      Container(
+                        width: 320.0,
+                        height: 180.0,
+                        decoration: BoxDecoration(
+                          color: FlutterFlowTheme.of(context).primaryBackground,
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
+                    if (_model.tempSituationImage != null &&
+                        _model.tempSituationImage != '')
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(15.0),
                         child: Image.network(
                           _model.tempSituationImage!,
                           width: 320.0,
@@ -219,11 +226,20 @@ class _SituationWidgetState extends State<SituationWidget> {
                           fit: BoxFit.cover,
                         ),
                       ),
-                    ),
-                    Text(
-                      '특정한 상황에서 출력될 \n이미지를 업로드해주세요.',
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            font: GoogleFonts.inter(
+                    if (_model.tempSituationImage == null ||
+                        _model.tempSituationImage == '')
+                      Text(
+                        '특정한 상황에서 출력될 \n이미지를 업로드해주세요.',
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontWeight,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              letterSpacing: 0.0,
                               fontWeight: FlutterFlowTheme.of(context)
                                   .bodyMedium
                                   .fontWeight,
@@ -231,15 +247,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                                   .bodyMedium
                                   .fontStyle,
                             ),
-                            letterSpacing: 0.0,
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
-                    ),
+                      ),
                   ],
                 ),
                 Padding(
@@ -589,7 +597,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                                   .fontStyle,
                             ),
                         maxLines: 4,
-                        maxLength: 100,
+                        maxLength: 500,
                         maxLengthEnforcement: MaxLengthEnforcement.enforced,
                         cursorColor: FlutterFlowTheme.of(context).primaryText,
                         validator:

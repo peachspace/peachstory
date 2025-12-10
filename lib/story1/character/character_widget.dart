@@ -209,33 +209,43 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                     child: Stack(
                       alignment: AlignmentDirectional(0.0, 0.0),
                       children: [
-                        Align(
-                          alignment: AlignmentDirectional(0.0, 0.0),
-                          child: Container(
+                        if (_model.tempImage == null || _model.tempImage == '')
+                          Container(
+                            width: 200.0,
+                            height: 200.0,
                             decoration: BoxDecoration(
                               color: FlutterFlowTheme.of(context)
                                   .primaryBackground,
                               borderRadius: BorderRadius.circular(15.0),
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(15.0),
-                              child: Image.network(
-                                _model.tempImage!,
-                                width: 200.0,
-                                height: 200.0,
-                                fit: BoxFit.cover,
-                              ),
+                          ),
+                        if (_model.tempImage != null && _model.tempImage != '')
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(15.0),
+                            child: Image.network(
+                              _model.tempImage!,
+                              width: 200.0,
+                              height: 200.0,
+                              fit: BoxFit.cover,
                             ),
                           ),
-                        ),
-                        Align(
-                          alignment: AlignmentDirectional(0.0, 0.0),
-                          child: Text(
-                            '캐릭터의 프로필로 사용될 \n이미지를 업로드해주세요.',
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  font: GoogleFonts.inter(
+                        if (_model.tempImage == null || _model.tempImage == '')
+                          Align(
+                            alignment: AlignmentDirectional(0.0, 0.0),
+                            child: Text(
+                              '캐릭터의 프로필로 사용될 \n이미지를 업로드해주세요.',
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .fontWeight,
@@ -243,16 +253,8 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                         .bodyMedium
                                         .fontStyle,
                                   ),
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -869,7 +871,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                   ),
                           maxLines: null,
                           minLines: 5,
-                          maxLength: 1000,
+                          maxLength: 4000,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           cursorColor: FlutterFlowTheme.of(context).primaryText,
                           validator: _model.charSettingTextControllerValidator
@@ -1141,7 +1143,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                         .bodyMedium
                                         .fontStyle,
                                   ),
-                          maxLength: 30,
+                          maxLength: 200,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           cursorColor: FlutterFlowTheme.of(context).primaryText,
                           validator: _model.charintroduceTextControllerValidator

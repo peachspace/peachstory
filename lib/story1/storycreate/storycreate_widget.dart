@@ -209,7 +209,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                           indicatorColor: Color(0xFFFEBE98),
                           tabs: [
                             Tab(
-                              text: '세계관',
+                              text: '스토리',
                             ),
                             Tab(
                               text: '캐릭터',
@@ -263,7 +263,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         AlignmentDirectional(
                                                             -1.0, 0.0),
                                                     child: Text(
-                                                      '타이틀',
+                                                      '제목',
                                                       style: FlutterFlowTheme
                                                               .of(context)
                                                           .bodyMedium
@@ -542,7 +542,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                               ),
-                                                      maxLength: 30,
+                                                      maxLength: 20,
                                                       maxLengthEnforcement:
                                                           MaxLengthEnforcement
                                                               .enforced,
@@ -704,7 +704,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                           AlignmentDirectional(
                                                               -1.0, 0.0),
                                                       child: Text(
-                                                        '세계관 설정',
+                                                        '세계관',
                                                         style: FlutterFlowTheme
                                                                 .of(context)
                                                             .bodyMedium
@@ -992,7 +992,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                 ),
                                                         maxLines: null,
                                                         minLines: 15,
-                                                        maxLength: 2000,
+                                                        maxLength: 4000,
                                                         maxLengthEnforcement:
                                                             MaxLengthEnforcement
                                                                 .enforced,
@@ -1420,7 +1420,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                               ),
                                                           maxLines: null,
                                                           minLines: 15,
-                                                          maxLength: 1000,
+                                                          maxLength: 2000,
                                                           maxLengthEnforcement:
                                                               MaxLengthEnforcement
                                                                   .enforced,
@@ -2608,22 +2608,33 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                 alignment: AlignmentDirectional(
                                                     0.0, 0.0),
                                                 children: [
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      color: FlutterFlowTheme
-                                                              .of(context)
-                                                          .primaryBackground,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15.0),
-                                                      border: Border.all(
+                                                  if (_model.tempmainImage ==
+                                                          null ||
+                                                      _model.tempmainImage ==
+                                                          '')
+                                                    Container(
+                                                      width: 350.0,
+                                                      height: 350.0,
+                                                      decoration: BoxDecoration(
                                                         color: FlutterFlowTheme
                                                                 .of(context)
-                                                            .secondaryBackground,
-                                                        width: 1.0,
+                                                            .primaryBackground,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15.0),
+                                                        border: Border.all(
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
+                                                          width: 1.0,
+                                                        ),
                                                       ),
                                                     ),
-                                                    child: ClipRRect(
+                                                  if (_model.tempmainImage !=
+                                                          null &&
+                                                      _model.tempmainImage !=
+                                                          '')
+                                                    ClipRRect(
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               8.0),
@@ -2634,39 +2645,41 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         fit: BoxFit.cover,
                                                       ),
                                                     ),
-                                                  ),
-                                                  Text(
-                                                    '스토리의 메인에 표시될 이미지를 업로드해주세요.',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
+                                                  if (_model.tempmainImage ==
+                                                          null ||
+                                                      _model.tempmainImage ==
+                                                          '')
+                                                    Text(
+                                                      '스토리의 메인에 표시될 이미지를 업로드해주세요.',
+                                                      style:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font:
+                                                                    GoogleFonts
+                                                                        .inter(
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight: FlutterFlowTheme.of(
                                                                         context)
                                                                     .bodyMedium
                                                                     .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
+                                                                fontStyle: FlutterFlowTheme.of(
                                                                         context)
                                                                     .bodyMedium
                                                                     .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
+                                                              ),
+                                                    ),
                                                 ],
                                               ),
                                               Padding(
