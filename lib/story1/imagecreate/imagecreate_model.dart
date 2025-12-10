@@ -20,6 +20,8 @@ class ImagecreateModel extends FlutterFlowModel<ImagecreateWidget> {
       imagemakepromptTextControllerValidator;
   // Stores action output result for [Custom Action - generateImagePrompt] action in Container widget.
   String? suggestedPrompt;
+  // Stores action output result for [Custom Action - translateToEnglish] action in Button widget.
+  String? englishPrompt;
   // Stores action output result for [Custom Action - generateStableDiffusionImage] action in Button widget.
   String? newImageResult;
 

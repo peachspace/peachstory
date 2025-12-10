@@ -420,9 +420,12 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                     onPressed: () async {
                       _model.isImageLoading = true;
                       safeSetState(() {});
+                      _model.englishPrompt = await actions.translateToEnglish(
+                        _model.imagemakepromptTextController.text,
+                      );
                       _model.newImageResult =
                           await actions.generateStableDiffusionImage(
-                        _model.imagemakepromptTextController.text,
+                        _model.englishPrompt!,
                         widget.imageMode == 'situation' ? 1344 : 1024,
                         widget.imageMode == 'situation' ? 768 : 1024,
                       );

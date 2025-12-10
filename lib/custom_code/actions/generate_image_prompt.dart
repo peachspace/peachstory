@@ -14,19 +14,21 @@ import 'package:cloud_functions/cloud_functions.dart'; // 필수
 Future<String> generateImagePrompt(
   String contextInput,
 ) async {
-  // 1. 시스템 프롬프트: 번역가 역할 부여
+  // [수정] 시스템 프롬프트: 한글 묘사 생성
   String systemPrompt = """
-You are an expert prompt engineer for AI image generation (Stable Diffusion).
-Your task is to translate the user's Korean description into a descriptive English prompt.
-- Focus on visual elements (appearance, atmosphere, lighting, style).
-- Use comma-separated keywords or short phrases.
-- Do NOT include conversational filler like "Here is the prompt". Just output the English text.
+당신은 AI 이미지 생성을 위한 프롬프트 전문가입니다.
+사용자의 스토리 내용을 바탕으로, 그림으로 그리기 좋은 **'시각적 묘사'를 한국어로** 작성해 주세요.
+- 인물, 행동, 배경, 조명, 분위기 위주로 구체적으로 묘사하세요.
+- 예시: "어두운 동굴 속에서 빛나는 검을 든 기사, 긴장감 넘치는 분위기, 푸른색 조명"
+- 영어로 번역하지 말고 **한국어**로만 출력하세요.
 """;
 
-  // 2. 사용자 프롬프트: 한글 내용 전달
   String userPrompt = """
-[Translate to English Image Prompt]
+[스토리 내용]
 $contextInput
+
+[요청]
+위 내용을 바탕으로 이미지 생성용 묘사 텍스트를 작성해 주세요.
 """;
 
   // 3. Cloud Function 호출 (기존 callAiProxy 재사용)

@@ -25,7 +25,16 @@ Future<String> generateSingleTextField(
   // 2. 필드별 최적화된 지시사항 (Prompt Engineering 적용)
   String specificInstruction = "";
 
-  if (targetFieldName.contains('제목') || targetFieldName.contains('타이틀')) {
+  if (targetFieldName.contains('이야기 소개') ||
+      targetFieldName.contains('스토리 소개') ||
+      targetFieldName.contains('인트로')) {
+    specificInstruction = """
+- 작품 전체를 관통하는 로그라인(Logline)이나 흥미로운 줄거리를 작성하세요.
+- 독자를 유혹하는 마케팅 문구처럼 매력적으로 작성하세요.
+- 캐릭터 이름이나 설정을 나열하지 말고, 주인공에게 닥친 시련과 사건 위주로 서술하세요.
+""";
+  } else if (targetFieldName.contains('제목') ||
+      targetFieldName.contains('타이틀')) {
     // [제목]: 클릭을 유도하는 임팩트
     specificInstruction = """
 - 장르의 특성을 살려 독자의 호기심을 강하게 자극하는 임팩트 있는 제목을 지어주세요.
@@ -43,7 +52,6 @@ Future<String> generateSingleTextField(
     // [프롤로그]: 사건 중심의 훅(Hook)
     specificInstruction = """
 - 이야기의 시작을 알리는 강렬한 도입부를 작성하세요.
-- 지루한 배경 설명으로 시작하지 말고, **주인공이 겪는 긴박한 사건, 위기, 혹은 미스터리한 상황**을 바로 보여주세요.
 - 독자가 "다음 내용이 궁금해서 미치겠는" 상태가 되도록 끝맺으세요.
 """;
   } else if (targetFieldName.contains('캐릭터 이름') ||
@@ -58,7 +66,7 @@ Future<String> generateSingleTextField(
       targetFieldName.contains('성격')) {
     // [캐릭터 설정]: 입체적인 캐릭터 빌딩
     specificInstruction = """
-- 이 캐릭터의 외모 묘사, 성격(MBTI 등), 특징적인 말투, 독특한 버릇, 숨겨진 과거 등을 상세히 서술하세요.
+- 이 캐릭터의 외모 묘사, 성격, 특징적인 말투, 독특한 버릇, 숨겨진 과거 등을 상세히 서술하세요.
 - 캐릭터의 이름은 서술하지 마세요.
 - 단순한 정보 나열이 아니라, 이 캐릭터가 살아서 움직이는 듯한 '입체감'과 '매력 포인트'를 강조하세요.
 """;
@@ -66,7 +74,7 @@ Future<String> generateSingleTextField(
       targetFieldName.contains('소개')) {
     // [캐릭터 소개]: 요약된 정보
     specificInstruction = """
-- 독자들이 캐릭터 창에서 한눈에 파악할 수 있도록, 위 설정을 바탕으로 3~4줄 내외로 요약하여 소개하세요.
+- 독자들이 캐릭터 창에서 한눈에 파악할 수 있도록, 위 설정을 바탕으로 최대한 요약하여 소개하세요.
 - 캐릭터의 핵심 정체성과 역할을 명확하게 드러내세요.
 """;
   } else if (targetFieldName.contains('유저역할') ||
@@ -83,15 +91,6 @@ Future<String> generateSingleTextField(
 - 특정 사건이 벌어지는 구체적인 '장면(Scene)'이나 '상황'을 묘사하세요.
 - 누가, 어디서, 무엇을 하고 있는지, 시간대와 날씨는 어떠한지 시각적으로 그려지듯 서술하세요.
 - 이 내용은 주로 삽화(이미지) 생성의 프롬프트로 활용될 수 있음을 고려하세요.
-""";
-  } else if (targetFieldName.contains('이야기 소개') ||
-      targetFieldName.contains('스토리 소개') ||
-      targetFieldName.contains('인트로')) {
-    // [이야기 소개]: 뒷면 줄거리(Blurb) 스타일
-    specificInstruction = """
-- 작품 전체를 관통하는 로그라인(Logline)이나 흥미로운 줄거리를 작성하세요.
-- 독자를 유혹하는 마케팅 문구처럼 매력적으로 작성하세요.
-- 주인공에게 닥친 시련과 그것을 극복해야 하는 이유를 포함하여 기대감을 높이세요.
 """;
   } else {
     // [그 외]: 기본 문맥 생성
@@ -122,11 +121,16 @@ $specificInstruction
       ],
     });
 
-    // 결과값의 앞뒤 공백 제거 후 반환
-    return result.data['fullText']?.toString().trim() ?? '';
+    String output = result.data['fullText']?.toString().trim() ?? '';
+    // 불필요한 기호 제거
+    output = output.replaceAll(RegExp(r'^#+\s+.*$', multiLine: true), '');
+    output = output.replaceAll('**', '');
+    output = output.replaceAll('---', '');
+    return output.trim();
   } catch (e) {
-    return "생성 중 오류 발생: $e";
+    return "생성 오류: $e";
   }
 }
+
 // Set your action name, define your arguments and return parameter,
 // and then add the boilerplate code using the green button on the right!
