@@ -1,8 +1,5 @@
-import '/backend/custom_cloud_functions/custom_cloud_function_response_manager.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/index.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'pointcharge_model.dart';
@@ -151,70 +148,16 @@ class _PointchargeWidgetState extends State<PointchargeWidget>
                           Column(
                             mainAxisSize: MainAxisSize.max,
                             children: [
-                              InkWell(
-                                splashColor: Colors.transparent,
-                                focusColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                onTap: () async {
-                                  try {
-                                    final result =
-                                        await FirebaseFunctions.instanceFor(
-                                                region: 'asia-northeast3')
-                                            .httpsCallable(
-                                                'createKomojuPayment')
-                                            .call({
-                                      "amount": 1000,
-                                    });
-                                    _model.paymentResult =
-                                        CreateKomojuPaymentCloudFunctionCallResponse(
-                                      data: result.data,
-                                      succeeded: true,
-                                      resultAsString: result.data.toString(),
-                                      jsonBody: result.data,
-                                    );
-                                  } on FirebaseFunctionsException catch (error) {
-                                    _model.paymentResult =
-                                        CreateKomojuPaymentCloudFunctionCallResponse(
-                                      errorCode: error.code,
-                                      succeeded: false,
-                                    );
-                                  }
-
-                                  if (_model.paymentResult!.succeeded!) {
-                                    FFAppState().komojuSessionId = getJsonField(
-                                      _model.paymentResult!.jsonBody,
-                                      r'''$.sessionId''',
-                                    ).toString();
-                                    safeSetState(() {});
-
-                                    context.pushNamed(
-                                      PaywebWidget.routeName,
-                                      queryParameters: {
-                                        'checkoutUrl': serializeParam(
-                                          getJsonField(
-                                            _model.paymentResult?.jsonBody,
-                                            r'''$.checkoutUrl''',
-                                          ).toString(),
-                                          ParamType.String,
-                                        ),
-                                      }.withoutNulls,
-                                    );
-                                  }
-
-                                  safeSetState(() {});
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 100.0,
-                                  decoration: BoxDecoration(
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryBackground,
-                                    borderRadius: BorderRadius.circular(15.0),
-                                    border: Border.all(
-                                      color: FlutterFlowTheme.of(context)
-                                          .alternate,
-                                    ),
+                              Container(
+                                width: double.infinity,
+                                height: 100.0,
+                                decoration: BoxDecoration(
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryBackground,
+                                  borderRadius: BorderRadius.circular(15.0),
+                                  border: Border.all(
+                                    color:
+                                        FlutterFlowTheme.of(context).alternate,
                                   ),
                                 ),
                               ),

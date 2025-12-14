@@ -8,17 +8,6 @@ import 'package:flutter/material.dart';
 class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   ///  Local state fields for this page.
 
-  List<CharacterStructStruct> characters = [];
-  void addToCharacters(CharacterStructStruct item) => characters.add(item);
-  void removeFromCharacters(CharacterStructStruct item) =>
-      characters.remove(item);
-  void removeAtIndexFromCharacters(int index) => characters.removeAt(index);
-  void insertAtIndexInCharacters(int index, CharacterStructStruct item) =>
-      characters.insert(index, item);
-  void updateCharactersAtIndex(
-          int index, Function(CharacterStructStruct) updateFn) =>
-      characters[index] = updateFn(characters[index]);
-
   String? tempmainImage = '';
 
   List<String> hashitags = [];
@@ -68,6 +57,10 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
 
   bool isGeneratingintroduce = false;
 
+  String selectedDetailMode = 'text';
+
+  String? uploadedIntroImage;
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TabBar widget.
@@ -114,6 +107,15 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   String? Function(BuildContext, String?)? introduceTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
   String? generatedintroduce;
+  // State field(s) for TextField widget.
+  FocusNode? textFieldFocusNode;
+  TextEditingController? textController6;
+  String? Function(BuildContext, String?)? textController6Validator;
+  bool isDataUploading_uploadDatadetail = false;
+  FFUploadedFile uploadedLocalFile_uploadDatadetail =
+      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
+  String uploadedFileUrl_uploadDatadetail = '';
+
   // State field(s) for authorComment widget.
   FocusNode? authorCommentFocusNode;
   TextEditingController? authorCommentTextController;
@@ -148,6 +150,9 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
 
     introduceFocusNode?.dispose();
     introduceTextController?.dispose();
+
+    textFieldFocusNode?.dispose();
+    textController6?.dispose();
 
     authorCommentFocusNode?.dispose();
     authorCommentTextController?.dispose();

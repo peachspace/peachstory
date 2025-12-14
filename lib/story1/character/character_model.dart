@@ -7,6 +7,8 @@ class CharacterModel extends FlutterFlowModel<CharacterWidget> {
 
   String? tempImage;
 
+  String? tempAppearance;
+
   ///  State fields for stateful widgets in this component.
 
   // Stores action output result for [Bottom Sheet - imagecreate] action in Button widget.

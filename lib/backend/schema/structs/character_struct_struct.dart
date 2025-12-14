@@ -13,12 +13,14 @@ class CharacterStructStruct extends FFFirebaseStruct {
     String? image,
     String? introduce,
     String? id,
+    String? appearancePrompt,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _name = name,
         _personality = personality,
         _image = image,
         _introduce = introduce,
         _id = id,
+        _appearancePrompt = appearancePrompt,
         super(firestoreUtilData);
 
   // "name" field.
@@ -56,6 +58,13 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   bool hasId() => _id != null;
 
+  // "appearancePrompt" field.
+  String? _appearancePrompt;
+  String get appearancePrompt => _appearancePrompt ?? '';
+  set appearancePrompt(String? val) => _appearancePrompt = val;
+
+  bool hasAppearancePrompt() => _appearancePrompt != null;
+
   static CharacterStructStruct fromMap(Map<String, dynamic> data) =>
       CharacterStructStruct(
         name: data['name'] as String?,
@@ -63,6 +72,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         image: data['image'] as String?,
         introduce: data['introduce'] as String?,
         id: data['id'] as String?,
+        appearancePrompt: data['appearancePrompt'] as String?,
       );
 
   static CharacterStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -75,6 +85,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         'image': _image,
         'introduce': _introduce,
         'id': _id,
+        'appearancePrompt': _appearancePrompt,
       }.withoutNulls;
 
   @override
@@ -97,6 +108,10 @@ class CharacterStructStruct extends FFFirebaseStruct {
         ),
         'id': serializeParam(
           _id,
+          ParamType.String,
+        ),
+        'appearancePrompt': serializeParam(
+          _appearancePrompt,
           ParamType.String,
         ),
       }.withoutNulls;
@@ -125,6 +140,11 @@ class CharacterStructStruct extends FFFirebaseStruct {
         ),
         id: deserializeParam(
           data['id'],
+          ParamType.String,
+          false,
+        ),
+        appearancePrompt: deserializeParam(
+          data['appearancePrompt'],
           ParamType.String,
           false,
         ),
@@ -157,6 +177,11 @@ class CharacterStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
+        appearancePrompt: convertAlgoliaParam(
+          data['appearancePrompt'],
+          ParamType.String,
+          false,
+        ),
         firestoreUtilData: FirestoreUtilData(
           clearUnsetFields: false,
           create: true,
@@ -173,12 +198,13 @@ class CharacterStructStruct extends FFFirebaseStruct {
         personality == other.personality &&
         image == other.image &&
         introduce == other.introduce &&
-        id == other.id;
+        id == other.id &&
+        appearancePrompt == other.appearancePrompt;
   }
 
   @override
-  int get hashCode =>
-      const ListEquality().hash([name, personality, image, introduce, id]);
+  int get hashCode => const ListEquality()
+      .hash([name, personality, image, introduce, id, appearancePrompt]);
 }
 
 CharacterStructStruct createCharacterStructStruct({
@@ -187,6 +213,7 @@ CharacterStructStruct createCharacterStructStruct({
   String? image,
   String? introduce,
   String? id,
+  String? appearancePrompt,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
@@ -198,6 +225,7 @@ CharacterStructStruct createCharacterStructStruct({
       image: image,
       introduce: introduce,
       id: id,
+      appearancePrompt: appearancePrompt,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,

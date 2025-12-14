@@ -77,12 +77,6 @@ class StoriesRecord extends FirestoreRecord {
   List<String> get hashtags => _hashtags ?? const [];
   bool hasHashtags() => _hashtags != null;
 
-  // "backgroundImages" field.
-  List<LocationBackgroundStructStruct>? _backgroundImages;
-  List<LocationBackgroundStructStruct> get backgroundImages =>
-      _backgroundImages ?? const [];
-  bool hasBackgroundImages() => _backgroundImages != null;
-
   // "situationalImages" field.
   List<SituationalImageStructStruct>? _situationalImages;
   List<SituationalImageStructStruct> get situationalImages =>
@@ -129,6 +123,16 @@ class StoriesRecord extends FirestoreRecord {
   DateTime? get createdTimestamp => _createdTimestamp;
   bool hasCreatedTimestamp() => _createdTimestamp != null;
 
+  // "detailmode" field.
+  String? _detailmode;
+  String get detailmode => _detailmode ?? '';
+  bool hasDetailmode() => _detailmode != null;
+
+  // "detailimage" field.
+  String? _detailimage;
+  String get detailimage => _detailimage ?? '';
+  bool hasDetailimage() => _detailimage != null;
+
   void _initializeFields() {
     _title = snapshotData['title'] as String?;
     _worldview = snapshotData['worldview'] as String?;
@@ -145,10 +149,6 @@ class StoriesRecord extends FirestoreRecord {
     _authorNotes = snapshotData['author_notes'] as String?;
     _createdAt = snapshotData['created_at'] as DateTime?;
     _hashtags = getDataList(snapshotData['hashtags']);
-    _backgroundImages = getStructList(
-      snapshotData['backgroundImages'],
-      LocationBackgroundStructStruct.fromMap,
-    );
     _situationalImages = getStructList(
       snapshotData['situationalImages'],
       SituationalImageStructStruct.fromMap,
@@ -161,6 +161,8 @@ class StoriesRecord extends FirestoreRecord {
     _type = snapshotData['type'] as String?;
     _authorIsCreator = snapshotData['authorIsCreator'] as bool?;
     _createdTimestamp = snapshotData['created_timestamp'] as DateTime?;
+    _detailmode = snapshotData['detailmode'] as String?;
+    _detailimage = snapshotData['detailimage'] as String?;
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -214,12 +216,6 @@ class StoriesRecord extends FirestoreRecord {
           'hashtags': safeGet(
             () => snapshot.data['hashtags'].toList(),
           ),
-          'backgroundImages': safeGet(
-            () => (snapshot.data['backgroundImages'] as Iterable)
-                .map((d) =>
-                    LocationBackgroundStructStruct.fromAlgoliaData(d).toMap())
-                .toList(),
-          ),
           'situationalImages': safeGet(
             () => (snapshot.data['situationalImages'] as Iterable)
                 .map((d) =>
@@ -250,6 +246,8 @@ class StoriesRecord extends FirestoreRecord {
             ParamType.DateTime,
             false,
           ),
+          'detailmode': snapshot.data['detailmode'],
+          'detailimage': snapshot.data['detailimage'],
         },
         StoriesRecord.collection.doc(snapshot.objectID),
       );
@@ -304,6 +302,8 @@ Map<String, dynamic> createStoriesRecordData({
   String? type,
   bool? authorIsCreator,
   DateTime? createdTimestamp,
+  String? detailmode,
+  String? detailimage,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -325,6 +325,8 @@ Map<String, dynamic> createStoriesRecordData({
       'type': type,
       'authorIsCreator': authorIsCreator,
       'created_timestamp': createdTimestamp,
+      'detailmode': detailmode,
+      'detailimage': detailimage,
     }.withoutNulls,
   );
 
@@ -349,7 +351,6 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.authorNotes == e2?.authorNotes &&
         e1?.createdAt == e2?.createdAt &&
         listEquality.equals(e1?.hashtags, e2?.hashtags) &&
-        listEquality.equals(e1?.backgroundImages, e2?.backgroundImages) &&
         listEquality.equals(e1?.situationalImages, e2?.situationalImages) &&
         e1?.aiModel == e2?.aiModel &&
         e1?.userRef == e2?.userRef &&
@@ -358,7 +359,9 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.creatorNickname == e2?.creatorNickname &&
         e1?.type == e2?.type &&
         e1?.authorIsCreator == e2?.authorIsCreator &&
-        e1?.createdTimestamp == e2?.createdTimestamp;
+        e1?.createdTimestamp == e2?.createdTimestamp &&
+        e1?.detailmode == e2?.detailmode &&
+        e1?.detailimage == e2?.detailimage;
   }
 
   @override
@@ -375,7 +378,6 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.authorNotes,
         e?.createdAt,
         e?.hashtags,
-        e?.backgroundImages,
         e?.situationalImages,
         e?.aiModel,
         e?.userRef,
@@ -384,7 +386,9 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.creatorNickname,
         e?.type,
         e?.authorIsCreator,
-        e?.createdTimestamp
+        e?.createdTimestamp,
+        e?.detailmode,
+        e?.detailimage
       ]);
 
   @override

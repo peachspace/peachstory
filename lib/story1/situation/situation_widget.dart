@@ -9,6 +9,7 @@ import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
@@ -54,6 +55,15 @@ class _SituationWidgetState extends State<SituationWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => SituationModel());
+
+    // On component load action.
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (widget.situationItem?.imageUrl != null &&
+          widget.situationItem?.imageUrl != '') {
+        _model.tempSituationImage = widget.situationItem?.imageUrl;
+        safeSetState(() {});
+      }
+    });
 
     _model.textController ??=
         TextEditingController(text: widget.situationItem?.condition);
@@ -272,7 +282,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                                     padding: MediaQuery.viewInsetsOf(context),
                                     child: ImagecreateWidget(
                                       generationContext:
-                                          '[FOCUS: Situation]\\n[Current Situation]: ${_model.textController.text}\\n[Background Context]: ${widget.storyContext}',
+                                          '[FOCUS: Appearance]: \\n[FOCUS: Situation]\\n[Current Situation]: ${_model.textController.text}\\n[Background Context]: ${widget.storyContext}',
                                       imageMode: 'situation',
                                       isSourceEmpty:
                                           _model.textController.text == '',

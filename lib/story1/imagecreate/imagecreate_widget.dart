@@ -423,6 +423,8 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                       _model.englishPrompt = await actions.translateToEnglish(
                         _model.imagemakepromptTextController.text,
                       );
+
+                      safeSetState(() {});
                       _model.newImageResult =
                           await actions.generateStableDiffusionImage(
                         _model.englishPrompt!,
@@ -471,6 +473,8 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                   ),
                   FFButtonWidget(
                     onPressed: () async {
+                      FFAppState().tempEnglishPrompt = _model.englishPrompt!;
+                      safeSetState(() {});
                       Navigator.pop(context, _model.generatedImageUrl);
                     },
                     text: '적용하기',

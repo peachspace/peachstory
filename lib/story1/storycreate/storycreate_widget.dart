@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'storycreate_model.dart';
 export 'storycreate_model.dart';
@@ -55,8 +56,6 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
       if (widget.storyDoc != null) {
         _model.title = widget.storyDoc?.title;
         _model.worldview = widget.storyDoc?.worldview;
-        _model.characters =
-            widget.storyDoc!.characters.toList().cast<CharacterStructStruct>();
         _model.userrole = widget.storyDoc?.userRole;
         _model.prologue = widget.storyDoc?.prologue;
         _model.tempmainImage = widget.storyDoc?.mainImage;
@@ -68,6 +67,23 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
             .toList()
             .cast<SituationalImageStructStruct>();
         safeSetState(() {});
+        FFAppState().Characters =
+            widget.storyDoc!.characters.toList().cast<CharacterStructStruct>();
+        safeSetState(() {});
+      } else {
+        _model.tempmainImage = '';
+        _model.hashitags = [];
+        _model.title = '';
+        _model.worldview = '';
+        _model.userrole = '';
+        _model.prologue = '';
+        _model.introduce = '';
+        _model.author = '';
+        _model.genre = '';
+        _model.newSituationalImages = [];
+        safeSetState(() {});
+        FFAppState().Characters = [];
+        safeSetState(() {});
       }
     });
 
@@ -78,24 +94,28 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
     )..addListener(() => safeSetState(() {}));
 
     _model.storyNameTextController ??=
-        TextEditingController(text: widget.storyToEdit?.title);
+        TextEditingController(text: _model.title);
     _model.storyNameFocusNode ??= FocusNode();
 
     _model.worldSettingsTextController ??=
-        TextEditingController(text: widget.storyToEdit?.worldview);
+        TextEditingController(text: _model.worldview);
     _model.worldSettingsFocusNode ??= FocusNode();
 
     _model.prologueTextController ??=
-        TextEditingController(text: widget.storyToEdit?.prologue);
+        TextEditingController(text: _model.prologue);
     _model.prologueFocusNode ??= FocusNode();
 
     _model.userRoleInfoTextController ??=
-        TextEditingController(text: widget.storyToEdit?.userRole);
+        TextEditingController(text: _model.userrole);
     _model.userRoleInfoFocusNode ??= FocusNode();
 
     _model.introduceTextController ??=
-        TextEditingController(text: widget.storyToEdit?.description);
+        TextEditingController(text: _model.introduce);
     _model.introduceFocusNode ??= FocusNode();
+
+    _model.textController6 ??=
+        TextEditingController(text: _model.selectedDetailMode);
+    _model.textFieldFocusNode ??= FocusNode();
 
     _model.authorCommentTextController ??=
         TextEditingController(text: widget.storyToEdit?.authorNotes);
@@ -116,6 +136,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -580,7 +602,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         await actions
                                                             .generateSingleTextField(
                                                       '[제목]',
-                                                      '[세계관]:  ${_model.worldSettingsTextController.text}\\n[프롤로그]:  ${_model.prologueTextController.text}\"\\n\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                      '[세계관]:  ${_model.worldSettingsTextController.text}\\n[프롤로그]:  ${_model.prologueTextController.text}\"\\n\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                     );
                                                     safeSetState(() {
                                                       _model.storyNameTextController
@@ -1031,7 +1053,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                           await actions
                                                               .generateSingleTextField(
                                                         '[세계관]',
-                                                        '[제목]: ${_model.storyNameTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                        '[제목]: ${_model.storyNameTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                       );
                                                       safeSetState(() {
                                                         _model.worldSettingsTextController
@@ -1460,7 +1482,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                             await actions
                                                                 .generateSingleTextField(
                                                           '[프롤로그]',
-                                                          '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                          '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                         );
                                                         safeSetState(() {
                                                           _model.prologueTextController
@@ -1667,8 +1689,8 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                         ),
                                         Builder(
                                           builder: (context) {
-                                            final characterItems = _model
-                                                .characters
+                                            final characterItems = FFAppState()
+                                                .Characters
                                                 .toList()
                                                 .take(10)
                                                 .toList();
@@ -1698,34 +1720,22 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                           '',
                                                   onDelete:
                                                       (indexToDelete) async {
-                                                    _model
+                                                    FFAppState()
                                                         .removeAtIndexFromCharacters(
-                                                            indexToDelete);
+                                                            characterItemsIndex);
                                                     safeSetState(() {});
                                                   },
                                                   onUpdate: (index,
                                                       name,
                                                       personality,
                                                       image,
-                                                      introduce) async {
-                                                    _model
-                                                        .updateCharactersAtIndex(
-                                                      index,
-                                                      (e) => e
-                                                        ..name = name
-                                                        ..personality =
-                                                            personality
-                                                        ..image = image
-                                                        ..introduce = introduce,
-                                                    );
-                                                    safeSetState(() {});
-                                                  },
+                                                      introduce) async {},
                                                 );
                                               },
                                             );
                                           },
                                         ),
-                                        if (_model.characters.length < 4)
+                                        if (FFAppState().Characters.length < 10)
                                           Padding(
                                             padding:
                                                 EdgeInsetsDirectional.fromSTEB(
@@ -1737,11 +1747,12 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                               highlightColor:
                                                   Colors.transparent,
                                               onTap: () async {
-                                                _model.addToCharacters(
+                                                FFAppState().addToCharacters(
                                                     CharacterStructStruct(
                                                   name: '',
                                                   personality: '',
                                                   image: '',
+                                                  introduce: '',
                                                 ));
                                                 safeSetState(() {});
                                               },
@@ -2133,7 +2144,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                           await actions
                                                               .generateSingleTextField(
                                                         '[유저역할]',
-                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}',
+                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}',
                                                       );
                                                       safeSetState(() {
                                                         _model.userRoleInfoTextController
@@ -2324,14 +2335,15 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                     situationItem:
                                                         situationItemItem,
                                                     storyContext:
-                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                     isWorldviewEmpty: _model.worldSettingsTextController
                                                                 .text ==
                                                             '',
-                                                    isCharactersEmpty: _model
-                                                            .characters
-                                                            .length ==
-                                                        0,
+                                                    isCharactersEmpty:
+                                                        FFAppState()
+                                                                .Characters
+                                                                .length ==
+                                                            0,
                                                     onNameChanged:
                                                         (name, index) async {
                                                       _model
@@ -2731,7 +2743,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                     child:
                                                                         ImagecreateWidget(
                                                                       generationContext:
-                                                                          '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(_model.characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
+                                                                          '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(FFAppState().Characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
                                                                       imageMode:
                                                                           'main',
                                                                       isSourceEmpty: _model.worldSettingsTextController.text ==
@@ -3351,7 +3363,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                           await actions
                                                               .generateSingleTextField(
                                                         '[스토리 소개]',
-                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(_model.characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[프롤로그]: ${_model.prologueTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                       );
                                                       safeSetState(() {
                                                         _model.introduceTextController
@@ -3443,6 +3455,542 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                     ),
                                                   ),
                                                 ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          0.0, 30.0, 0.0, 0.0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Align(
+                                            alignment:
+                                                AlignmentDirectional(-1.0, 0.0),
+                                            child: Text(
+                                              '상세 정보',
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font: GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        fontSize: 18.0,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding:
+                                                EdgeInsetsDirectional.fromSTEB(
+                                                    0.0, 20.0, 0.0, 0.0),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.max,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                FFButtonWidget(
+                                                  onPressed: () async {
+                                                    _model.selectedDetailMode =
+                                                        'text';
+                                                    safeSetState(() {});
+                                                  },
+                                                  text: '텍스트',
+                                                  options: FFButtonOptions(
+                                                    width: 170.0,
+                                                    height: 40.0,
+                                                    padding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(16.0, 0.0,
+                                                                16.0, 0.0),
+                                                    iconPadding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(0.0, 0.0,
+                                                                0.0, 0.0),
+                                                    color: _model
+                                                                .selectedDetailMode ==
+                                                            'text'
+                                                        ? FlutterFlowTheme.of(
+                                                                context)
+                                                            .accent3
+                                                        : FlutterFlowTheme.of(
+                                                                context)
+                                                            .secondaryBackground,
+                                                    textStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .titleSmall
+                                                            .override(
+                                                              font: GoogleFonts
+                                                                  .interTight(
+                                                                fontWeight: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .titleSmall
+                                                                    .fontWeight,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .titleSmall
+                                                                    .fontStyle,
+                                                              ),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              letterSpacing:
+                                                                  0.0,
+                                                              fontWeight:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontWeight,
+                                                              fontStyle:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontStyle,
+                                                            ),
+                                                    elevation: 0.0,
+                                                    borderSide: BorderSide(
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      width: 1.0,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.only(
+                                                      bottomLeft:
+                                                          Radius.circular(10.0),
+                                                      bottomRight:
+                                                          Radius.circular(0.0),
+                                                      topLeft:
+                                                          Radius.circular(10.0),
+                                                      topRight:
+                                                          Radius.circular(0.0),
+                                                    ),
+                                                  ),
+                                                  showLoadingIndicator: false,
+                                                ),
+                                                FFButtonWidget(
+                                                  onPressed: () async {
+                                                    _model.selectedDetailMode =
+                                                        'image';
+                                                    safeSetState(() {});
+                                                  },
+                                                  text: '이미지',
+                                                  options: FFButtonOptions(
+                                                    width: 170.0,
+                                                    height: 40.0,
+                                                    padding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(16.0, 0.0,
+                                                                16.0, 0.0),
+                                                    iconPadding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(0.0, 0.0,
+                                                                0.0, 0.0),
+                                                    color: _model
+                                                                .selectedDetailMode ==
+                                                            'image'
+                                                        ? FlutterFlowTheme.of(
+                                                                context)
+                                                            .accent3
+                                                        : FlutterFlowTheme.of(
+                                                                context)
+                                                            .secondaryBackground,
+                                                    textStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .titleSmall
+                                                            .override(
+                                                              font: GoogleFonts
+                                                                  .interTight(
+                                                                fontWeight: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .titleSmall
+                                                                    .fontWeight,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .titleSmall
+                                                                    .fontStyle,
+                                                              ),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              letterSpacing:
+                                                                  0.0,
+                                                              fontWeight:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontWeight,
+                                                              fontStyle:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontStyle,
+                                                            ),
+                                                    elevation: 0.0,
+                                                    borderSide: BorderSide(
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      width: 1.0,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.only(
+                                                      bottomLeft:
+                                                          Radius.circular(0.0),
+                                                      bottomRight:
+                                                          Radius.circular(10.0),
+                                                      topLeft:
+                                                          Radius.circular(0.0),
+                                                      topRight:
+                                                          Radius.circular(10.0),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding:
+                                                EdgeInsetsDirectional.fromSTEB(
+                                                    0.0, 10.0, 0.0, 0.0),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.max,
+                                              children: [
+                                                if (_model.selectedDetailMode ==
+                                                    'text')
+                                                  Container(
+                                                    width: double.infinity,
+                                                    child: TextFormField(
+                                                      controller: _model
+                                                          .textController6,
+                                                      focusNode: _model
+                                                          .textFieldFocusNode,
+                                                      autofocus: false,
+                                                      enabled: true,
+                                                      obscureText: false,
+                                                      decoration:
+                                                          InputDecoration(
+                                                        isDense: true,
+                                                        labelStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .override(
+                                                                  font:
+                                                                      GoogleFonts
+                                                                          .inter(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                        hintStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .override(
+                                                                  font:
+                                                                      GoogleFonts
+                                                                          .inter(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                        enabledBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .alternate,
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      15.0),
+                                                        ),
+                                                        focusedBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Color(
+                                                                0x00000000),
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      15.0),
+                                                        ),
+                                                        errorBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Color(
+                                                                0x00000000),
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      15.0),
+                                                        ),
+                                                        focusedErrorBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Color(
+                                                                0x00000000),
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      15.0),
+                                                        ),
+                                                        filled: true,
+                                                        fillColor: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
+                                                      ),
+                                                      style:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font:
+                                                                    GoogleFonts
+                                                                        .inter(
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
+                                                      maxLines: 20,
+                                                      cursorColor:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .primaryText,
+                                                      enableInteractiveSelection:
+                                                          true,
+                                                      validator: _model
+                                                          .textController6Validator
+                                                          .asValidator(context),
+                                                    ),
+                                                  ),
+                                                if (_model.selectedDetailMode ==
+                                                    'image')
+                                                  Stack(
+                                                    alignment:
+                                                        AlignmentDirectional(
+                                                            0.0, 0.0),
+                                                    children: [
+                                                      Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      15.0),
+                                                          border: Border.all(
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .alternate,
+                                                          ),
+                                                        ),
+                                                        child: ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      8.0),
+                                                          child: Image.network(
+                                                            _model
+                                                                .uploadedIntroImage!,
+                                                            width:
+                                                                double.infinity,
+                                                            height: 350.0,
+                                                            fit: BoxFit.cover,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      InkWell(
+                                                        splashColor:
+                                                            Colors.transparent,
+                                                        focusColor:
+                                                            Colors.transparent,
+                                                        hoverColor:
+                                                            Colors.transparent,
+                                                        highlightColor:
+                                                            Colors.transparent,
+                                                        onTap: () async {
+                                                          final selectedMedia =
+                                                              await selectMediaWithSourceBottomSheet(
+                                                            context: context,
+                                                            allowPhoto: true,
+                                                            allowVideo: true,
+                                                          );
+                                                          if (selectedMedia !=
+                                                                  null &&
+                                                              selectedMedia.every((m) =>
+                                                                  validateFileFormat(
+                                                                      m.storagePath,
+                                                                      context))) {
+                                                            safeSetState(() =>
+                                                                _model.isDataUploading_uploadDatadetail =
+                                                                    true);
+                                                            var selectedUploadedFiles =
+                                                                <FFUploadedFile>[];
+
+                                                            var downloadUrls =
+                                                                <String>[];
+                                                            try {
+                                                              selectedUploadedFiles =
+                                                                  selectedMedia
+                                                                      .map((m) =>
+                                                                          FFUploadedFile(
+                                                                            name:
+                                                                                m.storagePath.split('/').last,
+                                                                            bytes:
+                                                                                m.bytes,
+                                                                            height:
+                                                                                m.dimensions?.height,
+                                                                            width:
+                                                                                m.dimensions?.width,
+                                                                            blurHash:
+                                                                                m.blurHash,
+                                                                            originalFilename:
+                                                                                m.originalFilename,
+                                                                          ))
+                                                                      .toList();
+
+                                                              downloadUrls =
+                                                                  (await Future
+                                                                          .wait(
+                                                                selectedMedia
+                                                                    .map(
+                                                                  (m) async =>
+                                                                      await uploadData(
+                                                                          m.storagePath,
+                                                                          m.bytes),
+                                                                ),
+                                                              ))
+                                                                      .where((u) =>
+                                                                          u !=
+                                                                          null)
+                                                                      .map((u) =>
+                                                                          u!)
+                                                                      .toList();
+                                                            } finally {
+                                                              _model.isDataUploading_uploadDatadetail =
+                                                                  false;
+                                                            }
+                                                            if (selectedUploadedFiles
+                                                                        .length ==
+                                                                    selectedMedia
+                                                                        .length &&
+                                                                downloadUrls
+                                                                        .length ==
+                                                                    selectedMedia
+                                                                        .length) {
+                                                              safeSetState(() {
+                                                                _model.uploadedLocalFile_uploadDatadetail =
+                                                                    selectedUploadedFiles
+                                                                        .first;
+                                                                _model.uploadedFileUrl_uploadDatadetail =
+                                                                    downloadUrls
+                                                                        .first;
+                                                              });
+                                                            } else {
+                                                              safeSetState(
+                                                                  () {});
+                                                              return;
+                                                            }
+                                                          }
+
+                                                          _model.uploadedIntroImage =
+                                                              _model
+                                                                  .uploadedFileUrl_uploadDatadetail;
+                                                          safeSetState(() {});
+                                                        },
+                                                        child: Icon(
+                                                          Icons
+                                                              .cloud_upload_outlined,
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .accent3,
+                                                          size: 100.0,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                               ],
                                             ),
                                           ),
@@ -3849,8 +4397,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                       controller:
                                           _model.genreValueController ??=
                                               FormFieldController<String>(
-                                        _model.genreValue ??=
-                                            widget.storyToEdit?.category,
+                                        _model.genreValue ??= _model.genre,
                                       ),
                                       options: [
                                         '판타지',
@@ -4018,7 +4565,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                 .fontStyle,
                                                       ),
                                                   hintText:
-                                                      '해시태그를 입력해주세요... ex) 아카데미 판타지 학원물',
+                                                      '해시태그를 입력한 뒤 스페이스바를 눌러 주세요.',
                                                   hintStyle: FlutterFlowTheme
                                                           .of(context)
                                                       .labelMedium
@@ -4252,135 +4799,187 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                       ),
                       child: FFButtonWidget(
                         onPressed: () async {
-                          if (widget.storyToEdit == null) {
-                            var storiesRecordReference =
-                                StoriesRecord.collection.doc();
-                            await storiesRecordReference.set({
-                              ...createStoriesRecordData(
-                                title: _model.title,
-                                worldview: _model.worldview,
-                                prologue: _model.prologue,
-                                category: _model.genre,
-                                creatorRef: currentUserReference,
-                                userRole: _model.userrole,
-                                mainImage: _model.tempmainImage,
-                                description: _model.introduce,
-                                authorNotes: _model.author,
-                                createdAt: getCurrentTimestamp,
-                                creatorNickname: currentUserDisplayName,
-                                type: 'story',
-                                createdTimestamp: getCurrentTimestamp,
-                                viewCount: 0,
-                                authorIsCreator: valueOrDefault<bool>(
-                                    currentUserDocument?.isCreator, false),
-                              ),
-                              ...mapToFirestore(
-                                {
-                                  'characters':
-                                      getCharacterStructListFirestoreData(
-                                    _model.characters,
-                                  ),
-                                  'hashtags': _model.hashitags,
-                                  'situationalImages':
-                                      getSituationalImageStructListFirestoreData(
-                                    _model.newSituationalImages,
-                                  ),
-                                },
-                              ),
-                            });
-                            _model.newStoryRef =
-                                StoriesRecord.getDocumentFromData({
-                              ...createStoriesRecordData(
-                                title: _model.title,
-                                worldview: _model.worldview,
-                                prologue: _model.prologue,
-                                category: _model.genre,
-                                creatorRef: currentUserReference,
-                                userRole: _model.userrole,
-                                mainImage: _model.tempmainImage,
-                                description: _model.introduce,
-                                authorNotes: _model.author,
-                                createdAt: getCurrentTimestamp,
-                                creatorNickname: currentUserDisplayName,
-                                type: 'story',
-                                createdTimestamp: getCurrentTimestamp,
-                                viewCount: 0,
-                                authorIsCreator: valueOrDefault<bool>(
-                                    currentUserDocument?.isCreator, false),
-                              ),
-                              ...mapToFirestore(
-                                {
-                                  'characters':
-                                      getCharacterStructListFirestoreData(
-                                    _model.characters,
-                                  ),
-                                  'hashtags': _model.hashitags,
-                                  'situationalImages':
-                                      getSituationalImageStructListFirestoreData(
-                                    _model.newSituationalImages,
-                                  ),
-                                },
-                              ),
-                            }, storiesRecordReference);
-
-                            context.pushNamed(
-                              StorymainWidget.routeName,
-                              queryParameters: {
-                                'storymainRef': serializeParam(
-                                  _model.newStoryRef?.reference,
-                                  ParamType.DocumentReference,
+                          var _shouldSetState = false;
+                          _model.title = _model.storyNameTextController.text;
+                          _model.worldview =
+                              _model.worldSettingsTextController.text;
+                          _model.prologue = _model.prologueTextController.text;
+                          _model.introduce =
+                              _model.introduceTextController.text;
+                          _model.genre = _model.genreValue;
+                          _model.tempmainImage =
+                              _model.uploadedFileUrl_uploadedMainImage;
+                          _model.userrole =
+                              _model.userRoleInfoTextController.text;
+                          safeSetState(() {});
+                          if ((_model.title != null && _model.title != '') &&
+                              (_model.worldview != null &&
+                                  _model.worldview != '') &&
+                              (_model.prologue != null &&
+                                  _model.prologue != '') &&
+                              (_model.tempmainImage != null &&
+                                  _model.tempmainImage != '') &&
+                              (_model.introduce != null &&
+                                  _model.introduce != '') &&
+                              (_model.genre != null && _model.genre != '') &&
+                              (FFAppState().Characters.length > 0)) {
+                            if (widget.storyToEdit == null) {
+                              var storiesRecordReference =
+                                  StoriesRecord.collection.doc();
+                              await storiesRecordReference.set({
+                                ...createStoriesRecordData(
+                                  title: _model.title,
+                                  worldview: _model.worldview,
+                                  prologue: _model.prologue,
+                                  category: _model.genre,
+                                  creatorRef: currentUserReference,
+                                  userRole: _model.userrole,
+                                  mainImage: _model.tempmainImage,
+                                  description: _model.introduce,
+                                  authorNotes: _model.author,
+                                  createdAt: getCurrentTimestamp,
+                                  creatorNickname: currentUserDisplayName,
+                                  type: 'story',
+                                  createdTimestamp: getCurrentTimestamp,
+                                  viewCount: 0,
+                                  authorIsCreator: valueOrDefault<bool>(
+                                      currentUserDocument?.isCreator, false),
+                                  detailmode: _model.selectedDetailMode,
+                                  detailimage: _model.uploadedIntroImage,
+                                  userRef: currentUserReference,
+                                  heartCount: 0,
                                 ),
-                              }.withoutNulls,
-                            );
+                                ...mapToFirestore(
+                                  {
+                                    'characters':
+                                        getCharacterStructListFirestoreData(
+                                      FFAppState().Characters,
+                                    ),
+                                    'hashtags': _model.hashitags,
+                                    'situationalImages':
+                                        getSituationalImageStructListFirestoreData(
+                                      _model.newSituationalImages,
+                                    ),
+                                  },
+                                ),
+                              });
+                              _model.newStoryRef =
+                                  StoriesRecord.getDocumentFromData({
+                                ...createStoriesRecordData(
+                                  title: _model.title,
+                                  worldview: _model.worldview,
+                                  prologue: _model.prologue,
+                                  category: _model.genre,
+                                  creatorRef: currentUserReference,
+                                  userRole: _model.userrole,
+                                  mainImage: _model.tempmainImage,
+                                  description: _model.introduce,
+                                  authorNotes: _model.author,
+                                  createdAt: getCurrentTimestamp,
+                                  creatorNickname: currentUserDisplayName,
+                                  type: 'story',
+                                  createdTimestamp: getCurrentTimestamp,
+                                  viewCount: 0,
+                                  authorIsCreator: valueOrDefault<bool>(
+                                      currentUserDocument?.isCreator, false),
+                                  detailmode: _model.selectedDetailMode,
+                                  detailimage: _model.uploadedIntroImage,
+                                  userRef: currentUserReference,
+                                  heartCount: 0,
+                                ),
+                                ...mapToFirestore(
+                                  {
+                                    'characters':
+                                        getCharacterStructListFirestoreData(
+                                      FFAppState().Characters,
+                                    ),
+                                    'hashtags': _model.hashitags,
+                                    'situationalImages':
+                                        getSituationalImageStructListFirestoreData(
+                                      _model.newSituationalImages,
+                                    ),
+                                  },
+                                ),
+                              }, storiesRecordReference);
+                              _shouldSetState = true;
+
+                              context.pushNamed(
+                                StorymainWidget.routeName,
+                                queryParameters: {
+                                  'storymainRef': serializeParam(
+                                    _model.newStoryRef?.reference,
+                                    ParamType.DocumentReference,
+                                  ),
+                                }.withoutNulls,
+                              );
+                            } else {
+                              await widget.storyDoc!.reference.update({
+                                ...createStoriesRecordData(
+                                  title: _model.storyNameTextController.text,
+                                  worldview:
+                                      _model.worldSettingsTextController.text,
+                                  category: _model.genreValue,
+                                  userRole:
+                                      _model.userRoleInfoTextController.text,
+                                  mainImage: widget.storyToEdit?.mainImage,
+                                  description: widget.storyToEdit?.description,
+                                  authorNotes: widget.storyToEdit?.authorNotes,
+                                  prologue: widget.storyToEdit?.prologue,
+                                  creatorRef: currentUserReference,
+                                  createdAt: getCurrentTimestamp,
+                                  creatorNickname: currentUserDisplayName,
+                                  type: 'story',
+                                  createdTimestamp: getCurrentTimestamp,
+                                  authorIsCreator: valueOrDefault<bool>(
+                                      currentUserDocument?.isCreator, false),
+                                  detailmode: _model.selectedDetailMode,
+                                  detailimage: _model.uploadedIntroImage,
+                                ),
+                                ...mapToFirestore(
+                                  {
+                                    'characters':
+                                        getCharacterStructListFirestoreData(
+                                      FFAppState().Characters,
+                                    ),
+                                    'hashtags': _model.hashitags,
+                                    'situationalImages':
+                                        getSituationalImageStructListFirestoreData(
+                                      _model.newSituationalImages,
+                                    ),
+                                  },
+                                ),
+                              });
+
+                              context.pushNamed(
+                                StorymainWidget.routeName,
+                                queryParameters: {
+                                  'storymainRef': serializeParam(
+                                    widget.storyDoc?.reference,
+                                    ParamType.DocumentReference,
+                                  ),
+                                }.withoutNulls,
+                              );
+                            }
                           } else {
-                            await widget.storyDoc!.reference.update({
-                              ...createStoriesRecordData(
-                                title: _model.storyNameTextController.text,
-                                worldview:
-                                    _model.worldSettingsTextController.text,
-                                category: _model.genreValue,
-                                userRole:
-                                    _model.userRoleInfoTextController.text,
-                                mainImage: widget.storyToEdit?.mainImage,
-                                description: widget.storyToEdit?.description,
-                                authorNotes: widget.storyToEdit?.authorNotes,
-                                prologue: widget.storyToEdit?.prologue,
-                                creatorRef: currentUserReference,
-                                createdAt: getCurrentTimestamp,
-                                creatorNickname: currentUserDisplayName,
-                                type: 'story',
-                                createdTimestamp: getCurrentTimestamp,
-                                authorIsCreator: valueOrDefault<bool>(
-                                    currentUserDocument?.isCreator, false),
-                                viewCount: 0,
-                              ),
-                              ...mapToFirestore(
-                                {
-                                  'characters':
-                                      getCharacterStructListFirestoreData(
-                                    _model.characters,
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '필수값을 모두 입력해주세요.',
+                                  style: TextStyle(
+                                    color: FlutterFlowTheme.of(context)
+                                        .primaryText,
                                   ),
-                                  'hashtags': _model.hashitags,
-                                  'situationalImages':
-                                      getSituationalImageStructListFirestoreData(
-                                    _model.newSituationalImages,
-                                  ),
-                                },
-                              ),
-                            });
-
-                            context.pushNamed(
-                              StorymainWidget.routeName,
-                              queryParameters: {
-                                'storymainRef': serializeParam(
-                                  widget.storyDoc?.reference,
-                                  ParamType.DocumentReference,
                                 ),
-                              }.withoutNulls,
+                                duration: Duration(milliseconds: 4000),
+                                backgroundColor:
+                                    FlutterFlowTheme.of(context).accent3,
+                              ),
                             );
+                            if (_shouldSetState) safeSetState(() {});
+                            return;
                           }
 
-                          safeSetState(() {});
+                          if (_shouldSetState) safeSetState(() {});
                         },
                         text: widget.storyDoc != null ? '수정하기' : '생성하기',
                         options: FFButtonOptions(

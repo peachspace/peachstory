@@ -40,10 +40,6 @@ class FFAppState extends ChangeNotifier {
           prefs.getStringList('ff_availableAiModels') ?? _availableAiModels;
     });
     _safeInit(() {
-      _komojuSessionId =
-          prefs.getString('ff_komojuSessionId') ?? _komojuSessionId;
-    });
-    _safeInit(() {
       _cachedMyCreations = prefs
               .getStringList('ff_cachedMyCreations')
               ?.map((x) {
@@ -168,13 +164,6 @@ class FFAppState extends ChangeNotifier {
     prefs.setStringList('ff_availableAiModels', _availableAiModels);
   }
 
-  String _komojuSessionId = '';
-  String get komojuSessionId => _komojuSessionId;
-  set komojuSessionId(String value) {
-    _komojuSessionId = value;
-    prefs.setString('ff_komojuSessionId', value);
-  }
-
   List<CombinedListItemStructStruct> _cachedMyCreations = [];
   List<CombinedListItemStructStruct> get cachedMyCreations =>
       _cachedMyCreations;
@@ -260,6 +249,41 @@ class FFAppState extends ChangeNotifier {
     cachedMyChats.insert(index, value);
     prefs.setStringList(
         'ff_cachedMyChats', _cachedMyChats.map((x) => x.serialize()).toList());
+  }
+
+  String _tempEnglishPrompt = '';
+  String get tempEnglishPrompt => _tempEnglishPrompt;
+  set tempEnglishPrompt(String value) {
+    _tempEnglishPrompt = value;
+  }
+
+  List<CharacterStructStruct> _Characters = [];
+  List<CharacterStructStruct> get Characters => _Characters;
+  set Characters(List<CharacterStructStruct> value) {
+    _Characters = value;
+  }
+
+  void addToCharacters(CharacterStructStruct value) {
+    Characters.add(value);
+  }
+
+  void removeFromCharacters(CharacterStructStruct value) {
+    Characters.remove(value);
+  }
+
+  void removeAtIndexFromCharacters(int index) {
+    Characters.removeAt(index);
+  }
+
+  void updateCharactersAtIndex(
+    int index,
+    CharacterStructStruct Function(CharacterStructStruct) updateFn,
+  ) {
+    Characters[index] = updateFn(_Characters[index]);
+  }
+
+  void insertAtIndexInCharacters(int index, CharacterStructStruct value) {
+    Characters.insert(index, value);
   }
 }
 

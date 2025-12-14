@@ -9,8 +9,10 @@ import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'character_model.dart';
 export 'character_model.dart';
@@ -52,6 +54,15 @@ class _CharacterWidgetState extends State<CharacterWidget> {
     super.initState();
     _model = createModel(context, () => CharacterModel());
 
+    // On component load action.
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (widget.characterData?.image != null &&
+          widget.characterData?.image != '') {
+        _model.tempImage = widget.characterData?.image;
+        safeSetState(() {});
+      }
+    });
+
     _model.charNameTextController ??=
         TextEditingController(text: widget.characterData?.name);
     _model.charNameFocusNode ??= FocusNode();
@@ -76,6 +87,8 @@ class _CharacterWidgetState extends State<CharacterWidget> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+
     return Container(
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -294,6 +307,10 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               ).then((value) => safeSetState(
                                   () => _model.createdImage = value));
 
+                              safeSetState(() {});
+                              _model.tempAppearance =
+                                  FFAppState().tempEnglishPrompt;
+                              safeSetState(() {});
                               if (functions.isValidImage(_model.createdImage) ==
                                   true) {
                                 _model.tempImage = _model.createdImage;
@@ -898,6 +915,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                   color:
                                       FlutterFlowTheme.of(context).primaryText,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                               duration: Duration(milliseconds: 2000),
                               backgroundColor:
