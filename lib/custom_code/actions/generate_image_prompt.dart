@@ -23,6 +23,8 @@ Future<String> generateImagePrompt(
 [필수 스타일 키워드]
 모든 프롬프트의 맨 앞부분에 반드시 다음 키워드를 포함하세요:
 "masterpiece, best quality, high resolution, japanese anime style, cel shaded, vibrant colors, "
+다음 키워드를 포함하지 마세요:
+"photorealistic, 3d, realistic, nose, lips, ugly, bad anatomy"
 
 [중요 규칙]
 1. 입력 텍스트에 '[FOCUS: Character Portrait]'가 있다면, **인물 묘사(눈, 머리색, 의상, 표정)를 최우선**으로 작성하세요. 배경은 아주 간단하게(simple background) 처리하세요.

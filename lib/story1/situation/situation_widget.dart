@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
 import 'situation_model.dart';
 export 'situation_model.dart';
@@ -65,8 +66,11 @@ class _SituationWidgetState extends State<SituationWidget> {
       }
     });
 
-    _model.textController ??=
-        TextEditingController(text: widget.situationItem?.condition);
+    _model.textController ??= TextEditingController(
+        text: FFAppState()
+            .SituationalImages
+            .elementAtOrNull(widget.index!)
+            ?.condition);
     _model.textFieldFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
@@ -81,6 +85,8 @@ class _SituationWidgetState extends State<SituationWidget> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+
     return Container(
       width: double.infinity,
       constraints: BoxConstraints(
@@ -162,9 +168,9 @@ class _SituationWidgetState extends State<SituationWidget> {
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onTap: () async {
-                      await widget.onDelete?.call(
-                        widget.index!,
-                      );
+                      FFAppState()
+                          .removeAtIndexFromSituationalImages(widget.index!);
+                      safeSetState(() {});
                     },
                     child: Icon(
                       Icons.clear,
@@ -215,8 +221,16 @@ class _SituationWidgetState extends State<SituationWidget> {
                 Stack(
                   alignment: AlignmentDirectional(0.0, 0.0),
                   children: [
-                    if (_model.tempSituationImage == null ||
-                        _model.tempSituationImage == '')
+                    if (FFAppState()
+                                .SituationalImages
+                                .elementAtOrNull(widget.index!)
+                                ?.imageUrl ==
+                            null ||
+                        FFAppState()
+                                .SituationalImages
+                                .elementAtOrNull(widget.index!)
+                                ?.imageUrl ==
+                            '')
                       Container(
                         width: 320.0,
                         height: 180.0,
@@ -224,39 +238,50 @@ class _SituationWidgetState extends State<SituationWidget> {
                           color: FlutterFlowTheme.of(context).primaryBackground,
                           borderRadius: BorderRadius.circular(15.0),
                         ),
+                        alignment: AlignmentDirectional(0.0, 0.0),
+                        child: Text(
+                          '특정한 상황에서 출력될 \n이미지를 업로드해주세요.',
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                        ),
                       ),
-                    if (_model.tempSituationImage != null &&
-                        _model.tempSituationImage != '')
+                    if (FFAppState()
+                                .SituationalImages
+                                .elementAtOrNull(widget.index!)
+                                ?.imageUrl !=
+                            null &&
+                        FFAppState()
+                                .SituationalImages
+                                .elementAtOrNull(widget.index!)
+                                ?.imageUrl !=
+                            '')
                       ClipRRect(
                         borderRadius: BorderRadius.circular(15.0),
                         child: Image.network(
-                          _model.tempSituationImage!,
+                          FFAppState()
+                              .SituationalImages
+                              .elementAtOrNull(widget.index!)!
+                              .imageUrl,
                           width: 320.0,
                           height: 180.0,
                           fit: BoxFit.cover,
                         ),
-                      ),
-                    if (_model.tempSituationImage == null ||
-                        _model.tempSituationImage == '')
-                      Text(
-                        '특정한 상황에서 출력될 \n이미지를 업로드해주세요.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontWeight,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontStyle,
-                              ),
-                              letterSpacing: 0.0,
-                              fontWeight: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontWeight,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
                       ),
                   ],
                 ),
@@ -296,7 +321,10 @@ class _SituationWidgetState extends State<SituationWidget> {
 
                             if (functions.isValidImage(_model.createdImage) ==
                                 true) {
-                              _model.tempSituationImage = _model.createdImage;
+                              FFAppState().updateSituationalImagesAtIndex(
+                                widget.index!,
+                                (e) => e..imageUrl = _model.createdImage,
+                              );
                               safeSetState(() {});
                             }
 
@@ -400,13 +428,13 @@ class _SituationWidgetState extends State<SituationWidget> {
                               }
                             }
 
-                            _model.tempSituationImage =
-                                _model.uploadedFileUrl_uploadsituationimage;
-                            safeSetState(() {});
-                            await widget.onImageChanged?.call(
-                              _model.uploadedFileUrl_uploadsituationimage,
+                            FFAppState().updateSituationalImagesAtIndex(
                               widget.index!,
+                              (e) => e
+                                ..imageUrl =
+                                    _model.uploadedFileUrl_uploadsituationimage,
                             );
+                            safeSetState(() {});
                           },
                           text: '업로드',
                           options: FFButtonOptions(
@@ -508,10 +536,11 @@ class _SituationWidgetState extends State<SituationWidget> {
                           '_model.textController',
                           Duration(milliseconds: 2000),
                           () async {
-                            await widget.onNameChanged?.call(
-                              _model.textController.text,
+                            FFAppState().updateSituationalImagesAtIndex(
                               widget.index!,
+                              (e) => e..condition = _model.textController.text,
                             );
+                            safeSetState(() {});
                           },
                         ),
                         autofocus: false,

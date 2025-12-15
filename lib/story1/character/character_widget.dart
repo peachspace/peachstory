@@ -63,16 +63,20 @@ class _CharacterWidgetState extends State<CharacterWidget> {
       }
     });
 
-    _model.charNameTextController ??=
-        TextEditingController(text: widget.characterData?.name);
+    _model.charNameTextController ??= TextEditingController(
+        text: FFAppState().Characters.elementAtOrNull(widget.index!)?.name);
     _model.charNameFocusNode ??= FocusNode();
 
-    _model.charSettingTextController ??=
-        TextEditingController(text: widget.characterData?.personality);
+    _model.charSettingTextController ??= TextEditingController(
+        text: FFAppState()
+            .Characters
+            .elementAtOrNull(widget.index!)
+            ?.personality);
     _model.charSettingFocusNode ??= FocusNode();
 
-    _model.charintroduceTextController ??=
-        TextEditingController(text: widget.characterData?.introduce);
+    _model.charintroduceTextController ??= TextEditingController(
+        text:
+            FFAppState().Characters.elementAtOrNull(widget.index!)?.introduce);
     _model.charintroduceFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
@@ -165,9 +169,8 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onTap: () async {
-                      await widget.onDelete?.call(
-                        widget.index!,
-                      );
+                      FFAppState().removeAtIndexFromCharacters(widget.index!);
+                      safeSetState(() {});
                     },
                     child: Icon(
                       Icons.close,
@@ -222,7 +225,16 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                     child: Stack(
                       alignment: AlignmentDirectional(0.0, 0.0),
                       children: [
-                        if (_model.tempImage == null || _model.tempImage == '')
+                        if (FFAppState()
+                                    .Characters
+                                    .elementAtOrNull(widget.index!)
+                                    ?.image ==
+                                null ||
+                            FFAppState()
+                                    .Characters
+                                    .elementAtOrNull(widget.index!)
+                                    ?.image ==
+                                '')
                           Container(
                             width: 200.0,
                             height: 200.0,
@@ -231,26 +243,22 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                   .primaryBackground,
                               borderRadius: BorderRadius.circular(15.0),
                             ),
-                          ),
-                        if (_model.tempImage != null && _model.tempImage != '')
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(15.0),
-                            child: Image.network(
-                              _model.tempImage!,
-                              width: 200.0,
-                              height: 200.0,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        if (_model.tempImage == null || _model.tempImage == '')
-                          Align(
-                            alignment: AlignmentDirectional(0.0, 0.0),
-                            child: Text(
-                              '캐릭터의 프로필로 사용될 \n이미지를 업로드해주세요.',
-                              style: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    font: GoogleFonts.inter(
+                            child: Align(
+                              alignment: AlignmentDirectional(0.0, 0.0),
+                              child: Text(
+                                '캐릭터의 프로필로 사용될 \n이미지를 업로드해주세요.',
+                                style: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      font: GoogleFonts.inter(
+                                        fontWeight: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontWeight,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontStyle,
+                                      ),
+                                      letterSpacing: 0.0,
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .bodyMedium
                                           .fontWeight,
@@ -258,14 +266,29 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                           .bodyMedium
                                           .fontStyle,
                                     ),
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
+                              ),
+                            ),
+                          ),
+                        if (FFAppState()
+                                    .Characters
+                                    .elementAtOrNull(widget.index!)
+                                    ?.image !=
+                                null &&
+                            FFAppState()
+                                    .Characters
+                                    .elementAtOrNull(widget.index!)
+                                    ?.image !=
+                                '')
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(15.0),
+                            child: Image.network(
+                              FFAppState()
+                                  .Characters
+                                  .elementAtOrNull(widget.index!)!
+                                  .image,
+                              width: 200.0,
+                              height: 200.0,
+                              fit: BoxFit.cover,
                             ),
                           ),
                       ],
@@ -533,13 +556,12 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                             '_model.charNameTextController',
                             Duration(milliseconds: 2000),
                             () async {
-                              await widget.onUpdate?.call(
+                              FFAppState().updateCharactersAtIndex(
                                 widget.index!,
-                                _model.charNameTextController.text,
-                                _model.charSettingTextController.text,
-                                _model.uploadedFileUrl_uploadCharImage,
-                                _model.charintroduceTextController.text,
+                                (e) => e
+                                  ..name = _model.charNameTextController.text,
                               );
+                              safeSetState(() {});
                             },
                           ),
                           autofocus: false,
@@ -782,13 +804,13 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                             '_model.charSettingTextController',
                             Duration(milliseconds: 2000),
                             () async {
-                              await widget.onUpdate?.call(
+                              FFAppState().updateCharactersAtIndex(
                                 widget.index!,
-                                _model.charNameTextController.text,
-                                _model.charSettingTextController.text,
-                                _model.uploadedFileUrl_uploadCharImage,
-                                _model.charintroduceTextController.text,
+                                (e) => e
+                                  ..personality =
+                                      _model.charSettingTextController.text,
                               );
+                              safeSetState(() {});
                             },
                           ),
                           autofocus: false,
@@ -1057,13 +1079,13 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                             '_model.charintroduceTextController',
                             Duration(milliseconds: 2000),
                             () async {
-                              await widget.onUpdate?.call(
+                              FFAppState().updateCharactersAtIndex(
                                 widget.index!,
-                                _model.charintroduceTextController.text,
-                                _model.charSettingTextController.text,
-                                _model.uploadedFileUrl_uploadCharImage,
-                                _model.charintroduceTextController.text,
+                                (e) => e
+                                  ..introduce =
+                                      _model.charintroduceTextController.text,
                               );
+                              safeSetState(() {});
                             },
                           ),
                           autofocus: false,

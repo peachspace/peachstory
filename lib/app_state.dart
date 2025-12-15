@@ -285,6 +285,38 @@ class FFAppState extends ChangeNotifier {
   void insertAtIndexInCharacters(int index, CharacterStructStruct value) {
     Characters.insert(index, value);
   }
+
+  List<SituationalImageStructStruct> _SituationalImages = [];
+  List<SituationalImageStructStruct> get SituationalImages =>
+      _SituationalImages;
+  set SituationalImages(List<SituationalImageStructStruct> value) {
+    _SituationalImages = value;
+  }
+
+  void addToSituationalImages(SituationalImageStructStruct value) {
+    SituationalImages.add(value);
+  }
+
+  void removeFromSituationalImages(SituationalImageStructStruct value) {
+    SituationalImages.remove(value);
+  }
+
+  void removeAtIndexFromSituationalImages(int index) {
+    SituationalImages.removeAt(index);
+  }
+
+  void updateSituationalImagesAtIndex(
+    int index,
+    SituationalImageStructStruct Function(SituationalImageStructStruct)
+        updateFn,
+  ) {
+    SituationalImages[index] = updateFn(_SituationalImages[index]);
+  }
+
+  void insertAtIndexInSituationalImages(
+      int index, SituationalImageStructStruct value) {
+    SituationalImages.insert(index, value);
+  }
 }
 
 void _safeInit(Function() initializeField) {
