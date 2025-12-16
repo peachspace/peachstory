@@ -65,19 +65,49 @@ class _CharacterWidgetState extends State<CharacterWidget> {
     _model.charNameTextController ??= TextEditingController(
         text: FFAppState().Characters.elementAtOrNull(widget.index!)?.name);
     _model.charNameFocusNode ??= FocusNode();
-
+    _model.charNameFocusNode!.addListener(
+      () async {
+        if ((_model.charNameFocusNode?.hasFocus ?? false) == false) {
+          FFAppState().updateCharactersAtIndex(
+            widget.index!,
+            (e) => e..name = _model.charNameTextController.text,
+          );
+          safeSetState(() {});
+        }
+      },
+    );
     _model.charSettingTextController ??= TextEditingController(
         text: FFAppState()
             .Characters
             .elementAtOrNull(widget.index!)
             ?.personality);
     _model.charSettingFocusNode ??= FocusNode();
-
+    _model.charSettingFocusNode!.addListener(
+      () async {
+        if ((_model.charSettingFocusNode?.hasFocus ?? false) == false) {
+          FFAppState().updateCharactersAtIndex(
+            widget.index!,
+            (e) => e..personality = _model.charSettingTextController.text,
+          );
+          safeSetState(() {});
+        }
+      },
+    );
     _model.charintroduceTextController ??= TextEditingController(
         text:
             FFAppState().Characters.elementAtOrNull(widget.index!)?.introduce);
     _model.charintroduceFocusNode ??= FocusNode();
-
+    _model.charintroduceFocusNode!.addListener(
+      () async {
+        if ((_model.charintroduceFocusNode?.hasFocus ?? false) == false) {
+          FFAppState().updateCharactersAtIndex(
+            widget.index!,
+            (e) => e..introduce = _model.charintroduceTextController.text,
+          );
+          safeSetState(() {});
+        }
+      },
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -329,13 +359,15 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               ).then((value) => safeSetState(
                                   () => _model.createdImage = value));
 
-                              safeSetState(() {});
                               _model.tempAppearance =
                                   FFAppState().tempEnglishPrompt;
                               safeSetState(() {});
                               if (functions.isValidImage(_model.createdImage) ==
                                   true) {
-                                _model.tempImage = _model.createdImage;
+                                FFAppState().updateCharactersAtIndex(
+                                  widget.index!,
+                                  (e) => e..image = _model.createdImage,
+                                );
                                 safeSetState(() {});
                               }
 
@@ -551,14 +583,6 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         child: TextFormField(
                           controller: _model.charNameTextController,
                           focusNode: _model.charNameFocusNode,
-                          onFieldSubmitted: (_) async {
-                            FFAppState().updateCharactersAtIndex(
-                              widget.index!,
-                              (e) =>
-                                  e..name = _model.charNameTextController.text,
-                            );
-                            safeSetState(() {});
-                          },
                           autofocus: false,
                           obscureText: false,
                           decoration: InputDecoration(
@@ -795,15 +819,6 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         child: TextFormField(
                           controller: _model.charSettingTextController,
                           focusNode: _model.charSettingFocusNode,
-                          onFieldSubmitted: (_) async {
-                            FFAppState().updateCharactersAtIndex(
-                              widget.index!,
-                              (e) => e
-                                ..personality =
-                                    _model.charSettingTextController.text,
-                            );
-                            safeSetState(() {});
-                          },
                           autofocus: false,
                           obscureText: false,
                           decoration: InputDecoration(
@@ -1066,15 +1081,6 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         child: TextFormField(
                           controller: _model.charintroduceTextController,
                           focusNode: _model.charintroduceFocusNode,
-                          onFieldSubmitted: (_) async {
-                            FFAppState().updateCharactersAtIndex(
-                              widget.index!,
-                              (e) => e
-                                ..introduce =
-                                    _model.charintroduceTextController.text,
-                            );
-                            safeSetState(() {});
-                          },
                           autofocus: false,
                           obscureText: false,
                           decoration: InputDecoration(
