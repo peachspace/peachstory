@@ -7,7 +7,6 @@ import '/flutter_flow/upload_data.dart';
 import '/story1/imagecreate/imagecreate_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -532,17 +531,13 @@ class _SituationWidgetState extends State<SituationWidget> {
                       child: TextFormField(
                         controller: _model.textController,
                         focusNode: _model.textFieldFocusNode,
-                        onChanged: (_) => EasyDebounce.debounce(
-                          '_model.textController',
-                          Duration(milliseconds: 2000),
-                          () async {
-                            FFAppState().updateSituationalImagesAtIndex(
-                              widget.index!,
-                              (e) => e..condition = _model.textController.text,
-                            );
-                            safeSetState(() {});
-                          },
-                        ),
+                        onFieldSubmitted: (_) async {
+                          FFAppState().updateSituationalImagesAtIndex(
+                            widget.index!,
+                            (e) => e..condition = _model.textController.text,
+                          );
+                          safeSetState(() {});
+                        },
                         autofocus: false,
                         obscureText: false,
                         decoration: InputDecoration(

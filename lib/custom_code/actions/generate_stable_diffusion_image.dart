@@ -34,7 +34,16 @@ Future<String?> generateStableDiffusionImage(
       },
       body: jsonEncode({
         "text_prompts": [
-          {"text": prompt, "weight": 1}
+          {
+            "text":
+                "$prompt, masterpiece, best quality, japanese anime style, 2d, flat color, cel shading, vibrant colors, character design",
+            "weight": 1
+          },
+          {
+            "text":
+                "photorealistic, 3d, realistic, nose, lips, ugly, bad anatomy, bad hands, text, watermark, signature",
+            "weight": -1
+          }
         ],
         "cfg_scale": 7,
         // [수정됨] 입력받은 크기를 API에 전달

@@ -7,7 +7,6 @@ import '/flutter_flow/upload_data.dart';
 import '/story1/imagecreate/imagecreate_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -552,18 +551,14 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         child: TextFormField(
                           controller: _model.charNameTextController,
                           focusNode: _model.charNameFocusNode,
-                          onChanged: (_) => EasyDebounce.debounce(
-                            '_model.charNameTextController',
-                            Duration(milliseconds: 2000),
-                            () async {
-                              FFAppState().updateCharactersAtIndex(
-                                widget.index!,
-                                (e) => e
-                                  ..name = _model.charNameTextController.text,
-                              );
-                              safeSetState(() {});
-                            },
-                          ),
+                          onFieldSubmitted: (_) async {
+                            FFAppState().updateCharactersAtIndex(
+                              widget.index!,
+                              (e) =>
+                                  e..name = _model.charNameTextController.text,
+                            );
+                            safeSetState(() {});
+                          },
                           autofocus: false,
                           obscureText: false,
                           decoration: InputDecoration(
@@ -800,19 +795,15 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         child: TextFormField(
                           controller: _model.charSettingTextController,
                           focusNode: _model.charSettingFocusNode,
-                          onChanged: (_) => EasyDebounce.debounce(
-                            '_model.charSettingTextController',
-                            Duration(milliseconds: 2000),
-                            () async {
-                              FFAppState().updateCharactersAtIndex(
-                                widget.index!,
-                                (e) => e
-                                  ..personality =
-                                      _model.charSettingTextController.text,
-                              );
-                              safeSetState(() {});
-                            },
-                          ),
+                          onFieldSubmitted: (_) async {
+                            FFAppState().updateCharactersAtIndex(
+                              widget.index!,
+                              (e) => e
+                                ..personality =
+                                    _model.charSettingTextController.text,
+                            );
+                            safeSetState(() {});
+                          },
                           autofocus: false,
                           obscureText: false,
                           decoration: InputDecoration(
@@ -1075,19 +1066,15 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         child: TextFormField(
                           controller: _model.charintroduceTextController,
                           focusNode: _model.charintroduceFocusNode,
-                          onChanged: (_) => EasyDebounce.debounce(
-                            '_model.charintroduceTextController',
-                            Duration(milliseconds: 2000),
-                            () async {
-                              FFAppState().updateCharactersAtIndex(
-                                widget.index!,
-                                (e) => e
-                                  ..introduce =
-                                      _model.charintroduceTextController.text,
-                              );
-                              safeSetState(() {});
-                            },
-                          ),
+                          onFieldSubmitted: (_) async {
+                            FFAppState().updateCharactersAtIndex(
+                              widget.index!,
+                              (e) => e
+                                ..introduce =
+                                    _model.charintroduceTextController.text,
+                            );
+                            safeSetState(() {});
+                          },
                           autofocus: false,
                           obscureText: false,
                           decoration: InputDecoration(

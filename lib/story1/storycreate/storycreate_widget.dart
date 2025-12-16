@@ -1719,7 +1719,12 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                               .text ==
                                                           '',
                                                   onDelete:
-                                                      (indexToDelete) async {},
+                                                      (indexToDelete) async {
+                                                    FFAppState()
+                                                        .removeAtIndexFromCharacters(
+                                                            characterItemsIndex);
+                                                    safeSetState(() {});
+                                                  },
                                                   onUpdate: (index,
                                                       name,
                                                       personality,
@@ -2344,7 +2349,12 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                         (name, index) async {},
                                                     onImageChanged: (imageUrl,
                                                         index) async {},
-                                                    onDelete: (index) async {},
+                                                    onDelete: (index) async {
+                                                      FFAppState()
+                                                          .removeAtIndexFromSituationalImages(
+                                                              situationItemIndex);
+                                                      safeSetState(() {});
+                                                    },
                                                   );
                                                 },
                                               );
