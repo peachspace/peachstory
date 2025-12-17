@@ -14,6 +14,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
     String? introduce,
     String? id,
     String? appearancePrompt,
+    int? characterSeed,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _name = name,
         _personality = personality,
@@ -21,6 +22,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         _introduce = introduce,
         _id = id,
         _appearancePrompt = appearancePrompt,
+        _characterSeed = characterSeed,
         super(firestoreUtilData);
 
   // "name" field.
@@ -65,6 +67,16 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   bool hasAppearancePrompt() => _appearancePrompt != null;
 
+  // "characterSeed" field.
+  int? _characterSeed;
+  int get characterSeed => _characterSeed ?? 0;
+  set characterSeed(int? val) => _characterSeed = val;
+
+  void incrementCharacterSeed(int amount) =>
+      characterSeed = characterSeed + amount;
+
+  bool hasCharacterSeed() => _characterSeed != null;
+
   static CharacterStructStruct fromMap(Map<String, dynamic> data) =>
       CharacterStructStruct(
         name: data['name'] as String?,
@@ -73,6 +85,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         introduce: data['introduce'] as String?,
         id: data['id'] as String?,
         appearancePrompt: data['appearancePrompt'] as String?,
+        characterSeed: castToType<int>(data['characterSeed']),
       );
 
   static CharacterStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -86,6 +99,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         'introduce': _introduce,
         'id': _id,
         'appearancePrompt': _appearancePrompt,
+        'characterSeed': _characterSeed,
       }.withoutNulls;
 
   @override
@@ -113,6 +127,10 @@ class CharacterStructStruct extends FFFirebaseStruct {
         'appearancePrompt': serializeParam(
           _appearancePrompt,
           ParamType.String,
+        ),
+        'characterSeed': serializeParam(
+          _characterSeed,
+          ParamType.int,
         ),
       }.withoutNulls;
 
@@ -146,6 +164,11 @@ class CharacterStructStruct extends FFFirebaseStruct {
         appearancePrompt: deserializeParam(
           data['appearancePrompt'],
           ParamType.String,
+          false,
+        ),
+        characterSeed: deserializeParam(
+          data['characterSeed'],
+          ParamType.int,
           false,
         ),
       );
@@ -182,6 +205,11 @@ class CharacterStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
+        characterSeed: convertAlgoliaParam(
+          data['characterSeed'],
+          ParamType.int,
+          false,
+        ),
         firestoreUtilData: FirestoreUtilData(
           clearUnsetFields: false,
           create: true,
@@ -199,12 +227,20 @@ class CharacterStructStruct extends FFFirebaseStruct {
         image == other.image &&
         introduce == other.introduce &&
         id == other.id &&
-        appearancePrompt == other.appearancePrompt;
+        appearancePrompt == other.appearancePrompt &&
+        characterSeed == other.characterSeed;
   }
 
   @override
-  int get hashCode => const ListEquality()
-      .hash([name, personality, image, introduce, id, appearancePrompt]);
+  int get hashCode => const ListEquality().hash([
+        name,
+        personality,
+        image,
+        introduce,
+        id,
+        appearancePrompt,
+        characterSeed
+      ]);
 }
 
 CharacterStructStruct createCharacterStructStruct({
@@ -214,6 +250,7 @@ CharacterStructStruct createCharacterStructStruct({
   String? introduce,
   String? id,
   String? appearancePrompt,
+  int? characterSeed,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
@@ -226,6 +263,7 @@ CharacterStructStruct createCharacterStructStruct({
       introduce: introduce,
       id: id,
       appearancePrompt: appearancePrompt,
+      characterSeed: characterSeed,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,

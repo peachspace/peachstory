@@ -16,6 +16,7 @@ Future<String?> generateStableDiffusionImage(
   String prompt,
   int imageWidth, // [추가됨] 가로 크기
   int imageHeight, // [추가됨] 세로 크기
+  int? seed, // [추가] 시드값 받기 (Nullable)
 ) async {
   // Stability AI API Key
   const String apiKey =
@@ -51,6 +52,7 @@ Future<String?> generateStableDiffusionImage(
         "width": imageWidth,
         "samples": 1,
         "steps": 30,
+        if (seed != null && seed != 0) "seed": seed,
       }),
     );
 

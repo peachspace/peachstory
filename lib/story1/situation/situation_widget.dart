@@ -311,6 +311,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                                       isSourceEmpty:
                                           _model.textController.text == '',
                                       warningMessage: '상황을 먼저 입력해주세요.',
+                                      seed: 0,
                                     ),
                                   ),
                                 );
@@ -676,6 +677,11 @@ class _SituationWidgetState extends State<SituationWidget> {
                             '${widget.storyContext}',
                           );
                           _shouldSetState = true;
+                          FFAppState().updateSituationalImagesAtIndex(
+                            widget.index!,
+                            (e) => e..condition = _model.generatedCondition,
+                          );
+                          safeSetState(() {});
                           safeSetState(() {
                             _model.textController?.text =
                                 _model.generatedCondition!;

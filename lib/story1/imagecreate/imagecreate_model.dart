@@ -11,6 +11,16 @@ class ImagecreateModel extends FlutterFlowModel<ImagecreateWidget> {
 
   bool isGenerating = false;
 
+  List<int> selectedIndices = [];
+  void addToSelectedIndices(int item) => selectedIndices.add(item);
+  void removeFromSelectedIndices(int item) => selectedIndices.remove(item);
+  void removeAtIndexFromSelectedIndices(int index) =>
+      selectedIndices.removeAt(index);
+  void insertAtIndexInSelectedIndices(int index, int item) =>
+      selectedIndices.insert(index, item);
+  void updateSelectedIndicesAtIndex(int index, Function(int) updateFn) =>
+      selectedIndices[index] = updateFn(selectedIndices[index]);
+
   ///  State fields for stateful widgets in this component.
 
   // State field(s) for imagemakeprompt widget.

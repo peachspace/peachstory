@@ -588,3 +588,47 @@ bool isValidImage(String? imageUrl) {
   }
   return true;
 }
+
+dynamic assemblePromptAndSeed(
+  String mode,
+  List<int> selectedIndices,
+  List<CharacterStructStruct> allCharacters,
+  String userPrompt,
+  int? passedSeed,
+) {
+// [Case A] 캐릭터 탭에서 온 경우 (단일 생성)
+  if (mode == 'character') {
+    return {
+      "seed": passedSeed ?? 0, // 0이면 랜덤
+      "prompt": userPrompt // 이미 앞단에서 외모 묘사 포함해서 보냈다고 가정
+    };
+  }
+
+  // [Case B] 상황 탭에서 온 경우 (멀티/배경 선택)
+
+  // 1. 배경 전용 (아무도 선택 안 함)
+  if (selectedIndices.isEmpty) {
+    return {
+      "seed": 0, // 랜덤 시드
+      "prompt": "scenery, no humans, background only, " + userPrompt
+    };
+  }
+
+  // 2. 캐릭터 선택됨 (외모 합치기)
+  String combinedAppearance = "";
+  // 선택된 캐릭터들의 외모 묘사를 콤마로 연결
+  for (int index in selectedIndices) {
+    if (index >= 0 && index < allCharacters.length) {
+      String appearance = allCharacters[index].appearancePrompt ?? "";
+      // appearancePrompt가 비었으면 personality라도 (안전장치)
+      if (appearance == "") appearance = allCharacters[index].personality ?? "";
+      combinedAppearance += appearance + ", ";
+    }
+  }
+
+  // 3. 시드 결정 (첫 번째 선택된 녀석의 시드를 메인으로 사용)
+  int firstIndex = selectedIndices[0];
+  int mainSeed = allCharacters[firstIndex].characterSeed;
+
+  return {"seed": mainSeed, "prompt": combinedAppearance + " " + userPrompt};
+}

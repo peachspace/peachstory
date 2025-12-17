@@ -7,6 +7,7 @@ import '/flutter_flow/upload_data.dart';
 import '/story1/imagecreate/imagecreate_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
+import '/flutter_flow/random_data_util.dart' as random_data;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -335,6 +336,19 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               0.0, 0.0, 2.0, 0.0),
                           child: FFButtonWidget(
                             onPressed: () async {
+                              if (FFAppState()
+                                      .Characters
+                                      .elementAtOrNull(widget.index!)
+                                      ?.characterSeed ==
+                                  null) {
+                                FFAppState().updateCharactersAtIndex(
+                                  0,
+                                  (e) => e
+                                    ..characterSeed = random_data.randomInteger(
+                                        1, 2100000000),
+                                );
+                                safeSetState(() {});
+                              }
                               await showModalBottomSheet(
                                 isScrollControlled: true,
                                 backgroundColor: Colors.transparent,
@@ -352,6 +366,10 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                                     .text ==
                                                 '',
                                         warningMessage: '캐릭터 설정을 먼저 입력해주세요.',
+                                        seed: FFAppState()
+                                            .Characters
+                                            .elementAtOrNull(widget.index!)
+                                            ?.characterSeed,
                                       ),
                                     ),
                                   );
@@ -359,9 +377,6 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               ).then((value) => safeSetState(
                                   () => _model.createdImage = value));
 
-                              _model.tempAppearance =
-                                  FFAppState().tempEnglishPrompt;
-                              safeSetState(() {});
                               if (functions.isValidImage(_model.createdImage) ==
                                   true) {
                                 FFAppState().updateCharactersAtIndex(
@@ -702,6 +717,11 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           '[캐릭터 이름]',
                           '${widget.storyContext}\\n[캐릭터 설정]: ${_model.charSettingTextController.text}',
                         );
+                        FFAppState().updateCharactersAtIndex(
+                          widget.index!,
+                          (e) => e..name = _model.name,
+                        );
+                        safeSetState(() {});
                         safeSetState(() {
                           _model.charNameTextController?.text = _model.name!;
                         });
@@ -962,6 +982,11 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                             '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}',
                           );
                           _shouldSetState = true;
+                          FFAppState().updateCharactersAtIndex(
+                            widget.index!,
+                            (e) => e..name = _model.personality,
+                          );
+                          safeSetState(() {});
                           safeSetState(() {
                             _model.charSettingTextController?.text =
                                 _model.personality!;
@@ -1201,6 +1226,11 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           '캐릭터 소개',
                           '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}\\n[캐릭터 설정]: ${_model.charSettingTextController.text}',
                         );
+                        FFAppState().updateCharactersAtIndex(
+                          widget.index!,
+                          (e) => e..name = _model.introduce,
+                        );
+                        safeSetState(() {});
                         safeSetState(() {
                           _model.charintroduceTextController?.text =
                               _model.introduce!;
