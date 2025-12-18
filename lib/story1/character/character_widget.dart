@@ -984,7 +984,9 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           _shouldSetState = true;
                           FFAppState().updateCharactersAtIndex(
                             widget.index!,
-                            (e) => e..name = _model.personality,
+                            (e) => e
+                              ..personality =
+                                  _model.charSettingTextController.text,
                           );
                           safeSetState(() {});
                           safeSetState(() {
@@ -1228,7 +1230,9 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         );
                         FFAppState().updateCharactersAtIndex(
                           widget.index!,
-                          (e) => e..name = _model.introduce,
+                          (e) => e
+                            ..introduce =
+                                _model.charintroduceTextController.text,
                         );
                         safeSetState(() {});
                         safeSetState(() {

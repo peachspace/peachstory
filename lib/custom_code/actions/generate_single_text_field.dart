@@ -57,8 +57,10 @@ Future<String> generateSingleTextField(
   } else if (targetFieldName.contains('프롤로그')) {
     // [프롤로그]: 사건 중심의 훅(Hook)
     specificInstruction = """
-- 이야기의 시작을 알리는 강렬한 도입부를 작성하세요.
+- 사건이 시작되는 이야기 형식(Narrative style)으로 서술하시오. 배경 묘사와 인물의 행동 위주로 작성하시오.
 - 독자가 "다음 내용이 궁금해서 미치겠는" 상태가 되도록 끝맺으세요.
+- **[절대 금지]** 캐릭터의 이름과 설정을 리스트 형태로 나열하지 마시오. 
+
 """;
   } else if (targetFieldName.contains('캐릭터 이름') ||
       targetFieldName.contains('이름')) {

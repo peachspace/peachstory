@@ -178,36 +178,48 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                   ),
               ],
             ),
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Align(
-                  alignment: AlignmentDirectional(-1.0, 0.0),
-                  child: Text(
-                    '캐릭터 선택',
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          font: GoogleFonts.inter(
+            if (widget.imageMode == 'situation')
+              Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional(-1.0, 0.0),
+                    child: Text(
+                      '캐릭터 선택',
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            font: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                            fontSize: 16.0,
+                            letterSpacing: 0.0,
                             fontWeight: FontWeight.w600,
                             fontStyle: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .fontStyle,
                           ),
-                          fontSize: 16.0,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w600,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
+                    ),
                   ),
-                ),
-                Align(
-                  alignment: AlignmentDirectional(-1.0, 0.0),
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(0.0, 3.0, 0.0, 0.0),
-                    child: Text(
-                      '선택한 캐릭터를 포함하여 이미지를 생성합니다.',
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            font: GoogleFonts.inter(
+                  Align(
+                    alignment: AlignmentDirectional(-1.0, 0.0),
+                    child: Padding(
+                      padding:
+                          EdgeInsetsDirectional.fromSTEB(0.0, 3.0, 0.0, 0.0),
+                      child: Text(
+                        '선택한 캐릭터를 포함하여 이미지를 생성합니다.',
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontWeight,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                              letterSpacing: 0.0,
                               fontWeight: FlutterFlowTheme.of(context)
                                   .bodyMedium
                                   .fontWeight,
@@ -215,19 +227,9 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                                   .bodyMedium
                                   .fontStyle,
                             ),
-                            color: FlutterFlowTheme.of(context).secondaryText,
-                            letterSpacing: 0.0,
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
+                      ),
                     ),
                   ),
-                ),
-                if (widget.imageMode == 'situation')
                   Align(
                     alignment: AlignmentDirectional(-1.0, 0.0),
                     child: Padding(
@@ -285,7 +287,7 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                                         borderRadius:
                                             BorderRadius.circular(10.0),
                                         child: Image.network(
-                                          'https://picsum.photos/seed/913/600',
+                                          charItemItem.image,
                                           width: 70.0,
                                           height: 70.0,
                                           fit: BoxFit.contain,
@@ -301,8 +303,8 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                       ),
                     ),
                   ),
-              ],
-            ),
+                ],
+              ),
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
               child: Container(
