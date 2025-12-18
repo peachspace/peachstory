@@ -498,6 +498,13 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                 _model.uploadedFileUrl_uploadCharImage,
                                 _model.charintroduceTextController.text,
                               );
+                              FFAppState().updateCharactersAtIndex(
+                                widget.index!,
+                                (e) => e
+                                  ..image =
+                                      _model.uploadedFileUrl_uploadCharImage,
+                              );
+                              safeSetState(() {});
                             },
                             text: '업로드',
                             options: FFButtonOptions(
@@ -717,14 +724,14 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           '[캐릭터 이름]',
                           '${widget.storyContext}\\n[캐릭터 설정]: ${_model.charSettingTextController.text}',
                         );
+                        safeSetState(() {
+                          _model.charNameTextController?.text = _model.name!;
+                        });
                         FFAppState().updateCharactersAtIndex(
                           widget.index!,
                           (e) => e..name = _model.name,
                         );
                         safeSetState(() {});
-                        safeSetState(() {
-                          _model.charNameTextController?.text = _model.name!;
-                        });
 
                         safeSetState(() {});
                       },
@@ -984,9 +991,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                           _shouldSetState = true;
                           FFAppState().updateCharactersAtIndex(
                             widget.index!,
-                            (e) => e
-                              ..personality =
-                                  _model.charSettingTextController.text,
+                            (e) => e..personality = _model.personality,
                           );
                           safeSetState(() {});
                           safeSetState(() {
@@ -1230,9 +1235,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                         );
                         FFAppState().updateCharactersAtIndex(
                           widget.index!,
-                          (e) => e
-                            ..introduce =
-                                _model.charintroduceTextController.text,
+                          (e) => e..introduce = _model.introduce,
                         );
                         safeSetState(() {});
                         safeSetState(() {

@@ -587,10 +587,27 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                           r'''$.seed''',
                         ),
                       );
-                      _model.generatedImageUrl =
-                          functions.stringToImagePath(_model.newImageResult!);
-                      _model.isImageLoading = false;
-                      safeSetState(() {});
+                      if (_model.newImageResult != null &&
+                          _model.newImageResult != '') {
+                        _model.generatedImageUrl =
+                            functions.stringToImagePath(_model.newImageResult!);
+                        _model.isImageLoading = false;
+                        safeSetState(() {});
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '이미지 생성에 실패했습니다,.',
+                              style: TextStyle(
+                                color: FlutterFlowTheme.of(context).primaryText,
+                              ),
+                            ),
+                            duration: Duration(milliseconds: 4000),
+                            backgroundColor:
+                                FlutterFlowTheme.of(context).accent3,
+                          ),
+                        );
+                      }
 
                       safeSetState(() {});
                     },
