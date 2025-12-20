@@ -368,6 +368,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                             ),
                             borderRadius: BorderRadius.circular(8.0),
                           ),
+                          showLoadingIndicator: false,
                         ),
                       ),
                       Padding(
@@ -474,6 +475,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                             ),
                             borderRadius: BorderRadius.circular(8.0),
                           ),
+                          showLoadingIndicator: false,
                         ),
                       ),
                     ],

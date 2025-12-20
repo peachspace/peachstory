@@ -426,6 +426,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               ),
                               borderRadius: BorderRadius.circular(8.0),
                             ),
+                            showLoadingIndicator: false,
                           ),
                         ),
                         Padding(
@@ -491,13 +492,6 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               _model.tempImage =
                                   _model.uploadedFileUrl_uploadCharImage;
                               safeSetState(() {});
-                              await widget.onUpdate?.call(
-                                widget.index!,
-                                _model.charNameTextController.text,
-                                _model.charSettingTextController.text,
-                                _model.uploadedFileUrl_uploadCharImage,
-                                _model.charintroduceTextController.text,
-                              );
                               FFAppState().updateCharactersAtIndex(
                                 widget.index!,
                                 (e) => e
@@ -544,6 +538,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                               ),
                               borderRadius: BorderRadius.circular(8.0),
                             ),
+                            showLoadingIndicator: false,
                           ),
                         ),
                       ],
