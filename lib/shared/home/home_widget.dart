@@ -36,6 +36,9 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (RootPageContext.isInactiveRootPage(context)) {
+        return;
+      }
       await Future.wait([
         Future(() async {
           _model.rankingoutput = await actions.loadRankingPosts();
