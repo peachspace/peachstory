@@ -13,22 +13,19 @@ import 'index.dart'; // Imports other custom actions
 
 import 'package:cloud_functions/cloud_functions.dart';
 
-import 'index.dart'; // Imports other custom actions
-
-import 'package:cloud_functions/cloud_functions.dart';
-
 Future<String?> callAiProxy(
   String? modelName,
   String? systemPrompt,
   List<dynamic>? messages,
   String? recentUserMessage,
   String? summary,
-  List<SituationalImageStructStruct>? situationalImages, // [추가됨] 상황 이미지 리스트
+  List<SituationalImageStructStruct>? situationalImages, // 파라미터 타입 주의
 ) async {
-  final HttpsCallable callable =
-      FirebaseFunctions.instance.httpsCallable('callAiProxy');
+  // ★ 중요: 여기서 서울('asia-northeast3')을 꼭 지정해야 404 에러가 안 납니다!
+  final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast3');
+  final callable = functions.httpsCallable('callAiProxy');
 
-  // 1. 상황 이미지 목록을 텍스트로 변환
+  // 1. 상황 이미지 목록을 텍스트로 변환 (프롬프트 조립)
   String situationRules = "";
   if (situationalImages != null && situationalImages.isNotEmpty) {
     situationRules = "\n[VISUAL DIRECTOR RULES]\n"
@@ -37,14 +34,14 @@ Future<String?> callAiProxy(
         "--- Condition List ---\n";
 
     for (var item in situationalImages) {
-      // 조건 텍스트를 정확히 매칭하기 위해 리스트를 제공
+      // DataStruct 필드명(.condition)에 맞게 수정하세요
       situationRules += "- Condition: \"${item.condition}\"\n";
     }
     situationRules += "----------------------\n"
         "Example: \"As you open the door... [SHOW_IMAGE=\"Entering the dungeon\"] a cold wind blows.\"\n";
   }
 
-  // 2. 시스템 프롬프트 강화
+  // 2. 시스템 프롬프트 강화 (기존 프롬프트 + 규칙 + 요약)
   String reinforcedSystemPrompt = """
 ${systemPrompt ?? "You are a professional story writer."}
 
@@ -60,7 +57,7 @@ $situationRules
     reinforcedSystemPrompt += "\n\n[STORY SUMMARY]\n$summary";
   }
 
-  // ... (이하 메시지 병합 및 호출 로직은 기존과 동일)
+  // 3. 메시지 병합
   List<dynamic> finalMessages = messages != null ? List.from(messages) : [];
   if (recentUserMessage != null && recentUserMessage.isNotEmpty) {
     finalMessages.add({
@@ -69,9 +66,11 @@ $situationRules
     });
   }
 
+  // 4. 서버 호출
   try {
     final HttpsCallableResult result = await callable.call(<String, dynamic>{
       'modelName': modelName,
+      // 조립된 긴 프롬프트를 보냅니다. 서버는 내용이 뭔지 모르고 그냥 받아서 AI에게 넘깁니다.
       'systemPrompt': reinforcedSystemPrompt,
       'messages': finalMessages,
     });
@@ -79,6 +78,6 @@ $situationRules
   } on FirebaseFunctionsException catch (e) {
     return 'ERROR: ${e.message}';
   } catch (e) {
-    return 'ERROR: 알 수 없는 오류 발생';
+    return 'ERROR: 알 수 없는 오류 발생 ($e)';
   }
 }

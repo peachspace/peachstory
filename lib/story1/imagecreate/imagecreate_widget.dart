@@ -565,7 +565,7 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                         _model.imagemakepromptTextController.text,
                       );
                       _model.newImageResult =
-                          await actions.generateStableDiffusionImage(
+                          await actions.callGenerateImageCloud(
                         getJsonField(
                           functions.assemblePromptAndSeed(
                               widget.imageMode!,
@@ -575,17 +575,6 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                               widget.seed),
                           r'''$.prompt''',
                         ).toString(),
-                        widget.imageMode == 'situation' ? 1344 : 1024,
-                        widget.imageMode == 'situation' ? 768 : 1024,
-                        getJsonField(
-                          functions.assemblePromptAndSeed(
-                              widget.imageMode!,
-                              _model.selectedIndices.toList(),
-                              FFAppState().Characters.toList(),
-                              _model.englishPrompt!,
-                              widget.seed),
-                          r'''$.seed''',
-                        ),
                       );
                       if (_model.newImageResult != null &&
                           _model.newImageResult != '') {

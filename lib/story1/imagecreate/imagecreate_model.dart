@@ -32,7 +32,7 @@ class ImagecreateModel extends FlutterFlowModel<ImagecreateWidget> {
   String? suggestedPrompt;
   // Stores action output result for [Custom Action - translateToEnglish] action in Button widget.
   String? englishPrompt;
-  // Stores action output result for [Custom Action - generateStableDiffusionImage] action in Button widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in Button widget.
   String? newImageResult;
 
   @override
