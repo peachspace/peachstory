@@ -21,8 +21,7 @@ Future<String?> callAiProxy(
   String? summary,
   List<SituationalImageStructStruct>? situationalImages, // 파라미터 타입 주의
 ) async {
-  // ★ 중요: 여기서 서울('asia-northeast3')을 꼭 지정해야 404 에러가 안 납니다!
-  final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast3');
+  final functions = FirebaseFunctions.instance;
   final callable = functions.httpsCallable('callAiProxy');
 
   // 1. 상황 이미지 목록을 텍스트로 변환 (프롬프트 조립)

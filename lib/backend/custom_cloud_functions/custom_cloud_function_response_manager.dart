@@ -14,36 +14,6 @@ class DeleteCommentAndRepliesCloudFunctionCallResponse {
   dynamic data;
 }
 
-class CreateKomojuPaymentCloudFunctionCallResponse {
-  CreateKomojuPaymentCloudFunctionCallResponse({
-    this.errorCode,
-    this.succeeded,
-    this.jsonBody,
-    this.resultAsString,
-    this.data,
-  });
-  String? errorCode;
-  bool? succeeded;
-  dynamic jsonBody;
-  String? resultAsString;
-  dynamic data;
-}
-
-class VerifyKomojuPaymentCloudFunctionCallResponse {
-  VerifyKomojuPaymentCloudFunctionCallResponse({
-    this.errorCode,
-    this.succeeded,
-    this.jsonBody,
-    this.resultAsString,
-    this.data,
-  });
-  String? errorCode;
-  bool? succeeded;
-  dynamic jsonBody;
-  String? resultAsString;
-  dynamic data;
-}
-
 class DeleteChatWithMessagesCloudFunctionCallResponse {
   DeleteChatWithMessagesCloudFunctionCallResponse({
     this.errorCode,

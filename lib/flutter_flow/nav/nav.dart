@@ -77,7 +77,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
       errorBuilder: (context, state) => RootPageContext.wrap(
-        appStateNotifier.loggedIn ? StorycreateWidget() : HomeWidget(),
+        appStateNotifier.loggedIn ? CreatelistWidget() : HomeWidget(),
         errorRoute: state.uri.toString(),
       ),
       routes: [
@@ -85,7 +85,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: '_initialize',
           path: '/',
           builder: (context, _) => RootPageContext.wrap(
-            appStateNotifier.loggedIn ? StorycreateWidget() : HomeWidget(),
+            appStateNotifier.loggedIn ? CreatelistWidget() : HomeWidget(),
           ),
         ),
         FFRoute(

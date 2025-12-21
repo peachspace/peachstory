@@ -112,7 +112,7 @@ class _LoginWidgetState extends State<LoginWidget> {
                     Navigator.pop(context);
 
                     context.goNamedAuth(
-                        StorycreateWidget.routeName, context.mounted);
+                        CreatelistWidget.routeName, context.mounted);
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.max,
@@ -187,7 +187,7 @@ class _LoginWidgetState extends State<LoginWidget> {
                       Navigator.pop(context);
 
                       context.goNamedAuth(
-                          StorycreateWidget.routeName, context.mounted);
+                          CreatelistWidget.routeName, context.mounted);
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
