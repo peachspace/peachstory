@@ -23,8 +23,7 @@ class ApiSearchAllCall {
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'apiSearchAll',
-      apiUrl:
-          'https://asia-northeast3-ssss-ehfczw.cloudfunctions.net/searchAll',
+      apiUrl: 'https://us-central1-ssss-ehfczw.cloudfunctions.net/searchAll',
       callType: ApiCallType.POST,
       headers: {
         'content-type': 'application/json',
@@ -66,7 +65,7 @@ class ApiCallAiProxyCall {
     return ApiManager.instance.makeApiCall(
       callName: 'apiCallAiProxy',
       apiUrl:
-          'https://asia-northeast3-ssss-ehfczw.cloudfunctions.net/aiProxyHandler',
+          'https://us-central1-ssss-ehfczw.cloudfunctions.net/aiProxyHandler',
       callType: ApiCallType.POST,
       headers: {
         'content-type': 'application/json',

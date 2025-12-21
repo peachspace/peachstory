@@ -2,22 +2,29 @@ const functions = require("firebase-functions");
 const axios = require("axios");
 
 exports.generateReplicateImage = functions
-  .runWith({ secrets: ["REPLICATE_API_KEY"], timeoutSeconds: 300 })
+  .runWith({
+    secrets: ["REPLICATE_API_KEY"], // Secret Manager 사용
+    timeoutSeconds: 300,
+    memory: "256MB",
+  })
   .https.onCall(async (data, context) => {
-    if (!context.auth)
+    if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "Auth required");
+    }
 
     try {
+      // ★ 여기가 핵심! 살아있는 최신 모델로 교체했습니다.
       const response = await axios.post(
-        "https://api.replicate.com/v1/models/lucataco/anything-v5/predictions",
+        "https://api.replicate.com/v1/models/bytedance/sdxl-lightning-4step/predictions",
         {
           input: {
-            prompt: "masterpiece, best quality, anime style, " + data.prompt,
+            prompt: "anime style, masterpiece, best quality, " + data.prompt,
             negative_prompt:
-              "low quality, bad anatomy, worst quality, lowres, blurry",
-            width: 512,
-            height: 768,
-            num_inference_steps: 20,
+              "low quality, bad anatomy, worst quality, lowres, blurry, ugly",
+            width: 1024,
+            height: 1024,
+            num_inference_steps: 4, // 4단계라 요금도 저렴!
+            guidance_scale: 0,
           },
         },
         {
@@ -30,10 +37,17 @@ exports.generateReplicateImage = functions
       );
 
       const imageUrl = response.data.output?.[0];
-      if (!imageUrl) throw new Error("No image generated");
+      if (!imageUrl) throw new Error("이미지 생성 결과가 비어있습니다");
+
       return { success: true, imageUrl };
     } catch (error) {
-      console.error("Replicate Error:", error.message);
-      throw new functions.https.HttpsError("internal", "Image gen failed");
+      const errorData = error.response
+        ? JSON.stringify(error.response.data)
+        : error.message;
+      console.error("Replicate API Error Details:", errorData);
+      throw new functions.https.HttpsError(
+        "internal",
+        `Replicate 실패: ${errorData}`,
+      );
     }
   });
