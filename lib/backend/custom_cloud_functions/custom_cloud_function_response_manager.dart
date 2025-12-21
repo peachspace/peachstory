@@ -44,8 +44,8 @@ class DeleteStoryWithDataCloudFunctionCallResponse {
   dynamic data;
 }
 
-class CallAiProxyV2CloudFunctionCallResponse {
-  CallAiProxyV2CloudFunctionCallResponse({
+class CallAiProxyCloudFunctionCallResponse {
+  CallAiProxyCloudFunctionCallResponse({
     this.errorCode,
     this.succeeded,
     this.jsonBody,

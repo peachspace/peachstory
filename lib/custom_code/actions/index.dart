@@ -1,4 +1,4 @@
-export 'call_ai_proxy_v2.dart' show callAiProxyV2;
+export 'call_ai_proxy.dart' show callAiProxy;
 export 'get_and_process_history.dart' show getAndProcessHistory;
 export 'get_history_as_json.dart' show getHistoryAsJson;
 export 'get_character_history_as_json.dart' show getCharacterHistoryAsJson;

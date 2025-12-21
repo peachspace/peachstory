@@ -140,7 +140,7 @@ $specificInstruction
   // 4. API 호출
   try {
     final HttpsCallable callable =
-        FirebaseFunctions.instance.httpsCallable('callAiProxyV2');
+        FirebaseFunctions.instance.httpsCallable('callAiProxy');
     final result = await callable.call(<String, dynamic>{
       'modelName': 'gpt-4o-mini',
       'systemPrompt': systemPrompt,

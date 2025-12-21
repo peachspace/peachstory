@@ -79,7 +79,7 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
   List<dynamic>? messagesAsJson;
   // Stores action output result for [Backend Call - Create Document] action in storychat widget.
   StorychatsRecord? newChatRef;
-  // Stores action output result for [Custom Action - callAiProxyV2] action in storychat widget.
+  // Stores action output result for [Custom Action - callAiProxy] action in storychat widget.
   String? aitext;
   // Stores action output result for [Bottom Sheet - storybottom] action in Icon widget.
   String? chosenModel;
@@ -95,7 +95,7 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
   int? pointsToDeduct;
   // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in messagesendbutton widget.
   int? creatorShare;
-  // Stores action output result for [Custom Action - callAiProxyV2] action in messagesendbutton widget.
+  // Stores action output result for [Custom Action - callAiProxy] action in messagesendbutton widget.
   String? aiFullText;
   // Stores action output result for [Custom Action - removeThinkingMessage] action in messagesendbutton widget.
   List<StoryChatMessageStructStruct>? cleanList;
@@ -115,7 +115,7 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
   int? creatorShare1;
   // Stores action output result for [Custom Action - getNextPhaseCommand] action in messagesendbutton widget.
   String? nextCommand;
-  // Stores action output result for [Custom Action - callAiProxyV2] action in messagesendbutton widget.
+  // Stores action output result for [Custom Action - callAiProxy] action in messagesendbutton widget.
   String? aiFullText1;
   // Stores action output result for [Custom Action - removeThinkingMessage] action in messagesendbutton widget.
   List<StoryChatMessageStructStruct>? cleanList1;
