@@ -82,10 +82,10 @@ class _ChatsheetWidgetState extends State<ChatsheetWidget> {
                   false;
               if (confirmDialogResponse) {
                 try {
-                  final result = await FirebaseFunctions.instanceFor(
-                          region: 'asia-northeast3')
-                      .httpsCallable('deleteChatWithMessages')
-                      .call({
+                  final result =
+                      await FirebaseFunctions.instanceFor(region: 'us-central1')
+                          .httpsCallable('deleteChatWithMessages')
+                          .call({
                     "chatDocPath": widget.chatRef!.path,
                   });
                   _model.delete =

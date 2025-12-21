@@ -141,10 +141,10 @@ class _CreatesheetWidgetState extends State<CreatesheetWidget> {
                   false;
               if (confirmDialogResponse) {
                 try {
-                  final result = await FirebaseFunctions.instanceFor(
-                          region: 'asia-northeast3')
-                      .httpsCallable('deleteStoryWithData')
-                      .call({
+                  final result =
+                      await FirebaseFunctions.instanceFor(region: 'us-central1')
+                          .httpsCallable('deleteStoryWithData')
+                          .call({
                     "storyPath": widget.storyDoc!.reference.path,
                   });
                   _model.cloudFunction =

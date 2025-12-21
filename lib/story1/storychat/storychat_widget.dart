@@ -129,7 +129,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
         _model.currentDocRef = _model.newChatRef?.reference;
         _model.pageSelectedModel = 'claude-3-haiku-20240307';
         safeSetState(() {});
-        _model.aitext = await actions.callAiProxy(
+        _model.aitext = await actions.callAiProxyV2(
           _model.pageSelectedModel,
           functions.buildStoryPrompt(
               _model.title,
@@ -702,7 +702,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                     }
                                                     _model.aiFullText =
                                                         await actions
-                                                            .callAiProxy(
+                                                            .callAiProxyV2(
                                                       _model.pageSelectedModel,
                                                       functions.buildStoryPrompt(
                                                           _model.title,
@@ -970,7 +970,7 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                       _model.chatMessages.length,
                                     );
                                     _model.aiFullText1 =
-                                        await actions.callAiProxy(
+                                        await actions.callAiProxyV2(
                                       _model.pageSelectedModel,
                                       functions.buildStoryPrompt(
                                           _model.title,

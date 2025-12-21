@@ -13,7 +13,7 @@ import 'index.dart'; // Imports other custom actions
 
 import 'package:cloud_functions/cloud_functions.dart';
 
-Future<String?> callAiProxy(
+Future<String?> callAiProxyV2(
   String? modelName,
   String? systemPrompt,
   List<dynamic>? messages,
@@ -21,7 +21,7 @@ Future<String?> callAiProxy(
   String? summary,
   List<SituationalImageStructStruct>? situationalImages, // 파라미터 타입 주의
 ) async {
-  final functions = FirebaseFunctions.instance;
+  final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast3');
   final callable = functions.httpsCallable('callAiProxy');
 
   // 1. 상황 이미지 목록을 텍스트로 변환 (프롬프트 조립)

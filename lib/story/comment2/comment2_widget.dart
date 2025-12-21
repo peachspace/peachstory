@@ -211,10 +211,11 @@ class _Comment2WidgetState extends State<Comment2Widget> {
                         false;
                     try {
                       final result = await FirebaseFunctions.instanceFor(
-                              region: 'asia-northeast3')
+                              region: 'us-central1')
                           .httpsCallable('deleteCommentAndReplies')
                           .call({
                         "commentId": widget.commentDocument!.reference.id,
+                        "collectionName": 'comments',
                       });
                       _model.cloudFunction =
                           DeleteCommentAndRepliesCloudFunctionCallResponse(

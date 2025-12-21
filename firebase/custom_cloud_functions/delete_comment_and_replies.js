@@ -1,44 +1,33 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-// To avoid deployment errors, do not call admin.initializeApp() in your code
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 
-exports.deleteCommentAndReplies = functions.region('us-central1').
-	runWith({
-		memory: '128MB'
-  }).https.onCall(
-  (data, context) => {
-		const commentId = data.commentId;
-    // Write your code below!
-const db = admin.firestore();
+exports.deleteCommentAndReplies = functions.https.onCall(
+  async (data, context) => {
+    if (!context.auth)
+      throw new functions.https.HttpsError("unauthenticated", "Auth required");
+    const { commentId, collectionName } = data;
 
-exports.deleteCommentAndReplies = functions.https.onCall(async (data, context) => {
-  const commentId = data.commentId;
+    const db = admin.firestore();
+    const batch = db.batch();
+    const parentRef = db.collection(collectionName).doc(commentId);
 
-  if (!commentId) {
-    throw new functions.https.HttpsError("invalid-argument", "commentId is required.");
-  }
-  
-  // Firestore의 일괄 처리(batch)를 시작합니다.
-  const batch = db.batch();
+    const doc = await parentRef.get();
+    if (!doc.exists || doc.data().user_ref.id !== context.auth.uid) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Not your comment",
+      );
+    }
 
-  // 1. 삭제할 부모 댓글의 참조를 가져옵니다.
-  const parentCommentRef = db.collection("comments").doc(commentId);
-  
-  // 2. 부모 댓글에 달린 모든 답글들을 쿼리합니다.
-  const repliesSnapshot = await db.collection("comments").where("parent_comment_ref", "==", parentCommentRef).get();
+    // 대댓글 삭제
+    const replies = await db
+      .collection(collectionName)
+      .where("parent_comment_ref", "==", parentRef)
+      .get();
+    replies.forEach((d) => batch.delete(d.ref));
+    batch.delete(parentRef);
 
-  // 3. 쿼리한 모든 답글들을 삭제 목록에 추가합니다.
-  repliesSnapshot.forEach(doc => {
-    batch.delete(doc.ref);
-  });
-
-  // 4. 부모 댓글 자체도 삭제 목록에 추가합니다.
-  batch.delete(parentCommentRef);
-
-  // 5. 모든 삭제 작업을 한 번에 실행합니다.
-  await batch.commit();
-
-  return { status: "success", message: "Comment and all replies deleted." };
-    // Write your code above!
-  }
+    await batch.commit();
+    return { success: true };
+  },
 );

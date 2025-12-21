@@ -6,7 +6,7 @@ if (admin.apps.length === 0) {
 }
 
 exports.deleteStoryWithData = functions
-  .region("asia-northeast3") // 프로젝트 리전에 맞게 수정 (예: us-central1)
+  .region("us-central1") // 프로젝트 리전에 맞게 수정 (예: us-central1)
   .https.onCall(async (data, context) => {
     // 1. 로그인 인증 확인
     if (!context.auth) {
