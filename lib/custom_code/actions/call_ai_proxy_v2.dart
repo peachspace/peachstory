@@ -21,8 +21,8 @@ Future<String?> callAiProxyV2(
   String? summary,
   List<SituationalImageStructStruct>? situationalImages, // 파라미터 타입 주의
 ) async {
-  final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast3');
-  final callable = functions.httpsCallable('callAiProxy');
+  final functions = FirebaseFunctions.instance;
+  final callable = functions.httpsCallable('callAiProxyV2');
 
   // 1. 상황 이미지 목록을 텍스트로 변환 (프롬프트 조립)
   String situationRules = "";

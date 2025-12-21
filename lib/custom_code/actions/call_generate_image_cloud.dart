@@ -13,9 +13,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String?> callGenerateImageCloud(String prompt) async {
   try {
-    // 1. 우리가 배포한 'asia-northeast3(서울)' 리전을 지정합니다.
-    // (이 부분이 없으면 미국 서버를 뒤져서 404 에러가 납니다.)
-    final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast3');
+    final functions = FirebaseFunctions.instance;
 
     // 2. 함수 이름('generateReplicateImage')으로 호출할 준비를 합니다.
     final callable = functions.httpsCallable('generateReplicateImage');

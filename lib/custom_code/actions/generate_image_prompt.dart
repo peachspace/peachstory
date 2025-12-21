@@ -55,7 +55,7 @@ $contextInput
   // 3. Cloud Function 호출 (기존 callAiProxy 재사용)
   try {
     final HttpsCallable callable =
-        FirebaseFunctions.instance.httpsCallable('callAiProxy');
+        FirebaseFunctions.instance.httpsCallable('callAiProxyV2');
     final result = await callable.call(<String, dynamic>{
       'modelName': 'gpt-4o-mini', // 빠르고 저렴한 모델 추천
       'systemPrompt': systemPrompt,

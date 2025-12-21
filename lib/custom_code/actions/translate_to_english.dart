@@ -22,7 +22,7 @@ Translate the following Korean description into a descriptive English prompt for
 
   try {
     final HttpsCallable callable =
-        FirebaseFunctions.instance.httpsCallable('callAiProxy');
+        FirebaseFunctions.instance.httpsCallable('callAiProxyV2');
     final result = await callable.call(<String, dynamic>{
       'modelName': 'gpt-4o-mini',
       'systemPrompt': systemPrompt,
