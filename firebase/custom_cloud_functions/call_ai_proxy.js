@@ -2,7 +2,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
 
-exports.callAiProxyV2 = functions
+exports.callAiProxy = functions
   .runWith({
     secrets: [
       "ANTHROPIC_API_KEY",
