@@ -36,6 +36,8 @@ class ImagecreateModel extends FlutterFlowModel<ImagecreateWidget> {
   String? englishPrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in Button widget.
   String? newImageResult;
+  // Stores action output result for [Custom Action - saveReplicateImageToStorage] action in Button widget.
+  String? permanentUrl;
 
   @override
   void initState(BuildContext context) {}
