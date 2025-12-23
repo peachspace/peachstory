@@ -11,15 +11,15 @@ exports.generateReplicateImage = functions
     memory: "512MB",
   })
   .https.onCall(async (data, context) => {
+    console.log(">>> [v2025_SAFE_MODE] 함수 실행 시작 <<<");
+
     // 1. 인증 확인
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "Auth required");
     }
 
     try {
-      console.log(">>> [v2025_DEBUG_MODE] 함수 실행 시작 <<<"); // 배포 확인용 로그
-
-      // 2. 데이터 수신 및 로그
+      // 2. 앱에서 보낸 데이터 수신
       const characterImageUrl = data.characterImageUrl;
       const prompt = data.prompt || "anime style, high quality";
 
@@ -31,18 +31,20 @@ exports.generateReplicateImage = functions
       let apiUrl = "https://api.replicate.com/v1/predictions";
       let requestBody = {};
 
+      // 강력한 성인물 차단 필터 (Negative Prompt)
+      const safetyNegativePrompt =
+        "nsfw, nude, naked, censored, nipple, genitals, sexual, provocative, breast, uncensored, cleavage, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature";
+
       // 3. 모델 및 입력값 설정
       if (characterImageUrl) {
-        // [CASE A] 캐릭터 유지 (fofr/consistent-character 모델)
-        // 주의: URL이 유효하지 않거나 접근 불가능하면 Replicate에서 에러 발생
+        // [CASE A] 캐릭터 유지 (Image-to-Image)
         requestBody = {
           version:
             "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
           input: {
             image: characterImageUrl,
             prompt: `anime style, ${prompt}`,
-            negative_prompt:
-              "realistic, photo, 3d, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+            negative_prompt: `realistic, photo, 3d, ${safetyNegativePrompt}`,
             width: 1024,
             height: 1024,
             number_of_outputs: 1,
@@ -50,13 +52,13 @@ exports.generateReplicateImage = functions
           },
         };
       } else {
-        // [CASE B] 신규 생성 (SDXL 모델)
+        // [CASE B] 신규 캐릭터 생성 (Text-to-Image)
         requestBody = {
           version:
             "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
           input: {
-            prompt: `anime style, character design, ${prompt}`,
-            negative_prompt: "photographic, realistic, low quality, distortion",
+            prompt: `anime style, character design, ${prompt}, safe for work`, // safe for work 추가
+            negative_prompt: `photographic, realistic, distortion, ${safetyNegativePrompt}`, // 강력한 차단 필터 적용
             width: 1024,
             height: 1024,
             scheduler: "K_EULER",
@@ -76,7 +78,6 @@ exports.generateReplicateImage = functions
         });
         prediction = initialResponse.data;
       } catch (axiosError) {
-        // Replicate 요청 자체가 실패한 경우 (다른 AI가 말한 원인 파악용)
         console.error(
           "Replicate 요청 실패 상세:",
           axiosError.response?.data || axiosError.message,
@@ -111,15 +112,23 @@ exports.generateReplicateImage = functions
         const finalImageUrl = Array.isArray(output) ? output[0] : output;
 
         if (!finalImageUrl) throw new Error("결과 URL이 비어있음");
+        console.log("이미지 생성 성공:", finalImageUrl);
         return { success: true, imageUrl: finalImageUrl };
       } else {
-        // 생성 중 실패 (모델 오류 등)
-        console.error("Replicate 처리 실패:", prediction.error);
-        throw new Error(`AI 처리 실패: ${prediction.error}`);
+        // 실패 원인이 NSFW인 경우 친절한 메시지로 변환
+        const errorMsg = prediction.error || "알 수 없는 오류";
+        console.error("Replicate 처리 실패:", errorMsg);
+
+        if (errorMsg.includes("NSFW")) {
+          throw new Error(
+            "이미지가 너무 선정적이어서 AI가 차단했습니다. 다른 프롬프트로 다시 시도해주세요.",
+          );
+        }
+
+        throw new Error(`AI 처리 실패: ${errorMsg}`);
       }
     } catch (error) {
       console.error("최종 에러 핸들러:", error.message);
-      // 클라이언트에게 에러 내용을 그대로 전달 (디버깅용)
       throw new functions.https.HttpsError("internal", error.message);
     }
   });
