@@ -1,38 +1,42 @@
 const functions = require("firebase-functions");
 const axios = require("axios");
 
+// 도우미 함수: 일정 시간 대기 (밀리초 단위)
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 exports.generateReplicateImage = functions
   .runWith({
     secrets: ["REPLICATE_API_KEY"],
-    timeoutSeconds: 300,
+    timeoutSeconds: 540, // 타임아웃을 9분으로 넉넉하게 연장
     memory: "512MB",
   })
   .https.onCall(async (data, context) => {
+    // 1. 인증 확인
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "Auth required");
     }
 
     try {
-      // 1. 앱에서 보낸 데이터 수신
-      const characterImageUrl = data.characterImageUrl; // (없을 수도 있음)
+      // 2. 앱에서 보낸 데이터 수신
+      const characterImageUrl = data.characterImageUrl;
       const prompt = data.prompt || "anime style, high quality";
 
+      console.log("-----------------------------------------");
       console.log(
-        "캐릭터 이미지:",
-        characterImageUrl ? characterImageUrl : "없음 (신규 생성)",
+        "요청 시작 - 캐릭터 이미지:",
+        characterImageUrl || "없음 (신규 생성)",
       );
       console.log("프롬프트:", prompt);
 
       let apiUrl = "https://api.replicate.com/v1/predictions";
       let requestBody = {};
 
-      // 2. 분기 처리: 캐릭터 이미지가 있는 경우 vs 없는 경우
+      // 3. 분기 처리: 캐릭터 이미지 유무에 따라 모델 및 입력값 결정
       if (characterImageUrl) {
-        // [CASE A] 상황 이미지 생성 (캐릭터 얼굴 유지)
-        // 기존에 사용하시던 'consistent-character' 모델 또는 유사 모델 사용
+        // [CASE A] 상황 이미지 (캐릭터 얼굴 유지)
         requestBody = {
           version:
-            "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772", // 기존 버전 유지
+            "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
           input: {
             image: characterImageUrl,
             prompt: `anime style, ${prompt}`,
@@ -45,10 +49,8 @@ exports.generateReplicateImage = functions
           },
         };
       } else {
-        // [CASE B] 캐릭터 신규 생성 (텍스트 -> 이미지)
-        // 이미지가 없을 때는 SDXL 같은 일반 고성능 모델을 사용합니다.
+        // [CASE B] 신규 캐릭터 생성 (SDXL)
         requestBody = {
-          // Stability AI의 SDXL 1.0 모델 버전
           version:
             "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
           input: {
@@ -62,30 +64,63 @@ exports.generateReplicateImage = functions
         };
       }
 
-      // 3. Replicate API 호출
-      const response = await axios.post(apiUrl, requestBody, {
+      // 4. Replicate에 생성 요청 (비동기)
+      const initialResponse = await axios.post(apiUrl, requestBody, {
         headers: {
           Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
           "Content-Type": "application/json",
-          Prefer: "wait",
         },
       });
 
-      // 4. 결과 처리
-      const output = response.data.output;
-      if (!output || output.length === 0)
-        throw new Error("이미지 생성 실패 (Replicate 응답 없음)");
+      let prediction = initialResponse.data;
+      const getUrl = prediction.urls.get;
 
-      // 모델에 따라 output이 문자열 하나일 수도 있고, 배열일 수도 있음
-      const finalImageUrl = Array.isArray(output) ? output[0] : output;
+      console.log("생성 작업 시작됨. ID:", prediction.id);
 
-      return { success: true, imageUrl: finalImageUrl };
+      // 5. 폴링(Polling) 루프: 완료될 때까지 상태 확인
+      let attempts = 0;
+      while (
+        prediction.status === "starting" ||
+        prediction.status === "processing"
+      ) {
+        attempts++;
+        if (attempts > 60) {
+          // 약 2분(2초*60회) 초과 시 타임아웃 처리
+          throw new Error("이미지 생성 시간 초과 (Timeout)");
+        }
+
+        await sleep(2000); // 2초 대기
+
+        const statusResponse = await axios.get(getUrl, {
+          headers: {
+            Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
+          },
+        });
+
+        prediction = statusResponse.data;
+        // console.log(`[${attempts}] 상태 확인 중: ${prediction.status}`);
+      }
+
+      // 6. 결과 처리
+      if (prediction.status === "succeeded") {
+        const output = prediction.output;
+        if (!output || output.length === 0) throw new Error("결과 없음");
+
+        const finalImageUrl = Array.isArray(output) ? output[0] : output;
+        console.log("이미지 생성 완료:", finalImageUrl);
+
+        return { success: true, imageUrl: finalImageUrl };
+      } else {
+        // 실패한 경우
+        const errorMsg = prediction.error || "알 수 없는 오류";
+        console.error("Replicate 실패:", errorMsg);
+        throw new Error(`이미지 생성 실패: ${errorMsg}`);
+      }
     } catch (error) {
-      console.error("에러 발생:", error.response?.data || error.message);
-      // 상세 에러 내용을 클라이언트로 전달
+      console.error("최종 에러 발생:", error.message);
       throw new functions.https.HttpsError(
         "internal",
-        JSON.stringify(error.response?.data || error.message),
+        error.message || "서버 내부 오류 발생",
       );
     }
   });
