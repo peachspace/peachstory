@@ -11,25 +11,31 @@ import 'package:flutter/material.dart';
 
 import 'package:cloud_functions/cloud_functions.dart';
 
-Future<String?> callGenerateImageCloud(String prompt) async {
+import 'package:cloud_functions/cloud_functions.dart';
+
+// ★ 수정됨: 인자값(Arguments)에 characterImageUrl 추가 필요!
+Future<String?> callGenerateImageCloud(
+  String prompt,
+  String? characterImageUrl, // [새로 추가된 부분] 캐릭터 사진 URL을 받습니다.
+) async {
   try {
     final functions = FirebaseFunctions.instance;
 
-    // 2. 함수 이름('generateReplicateImage')으로 호출할 준비를 합니다.
+    // Cloud Function 이름 호출
     final callable = functions.httpsCallable('generateReplicateImage');
 
-    // 3. 실행! (프롬프트를 전달)
+    // ★ 수정됨: prompt뿐만 아니라 characterImageUrl도 같이 보냅니다.
     final results = await callable.call(<String, dynamic>{
       'prompt': prompt,
+      'characterImageUrl': characterImageUrl,
     });
 
-    // 4. 결과에서 이미지 URL 꺼내기
-    // (index.ts에서 return { imageUrl: ... } 라고 줬으니까요)
+    // 결과 처리
     final data = results.data as Map<String, dynamic>;
     return data['imageUrl'] as String?;
   } catch (e) {
     print('Cloud Function Error: $e');
-    // 에러가 나면 null을 반환
+    // 에러 발생 시 로그 출력
     return null;
   }
 }

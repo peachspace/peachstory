@@ -4828,7 +4828,12 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                   category: _model.genre,
                                   creatorRef: currentUserReference,
                                   userRole: _model.userrole,
-                                  mainImage: _model.tempmainImage,
+                                  mainImage:
+                                      _model.uploadedFileUrl_uploadedMainImage !=
+                                                  ''
+                                          ? _model
+                                              .uploadedFileUrl_uploadedMainImage
+                                          : _model.tempmainImage,
                                   description: _model.introduce,
                                   authorNotes: _model.author,
                                   createdAt: getCurrentTimestamp,
@@ -4866,7 +4871,12 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                   category: _model.genre,
                                   creatorRef: currentUserReference,
                                   userRole: _model.userrole,
-                                  mainImage: _model.tempmainImage,
+                                  mainImage:
+                                      _model.uploadedFileUrl_uploadedMainImage !=
+                                                  ''
+                                          ? _model
+                                              .uploadedFileUrl_uploadedMainImage
+                                          : _model.tempmainImage,
                                   description: _model.introduce,
                                   authorNotes: _model.author,
                                   createdAt: getCurrentTimestamp,
@@ -4915,7 +4925,12 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                   category: _model.genreValue,
                                   userRole:
                                       _model.userRoleInfoTextController.text,
-                                  mainImage: widget.storyToEdit?.mainImage,
+                                  mainImage:
+                                      _model.uploadedFileUrl_uploadedMainImage !=
+                                                  ''
+                                          ? _model
+                                              .uploadedFileUrl_uploadedMainImage
+                                          : _model.tempmainImage,
                                   description: widget.storyToEdit?.description,
                                   authorNotes: widget.storyToEdit?.authorNotes,
                                   prologue: widget.storyToEdit?.prologue,

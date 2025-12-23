@@ -5,62 +5,64 @@ exports.generateReplicateImage = functions
   .runWith({
     secrets: ["REPLICATE_API_KEY"],
     timeoutSeconds: 300,
-    memory: "256MB",
+    memory: "512MB",
   })
   .https.onCall(async (data, context) => {
-    // 1. 인증 체크
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "Auth required");
     }
 
     try {
-      console.log("Flux 모델(ID 지정)로 이미지 생성 요청:", data.prompt);
+      // 1. 앱에서 보낸 캐릭터 사진 URL과 상황 설명을 받습니다.
+      const characterImageUrl = data.characterImageUrl;
+      const prompt = data.prompt || "anime style";
 
-      // ★★★ 핵심 변경 사항 ★★★
-      // 모델 이름 주소(v1/models/...) 대신, 가장 확실한 'predictions' 주소를 사용합니다.
-      // 그리고 Flux-Schnell 모델의 '고유 ID(Version ID)'를 직접 넣습니다.
-      // 이렇게 하면 "모델을 못 찾겠다(404)"는 에러가 절대 날 수 없습니다.
+      // 사진이 없으면 에러를 냅니다.
+      if (!characterImageUrl) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "캐릭터 이미지가 필요합니다.",
+        );
+      }
+
+      console.log("캐릭터 이미지:", characterImageUrl);
+      console.log("상황 프롬프트:", prompt);
+
+      // 2. 'consistent-character' 모델 호출 (사진을 보고 그리는 모델)
       const response = await axios.post(
         "https://api.replicate.com/v1/predictions",
         {
-          // Flux-Schnell 모델의 주민등록번호 (Version ID)
           version:
-            "c846a69991daf4c0e5d016514849d14ee5b2e6846ce6b9d6f21369e564cfe51e",
+            "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
           input: {
-            prompt: "anime style, high quality, " + data.prompt,
-            aspect_ratio: "1:1",
-            output_format: "webp",
-            output_quality: 90,
-            go_fast: true, // 빠른 생성 모드
+            image: characterImageUrl, // ★ 핵심: 캐릭터 사진을 모델에 입력
+            prompt: `anime style, ${prompt}`, // 애니 스타일 강제 적용
+            negative_prompt: "realistic, photo, 3d, bad anatomy",
+            width: 1024,
+            height: 1024,
+            number_of_outputs: 1,
+            randomise_poses: true, // 얼굴은 유지하되 포즈는 자유롭게
           },
         },
         {
           headers: {
             Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
             "Content-Type": "application/json",
-            Prefer: "wait", // 생성이 끝날 때까지 기다림
+            Prefer: "wait",
           },
         },
       );
 
-      console.log("Replicate 응답 성공:", response.data);
+      // 3. 결과 이미지 주소 반환
+      const output = response.data.output;
+      if (!output || output.length === 0) throw new Error("이미지 생성 실패");
 
-      const imageUrl = response.data.output?.[0];
-      if (!imageUrl) {
-        throw new Error("이미지 생성 결과(URL)가 없습니다.");
-      }
-
-      return { success: true, imageUrl };
+      return { success: true, imageUrl: output[0] };
     } catch (error) {
-      const errorData = error.response
-        ? JSON.stringify(error.response.data)
-        : error.message;
-      console.error("Replicate 최종 실패:", errorData);
-
-      // 에러 내용을 화면에 그대로 보여줍니다.
+      console.error("에러 발생:", error.response?.data || error.message);
       throw new functions.https.HttpsError(
         "internal",
-        `이미지 생성 오류: ${errorData}`,
+        JSON.stringify(error.response?.data || error.message),
       );
     }
   });

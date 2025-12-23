@@ -269,6 +269,10 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                                             charItemIndex);
                                         safeSetState(() {});
                                       }
+
+                                      _model.selectedCharImage =
+                                          charItemItem.image;
+                                      safeSetState(() {});
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
@@ -575,6 +579,7 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                               widget.seed),
                           r'''$.prompt''',
                         ).toString(),
+                        _model.selectedCharImage,
                       );
                       if (_model.newImageResult != null &&
                           _model.newImageResult != '') {
