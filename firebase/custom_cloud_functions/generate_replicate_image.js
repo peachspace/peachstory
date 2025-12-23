@@ -1,50 +1,61 @@
 const functions = require("firebase-functions");
 const axios = require("axios");
 
-// 도우미 함수: 일정 시간 대기 (밀리초 단위)
+// 도우미 함수: 일정 시간 대기
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 exports.generateReplicateImage = functions
   .runWith({
     secrets: ["REPLICATE_API_KEY"],
-    timeoutSeconds: 540, // 9분 타임아웃
+    timeoutSeconds: 540,
     memory: "512MB",
   })
   .https.onCall(async (data, context) => {
-    console.log(">>> [v2025_SAFE_MODE] 함수 실행 시작 <<<");
+    // [확인용 로그] 이 로그가 보여야 새 코드가 적용된 것입니다.
+    console.log(">>> [v2025_FREEDOM] 검열 해제 모드 실행 <<<");
 
-    // 1. 인증 확인
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "Auth required");
     }
 
     try {
-      // 2. 앱에서 보낸 데이터 수신
-      const characterImageUrl = data.characterImageUrl;
+      let characterImageUrl = data.characterImageUrl;
       const prompt = data.prompt || "anime style, high quality";
 
-      console.log(`입력 프롬프트: ${prompt}`);
-      console.log(
-        `캐릭터 이미지 URL: ${characterImageUrl || "없음(신규생성)"}`,
-      );
+      // URL 검증 및 변환
+      let isValidUrl = false;
+      if (characterImageUrl && typeof characterImageUrl === "string") {
+        characterImageUrl = characterImageUrl.trim();
+        if (characterImageUrl.startsWith("gs://")) {
+          const parts = characterImageUrl.replace("gs://", "").split("/");
+          const bucket = parts[0];
+          const path = parts.slice(1).join("%2F");
+          characterImageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${path}?alt=media`;
+        }
+        if (characterImageUrl.startsWith("http")) isValidUrl = true;
+      }
 
       let apiUrl = "https://api.replicate.com/v1/predictions";
       let requestBody = {};
 
-      // 강력한 성인물 차단 필터 (Negative Prompt)
-      const safetyNegativePrompt =
-        "nsfw, nude, naked, censored, nipple, genitals, sexual, provocative, breast, uncensored, cleavage, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature";
+      // ★ 검열 해제 옵션 (가장 중요) ★
+      const commonInputOptions = {
+        disable_safety_checker: true, // 검열 끄기
+        safety_checker: false,
+      };
 
-      // 3. 모델 및 입력값 설정
-      if (characterImageUrl) {
-        // [CASE A] 캐릭터 유지 (Image-to-Image)
+      if (isValidUrl) {
+        // [CASE A] 캐릭터 유지 (상황 이미지)
         requestBody = {
           version:
             "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
           input: {
+            ...commonInputOptions,
             image: characterImageUrl,
             prompt: `anime style, ${prompt}`,
-            negative_prompt: `realistic, photo, 3d, ${safetyNegativePrompt}`,
+            // negative_prompt에서 검열 관련 단어 제거함
+            negative_prompt:
+              "realistic, photo, 3d, text, error, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, username, blurry",
             width: 1024,
             height: 1024,
             number_of_outputs: 1,
@@ -52,13 +63,15 @@ exports.generateReplicateImage = functions
           },
         };
       } else {
-        // [CASE B] 신규 캐릭터 생성 (Text-to-Image)
+        // [CASE B] 캐릭터 신규 생성
         requestBody = {
           version:
             "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
           input: {
-            prompt: `anime style, character design, ${prompt}, safe for work`, // safe for work 추가
-            negative_prompt: `photographic, realistic, distortion, ${safetyNegativePrompt}`, // 강력한 차단 필터 적용
+            ...commonInputOptions,
+            // 'safe for work' 제거함
+            prompt: `anime style, character design, ${prompt}`,
+            negative_prompt: "photographic, realistic, low quality, distortion",
             width: 1024,
             height: 1024,
             scheduler: "K_EULER",
@@ -67,37 +80,25 @@ exports.generateReplicateImage = functions
         };
       }
 
-      // 4. Replicate 생성 요청
-      let prediction;
-      try {
-        const initialResponse = await axios.post(apiUrl, requestBody, {
-          headers: {
-            Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-        });
-        prediction = initialResponse.data;
-      } catch (axiosError) {
-        console.error(
-          "Replicate 요청 실패 상세:",
-          axiosError.response?.data || axiosError.message,
-        );
-        throw new Error(
-          `Replicate 요청 거부됨: ${JSON.stringify(axiosError.response?.data || axiosError.message)}`,
-        );
-      }
+      // 요청 보내기
+      const initialResponse = await axios.post(apiUrl, requestBody, {
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      console.log("생성 작업 ID:", prediction.id);
+      let prediction = initialResponse.data;
       const getUrl = prediction.urls.get;
 
-      // 5. 폴링 (Polling)
+      // 대기 (Polling)
       let attempts = 0;
       while (
         prediction.status === "starting" ||
         prediction.status === "processing"
       ) {
         attempts++;
-        if (attempts > 60) throw new Error("시간 초과 (Timeout)");
+        if (attempts > 60) throw new Error("시간 초과");
         await sleep(2000);
 
         const statusResponse = await axios.get(getUrl, {
@@ -106,29 +107,24 @@ exports.generateReplicateImage = functions
         prediction = statusResponse.data;
       }
 
-      // 6. 결과 반환
+      // 결과 반환
       if (prediction.status === "succeeded") {
         const output = prediction.output;
         const finalImageUrl = Array.isArray(output) ? output[0] : output;
-
-        if (!finalImageUrl) throw new Error("결과 URL이 비어있음");
-        console.log("이미지 생성 성공:", finalImageUrl);
         return { success: true, imageUrl: finalImageUrl };
       } else {
-        // 실패 원인이 NSFW인 경우 친절한 메시지로 변환
         const errorMsg = prediction.error || "알 수 없는 오류";
-        console.error("Replicate 처리 실패:", errorMsg);
+        console.error("Replicate 실패:", errorMsg);
 
+        // 에러 메시지 변경 (배포 확인용)
         if (errorMsg.includes("NSFW")) {
           throw new Error(
-            "이미지가 너무 선정적이어서 AI가 차단했습니다. 다른 프롬프트로 다시 시도해주세요.",
+            "※경고: 모델의 강제 필터가 작동했습니다. 더 순화된 표현을 써보세요.",
           );
         }
-
         throw new Error(`AI 처리 실패: ${errorMsg}`);
       }
     } catch (error) {
-      console.error("최종 에러 핸들러:", error.message);
       throw new functions.https.HttpsError("internal", error.message);
     }
   });
