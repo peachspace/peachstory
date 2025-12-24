@@ -21,6 +21,13 @@ exports.generateReplicateImage = functions
     try {
       let characterImageUrl = data.characterImageUrl;
       const prompt = data.prompt || "anime style, high quality";
+      // ✅ (추가) 변환 전 원본 확인
+      console.log(
+        "[DEBUG] raw characterImageUrl:",
+        characterImageUrl,
+        "type:",
+        typeof characterImageUrl,
+      );
 
       // URL 검증 및 변환
       let isValidUrl = false;
@@ -34,6 +41,10 @@ exports.generateReplicateImage = functions
         }
         if (characterImageUrl.startsWith("http")) isValidUrl = true;
       }
+
+      // ✅ (추가) 변환 후 최종값 + 판정
+      console.log("[DEBUG] final characterImageUrl:", characterImageUrl);
+      console.log("[DEBUG] isValidUrl:", isValidUrl);
 
       let apiUrl = "https://api.replicate.com/v1/predictions";
       let requestBody = {};

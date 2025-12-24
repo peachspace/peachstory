@@ -270,8 +270,8 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                                         safeSetState(() {});
                                       }
 
-                                      _model.selectedCharImage =
-                                          charItemItem.image;
+                                      _model.selectedCharImage = functions
+                                          .imageToString(charItemItem.image);
                                       safeSetState(() {});
                                     },
                                     child: Container(

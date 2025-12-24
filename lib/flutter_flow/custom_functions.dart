@@ -632,3 +632,7 @@ dynamic assemblePromptAndSeed(
 
   return {"seed": mainSeed, "prompt": combinedAppearance + " " + userPrompt};
 }
+
+String? imageToString(String? imagePath) {
+  return imagePath;
+}
