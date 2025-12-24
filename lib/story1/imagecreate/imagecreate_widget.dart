@@ -588,7 +588,7 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                       if (_model.permanentUrl != null &&
                           _model.permanentUrl != '') {
                         _model.generatedImageUrl =
-                            functions.stringToImagePath(_model.newImageResult!);
+                            functions.stringToImagePath(_model.permanentUrl!);
                         _model.isImageLoading = false;
                         safeSetState(() {});
                       } else {
