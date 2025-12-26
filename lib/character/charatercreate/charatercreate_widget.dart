@@ -1140,7 +1140,9 @@ class _CharatercreateWidgetState extends State<CharatercreateWidget>
                                                         .updateNewSituationalImagesAtIndex(
                                                       index,
                                                       (e) => e
-                                                        ..imageUrl = imageUrl,
+                                                        ..imageUrl =
+                                                            situationItemItem
+                                                                .imageUrl,
                                                     );
                                                     safeSetState(() {});
                                                   },

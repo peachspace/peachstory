@@ -60,7 +60,8 @@ class _SituationWidgetState extends State<SituationWidget> {
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       if (widget.situationItem?.imageUrl != null &&
           widget.situationItem?.imageUrl != '') {
-        _model.tempSituationImage = widget.situationItem?.imageUrl;
+        _model.tempSituationImage =
+            functions.stringToImagePath(widget.situationItem!.imageUrl);
         safeSetState(() {});
       }
     });
@@ -324,9 +325,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                                 true) {
                               FFAppState().updateSituationalImagesAtIndex(
                                 widget.index!,
-                                (e) => e
-                                  ..imageUrl = functions
-                                      .stringToImagePath(_model.createdImage!),
+                                (e) => e..imageUrl = _model.createdImage,
                               );
                               safeSetState(() {});
                             }

@@ -259,20 +259,27 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                                     hoverColor: Colors.transparent,
                                     highlightColor: Colors.transparent,
                                     onTap: () async {
-                                      if (_model.selectedIndices
-                                          .contains(charItemIndex)) {
-                                        _model.removeAtIndexFromSelectedIndices(
-                                            charItemIndex);
+                                      if (_model.selectedCharImage ==
+                                          charItemItem.imageUrl) {
+                                        _model.selectedCharImage = '';
                                         safeSetState(() {});
                                       } else {
-                                        _model.addToSelectedIndices(
-                                            charItemIndex);
+                                        if (_model.selectedIndices
+                                            .contains(charItemIndex)) {
+                                          _model
+                                              .removeAtIndexFromSelectedIndices(
+                                                  charItemIndex);
+                                          safeSetState(() {});
+                                        } else {
+                                          _model.addToSelectedIndices(
+                                              charItemIndex);
+                                          safeSetState(() {});
+                                        }
+
+                                        _model.selectedCharImage =
+                                            charItemItem.imageUrl;
                                         safeSetState(() {});
                                       }
-
-                                      _model.selectedCharImage =
-                                          charItemItem.imageUrl;
-                                      safeSetState(() {});
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
