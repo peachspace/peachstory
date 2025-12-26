@@ -2745,14 +2745,17 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                   _model.createdImage =
                                                                       value));
 
-                                                          if (functions
-                                                                  .isValidImage(
-                                                                      _model
-                                                                          .createdImage) ==
+                                                          if (functions.isValidImage(
+                                                                  functions
+                                                                      .stringToImagePath(
+                                                                          _model
+                                                                              .createdImage!)) ==
                                                               true) {
                                                             _model.tempmainImage =
-                                                                _model
-                                                                    .createdImage;
+                                                                functions
+                                                                    .stringToImagePath(
+                                                                        _model
+                                                                            .createdImage!);
                                                             safeSetState(() {});
                                                           }
 

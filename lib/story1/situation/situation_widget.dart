@@ -319,11 +319,14 @@ class _SituationWidgetState extends State<SituationWidget> {
                             ).then((value) => safeSetState(
                                 () => _model.createdImage = value));
 
-                            if (functions.isValidImage(_model.createdImage) ==
+                            if (functions.isValidImage(functions
+                                    .stringToImagePath(_model.createdImage!)) ==
                                 true) {
                               FFAppState().updateSituationalImagesAtIndex(
                                 widget.index!,
-                                (e) => e..imageUrl = _model.createdImage,
+                                (e) => e
+                                  ..imageUrl = functions
+                                      .stringToImagePath(_model.createdImage!),
                               );
                               safeSetState(() {});
                             }

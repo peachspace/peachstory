@@ -270,8 +270,8 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                                         safeSetState(() {});
                                       }
 
-                                      _model.selectedCharImage = functions
-                                          .imageToString(charItemItem.image);
+                                      _model.selectedCharImage =
+                                          charItemItem.imageUrl;
                                       safeSetState(() {});
                                     },
                                     child: Container(
@@ -587,8 +587,7 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                       );
                       if (_model.permanentUrl != null &&
                           _model.permanentUrl != '') {
-                        _model.generatedImageUrl =
-                            functions.stringToImagePath(_model.permanentUrl!);
+                        _model.generatedImageUrl = _model.permanentUrl;
                         _model.isImageLoading = false;
                         safeSetState(() {});
                       } else {
