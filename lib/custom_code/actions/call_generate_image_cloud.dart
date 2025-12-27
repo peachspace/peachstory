@@ -11,31 +11,43 @@ import 'package:flutter/material.dart';
 
 import 'package:cloud_functions/cloud_functions.dart';
 
-import 'package:cloud_functions/cloud_functions.dart';
-
-// ★ 수정됨: 인자값(Arguments)에 characterImageUrl 추가 필요!
 Future<String?> callGenerateImageCloud(
   String prompt,
-  String? characterImageUrl, // [새로 추가된 부분] 캐릭터 사진 URL을 받습니다.
+  String? characterImageUrl,
 ) async {
   try {
     final functions = FirebaseFunctions.instance;
-
-    // Cloud Function 이름 호출
+    // 함수 이름이 정확한지 확인하세요
     final callable = functions.httpsCallable('generateReplicateImage');
 
-    // ★ 수정됨: prompt뿐만 아니라 characterImageUrl도 같이 보냅니다.
     final results = await callable.call(<String, dynamic>{
       'prompt': prompt,
       'characterImageUrl': characterImageUrl,
     });
 
-    // 결과 처리
-    final data = results.data as Map<String, dynamic>;
-    return data['imageUrl'] as String?;
+    // ★ [핵심 수정] 어떤 데이터가 와도 뻗지 않도록 타입 체크를 합니다. ★
+    final rawData = results.data;
+
+    // 디버깅용: 콘솔에 뭐가 왔는지 찍어봅니다.
+    print('Cloud Function Returned: $rawData');
+
+    // Case 1: 새로운 방식 (Map으로 온 경우) - { success: true, imageUrl: "..." }
+    if (rawData is Map) {
+      if (rawData['imageUrl'] != null) {
+        return rawData['imageUrl'].toString();
+      }
+    }
+    // Case 2: 예전 방식 (String으로 온 경우) - "https://..."
+    else if (rawData is String) {
+      return rawData;
+    }
+
+    // 데이터가 없거나 이상하면 null 반환 (앱이 죽는 대신 조용히 넘어감)
+    print('Warning: Unexpected data format');
+    return null;
   } catch (e) {
-    print('Cloud Function Error: $e');
     // 에러 발생 시 로그 출력
+    print('Cloud Function Error: $e');
     return null;
   }
 }
