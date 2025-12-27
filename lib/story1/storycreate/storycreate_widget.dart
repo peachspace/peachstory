@@ -7,9 +7,9 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/upload_data.dart';
-import '/story1/character/character_widget.dart';
-import '/story1/imagecreate/imagecreate_widget.dart';
-import '/story1/situation/situation_widget.dart';
+import '/story1/charactercomponent/charactercomponent_widget.dart';
+import '/story1/imagecreatebottomsheet/imagecreatebottomsheet_widget.dart';
+import '/story1/situationcomponent/situationcomponent_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
@@ -1707,7 +1707,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                 final characterItemsItem =
                                                     characterItems[
                                                         characterItemsIndex];
-                                                return CharacterWidget(
+                                                return CharactercomponentWidget(
                                                   key: Key(
                                                       'Keyrav_${characterItemsIndex}_of_${characterItems.length}'),
                                                   index: characterItemsIndex,
@@ -2329,7 +2329,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                   final situationItemItem =
                                                       situationItem[
                                                           situationItemIndex];
-                                                  return SituationWidget(
+                                                  return SituationcomponentWidget(
                                                     key: Key(
                                                         'Keyxcy_${situationItemIndex}_of_${situationItem.length}'),
                                                     index: situationItemIndex,
@@ -2726,7 +2726,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                                         .viewInsetsOf(
                                                                             context),
                                                                     child:
-                                                                        ImagecreateWidget(
+                                                                        ImagecreatebottomsheetWidget(
                                                                       generationContext:
                                                                           '[title]: \"${_model.storyNameTextController.text}\"\\n\\n[worldview]: \"${_model.worldSettingsTextController.text}\"\\n\\n[prologue]: \"${_model.prologueTextController.text}\"\\n\\n[characters]: \"${functions.convertCharactersToString(FFAppState().Characters.toList())}\"\\n\\n[userrole]: \"${_model.userRoleInfoTextController.text}\"',
                                                                       imageMode:

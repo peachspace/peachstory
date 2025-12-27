@@ -11,11 +11,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
-import 'imagecreate_model.dart';
-export 'imagecreate_model.dart';
+import 'imagecreatebottomsheet_model.dart';
+export 'imagecreatebottomsheet_model.dart';
 
-class ImagecreateWidget extends StatefulWidget {
-  const ImagecreateWidget({
+class ImagecreatebottomsheetWidget extends StatefulWidget {
+  const ImagecreatebottomsheetWidget({
     super.key,
     required this.generationContext,
     required this.imageMode,
@@ -31,12 +31,13 @@ class ImagecreateWidget extends StatefulWidget {
   final int? seed;
 
   @override
-  State<ImagecreateWidget> createState() => _ImagecreateWidgetState();
+  State<ImagecreatebottomsheetWidget> createState() =>
+      _ImagecreatebottomsheetWidgetState();
 }
 
-class _ImagecreateWidgetState extends State<ImagecreateWidget>
-    with TickerProviderStateMixin {
-  late ImagecreateModel _model;
+class _ImagecreatebottomsheetWidgetState
+    extends State<ImagecreatebottomsheetWidget> with TickerProviderStateMixin {
+  late ImagecreatebottomsheetModel _model;
 
   final animationsMap = <String, AnimationInfo>{};
 
@@ -49,7 +50,7 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => ImagecreateModel());
+    _model = createModel(context, () => ImagecreatebottomsheetModel());
 
     _model.imagemakepromptTextController ??= TextEditingController();
     _model.imagemakepromptFocusNode ??= FocusNode();

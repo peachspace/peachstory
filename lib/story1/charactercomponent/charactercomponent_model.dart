@@ -1,8 +1,9 @@
 import '/flutter_flow/flutter_flow_util.dart';
-import 'character_widget.dart' show CharacterWidget;
+import 'charactercomponent_widget.dart' show CharactercomponentWidget;
 import 'package:flutter/material.dart';
 
-class CharacterModel extends FlutterFlowModel<CharacterWidget> {
+class CharactercomponentModel
+    extends FlutterFlowModel<CharactercomponentWidget> {
   ///  Local state fields for this component.
 
   String? tempImage;
@@ -11,7 +12,7 @@ class CharacterModel extends FlutterFlowModel<CharacterWidget> {
 
   ///  State fields for stateful widgets in this component.
 
-  // Stores action output result for [Bottom Sheet - imagecreate] action in Button widget.
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in charaicreate widget.
   String? createdcharacterImage;
   bool isDataUploading_uploadCharImage = false;
   FFUploadedFile uploadedLocalFile_uploadCharImage =

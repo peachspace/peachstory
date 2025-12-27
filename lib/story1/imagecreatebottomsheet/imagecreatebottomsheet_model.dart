@@ -1,8 +1,9 @@
 import '/flutter_flow/flutter_flow_util.dart';
-import 'imagecreate_widget.dart' show ImagecreateWidget;
+import 'imagecreatebottomsheet_widget.dart' show ImagecreatebottomsheetWidget;
 import 'package:flutter/material.dart';
 
-class ImagecreateModel extends FlutterFlowModel<ImagecreateWidget> {
+class ImagecreatebottomsheetModel
+    extends FlutterFlowModel<ImagecreatebottomsheetWidget> {
   ///  Local state fields for this component.
 
   String? generatedImageUrl;
@@ -32,9 +33,9 @@ class ImagecreateModel extends FlutterFlowModel<ImagecreateWidget> {
       imagemakepromptTextControllerValidator;
   // Stores action output result for [Custom Action - generateImagePrompt] action in Container widget.
   String? suggestedPrompt;
-  // Stores action output result for [Custom Action - translateToEnglish] action in Button widget.
+  // Stores action output result for [Custom Action - translateToEnglish] action in aimake widget.
   String? englishPrompt;
-  // Stores action output result for [Custom Action - callGenerateImageCloud] action in Button widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aimake widget.
   String? newImageResult;
 
   @override

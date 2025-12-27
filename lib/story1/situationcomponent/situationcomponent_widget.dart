@@ -4,7 +4,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
-import '/story1/imagecreate/imagecreate_widget.dart';
+import '/story1/imagecreatebottomsheet/imagecreatebottomsheet_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
@@ -13,11 +13,11 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
-import 'situation_model.dart';
-export 'situation_model.dart';
+import 'situationcomponent_model.dart';
+export 'situationcomponent_model.dart';
 
-class SituationWidget extends StatefulWidget {
-  const SituationWidget({
+class SituationcomponentWidget extends StatefulWidget {
+  const SituationcomponentWidget({
     super.key,
     this.situationItem,
     this.index,
@@ -39,11 +39,12 @@ class SituationWidget extends StatefulWidget {
   final bool? isCharactersEmpty;
 
   @override
-  State<SituationWidget> createState() => _SituationWidgetState();
+  State<SituationcomponentWidget> createState() =>
+      _SituationcomponentWidgetState();
 }
 
-class _SituationWidgetState extends State<SituationWidget> {
-  late SituationModel _model;
+class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
+  late SituationcomponentModel _model;
 
   @override
   void setState(VoidCallback callback) {
@@ -54,7 +55,7 @@ class _SituationWidgetState extends State<SituationWidget> {
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => SituationModel());
+    _model = createModel(context, () => SituationcomponentModel());
 
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -305,7 +306,7 @@ class _SituationWidgetState extends State<SituationWidget> {
                                 return WebViewAware(
                                   child: Padding(
                                     padding: MediaQuery.viewInsetsOf(context),
-                                    child: ImagecreateWidget(
+                                    child: ImagecreatebottomsheetWidget(
                                       generationContext:
                                           '[FOCUS: Appearance]: \\n[FOCUS: Situation]\\n[Current Situation]: ${_model.textController.text}\\n[Background Context]: ${widget.storyContext}',
                                       imageMode: 'situation',

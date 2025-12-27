@@ -94,7 +94,7 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
   String? generateduserrole;
-  // Stores action output result for [Bottom Sheet - imagecreate] action in Button widget.
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in Button widget.
   String? createdImage;
   bool isDataUploading_uploadedMainImage = false;
   FFUploadedFile uploadedLocalFile_uploadedMainImage =

@@ -1,15 +1,16 @@
 import '/flutter_flow/flutter_flow_util.dart';
-import 'situation_widget.dart' show SituationWidget;
+import 'situationcomponent_widget.dart' show SituationcomponentWidget;
 import 'package:flutter/material.dart';
 
-class SituationModel extends FlutterFlowModel<SituationWidget> {
+class SituationcomponentModel
+    extends FlutterFlowModel<SituationcomponentWidget> {
   ///  Local state fields for this component.
 
   String? tempSituationImage;
 
   ///  State fields for stateful widgets in this component.
 
-  // Stores action output result for [Bottom Sheet - imagecreate] action in Button widget.
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in situationaicreate widget.
   String? createdsituationmage;
   bool isDataUploading_uploadsituationimage = false;
   FFUploadedFile uploadedLocalFile_uploadsituationimage =

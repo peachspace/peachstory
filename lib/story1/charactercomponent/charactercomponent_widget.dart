@@ -4,7 +4,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
-import '/story1/imagecreate/imagecreate_widget.dart';
+import '/story1/imagecreatebottomsheet/imagecreatebottomsheet_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
@@ -14,11 +14,11 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
-import 'character_model.dart';
-export 'character_model.dart';
+import 'charactercomponent_model.dart';
+export 'charactercomponent_model.dart';
 
-class CharacterWidget extends StatefulWidget {
-  const CharacterWidget({
+class CharactercomponentWidget extends StatefulWidget {
+  const CharactercomponentWidget({
     super.key,
     this.characterData,
     this.index,
@@ -37,11 +37,12 @@ class CharacterWidget extends StatefulWidget {
   final bool? isWorldviewEmpty;
 
   @override
-  State<CharacterWidget> createState() => _CharacterWidgetState();
+  State<CharactercomponentWidget> createState() =>
+      _CharactercomponentWidgetState();
 }
 
-class _CharacterWidgetState extends State<CharacterWidget> {
-  late CharacterModel _model;
+class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
+  late CharactercomponentModel _model;
 
   @override
   void setState(VoidCallback callback) {
@@ -52,7 +53,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => CharacterModel());
+    _model = createModel(context, () => CharactercomponentModel());
 
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -358,7 +359,7 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                   return WebViewAware(
                                     child: Padding(
                                       padding: MediaQuery.viewInsetsOf(context),
-                                      child: ImagecreateWidget(
+                                      child: ImagecreatebottomsheetWidget(
                                         generationContext:
                                             '[FOCUS: Character Portrait]\\n[Appearance & Personality]: ${_model.charSettingTextController.text}\\n[Background Context]: ${widget.storyContext}',
                                         imageMode: 'character',
