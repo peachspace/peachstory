@@ -5,46 +5,48 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
-import '/story1/storycomment/storycomment_widget.dart';
+import '/unuse2/charactercomment/charactercomment_widget.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'storycommentlist_model.dart';
-export 'storycommentlist_model.dart';
+import 'charactercommentlist_model.dart';
+export 'charactercommentlist_model.dart';
 
-class StorycommentlistWidget extends StatefulWidget {
-  const StorycommentlistWidget({
+class CharactercommentlistWidget extends StatefulWidget {
+  const CharactercommentlistWidget({
     super.key,
-    this.storyRef,
+    this.characterRef,
   });
 
-  final DocumentReference? storyRef;
+  final DocumentReference? characterRef;
 
-  static String routeName = 'storycommentlist';
-  static String routePath = '/storycommentlist';
+  static String routeName = 'charactercommentlist';
+  static String routePath = '/charactercommentlist';
 
   @override
-  State<StorycommentlistWidget> createState() => _StorycommentlistWidgetState();
+  State<CharactercommentlistWidget> createState() =>
+      _CharactercommentlistWidgetState();
 }
 
-class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
-  late StorycommentlistModel _model;
+class _CharactercommentlistWidgetState
+    extends State<CharactercommentlistWidget> {
+  late CharactercommentlistModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => StorycommentlistModel());
+    _model = createModel(context, () => CharactercommentlistModel());
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.commentCountResult = await queryCommentsRecordCount(
-        queryBuilder: (commentsRecord) => commentsRecord
+      _model.commentCountResult = await queryCharacterCommentsRecordCount(
+        queryBuilder: (characterCommentsRecord) => characterCommentsRecord
             .where(
-              'story_ref',
-              isEqualTo: widget.storyRef,
+              'character_ref',
+              isEqualTo: widget.characterRef,
             )
             .where(
               'parent_comment_ref',
@@ -75,9 +77,9 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+        backgroundColor: Color(0xFFFFF8F9),
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+          backgroundColor: Color(0xFFFFF8F9),
           iconTheme:
               IconThemeData(color: FlutterFlowTheme.of(context).primaryText),
           automaticallyImplyLeading: true,
@@ -105,6 +107,7 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                         FlutterFlowTheme.of(context).titleLarge.fontStyle,
                   ),
                   color: FlutterFlowTheme.of(context).tertiary,
+                  fontSize: 18.0,
                   letterSpacing: 0.0,
                   fontWeight:
                       FlutterFlowTheme.of(context).titleLarge.fontWeight,
@@ -233,8 +236,7 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                               color: FlutterFlowTheme.of(context).secondaryText,
                               size: 24.0,
                             ),
-                            fillColor: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
+                            fillColor: Color(0xFFFFF8F9),
                             elevation: 2.0,
                             borderColor: Colors.transparent,
                             borderWidth: 0.0,
@@ -376,7 +378,7 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                                       .bodyMedium
                                       .fontStyle,
                                 ),
-                            maxLines: null,
+                            maxLines: 10,
                             minLines: 3,
                             cursorColor:
                                 FlutterFlowTheme.of(context).primaryText,
@@ -394,15 +396,15 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                           children: [
                             FFButtonWidget(
                               onPressed: () async {
-                                await CommentsRecord.collection
+                                await CharacterCommentsRecord.collection
                                     .doc()
-                                    .set(createCommentsRecordData(
+                                    .set(createCharacterCommentsRecordData(
                                       content: _model.textController.text,
-                                      storyRef: widget.storyRef,
                                       userRef: currentUserReference,
                                       userName: currentUserUid,
                                       userProfileImage: currentUserPhoto,
                                       timestamp: getCurrentTimestamp,
+                                      characterRef: widget.characterRef,
                                     ));
                                 safeSetState(() {
                                   _model.textController?.clear();
@@ -458,13 +460,14 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                         Builder(
                           builder: (context) {
                             if (_model.isSortByLatest) {
-                              return StreamBuilder<List<CommentsRecord>>(
-                                stream: queryCommentsRecord(
-                                  queryBuilder: (commentsRecord) =>
-                                      commentsRecord
+                              return StreamBuilder<
+                                  List<CharacterCommentsRecord>>(
+                                stream: queryCharacterCommentsRecord(
+                                  queryBuilder: (characterCommentsRecord) =>
+                                      characterCommentsRecord
                                           .where(
-                                            'story_ref',
-                                            isEqualTo: widget.storyRef,
+                                            'character_ref',
+                                            isEqualTo: widget.characterRef,
                                           )
                                           .where(
                                             'parent_comment_ref',
@@ -490,8 +493,8 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                                       ),
                                     );
                                   }
-                                  List<CommentsRecord>
-                                      listViewCommentsRecordList =
+                                  List<CharacterCommentsRecord>
+                                      listViewCharacterCommentsRecordList =
                                       snapshot.data!;
 
                                   return ListView.builder(
@@ -500,20 +503,22 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                                     shrinkWrap: true,
                                     scrollDirection: Axis.vertical,
                                     itemCount:
-                                        listViewCommentsRecordList.length,
+                                        listViewCharacterCommentsRecordList
+                                            .length,
                                     itemBuilder: (context, listViewIndex) {
-                                      final listViewCommentsRecord =
-                                          listViewCommentsRecordList[
+                                      final listViewCharacterCommentsRecord =
+                                          listViewCharacterCommentsRecordList[
                                               listViewIndex];
                                       return Container(
                                         height: 200.0,
-                                        child: StorycommentWidget(
+                                        child: CharactercommentWidget(
                                           key: Key(
-                                              'Key7jy_${listViewIndex}_of_${listViewCommentsRecordList.length}'),
+                                              'Keyvnz_${listViewIndex}_of_${listViewCharacterCommentsRecordList.length}'),
                                           isReply: false,
-                                          commentDocument:
-                                              listViewCommentsRecord,
-                                          parentStoryRef: widget.storyRef,
+                                          charactercommentDocument:
+                                              listViewCharacterCommentsRecord,
+                                          parentcharacterRef:
+                                              widget.characterRef,
                                         ),
                                       );
                                     },
@@ -521,13 +526,14 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                                 },
                               );
                             } else {
-                              return StreamBuilder<List<CommentsRecord>>(
-                                stream: queryCommentsRecord(
-                                  queryBuilder: (commentsRecord) =>
-                                      commentsRecord
+                              return StreamBuilder<
+                                  List<CharacterCommentsRecord>>(
+                                stream: queryCharacterCommentsRecord(
+                                  queryBuilder: (characterCommentsRecord) =>
+                                      characterCommentsRecord
                                           .where(
-                                            'story_ref',
-                                            isEqualTo: widget.storyRef,
+                                            'character_ref',
+                                            isEqualTo: widget.characterRef,
                                           )
                                           .where(
                                             'parent_comment_ref',
@@ -553,8 +559,8 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                                       ),
                                     );
                                   }
-                                  List<CommentsRecord>
-                                      listViewCommentsRecordList =
+                                  List<CharacterCommentsRecord>
+                                      listViewCharacterCommentsRecordList =
                                       snapshot.data!;
 
                                   return ListView.builder(
@@ -562,10 +568,11 @@ class _StorycommentlistWidgetState extends State<StorycommentlistWidget> {
                                     shrinkWrap: true,
                                     scrollDirection: Axis.vertical,
                                     itemCount:
-                                        listViewCommentsRecordList.length,
+                                        listViewCharacterCommentsRecordList
+                                            .length,
                                     itemBuilder: (context, listViewIndex) {
-                                      final listViewCommentsRecord =
-                                          listViewCommentsRecordList[
+                                      final listViewCharacterCommentsRecord =
+                                          listViewCharacterCommentsRecordList[
                                               listViewIndex];
                                       return Container(
                                           width: 100,

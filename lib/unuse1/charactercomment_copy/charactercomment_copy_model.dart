@@ -1,6 +1,6 @@
 import '/backend/custom_cloud_functions/custom_cloud_function_response_manager.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/story/charactercomment_copy/charactercomment_copy_widget.dart';
+import '/unuse1/charactercomment_copy/charactercomment_copy_widget.dart';
 import 'charactercomment_copy_widget.dart' show CharactercommentCopyWidget;
 import 'package:flutter/material.dart';
 

@@ -1,6 +1,6 @@
 import '/backend/custom_cloud_functions/custom_cloud_function_response_manager.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/story1/storycomment/storycomment_widget.dart';
+import '/story/storycomment/storycomment_widget.dart';
 import 'storycomment_widget.dart' show StorycommentWidget;
 import 'package:flutter/material.dart';
 

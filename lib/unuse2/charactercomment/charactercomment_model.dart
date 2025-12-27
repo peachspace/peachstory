@@ -1,6 +1,6 @@
 import '/backend/custom_cloud_functions/custom_cloud_function_response_manager.dart';
-import '/character/charactercomment/charactercomment_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/unuse2/charactercomment/charactercomment_widget.dart';
 import 'charactercomment_widget.dart' show CharactercommentWidget;
 import 'package:flutter/material.dart';
 
