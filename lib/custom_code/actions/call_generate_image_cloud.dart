@@ -11,67 +11,43 @@ import 'package:flutter/material.dart';
 
 import 'package:cloud_functions/cloud_functions.dart';
 
-Future<String?> callGenerateImageCloud(
+Future<String> callGenerateImageCloud(
+  // String? 이 아니라 String으로 변경 (강제)
   String prompt,
   String? characterImageUrl,
 ) async {
-  // [디버그 1] 함수 시작 알림
-  print('================= [DEBUG START] =================');
-  print('1. 입력된 프롬프트: $prompt');
-  print('2. 입력된 캐릭터 이미지: $characterImageUrl');
-
   try {
+    print('>>> [DEBUG] 클라우드 펑션 호출 시작');
+
     final functions = FirebaseFunctions.instance;
     final callable = functions.httpsCallable('generateReplicateImage');
-
-    print('3. 클라우드 펑션 호출 시작...');
 
     final results = await callable.call(<String, dynamic>{
       'prompt': prompt,
       'characterImageUrl': characterImageUrl,
     });
 
-    // [디버그 2] 서버 응답 확인
     final rawData = results.data;
-    print('4. 서버 응답 도착!');
-    print('   - 데이터 타입: ${rawData.runtimeType}');
-    print('   - 데이터 내용: $rawData');
+    print('>>> [DEBUG] 서버 응답: $rawData');
 
-    // 데이터 파싱 (안전 장치 포함)
-    String? finalUrl;
-
+    // 1. 서버가 { "success": true, "imageUrl": "..." } (Map)을 보낸 경우
     if (rawData is Map) {
-      print('5. 데이터가 Map(상자) 형태입니다.');
-      if (rawData.containsKey('imageUrl')) {
-        finalUrl = rawData['imageUrl']?.toString();
-        print('   - imageUrl 발견: $finalUrl');
+      if (rawData['imageUrl'] != null) {
+        return rawData['imageUrl'].toString(); // 성공 주소 반환
       } else {
-        print('   - ⚠️ 경고: Map 안에 imageUrl 키가 없습니다!');
+        return "ERROR: imageUrl missing in response"; // 에러 메시지 반환
       }
-    } else if (rawData is String) {
-      print('5. 데이터가 String(글자) 형태입니다.');
-      finalUrl = rawData;
-    } else {
-      print('5. ⚠️ 알 수 없는 데이터 타입입니다.');
+    }
+    // 2. 서버가 "https://..." (String)을 보낸 경우
+    else if (rawData is String) {
+      return rawData;
     }
 
-    if (finalUrl != null && finalUrl.isNotEmpty) {
-      print('6. 최종 반환할 URL: $finalUrl');
-      print('================= [DEBUG SUCCESS] =================');
-      return finalUrl;
-    } else {
-      print('6. ⚠️ 유효한 URL을 찾지 못했습니다.');
-      return null;
-    }
-  } catch (e, stackTrace) {
-    // [디버그 3] 에러 발생 시 상세 내용 출력
-    print('xxxxxxxxx [DEBUG ERROR] xxxxxxxxx');
-    print('에러 내용: $e');
-    print('스택 트레이스: $stackTrace');
-    print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-
-    // 앱이 멈추지 않게 null 반환
-    return null;
+    return "ERROR: Unknown Data Type (${rawData.runtimeType})";
+  } catch (e) {
+    print('>>> [DEBUG] 에러 발생: $e');
+    // 앱이 죽지 않게 에러 내용을 글자로 반환합니다.
+    return "ERROR: $e";
   }
 }
 // Set your action name, define your arguments and return parameter,

@@ -12,160 +12,126 @@ exports.generateReplicateImage = functions
   .runWith({
     secrets: ["REPLICATE_API_KEY"],
     timeoutSeconds: 540,
-    memory: "1GB", // 메모리 넉넉하게
+    memory: "1GB",
   })
   .https.onCall(async (data, context) => {
-    console.log(">>> [v2025_FINAL] AI 생성 및 서버 자동 저장 모드 <<<");
+    console.log(">>> [v2025_FINAL] AI Image Generation Started");
 
     if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Auth required");
+      return { success: false, imageUrl: null, error: "Auth Required" };
     }
 
     try {
       let characterImageUrl = data.characterImageUrl;
-      const prompt = data.prompt || "anime style, high quality";
+      const prompt = data.prompt || "anime style";
       const userId = context.auth.uid;
 
-      // 1. 이미지 주소 처리 (Signed URL 발급 등) - 기존 로직 유지
+      // 1. Signed URL 발급 (권한 문제 해결)
       let isValidUrl = false;
       if (characterImageUrl && typeof characterImageUrl === "string") {
-        characterImageUrl = characterImageUrl.trim();
         if (characterImageUrl.startsWith("http")) {
           isValidUrl = true;
         } else {
-          // gs:// 나 users/ 경로가 들어왔을 때 처리
           try {
-            let storagePath = characterImageUrl;
-            if (characterImageUrl.startsWith("gs://")) {
-              storagePath = characterImageUrl.split("/").slice(3).join("/");
-            }
             const bucket = admin.storage().bucket();
-            const file = bucket.file(storagePath);
+            let path = characterImageUrl;
+            if (path.startsWith("gs://"))
+              path = path.split("/").slice(3).join("/");
+
+            const file = bucket.file(path);
             const [exists] = await file.exists();
             if (exists) {
               const [signedUrl] = await file.getSignedUrl({
                 action: "read",
-                expires: Date.now() + 60 * 60 * 1000,
+                expires: Date.now() + 3600000,
               });
               characterImageUrl = signedUrl;
               isValidUrl = true;
             }
           } catch (e) {
-            console.error("URL 변환 실패:", e);
+            console.error("URL Convert Error:", e);
           }
         }
       }
 
-      // 2. Replicate에 생성 요청
+      // 2. Replicate 요청
       let apiUrl = "https://api.replicate.com/v1/predictions";
-      let requestBody = {};
-      const commonInputOptions = {
-        disable_safety_checker: true,
-        safety_checker: false,
+      let inputData = {
+        prompt: `anime style, ${prompt}`,
+        negative_prompt: "bad quality, distortion",
+        width: 1024,
+        height: 1024,
+        num_outputs: 1,
       };
 
       if (isValidUrl) {
-        requestBody = {
-          version:
-            "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
-          input: {
-            ...commonInputOptions,
-            image: characterImageUrl,
-            prompt: `anime style, ${prompt}`,
-            negative_prompt:
-              "realistic, photo, 3d, text, error, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, username, blurry",
-            width: 1024,
-            height: 1024,
-            num_outputs: 1,
-            randomise_poses: true,
-          },
-        };
+        inputData.image = characterImageUrl;
+        // 모델 버전: Image-to-Image
+        var version =
+          "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772";
       } else {
-        requestBody = {
-          version:
-            "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
-          input: {
-            ...commonInputOptions,
-            prompt: `anime style, character design, ${prompt}`,
-            negative_prompt: "photographic, realistic, low quality, distortion",
-            width: 1024,
-            height: 1024,
-            scheduler: "K_EULER",
-            num_outputs: 1,
-          },
-        };
+        // 모델 버전: Text-to-Image
+        var version =
+          "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b";
       }
 
-      const initialResponse = await axios.post(apiUrl, requestBody, {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
-          "Content-Type": "application/json",
+      const initialResponse = await axios.post(
+        apiUrl,
+        { version: version, input: inputData },
+        {
+          headers: { Authorization: `Bearer ${process.env.REPLICATE_API_KEY}` },
         },
-      });
+      );
 
       let prediction = initialResponse.data;
-      const getUrl = prediction.urls.get;
       let attempts = 0;
-
       while (
         prediction.status === "starting" ||
         prediction.status === "processing"
       ) {
-        attempts++;
-        if (attempts > 60) throw new Error("Time out");
+        if (attempts++ > 60) throw new Error("Timeout");
         await sleep(2000);
-        const statusResponse = await axios.get(getUrl, {
-          headers: { Authorization: `Bearer ${process.env.REPLICATE_API_KEY}` },
-        });
-        prediction = statusResponse.data;
+        prediction = (
+          await axios.get(prediction.urls.get, {
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
+            },
+          })
+        ).data;
       }
 
-      if (prediction.status !== "succeeded") {
-        throw new Error(prediction.error || "Generation Failed");
-      }
+      if (prediction.status !== "succeeded")
+        throw new Error(prediction.error || "Failed");
 
-      const rawAiImageUrl = Array.isArray(prediction.output)
-        ? prediction.output[0]
-        : prediction.output;
+      const rawUrl = prediction.output[0] || prediction.output;
 
-      // ======================================================
-      // [핵심 해결] 3. 서버가 직접 다운로드해서 Firebase에 저장
-      // ======================================================
+      // 3. 서버에서 바로 저장 (CORS 방지)
       try {
-        // (1) AI 이미지 다운로드 (서버끼리는 CORS 문제 없음)
-        const imageResponse = await axios.get(rawAiImageUrl, {
+        const imgResp = await axios.get(rawUrl, {
           responseType: "arraybuffer",
         });
-        const buffer = Buffer.from(imageResponse.data, "binary");
+        const fileName = `ai_${Date.now()}.png`;
+        const file = admin
+          .storage()
+          .bucket()
+          .file(`users/${userId}/uploads/${fileName}`);
 
-        // (2) Firebase Storage에 저장
-        const fileName = `ai_gen_${Date.now()}.png`;
-        const filePath = `users/${userId}/uploads/${fileName}`; // 사용자 폴더에 저장
-        const bucket = admin.storage().bucket();
-        const file = bucket.file(filePath);
-
-        await file.save(buffer, {
+        await file.save(imgResp.data, {
           metadata: { contentType: "image/png" },
         });
-
-        // (3) 영구 다운로드 URL 생성 (Long-lived Signed URL)
-        // 2100년까지 유효한 주소를 만듭니다.
-        const [permanentUrl] = await file.getSignedUrl({
+        const [permUrl] = await file.getSignedUrl({
           action: "read",
           expires: "03-01-2100",
         });
 
-        console.log("Firebase 저장 성공:", permanentUrl);
-
-        // ★ 앱으로 '저장된 주소'를 반환합니다.
-        return { success: true, imageUrl: permanentUrl };
-      } catch (saveError) {
-        console.error("서버 저장 중 에러:", saveError);
-        // 저장이 실패해도 일단 원본이라도 줍니다.
-        return { success: true, imageUrl: rawAiImageUrl };
+        return { success: true, imageUrl: permUrl }; // ★ 최종 주소 반환
+      } catch (saveErr) {
+        console.error("Save Error:", saveErr);
+        return { success: true, imageUrl: rawUrl }; // 저장 실패시 원본이라도 반환
       }
     } catch (error) {
-      console.error("최종 에러:", error);
-      throw new functions.https.HttpsError("internal", error.message);
+      console.error("Function Error:", error);
+      // 에러가 나도 앱이 죽지 않게 Map 형태로 반환
+      return { success: false, imageUrl: null, error: error.message };
     }
   });
