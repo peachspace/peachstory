@@ -1,12 +1,11 @@
 const functions = require("firebase-functions");
 const axios = require("axios");
-const admin = require("firebase-admin"); // [추가] 버킷 이름 가져오기 위해 필요
+const admin = require("firebase-admin");
 
 if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-// 도우미 함수: 일정 시간 대기
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 exports.generateReplicateImage = functions
@@ -16,7 +15,7 @@ exports.generateReplicateImage = functions
     memory: "512MB",
   })
   .https.onCall(async (data, context) => {
-    console.log(">>> [v2025_FIXED] 이미지 경로 자동 보정 모드 <<<");
+    console.log(">>> [v2025_SIGNED_URL] 보안 이미지 처리 모드 <<<");
 
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "Auth required");
@@ -26,56 +25,81 @@ exports.generateReplicateImage = functions
       let characterImageUrl = data.characterImageUrl;
       const prompt = data.prompt || "anime style, high quality";
 
-      console.log("[DEBUG] 원본 경로:", characterImageUrl);
+      console.log("[DEBUG] 입력된 경로:", characterImageUrl);
 
-      // URL 검증 및 변환 로직 강화
+      // ---------------------------------------------------------
+      // [핵심 로직] Signed URL (임시 다운로드 주소) 발급
+      // ---------------------------------------------------------
       let isValidUrl = false;
+
       if (characterImageUrl && typeof characterImageUrl === "string") {
         characterImageUrl = characterImageUrl.trim();
 
-        // 1. gs:// 형식 변환 (기존 코드)
-        if (characterImageUrl.startsWith("gs://")) {
-          const parts = characterImageUrl.replace("gs://", "").split("/");
-          const bucket = parts[0];
-          const path = parts.slice(1).join("%2F");
-          characterImageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${path}?alt=media`;
+        // 1. 이미 http로 시작하면(외부 URL) 그대로 사용
+        if (characterImageUrl.startsWith("http")) {
+          isValidUrl = true;
         }
-        // 2. [★수정됨] http도 아니고 gs도 아닌 '단순 경로(users/...)'가 들어왔을 때 처리
-        else if (!characterImageUrl.startsWith("http")) {
-          // 기본 스토리지 버킷 이름 가져오기
-          const bucket = admin.storage().bucket().name;
-          // 경로의 슬래시(/)를 %2F로 인코딩해야 함
-          const encodedPath = encodeURIComponent(characterImageUrl);
-          characterImageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
-          console.log(
-            "[DEBUG] 단순 경로를 Full URL로 변환함:",
-            characterImageUrl,
-          );
-        }
+        // 2. gs:// 로 시작하거나, users/ 등 단순 경로인 경우 -> Signed URL 발급
+        else {
+          let storagePath = characterImageUrl;
 
-        // 최종적으로 http로 시작하면 유효하다고 판단
-        if (characterImageUrl.startsWith("http")) isValidUrl = true;
+          // gs:// 제거
+          if (characterImageUrl.startsWith("gs://")) {
+            storagePath = characterImageUrl.split("/").slice(3).join("/");
+            // gs://bucket_name/path/to/file -> path/to/file
+          }
+
+          console.log("[DEBUG] 스토리지 파일 경로:", storagePath);
+
+          try {
+            const bucket = admin.storage().bucket(); // 기본 버킷 사용
+            const file = bucket.file(storagePath);
+
+            // 파일 존재 여부 확인 (옵션)
+            const [exists] = await file.exists();
+            if (!exists) {
+              console.warn("[WARN] 파일이 스토리지에 없습니다:", storagePath);
+              // 파일이 없으면 텍스트 생성 모드로 전환 (isValidUrl = false)
+            } else {
+              // 60분 동안 유효한 임시 주소 생성
+              const [signedUrl] = await file.getSignedUrl({
+                action: "read",
+                expires: Date.now() + 60 * 60 * 1000, // 1시간
+              });
+
+              characterImageUrl = signedUrl;
+              isValidUrl = true;
+              console.log(
+                "[DEBUG] Signed URL 발급 성공(일부):",
+                signedUrl.substring(0, 50) + "...",
+              );
+            }
+          } catch (signErr) {
+            console.error("[ERROR] Signed URL 발급 실패:", signErr);
+            // 실패 시 텍스트 모드로 진행
+          }
+        }
       }
 
-      console.log("[DEBUG] 최종 사용 URL:", characterImageUrl);
-      console.log("[DEBUG] isValidUrl 판정:", isValidUrl);
-
+      // ---------------------------------------------------------
+      // AI 요청 (Replicate)
+      // ---------------------------------------------------------
       let apiUrl = "https://api.replicate.com/v1/predictions";
       let requestBody = {};
-
       const commonInputOptions = {
         disable_safety_checker: true,
         safety_checker: false,
       };
 
       if (isValidUrl) {
-        // [CASE A] 캐릭터 참조 (Image-to-Image)
+        // [CASE A] 이미지 참조 (Image-to-Image)
+        console.log("[INFO] 이미지 참조 모드로 실행합니다.");
         requestBody = {
           version:
             "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
           input: {
             ...commonInputOptions,
-            image: characterImageUrl, // 변환된 정식 URL이 들어감
+            image: characterImageUrl, // ★ 여기서 Signed URL이 전달됨
             prompt: `anime style, ${prompt}`,
             negative_prompt:
               "realistic, photo, 3d, text, error, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, username, blurry",
@@ -86,11 +110,8 @@ exports.generateReplicateImage = functions
           },
         };
       } else {
-        // [CASE B] 캐릭터 미참조 (Text-to-Image)
-        // URL이 없거나 깨졌을 때만 이리로 옴
-        console.log(
-          "[WARN] 유효하지 않은 이미지 URL입니다. 텍스트로만 생성합니다.",
-        );
+        // [CASE B] 텍스트 생성 (Text-to-Image)
+        console.log("[INFO] 텍스트 생성 모드로 실행합니다. (이미지 없음/실패)");
         requestBody = {
           version:
             "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
@@ -106,7 +127,7 @@ exports.generateReplicateImage = functions
         };
       }
 
-      // 요청 보내기
+      // Replicate API 호출
       const initialResponse = await axios.post(apiUrl, requestBody, {
         headers: {
           Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
@@ -114,18 +135,18 @@ exports.generateReplicateImage = functions
         },
       });
 
+      // 결과 폴링 (Polling)
       let prediction = initialResponse.data;
       const getUrl = prediction.urls.get;
-
       let attempts = 0;
+
       while (
         prediction.status === "starting" ||
         prediction.status === "processing"
       ) {
         attempts++;
-        if (attempts > 60) throw new Error("시간 초과");
+        if (attempts > 60) throw new Error("Time out");
         await sleep(2000);
-
         const statusResponse = await axios.get(getUrl, {
           headers: { Authorization: `Bearer ${process.env.REPLICATE_API_KEY}` },
         });
@@ -137,15 +158,12 @@ exports.generateReplicateImage = functions
         const finalImageUrl = Array.isArray(output) ? output[0] : output;
         return { success: true, imageUrl: finalImageUrl };
       } else {
-        const errorMsg = prediction.error || "알 수 없는 오류";
-        console.error("Replicate 실패:", errorMsg);
-        if (errorMsg.includes("NSFW")) {
-          throw new Error("※경고: 모델의 강제 필터가 작동했습니다.");
-        }
-        throw new Error(`AI 처리 실패: ${errorMsg}`);
+        const errorMsg = prediction.error || "Unknown Error";
+        if (errorMsg.includes("NSFW")) throw new Error("NSFW filter triggered");
+        throw new Error(`AI Process Failed: ${errorMsg}`);
       }
     } catch (error) {
-      console.error("최종 에러 핸들러:", error);
+      console.error("Final Handler Error:", error);
       throw new functions.https.HttpsError("internal", error.message);
     }
   });
