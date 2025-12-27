@@ -1,5 +1,10 @@
 const functions = require("firebase-functions");
 const axios = require("axios");
+const admin = require("firebase-admin"); // [추가] 버킷 이름 가져오기 위해 필요
+
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 // 도우미 함수: 일정 시간 대기
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -11,8 +16,7 @@ exports.generateReplicateImage = functions
     memory: "512MB",
   })
   .https.onCall(async (data, context) => {
-    // [확인용 로그] 이 로그가 보여야 새 코드가 적용된 것입니다.
-    console.log(">>> [v2025_FREEDOM] 검열 해제 모드 실행 <<<");
+    console.log(">>> [v2025_FIXED] 이미지 경로 자동 보정 모드 <<<");
 
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "Auth required");
@@ -21,50 +25,58 @@ exports.generateReplicateImage = functions
     try {
       let characterImageUrl = data.characterImageUrl;
       const prompt = data.prompt || "anime style, high quality";
-      // ✅ (추가) 변환 전 원본 확인
-      console.log(
-        "[DEBUG] raw characterImageUrl:",
-        characterImageUrl,
-        "type:",
-        typeof characterImageUrl,
-      );
 
-      // URL 검증 및 변환
+      console.log("[DEBUG] 원본 경로:", characterImageUrl);
+
+      // URL 검증 및 변환 로직 강화
       let isValidUrl = false;
       if (characterImageUrl && typeof characterImageUrl === "string") {
         characterImageUrl = characterImageUrl.trim();
+
+        // 1. gs:// 형식 변환 (기존 코드)
         if (characterImageUrl.startsWith("gs://")) {
           const parts = characterImageUrl.replace("gs://", "").split("/");
           const bucket = parts[0];
           const path = parts.slice(1).join("%2F");
           characterImageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${path}?alt=media`;
         }
+        // 2. [★수정됨] http도 아니고 gs도 아닌 '단순 경로(users/...)'가 들어왔을 때 처리
+        else if (!characterImageUrl.startsWith("http")) {
+          // 기본 스토리지 버킷 이름 가져오기
+          const bucket = admin.storage().bucket().name;
+          // 경로의 슬래시(/)를 %2F로 인코딩해야 함
+          const encodedPath = encodeURIComponent(characterImageUrl);
+          characterImageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
+          console.log(
+            "[DEBUG] 단순 경로를 Full URL로 변환함:",
+            characterImageUrl,
+          );
+        }
+
+        // 최종적으로 http로 시작하면 유효하다고 판단
         if (characterImageUrl.startsWith("http")) isValidUrl = true;
       }
 
-      // ✅ (추가) 변환 후 최종값 + 판정
-      console.log("[DEBUG] final characterImageUrl:", characterImageUrl);
-      console.log("[DEBUG] isValidUrl:", isValidUrl);
+      console.log("[DEBUG] 최종 사용 URL:", characterImageUrl);
+      console.log("[DEBUG] isValidUrl 판정:", isValidUrl);
 
       let apiUrl = "https://api.replicate.com/v1/predictions";
       let requestBody = {};
 
-      // ★ 검열 해제 옵션 (가장 중요) ★
       const commonInputOptions = {
-        disable_safety_checker: true, // 검열 끄기
+        disable_safety_checker: true,
         safety_checker: false,
       };
 
       if (isValidUrl) {
-        // [CASE A] 캐릭터 유지 (상황 이미지)
+        // [CASE A] 캐릭터 참조 (Image-to-Image)
         requestBody = {
           version:
             "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
           input: {
             ...commonInputOptions,
-            image: characterImageUrl,
+            image: characterImageUrl, // 변환된 정식 URL이 들어감
             prompt: `anime style, ${prompt}`,
-            // negative_prompt에서 검열 관련 단어 제거함
             negative_prompt:
               "realistic, photo, 3d, text, error, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, username, blurry",
             width: 1024,
@@ -74,13 +86,16 @@ exports.generateReplicateImage = functions
           },
         };
       } else {
-        // [CASE B] 캐릭터 신규 생성
+        // [CASE B] 캐릭터 미참조 (Text-to-Image)
+        // URL이 없거나 깨졌을 때만 이리로 옴
+        console.log(
+          "[WARN] 유효하지 않은 이미지 URL입니다. 텍스트로만 생성합니다.",
+        );
         requestBody = {
           version:
             "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
           input: {
             ...commonInputOptions,
-            // 'safe for work' 제거함
             prompt: `anime style, character design, ${prompt}`,
             negative_prompt: "photographic, realistic, low quality, distortion",
             width: 1024,
@@ -102,7 +117,6 @@ exports.generateReplicateImage = functions
       let prediction = initialResponse.data;
       const getUrl = prediction.urls.get;
 
-      // 대기 (Polling)
       let attempts = 0;
       while (
         prediction.status === "starting" ||
@@ -118,7 +132,6 @@ exports.generateReplicateImage = functions
         prediction = statusResponse.data;
       }
 
-      // 결과 반환
       if (prediction.status === "succeeded") {
         const output = prediction.output;
         const finalImageUrl = Array.isArray(output) ? output[0] : output;
@@ -126,16 +139,13 @@ exports.generateReplicateImage = functions
       } else {
         const errorMsg = prediction.error || "알 수 없는 오류";
         console.error("Replicate 실패:", errorMsg);
-
-        // 에러 메시지 변경 (배포 확인용)
         if (errorMsg.includes("NSFW")) {
-          throw new Error(
-            "※경고: 모델의 강제 필터가 작동했습니다. 더 순화된 표현을 써보세요.",
-          );
+          throw new Error("※경고: 모델의 강제 필터가 작동했습니다.");
         }
         throw new Error(`AI 처리 실패: ${errorMsg}`);
       }
     } catch (error) {
+      console.error("최종 에러 핸들러:", error);
       throw new functions.https.HttpsError("internal", error.message);
     }
   });
