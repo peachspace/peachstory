@@ -375,18 +375,16 @@ class _CharacterWidgetState extends State<CharacterWidget> {
                                   );
                                 },
                               ).then((value) => safeSetState(
-                                  () => _model.createdImage = value));
+                                  () => _model.createdcharacterImage = value));
 
-                              if (functions.isValidImage(
-                                      functions.stringToImagePath(
-                                          _model.createdImage!)) ==
-                                  true) {
+                              if (_model.createdcharacterImage != null &&
+                                  _model.createdcharacterImage != '') {
                                 FFAppState().updateCharactersAtIndex(
                                   widget.index!,
                                   (e) => e
-                                    ..image = functions
-                                        .stringToImagePath(_model.createdImage!)
-                                    ..imageUrl = _model.createdImage,
+                                    ..image = functions.stringToImagePath(
+                                        _model.createdcharacterImage!)
+                                    ..imageUrl = _model.createdcharacterImage,
                                 );
                                 safeSetState(() {});
                               }

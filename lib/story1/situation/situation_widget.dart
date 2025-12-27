@@ -318,14 +318,16 @@ class _SituationWidgetState extends State<SituationWidget> {
                                 );
                               },
                             ).then((value) => safeSetState(
-                                () => _model.createdImage = value));
+                                () => _model.createdsituationmage = value));
 
-                            if (functions.isValidImage(functions
-                                    .stringToImagePath(_model.createdImage!)) ==
-                                true) {
+                            if (_model.createdsituationmage != null &&
+                                _model.createdsituationmage != '') {
                               FFAppState().updateSituationalImagesAtIndex(
                                 widget.index!,
-                                (e) => e..imageUrl = _model.createdImage,
+                                (e) => e
+                                  ..imageUrl = _model.createdsituationmage
+                                  ..image = functions.stringToImagePath(
+                                      _model.createdsituationmage!),
                               );
                               safeSetState(() {});
                             }

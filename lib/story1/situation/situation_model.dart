@@ -10,7 +10,7 @@ class SituationModel extends FlutterFlowModel<SituationWidget> {
   ///  State fields for stateful widgets in this component.
 
   // Stores action output result for [Bottom Sheet - imagecreate] action in Button widget.
-  String? createdImage;
+  String? createdsituationmage;
   bool isDataUploading_uploadsituationimage = false;
   FFUploadedFile uploadedLocalFile_uploadsituationimage =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');

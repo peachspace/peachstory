@@ -10,9 +10,11 @@ class SituationalImageStructStruct extends FFFirebaseStruct {
   SituationalImageStructStruct({
     String? condition,
     String? imageUrl,
+    String? image,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _condition = condition,
         _imageUrl = imageUrl,
+        _image = image,
         super(firestoreUtilData);
 
   // "condition" field.
@@ -29,10 +31,18 @@ class SituationalImageStructStruct extends FFFirebaseStruct {
 
   bool hasImageUrl() => _imageUrl != null;
 
+  // "image" field.
+  String? _image;
+  String get image => _image ?? '';
+  set image(String? val) => _image = val;
+
+  bool hasImage() => _image != null;
+
   static SituationalImageStructStruct fromMap(Map<String, dynamic> data) =>
       SituationalImageStructStruct(
         condition: data['condition'] as String?,
         imageUrl: data['imageUrl'] as String?,
+        image: data['image'] as String?,
       );
 
   static SituationalImageStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -42,6 +52,7 @@ class SituationalImageStructStruct extends FFFirebaseStruct {
   Map<String, dynamic> toMap() => {
         'condition': _condition,
         'imageUrl': _imageUrl,
+        'image': _image,
       }.withoutNulls;
 
   @override
@@ -52,6 +63,10 @@ class SituationalImageStructStruct extends FFFirebaseStruct {
         ),
         'imageUrl': serializeParam(
           _imageUrl,
+          ParamType.String,
+        ),
+        'image': serializeParam(
+          _image,
           ParamType.String,
         ),
       }.withoutNulls;
@@ -66,6 +81,11 @@ class SituationalImageStructStruct extends FFFirebaseStruct {
         ),
         imageUrl: deserializeParam(
           data['imageUrl'],
+          ParamType.String,
+          false,
+        ),
+        image: deserializeParam(
+          data['image'],
           ParamType.String,
           false,
         ),
@@ -84,6 +104,11 @@ class SituationalImageStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
+        image: convertAlgoliaParam(
+          data['image'],
+          ParamType.String,
+          false,
+        ),
         firestoreUtilData: FirestoreUtilData(
           clearUnsetFields: false,
           create: true,
@@ -97,16 +122,18 @@ class SituationalImageStructStruct extends FFFirebaseStruct {
   bool operator ==(Object other) {
     return other is SituationalImageStructStruct &&
         condition == other.condition &&
-        imageUrl == other.imageUrl;
+        imageUrl == other.imageUrl &&
+        image == other.image;
   }
 
   @override
-  int get hashCode => const ListEquality().hash([condition, imageUrl]);
+  int get hashCode => const ListEquality().hash([condition, imageUrl, image]);
 }
 
 SituationalImageStructStruct createSituationalImageStructStruct({
   String? condition,
   String? imageUrl,
+  String? image,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
@@ -115,6 +142,7 @@ SituationalImageStructStruct createSituationalImageStructStruct({
     SituationalImageStructStruct(
       condition: condition,
       imageUrl: imageUrl,
+      image: image,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,

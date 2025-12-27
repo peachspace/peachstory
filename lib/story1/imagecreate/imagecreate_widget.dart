@@ -262,20 +262,18 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                                       if (_model.selectedCharImage ==
                                           charItemItem.imageUrl) {
                                         _model.selectedCharImage = '';
+                                        _model.removeFromSelectedIndices(
+                                            charItemIndex);
                                         safeSetState(() {});
                                       } else {
-                                        if (_model.selectedIndices
-                                            .contains(charItemIndex)) {
-                                          _model
-                                              .removeAtIndexFromSelectedIndices(
-                                                  charItemIndex);
-                                          safeSetState(() {});
-                                        } else {
-                                          _model.addToSelectedIndices(
-                                              charItemIndex);
-                                          safeSetState(() {});
-                                        }
-
+                                        _model.selectedCharImage =
+                                            charItemItem.imageUrl;
+                                        _model.selectedIndices = (int index) {
+                                          return [index];
+                                        }(charItemIndex)
+                                            .toList()
+                                            .cast<int>();
+                                        safeSetState(() {});
                                         _model.selectedCharImage =
                                             charItemItem.imageUrl;
                                         safeSetState(() {});
