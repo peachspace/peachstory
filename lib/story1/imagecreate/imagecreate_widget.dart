@@ -599,13 +599,9 @@ class _ImagecreateWidgetState extends State<ImagecreateWidget>
                         ).toString(),
                         _model.selectedCharImage,
                       );
-                      _model.permanentUrl =
-                          await actions.saveReplicateImageToStorage(
-                        _model.newImageResult!,
-                      );
-                      if (_model.permanentUrl != null &&
-                          _model.permanentUrl != '') {
-                        _model.generatedImageUrl = _model.permanentUrl;
+                      if (_model.newImageResult != null &&
+                          _model.newImageResult != '') {
+                        _model.generatedImageUrl = _model.newImageResult;
                         _model.isImageLoading = false;
                         safeSetState(() {});
                       } else {
