@@ -15,10 +15,14 @@ exports.generateReplicateImage = functions
     memory: "1GB",
   })
   .https.onCall(async (data, context) => {
-    console.log(">>> [v2025_FINAL] AI Image Generation Started");
+    // 1. 디버깅 로그 (Firebase Console에서 확인 가능)
+    console.log(
+      "DEBUG: 함수 시작. 입력된 이미지 경로:",
+      data.characterImageUrl,
+    );
 
     if (!context.auth) {
-      return { success: false, imageUrl: null, error: "Auth Required" };
+      return { success: false, error: "로그인이 필요합니다." };
     }
 
     try {
@@ -26,39 +30,60 @@ exports.generateReplicateImage = functions
       const prompt = data.prompt || "anime style";
       const userId = context.auth.uid;
 
-      // 1. Signed URL 발급 (권한 문제 해결)
+      // ----------------------------------------------------
+      // [핵심] users/ 경로가 들어오면 다운로드 가능한 URL로 변환
+      // ----------------------------------------------------
       let isValidUrl = false;
-      if (characterImageUrl && typeof characterImageUrl === "string") {
+      if (
+        characterImageUrl &&
+        typeof characterImageUrl === "string" &&
+        characterImageUrl.length > 5
+      ) {
+        characterImageUrl = characterImageUrl.trim();
+
         if (characterImageUrl.startsWith("http")) {
+          // 이미 http URL이면 그대로 사용
           isValidUrl = true;
         } else {
+          // gs:// 또는 users/ 경로 처리 -> Signed URL 발급
           try {
             const bucket = admin.storage().bucket();
             let path = characterImageUrl;
             if (path.startsWith("gs://"))
               path = path.split("/").slice(3).join("/");
 
+            console.log("DEBUG: 변환할 스토리지 경로:", path);
+
             const file = bucket.file(path);
             const [exists] = await file.exists();
+
             if (exists) {
+              // 1시간 유효한 임시 URL 생성
               const [signedUrl] = await file.getSignedUrl({
                 action: "read",
-                expires: Date.now() + 3600000,
+                expires: Date.now() + 60 * 60 * 1000,
               });
               characterImageUrl = signedUrl;
               isValidUrl = true;
+              console.log("DEBUG: Signed URL 발급 성공");
+            } else {
+              console.warn("DEBUG: 파일이 존재하지 않음");
             }
           } catch (e) {
-            console.error("URL Convert Error:", e);
+            console.error("DEBUG: URL 변환 중 에러:", e);
           }
         }
       }
 
-      // 2. Replicate 요청
+      // ----------------------------------------------------
+      // Replicate 요청 (안전장치 준수)
+      // ----------------------------------------------------
       let apiUrl = "https://api.replicate.com/v1/predictions";
+
+      // 안전장치(disable_safety_checker) 제거됨 - 정석 구현
       let inputData = {
         prompt: `anime style, ${prompt}`,
-        negative_prompt: "bad quality, distortion",
+        negative_prompt: "low quality, distortion, text, watermark",
         width: 1024,
         height: 1024,
         num_outputs: 1,
@@ -66,11 +91,14 @@ exports.generateReplicateImage = functions
 
       if (isValidUrl) {
         inputData.image = characterImageUrl;
-        // 모델 버전: Image-to-Image
+        // Image-to-Image 모델
         var version =
           "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772";
       } else {
-        // 모델 버전: Text-to-Image
+        console.log(
+          "DEBUG: 이미지가 없거나 유효하지 않아 Text-to-Image로 전환",
+        );
+        // Text-to-Image 모델
         var version =
           "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b";
       }
@@ -84,15 +112,18 @@ exports.generateReplicateImage = functions
       );
 
       let prediction = initialResponse.data;
+      const getUrl = prediction.urls.get;
+
+      // 대기 (Polling)
       let attempts = 0;
       while (
         prediction.status === "starting" ||
         prediction.status === "processing"
       ) {
-        if (attempts++ > 60) throw new Error("Timeout");
+        if (attempts++ > 60) throw new Error("시간 초과 (Timeout)");
         await sleep(2000);
         prediction = (
-          await axios.get(prediction.urls.get, {
+          await axios.get(getUrl, {
             headers: {
               Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
             },
@@ -100,17 +131,20 @@ exports.generateReplicateImage = functions
         ).data;
       }
 
-      if (prediction.status !== "succeeded")
-        throw new Error(prediction.error || "Failed");
+      if (prediction.status !== "succeeded") {
+        throw new Error(prediction.error || "AI 생성 실패");
+      }
 
-      const rawUrl = prediction.output[0] || prediction.output;
+      const rawAiUrl = prediction.output[0] || prediction.output;
 
-      // 3. 서버에서 바로 저장 (CORS 방지)
+      // ----------------------------------------------------
+      // 결과 이미지 저장 (CORS 및 영구 보관 해결)
+      // ----------------------------------------------------
       try {
-        const imgResp = await axios.get(rawUrl, {
+        const imgResp = await axios.get(rawAiUrl, {
           responseType: "arraybuffer",
         });
-        const fileName = `ai_${Date.now()}.png`;
+        const fileName = `ai_gen_${Date.now()}.png`;
         const file = admin
           .storage()
           .bucket()
@@ -119,19 +153,21 @@ exports.generateReplicateImage = functions
         await file.save(imgResp.data, {
           metadata: { contentType: "image/png" },
         });
+
+        // 2100년까지 유효한 URL 발급 (사실상 영구)
         const [permUrl] = await file.getSignedUrl({
           action: "read",
           expires: "03-01-2100",
         });
 
-        return { success: true, imageUrl: permUrl }; // ★ 최종 주소 반환
+        return { success: true, imageUrl: permUrl };
       } catch (saveErr) {
-        console.error("Save Error:", saveErr);
-        return { success: true, imageUrl: rawUrl }; // 저장 실패시 원본이라도 반환
+        console.error("DEBUG: 저장 실패, 원본 반환:", saveErr);
+        // 저장이 안 되어도 AI가 만든 원본 주소라도 반환 (차선책)
+        return { success: true, imageUrl: rawAiUrl };
       }
     } catch (error) {
-      console.error("Function Error:", error);
-      // 에러가 나도 앱이 죽지 않게 Map 형태로 반환
-      return { success: false, imageUrl: null, error: error.message };
+      console.error("DEBUG: 최종 에러:", error);
+      return { success: false, error: error.message };
     }
   });

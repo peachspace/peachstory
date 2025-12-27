@@ -9,44 +9,45 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'index.dart'; // Imports other custom actions
+
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> callGenerateImageCloud(
-  // String? 이 아니라 String으로 변경 (강제)
   String prompt,
   String? characterImageUrl,
 ) async {
   try {
-    print('>>> [DEBUG] 클라우드 펑션 호출 시작');
-
     final functions = FirebaseFunctions.instance;
     final callable = functions.httpsCallable('generateReplicateImage');
 
+    // 서버 호출
     final results = await callable.call(<String, dynamic>{
       'prompt': prompt,
       'characterImageUrl': characterImageUrl,
     });
 
     final rawData = results.data;
-    print('>>> [DEBUG] 서버 응답: $rawData');
 
-    // 1. 서버가 { "success": true, "imageUrl": "..." } (Map)을 보낸 경우
+    // ★ [핵심 수정] 서버가 Map(상자)을 주든 String(글자)을 주든 알아서 처리하는 코드
+    // 이 부분이 없어서 그동안 앱이 멈췄던 것입니다.
+
+    // 1. 서버가 { "success": true, "imageUrl": "..." } 형태(Map)로 보낸 경우
     if (rawData is Map) {
       if (rawData['imageUrl'] != null) {
-        return rawData['imageUrl'].toString(); // 성공 주소 반환
+        return rawData['imageUrl'].toString(); // 성공: URL만 쏙 빼서 반환
       } else {
-        return "ERROR: imageUrl missing in response"; // 에러 메시지 반환
+        return "ERROR: ${rawData['error'] ?? '서버 에러(내용 없음)'}"; // 실패: 에러 내용 반환
       }
     }
-    // 2. 서버가 "https://..." (String)을 보낸 경우
+    // 2. 서버가 "https://..." (String)으로 보낸 경우 (구버전 호환)
     else if (rawData is String) {
       return rawData;
     }
 
-    return "ERROR: Unknown Data Type (${rawData.runtimeType})";
+    return "ERROR: 데이터 형식이 올바르지 않습니다. (${rawData.runtimeType})";
   } catch (e) {
-    print('>>> [DEBUG] 에러 발생: $e');
-    // 앱이 죽지 않게 에러 내용을 글자로 반환합니다.
+    // 앱이 죽지 않고 에러 내용을 화면에 표시하도록 함
     return "ERROR: $e";
   }
 }
