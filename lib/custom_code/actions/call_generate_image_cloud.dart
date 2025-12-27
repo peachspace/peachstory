@@ -15,39 +15,62 @@ Future<String?> callGenerateImageCloud(
   String prompt,
   String? characterImageUrl,
 ) async {
+  // [디버그 1] 함수 시작 알림
+  print('================= [DEBUG START] =================');
+  print('1. 입력된 프롬프트: $prompt');
+  print('2. 입력된 캐릭터 이미지: $characterImageUrl');
+
   try {
     final functions = FirebaseFunctions.instance;
-    // 함수 이름이 정확한지 확인하세요
     final callable = functions.httpsCallable('generateReplicateImage');
+
+    print('3. 클라우드 펑션 호출 시작...');
 
     final results = await callable.call(<String, dynamic>{
       'prompt': prompt,
       'characterImageUrl': characterImageUrl,
     });
 
-    // ★ [핵심 수정] 어떤 데이터가 와도 뻗지 않도록 타입 체크를 합니다. ★
+    // [디버그 2] 서버 응답 확인
     final rawData = results.data;
+    print('4. 서버 응답 도착!');
+    print('   - 데이터 타입: ${rawData.runtimeType}');
+    print('   - 데이터 내용: $rawData');
 
-    // 디버깅용: 콘솔에 뭐가 왔는지 찍어봅니다.
-    print('Cloud Function Returned: $rawData');
+    // 데이터 파싱 (안전 장치 포함)
+    String? finalUrl;
 
-    // Case 1: 새로운 방식 (Map으로 온 경우) - { success: true, imageUrl: "..." }
     if (rawData is Map) {
-      if (rawData['imageUrl'] != null) {
-        return rawData['imageUrl'].toString();
+      print('5. 데이터가 Map(상자) 형태입니다.');
+      if (rawData.containsKey('imageUrl')) {
+        finalUrl = rawData['imageUrl']?.toString();
+        print('   - imageUrl 발견: $finalUrl');
+      } else {
+        print('   - ⚠️ 경고: Map 안에 imageUrl 키가 없습니다!');
       }
-    }
-    // Case 2: 예전 방식 (String으로 온 경우) - "https://..."
-    else if (rawData is String) {
-      return rawData;
+    } else if (rawData is String) {
+      print('5. 데이터가 String(글자) 형태입니다.');
+      finalUrl = rawData;
+    } else {
+      print('5. ⚠️ 알 수 없는 데이터 타입입니다.');
     }
 
-    // 데이터가 없거나 이상하면 null 반환 (앱이 죽는 대신 조용히 넘어감)
-    print('Warning: Unexpected data format');
-    return null;
-  } catch (e) {
-    // 에러 발생 시 로그 출력
-    print('Cloud Function Error: $e');
+    if (finalUrl != null && finalUrl.isNotEmpty) {
+      print('6. 최종 반환할 URL: $finalUrl');
+      print('================= [DEBUG SUCCESS] =================');
+      return finalUrl;
+    } else {
+      print('6. ⚠️ 유효한 URL을 찾지 못했습니다.');
+      return null;
+    }
+  } catch (e, stackTrace) {
+    // [디버그 3] 에러 발생 시 상세 내용 출력
+    print('xxxxxxxxx [DEBUG ERROR] xxxxxxxxx');
+    print('에러 내용: $e');
+    print('스택 트레이스: $stackTrace');
+    print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+
+    // 앱이 멈추지 않게 null 반환
     return null;
   }
 }
