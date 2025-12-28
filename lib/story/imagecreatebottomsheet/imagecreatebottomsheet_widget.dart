@@ -154,7 +154,8 @@ class _ImagecreatebottomsheetWidgetState
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15.0),
                         child: Image.network(
-                          _model.generatedImageUrl!,
+                          functions
+                              .stringToImagePath(_model.generatedImageUrl!),
                           width: double.infinity,
                           height: 300.0,
                           fit: BoxFit.cover,
@@ -294,7 +295,8 @@ class _ImagecreatebottomsheetWidgetState
                                         borderRadius:
                                             BorderRadius.circular(10.0),
                                         child: Image.network(
-                                          charItemItem.image,
+                                          functions.stringToImagePath(
+                                              charItemItem.imageUrl),
                                           width: 70.0,
                                           height: 70.0,
                                           fit: BoxFit.contain,
