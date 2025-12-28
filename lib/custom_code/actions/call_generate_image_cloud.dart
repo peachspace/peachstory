@@ -9,24 +9,20 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'index.dart';
-import '/flutter_flow/custom_functions.dart';
-
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cloud_functions/cloud_functions.dart'; // 패키지 확인 필요
 
 Future<String?> callGenerateImageCloud(
-  String mode, // "character" 또는 "situation" (새로 추가됨)
+  String mode,
   String prompt,
   String? characterImageUrl,
 ) async {
   try {
-    // 1. 리전 설정 (필수)
+    // 1. 리전 확인 (본인의 Firebase 리전과 일치해야 함!)
     final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
     final callable = functions.httpsCallable('generateReplicateImage');
 
     print('DEBUG: 호출 시작 Mode=$mode');
 
-    // 2. 서버 호출 (mode 전달)
     final results = await callable.call(<String, dynamic>{
       'mode': mode,
       'prompt': prompt,
@@ -36,17 +32,23 @@ Future<String?> callGenerateImageCloud(
     final rawData = results.data;
     print('DEBUG: 서버 응답 $rawData');
 
-    // 3. 응답 파싱 (안전하게 URL 추출)
-    if (rawData is Map) {
-      if (rawData['imageUrl'] != null) {
-        return rawData['imageUrl'].toString();
-      }
+    if (rawData is Map && rawData['imageUrl'] != null) {
+      return rawData['imageUrl'].toString();
     }
 
-    return null; // 실패 시 null 반환 (앱 멈춤 방지)
+    // 서버가 에러 메시지를 보낸 경우 확인
+    if (rawData is Map && rawData['error'] != null) {
+      print('DEBUG: 서버 로직 에러: ${rawData['error']}');
+    }
+
+    return null;
+  } on FirebaseFunctionsException catch (e) {
+    // ★ 여기서 404인지 확실히 알 수 있습니다.
+    print('DEBUG: Firebase 함수 에러 (Code: ${e.code}): ${e.message}');
+    return null;
   } catch (e) {
-    print('DEBUG: 에러 발생 $e');
-    return null; // 에러 시 null 반환
+    print('DEBUG: 알 수 없는 에러 $e');
+    return null;
   }
 }
 // Set your action name, define your arguments and return parameter,
