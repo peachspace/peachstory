@@ -13,7 +13,7 @@ import 'index.dart'; // Imports other custom actions
 
 import 'package:cloud_functions/cloud_functions.dart';
 
-Future<String> callGenerateImageCloud(
+Future<String?> callGenerateImageCloud(
   String prompt,
   String? characterImageUrl,
 ) async {
@@ -21,7 +21,6 @@ Future<String> callGenerateImageCloud(
     final functions = FirebaseFunctions.instance;
     final callable = functions.httpsCallable('generateReplicateImage');
 
-    // 서버 호출
     final results = await callable.call(<String, dynamic>{
       'prompt': prompt,
       'characterImageUrl': characterImageUrl,
@@ -29,26 +28,19 @@ Future<String> callGenerateImageCloud(
 
     final rawData = results.data;
 
-    // ★ [핵심 수정] 서버가 Map(상자)을 주든 String(글자)을 주든 알아서 처리하는 코드
-    // 이 부분이 없어서 그동안 앱이 멈췄던 것입니다.
-
-    // 1. 서버가 { "success": true, "imageUrl": "..." } 형태(Map)로 보낸 경우
-    if (rawData is Map) {
-      if (rawData['imageUrl'] != null) {
-        return rawData['imageUrl'].toString(); // 성공: URL만 쏙 빼서 반환
-      } else {
-        return "ERROR: ${rawData['error'] ?? '서버 에러(내용 없음)'}"; // 실패: 에러 내용 반환
-      }
+    // 성공한 경우 (URL인 경우)에만 반환
+    if (rawData is Map && rawData['imageUrl'] != null) {
+      return rawData['imageUrl'].toString();
     }
-    // 2. 서버가 "https://..." (String)으로 보낸 경우 (구버전 호환)
-    else if (rawData is String) {
+    if (rawData is String && rawData.startsWith('http')) {
       return rawData;
     }
 
-    return "ERROR: 데이터 형식이 올바르지 않습니다. (${rawData.runtimeType})";
+    // ★ 실패하면 그냥 null 반환 (복잡한 메시지 X)
+    return null;
   } catch (e) {
-    // 앱이 죽지 않고 에러 내용을 화면에 표시하도록 함
-    return "ERROR: $e";
+    // ★ 에러 나도 그냥 null 반환
+    return null;
   }
 }
 // Set your action name, define your arguments and return parameter,
