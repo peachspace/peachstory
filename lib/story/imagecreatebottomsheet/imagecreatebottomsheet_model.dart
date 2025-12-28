@@ -36,7 +36,9 @@ class ImagecreatebottomsheetModel
   // Stores action output result for [Custom Action - translateToEnglish] action in aimake widget.
   String? englishPrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aimake widget.
-  String? newImageResult;
+  String? newcharacterImageResult;
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aimake widget.
+  String? newsituationImageResult;
 
   @override
   void initState(BuildContext context) {}

@@ -2,11 +2,15 @@ const functions = require("firebase-functions");
 const axios = require("axios");
 const admin = require("firebase-admin");
 
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
+if (!admin.apps.length) admin.initializeApp();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// 모델 버전 상수 정의
+const ANIMAGINE_VERSION =
+  "6d17167db6b7e31a65191c51f3d3cd0f864c14aee708a66ecfbc8c4e696ad06b"; // 캐릭터 생성용
+const IDEOGRAM_VERSION =
+  "77d8da192375ce51fa632db399ba3765e6f08da36890f0be5e3e479e09dd79ea"; // 상황 생성용
 
 exports.generateReplicateImage = functions
   .runWith({
@@ -15,119 +19,104 @@ exports.generateReplicateImage = functions
     memory: "1GB",
   })
   .https.onCall(async (data, context) => {
-    // 1. 디버깅 로그
-    console.log(
-      "DEBUG: 함수 시작. 입력된 이미지 경로:",
-      data.characterImageUrl,
-    );
-
-    if (!context.auth) {
-      return { success: false, error: "로그인이 필요합니다." };
-    }
+    if (!context.auth) return { success: false, error: "로그인이 필요합니다." };
 
     try {
-      let characterImageUrl = data.characterImageUrl;
-      const prompt = data.prompt || "anime style";
       const userId = context.auth.uid;
+      // ★ 핵심: 모드 분기 (기본값은 캐릭터 생성)
+      const mode = data.mode || "character";
+      const prompt = data.prompt || "anime style";
+      let characterImageUrl = data.characterImageUrl;
 
-      // ----------------------------------------------------
-      // [이미지 URL 변환 로직]
-      // ----------------------------------------------------
-      let isValidUrl = false;
-      let hasImageInput = false; // 이미지가 입력되었는지 여부 체크
+      console.log(`DEBUG: 시작 Mode=${mode}, Prompt=${prompt}`);
 
-      if (
-        characterImageUrl &&
-        typeof characterImageUrl === "string" &&
-        characterImageUrl.length > 5
-      ) {
-        hasImageInput = true;
-        characterImageUrl = characterImageUrl.trim();
+      let version;
+      let inputData;
 
-        if (characterImageUrl.startsWith("http")) {
-          isValidUrl = true;
-        } else {
-          // gs:// 또는 users/ 경로 처리 -> Signed URL 발급
-          try {
-            const bucket = admin.storage().bucket();
-            let path = characterImageUrl;
-            if (path.startsWith("gs://"))
-              path = path.split("/").slice(3).join("/");
+      // ====================================================
+      // [CASE 1] 캐릭터 생성 (Text-to-Image)
+      // ====================================================
+      if (mode === "character") {
+        version = ANIMAGINE_VERSION;
+        inputData = {
+          prompt: `1girl, masterpiece, best quality, ${prompt}`,
+          negative_prompt:
+            "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+          width: 1024,
+          height: 1024,
+          guidance_scale: 7,
+          num_inference_steps: 28,
+        };
+      }
+      // ====================================================
+      // [CASE 2] 상황 생성 (Image-to-Image / Reference)
+      // ====================================================
+      else if (mode === "situation") {
+        version = IDEOGRAM_VERSION;
 
-            console.log("DEBUG: 변환할 스토리지 경로:", path);
-
-            const file = bucket.file(path);
-            const [exists] = await file.exists();
-
-            if (exists) {
-              // 1시간 유효한 임시 URL 생성
-              const [signedUrl] = await file.getSignedUrl({
-                action: "read",
-                expires: Date.now() + 60 * 60 * 1000,
-              });
-              characterImageUrl = signedUrl;
-              isValidUrl = true;
-              console.log("DEBUG: Signed URL 발급 성공");
-            } else {
-              console.warn("DEBUG: 파일이 존재하지 않음");
+        // 이미지 주소 변환 (gs:// -> Signed URL)
+        let validUrl = null;
+        if (
+          characterImageUrl &&
+          typeof characterImageUrl === "string" &&
+          characterImageUrl.length > 5
+        ) {
+          if (characterImageUrl.startsWith("http")) {
+            validUrl = characterImageUrl;
+          } else {
+            // 경로 처리
+            try {
+              const bucket = admin.storage().bucket();
+              let path = characterImageUrl;
+              if (path.startsWith("gs://"))
+                path = path.split("/").slice(3).join("/");
+              const [exists] = await bucket.file(path).exists();
+              if (exists) {
+                const [signedUrl] = await bucket.file(path).getSignedUrl({
+                  action: "read",
+                  expires: Date.now() + 3600000,
+                });
+                validUrl = signedUrl;
+              }
+            } catch (e) {
+              console.error("URL 변환 실패", e);
             }
-          } catch (e) {
-            console.error("DEBUG: URL 변환 중 에러:", e);
           }
         }
-      }
 
-      // ----------------------------------------------------
-      // Replicate 요청 (캐릭터 일관성 유지 모델)
-      // ----------------------------------------------------
-      let apiUrl = "https://api.replicate.com/v1/predictions";
+        if (!validUrl) {
+          throw new Error("상황 생성을 위해서는 캐릭터 이미지가 필수입니다.");
+        }
 
-      // 모델 버전 (consistent-character)
-      const version =
-        "9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772";
-
-      let inputData = {
-        prompt: `anime style, ${prompt}`,
-        negative_prompt: "low quality, distortion, text, watermark",
-        width: 1024,
-        height: 1024,
-        num_outputs: 1,
-      };
-
-      // [핵심 수정 1] 캐릭터 이미지가 입력되었는데 URL 변환에 실패했다면 에러 발생 (엉뚱한 그림 방지)
-      if (hasImageInput && !isValidUrl) {
-        throw new Error(
-          "캐릭터 이미지를 불러올 수 없습니다. 경로를 확인해주세요.",
-        );
-      }
-
-      // [핵심 수정 2] 파라미터 이름을 'image' -> 'subject'로 변경
-      if (isValidUrl) {
-        inputData.subject = characterImageUrl;
+        inputData = {
+          prompt: prompt,
+          character_reference_image: validUrl, // Ideogram은 이 필드를 사용
+          style_type: "Fiction", // 애니메이션 스타일
+          aspect_ratio: "1:1",
+        };
       } else {
-        // 이미지가 아예 없는 경우 (필요 시 에러 처리하거나 텍스트 모드로 분기)
-        // 여기서는 캐릭터 생성이 목적이므로 에러 처리합니다.
-        throw new Error("캐릭터 이미지가 필요합니다.");
+        throw new Error("유효하지 않은 모드입니다.");
       }
 
-      const initialResponse = await axios.post(
-        apiUrl,
+      // Replicate 호출
+      const response = await axios.post(
+        "https://api.replicate.com/v1/predictions",
         { version: version, input: inputData },
         {
           headers: { Authorization: `Bearer ${process.env.REPLICATE_API_KEY}` },
         },
       );
 
-      let prediction = initialResponse.data;
+      let prediction = response.data;
       const getUrl = prediction.urls.get;
 
-      // 대기 (Polling)
+      // Polling
       let attempts = 0;
       while (
         prediction.status === "starting" ||
         prediction.status === "processing"
       ) {
-        if (attempts++ > 60) throw new Error("시간 초과 (Timeout)");
+        if (attempts++ > 60) throw new Error("Timeout");
         await sleep(2000);
         prediction = (
           await axios.get(getUrl, {
@@ -138,20 +127,21 @@ exports.generateReplicateImage = functions
         ).data;
       }
 
-      if (prediction.status !== "succeeded") {
-        throw new Error(prediction.error || "AI 생성 실패");
-      }
+      if (prediction.status !== "succeeded")
+        throw new Error(prediction.error || "생성 실패");
 
-      const rawAiUrl = prediction.output[0] || prediction.output;
+      // ★ Output 파싱 (문자열 또는 배열 처리)
+      let rawAiUrl = prediction.output;
+      if (Array.isArray(rawAiUrl)) rawAiUrl = rawAiUrl[0]; // 배열이면 첫번째
+      if (typeof rawAiUrl !== "string")
+        throw new Error("결과 URL을 찾을 수 없습니다.");
 
-      // ----------------------------------------------------
-      // 결과 이미지 저장
-      // ----------------------------------------------------
+      // 서버 저장 및 반환
       try {
         const imgResp = await axios.get(rawAiUrl, {
           responseType: "arraybuffer",
         });
-        const fileName = `ai_gen_${Date.now()}.png`;
+        const fileName = `${mode}_${Date.now()}.png`;
         const file = admin
           .storage()
           .bucket()
@@ -160,7 +150,6 @@ exports.generateReplicateImage = functions
         await file.save(imgResp.data, {
           metadata: { contentType: "image/png" },
         });
-
         const [permUrl] = await file.getSignedUrl({
           action: "read",
           expires: "03-01-2100",
@@ -168,11 +157,11 @@ exports.generateReplicateImage = functions
 
         return { success: true, imageUrl: permUrl };
       } catch (saveErr) {
-        console.error("DEBUG: 저장 실패, 원본 반환:", saveErr);
-        return { success: true, imageUrl: rawAiUrl };
+        console.error("저장 실패:", saveErr);
+        return { success: true, imageUrl: rawAiUrl }; // 원본이라도 반환
       }
     } catch (error) {
-      console.error("DEBUG: 최종 에러:", error);
+      console.error("Function Error:", error);
       return { success: false, error: error.message };
     }
   });

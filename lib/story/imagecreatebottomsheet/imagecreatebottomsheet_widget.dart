@@ -275,9 +275,6 @@ class _ImagecreatebottomsheetWidgetState
                                             .toList()
                                             .cast<int>();
                                         safeSetState(() {});
-                                        _model.selectedCharImage =
-                                            charItemItem.imageUrl;
-                                        safeSetState(() {});
                                       }
                                     },
                                     child: Container(
@@ -587,25 +584,51 @@ class _ImagecreatebottomsheetWidgetState
                       _model.englishPrompt = await actions.translateToEnglish(
                         _model.imagemakepromptTextController.text,
                       );
-                      _model.newImageResult =
-                          await actions.callGenerateImageCloud(
-                        getJsonField(
-                          functions.assemblePromptAndSeed(
-                              widget.imageMode!,
-                              _model.selectedIndices.toList(),
-                              FFAppState().Characters.toList(),
-                              _model.englishPrompt!,
-                              widget.seed),
-                          r'''$.prompt''',
-                        ).toString(),
-                        _model.selectedCharImage,
-                      );
-                      if (_model.newImageResult != null &&
-                          _model.newImageResult != '') {
-                        _model.generatedImageUrl = _model.newImageResult;
+                      if (widget.imageMode == 'character') {
+                        _model.newcharacterImageResult =
+                            await actions.callGenerateImageCloud(
+                          'character',
+                          getJsonField(
+                            functions.assemblePromptAndSeed(
+                                widget.imageMode!,
+                                _model.selectedIndices.toList(),
+                                FFAppState().Characters.toList(),
+                                _model.englishPrompt!,
+                                widget.seed),
+                            r'''$.prompt''',
+                          ).toString(),
+                          '',
+                        );
+                        _model.generatedImageUrl =
+                            _model.newcharacterImageResult;
+                        safeSetState(() {});
+                      } else {
+                        _model.newsituationImageResult =
+                            await actions.callGenerateImageCloud(
+                          'situation',
+                          getJsonField(
+                            functions.assemblePromptAndSeed(
+                                widget.imageMode!,
+                                _model.selectedIndices.toList(),
+                                FFAppState().Characters.toList(),
+                                _model.englishPrompt!,
+                                widget.seed),
+                            r'''$.prompt''',
+                          ).toString(),
+                          _model.selectedCharImage,
+                        );
+                        _model.generatedImageUrl =
+                            _model.newsituationImageResult;
+                        safeSetState(() {});
+                      }
+
+                      if (_model.generatedImageUrl != null &&
+                          _model.generatedImageUrl != '') {
                         _model.isImageLoading = false;
                         safeSetState(() {});
                       } else {
+                        _model.isImageLoading = false;
+                        safeSetState(() {});
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
@@ -658,9 +681,26 @@ class _ImagecreatebottomsheetWidgetState
                   ),
                   FFButtonWidget(
                     onPressed: () async {
-                      FFAppState().tempEnglishPrompt = _model.englishPrompt!;
-                      safeSetState(() {});
-                      Navigator.pop(context, _model.generatedImageUrl);
+                      if (_model.generatedImageUrl != null &&
+                          _model.generatedImageUrl != '') {
+                        FFAppState().tempEnglishPrompt = _model.englishPrompt!;
+                        safeSetState(() {});
+                        Navigator.pop(context, _model.generatedImageUrl);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '먼저 이미지를 생성해주세요.',
+                              style: TextStyle(
+                                color: FlutterFlowTheme.of(context).primaryText,
+                              ),
+                            ),
+                            duration: Duration(milliseconds: 4000),
+                            backgroundColor:
+                                FlutterFlowTheme.of(context).secondary,
+                          ),
+                        );
+                      }
                     },
                     text: '적용하기',
                     options: FFButtonOptions(

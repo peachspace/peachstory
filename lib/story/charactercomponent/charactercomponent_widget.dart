@@ -343,7 +343,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                       ?.characterSeed ==
                                   null) {
                                 FFAppState().updateCharactersAtIndex(
-                                  0,
+                                  widget.index!,
                                   (e) => e
                                     ..characterSeed = random_data.randomInteger(
                                         1, 2100000000),
