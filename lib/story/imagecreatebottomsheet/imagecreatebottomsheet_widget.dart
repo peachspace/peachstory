@@ -568,19 +568,6 @@ class _ImagecreatebottomsheetWidgetState
                     onPressed: () async {
                       _model.isImageLoading = true;
                       safeSetState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            _model.selectedCharImage!,
-                            style: TextStyle(
-                              color: FlutterFlowTheme.of(context).primaryText,
-                            ),
-                          ),
-                          duration: Duration(milliseconds: 4000),
-                          backgroundColor:
-                              FlutterFlowTheme.of(context).secondary,
-                        ),
-                      );
                       _model.englishPrompt = await actions.translateToEnglish(
                         _model.imagemakepromptTextController.text,
                       );
