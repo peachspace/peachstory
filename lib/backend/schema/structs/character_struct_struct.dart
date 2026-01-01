@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '/backend/schema/util/firestore_util.dart';
 
+import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
 class CharacterStructStruct extends FFFirebaseStruct {
@@ -16,6 +17,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
     String? appearancePrompt,
     int? characterSeed,
     String? imageUrl,
+    List<EmotionImageStructStruct>? emotionImages,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _name = name,
         _personality = personality,
@@ -25,6 +27,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         _appearancePrompt = appearancePrompt,
         _characterSeed = characterSeed,
         _imageUrl = imageUrl,
+        _emotionImages = emotionImages,
         super(firestoreUtilData);
 
   // "name" field.
@@ -86,6 +89,19 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   bool hasImageUrl() => _imageUrl != null;
 
+  // "emotion_images" field.
+  List<EmotionImageStructStruct>? _emotionImages;
+  List<EmotionImageStructStruct> get emotionImages =>
+      _emotionImages ?? const [];
+  set emotionImages(List<EmotionImageStructStruct>? val) =>
+      _emotionImages = val;
+
+  void updateEmotionImages(Function(List<EmotionImageStructStruct>) updateFn) {
+    updateFn(_emotionImages ??= []);
+  }
+
+  bool hasEmotionImages() => _emotionImages != null;
+
   static CharacterStructStruct fromMap(Map<String, dynamic> data) =>
       CharacterStructStruct(
         name: data['name'] as String?,
@@ -96,6 +112,10 @@ class CharacterStructStruct extends FFFirebaseStruct {
         appearancePrompt: data['appearancePrompt'] as String?,
         characterSeed: castToType<int>(data['characterSeed']),
         imageUrl: data['imageUrl'] as String?,
+        emotionImages: getStructList(
+          data['emotion_images'],
+          EmotionImageStructStruct.fromMap,
+        ),
       );
 
   static CharacterStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -111,6 +131,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         'appearancePrompt': _appearancePrompt,
         'characterSeed': _characterSeed,
         'imageUrl': _imageUrl,
+        'emotion_images': _emotionImages?.map((e) => e.toMap()).toList(),
       }.withoutNulls;
 
   @override
@@ -146,6 +167,11 @@ class CharacterStructStruct extends FFFirebaseStruct {
         'imageUrl': serializeParam(
           _imageUrl,
           ParamType.String,
+        ),
+        'emotion_images': serializeParam(
+          _emotionImages,
+          ParamType.DataStruct,
+          isList: true,
         ),
       }.withoutNulls;
 
@@ -191,6 +217,12 @@ class CharacterStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
+        emotionImages: deserializeStructParam<EmotionImageStructStruct>(
+          data['emotion_images'],
+          ParamType.DataStruct,
+          true,
+          structBuilder: EmotionImageStructStruct.fromSerializableMap,
+        ),
       );
 
   static CharacterStructStruct fromAlgoliaData(Map<String, dynamic> data) =>
@@ -235,6 +267,12 @@ class CharacterStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
+        emotionImages: convertAlgoliaParam<EmotionImageStructStruct>(
+          data['emotion_images'],
+          ParamType.DataStruct,
+          true,
+          structBuilder: EmotionImageStructStruct.fromAlgoliaData,
+        ),
         firestoreUtilData: FirestoreUtilData(
           clearUnsetFields: false,
           create: true,
@@ -246,6 +284,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   @override
   bool operator ==(Object other) {
+    const listEquality = ListEquality();
     return other is CharacterStructStruct &&
         name == other.name &&
         personality == other.personality &&
@@ -254,7 +293,8 @@ class CharacterStructStruct extends FFFirebaseStruct {
         id == other.id &&
         appearancePrompt == other.appearancePrompt &&
         characterSeed == other.characterSeed &&
-        imageUrl == other.imageUrl;
+        imageUrl == other.imageUrl &&
+        listEquality.equals(emotionImages, other.emotionImages);
   }
 
   @override
@@ -266,7 +306,8 @@ class CharacterStructStruct extends FFFirebaseStruct {
         id,
         appearancePrompt,
         characterSeed,
-        imageUrl
+        imageUrl,
+        emotionImages
       ]);
 }
 

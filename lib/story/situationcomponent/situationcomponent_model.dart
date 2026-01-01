@@ -11,7 +11,7 @@ class SituationcomponentModel
   ///  State fields for stateful widgets in this component.
 
   // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in situationaicreate widget.
-  String? createdsituationmage;
+  String? createdsituationimage;
   bool isDataUploading_uploadsituationimage = false;
   FFUploadedFile uploadedLocalFile_uploadsituationimage =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');

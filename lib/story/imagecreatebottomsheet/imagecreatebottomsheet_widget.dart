@@ -1,7 +1,11 @@
+import '/backend/firebase_storage/storage.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
+import '/flutter_flow/flutter_flow_choice_chips.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/flutter_flow/form_field_controller.dart';
+import '/flutter_flow/upload_data.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
@@ -22,6 +26,8 @@ class ImagecreatebottomsheetWidget extends StatefulWidget {
     required this.isSourceEmpty,
     required this.warningMessage,
     this.seed,
+    this.baseimage,
+    this.characterIndex,
   });
 
   final String? generationContext;
@@ -29,6 +35,8 @@ class ImagecreatebottomsheetWidget extends StatefulWidget {
   final bool? isSourceEmpty;
   final String? warningMessage;
   final int? seed;
+  final String? baseimage;
+  final int? characterIndex;
 
   @override
   State<ImagecreatebottomsheetWidget> createState() =>
@@ -101,6 +109,80 @@ class _ImagecreatebottomsheetWidgetState
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '이미지 생성하기',
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          font: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontStyle,
+                          ),
+                          fontSize: 18.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                  ),
+                  InkWell(
+                    splashColor: Colors.transparent,
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onTap: () async {
+                      if (_model.generatedImageUrl != null &&
+                          _model.generatedImageUrl != '') {
+                        if (widget.imageMode == 'emotion') {
+                          if (_model.choiceChipsValue == '기쁨') {
+                            FFAppState().updateCharactersAtIndex(
+                              widget.seed!,
+                              (e) => e,
+                            );
+                            safeSetState(() {});
+                          } else if (_model.choiceChipsValue == '슬픔') {
+                          } else if (_model.choiceChipsValue == '화남') {
+                          } else if (_model.choiceChipsValue == '놀람') {
+                          } else {
+                            return;
+                          }
+                        } else {
+                          FFAppState().tempEnglishPrompt =
+                              _model.englishPrompt!;
+                          safeSetState(() {});
+                          Navigator.pop(context, _model.generatedImageUrl);
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '먼저 이미지를 생성해주세요.',
+                              style: TextStyle(
+                                color: FlutterFlowTheme.of(context).primaryText,
+                              ),
+                            ),
+                            duration: Duration(milliseconds: 4000),
+                            backgroundColor:
+                                FlutterFlowTheme.of(context).secondary,
+                          ),
+                        );
+                      }
+                    },
+                    child: Icon(
+                      Icons.arrow_forward_ios,
+                      color: FlutterFlowTheme.of(context).primaryText,
+                      size: 24.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Stack(
               alignment: AlignmentDirectional(0.0, 0.0),
               children: [
@@ -314,6 +396,153 @@ class _ImagecreatebottomsheetWidgetState
                   ),
                 ],
               ),
+            if (widget.imageMode == 'emotion')
+              Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional(-1.0, 0.0),
+                    child: Text(
+                      '감정 선택',
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            font: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                            fontSize: 16.0,
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.w600,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontStyle,
+                          ),
+                    ),
+                  ),
+                  Align(
+                    alignment: AlignmentDirectional(-1.0, 0.0),
+                    child: Padding(
+                      padding:
+                          EdgeInsetsDirectional.fromSTEB(0.0, 3.0, 0.0, 0.0),
+                      child: Text(
+                        '캐릭터의 감정에 맞는 이미지를 생성합니다.',
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontWeight,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                              letterSpacing: 0.0,
+                              fontWeight: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontWeight,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 10.0, 0.0, 0.0),
+                          child: FlutterFlowChoiceChips(
+                            options: [
+                              ChipData('기쁨'),
+                              ChipData('슬픔'),
+                              ChipData('화남'),
+                              ChipData('놀람')
+                            ],
+                            onChanged: (val) => safeSetState(() =>
+                                _model.choiceChipsValue = val?.firstOrNull),
+                            selectedChipStyle: ChipStyle(
+                              backgroundColor: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(context).info,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                              iconColor:
+                                  FlutterFlowTheme.of(context).primaryText,
+                              iconSize: 16.0,
+                              elevation: 0.0,
+                              borderColor: FlutterFlowTheme.of(context).primary,
+                              borderWidth: 1.0,
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            unselectedChipStyle: ChipStyle(
+                              backgroundColor: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                              iconColor:
+                                  FlutterFlowTheme.of(context).secondaryText,
+                              iconSize: 16.0,
+                              elevation: 0.0,
+                              borderColor:
+                                  FlutterFlowTheme.of(context).alternate,
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            chipSpacing: 8.0,
+                            rowSpacing: 8.0,
+                            multiselect: false,
+                            alignment: WrapAlignment.start,
+                            controller: _model.choiceChipsValueController ??=
+                                FormFieldController<List<String>>(
+                              [],
+                            ),
+                            wrapped: false,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
               child: Container(
@@ -450,85 +679,99 @@ class _ImagecreatebottomsheetWidgetState
                         ),
                       ),
                     ),
-                    Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(7.0, 0.0, 0.0, 7.0),
-                      child: InkWell(
-                        splashColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        onTap: () async {
-                          var _shouldSetState = false;
-                          if (widget.isSourceEmpty == true) {
-                            await showDialog(
-                              context: context,
-                              builder: (alertDialogContext) {
-                                return WebViewAware(
-                                  child: AlertDialog(
-                                    content: Text(widget.warningMessage!),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(alertDialogContext),
-                                        child: Text('확인'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                            if (_shouldSetState) safeSetState(() {});
-                            return;
-                          } else {
-                            safeSetState(() {
-                              _model.imagemakepromptTextController?.text =
-                                  '생성 중...';
-                            });
-                            _model.suggestedPrompt =
-                                await actions.generateImagePrompt(
-                              widget.generationContext!,
-                            );
-                            _shouldSetState = true;
-                            safeSetState(() {
-                              _model.imagemakepromptTextController?.text =
-                                  _model.suggestedPrompt!;
-                            });
-                          }
+                    if (widget.imageMode != 'emotion')
+                      Padding(
+                        padding:
+                            EdgeInsetsDirectional.fromSTEB(7.0, 0.0, 0.0, 7.0),
+                        child: InkWell(
+                          splashColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onTap: () async {
+                            var _shouldSetState = false;
+                            if (widget.isSourceEmpty == true) {
+                              await showDialog(
+                                context: context,
+                                builder: (alertDialogContext) {
+                                  return WebViewAware(
+                                    child: AlertDialog(
+                                      content: Text(widget.warningMessage!),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(alertDialogContext),
+                                          child: Text('확인'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                              if (_shouldSetState) safeSetState(() {});
+                              return;
+                            } else {
+                              safeSetState(() {
+                                _model.imagemakepromptTextController?.text =
+                                    '생성 중...';
+                              });
+                              _model.suggestedPrompt =
+                                  await actions.generateImagePrompt(
+                                widget.generationContext!,
+                              );
+                              _shouldSetState = true;
+                              safeSetState(() {
+                                _model.imagemakepromptTextController?.text =
+                                    _model.suggestedPrompt!;
+                              });
+                            }
 
-                          if (_shouldSetState) safeSetState(() {});
-                        },
-                        child: Container(
-                          width: 70.0,
-                          height: 20.0,
-                          decoration: BoxDecoration(
-                            color: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                            borderRadius: BorderRadius.circular(10.0),
-                            border: Border.all(
-                              color: FlutterFlowTheme.of(context).alternate,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.auto_awesome,
-                                color:
-                                    FlutterFlowTheme.of(context).secondaryText,
-                                size: 13.0,
+                            if (_shouldSetState) safeSetState(() {});
+                          },
+                          child: Container(
+                            width: 70.0,
+                            height: 20.0,
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              borderRadius: BorderRadius.circular(10.0),
+                              border: Border.all(
+                                color: FlutterFlowTheme.of(context).alternate,
                               ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    5.0, 0.0, 0.0, 0.0),
-                                child: Text(
-                                  'AI생성',
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .override(
-                                        font: GoogleFonts.inter(
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.auto_awesome,
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryText,
+                                  size: 13.0,
+                                ),
+                                Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      5.0, 0.0, 0.0, 0.0),
+                                  child: Text(
+                                    'AI생성',
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          font: GoogleFonts.inter(
+                                            fontWeight:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMedium
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMedium
+                                                    .fontStyle,
+                                          ),
+                                          color: FlutterFlowTheme.of(context)
+                                              .secondaryText,
+                                          fontSize: 13.0,
+                                          letterSpacing: 0.0,
                                           fontWeight:
                                               FlutterFlowTheme.of(context)
                                                   .bodyMedium
@@ -538,24 +781,13 @@ class _ImagecreatebottomsheetWidgetState
                                                   .bodyMedium
                                                   .fontStyle,
                                         ),
-                                        color: FlutterFlowTheme.of(context)
-                                            .secondaryText,
-                                        fontSize: 13.0,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -568,11 +800,13 @@ class _ImagecreatebottomsheetWidgetState
                 children: [
                   FFButtonWidget(
                     onPressed: () async {
+                      var _shouldSetState = false;
                       _model.isImageLoading = true;
                       safeSetState(() {});
                       _model.englishPrompt = await actions.translateToEnglish(
                         _model.imagemakepromptTextController.text,
                       );
+                      _shouldSetState = true;
                       if (widget.imageMode == 'character') {
                         _model.newcharacterImageResult =
                             await actions.callGenerateImageCloud(
@@ -588,10 +822,11 @@ class _ImagecreatebottomsheetWidgetState
                           ).toString(),
                           '',
                         );
+                        _shouldSetState = true;
                         _model.generatedImageUrl =
                             _model.newcharacterImageResult;
                         safeSetState(() {});
-                      } else {
+                      } else if (widget.imageMode == 'situation') {
                         _model.newsituationImageResult =
                             await actions.callGenerateImageCloud(
                           'situation',
@@ -606,9 +841,23 @@ class _ImagecreatebottomsheetWidgetState
                           ).toString(),
                           _model.selectedCharImage,
                         );
+                        _shouldSetState = true;
                         _model.generatedImageUrl =
                             _model.newsituationImageResult;
                         safeSetState(() {});
+                      } else if (widget.imageMode == 'emotion') {
+                        _model.newemotionmageResult =
+                            await actions.callGenerateImageCloud(
+                          'emotion',
+                          '${_model.choiceChipsValue}, ${_model.imagemakepromptTextController.text}',
+                          functions.imageToString(widget.baseimage),
+                        );
+                        _shouldSetState = true;
+                        _model.generatedImageUrl = _model.newemotionmageResult;
+                        safeSetState(() {});
+                      } else {
+                        if (_shouldSetState) safeSetState(() {});
+                        return;
                       }
 
                       if (_model.generatedImageUrl != null &&
@@ -633,9 +882,9 @@ class _ImagecreatebottomsheetWidgetState
                         );
                       }
 
-                      safeSetState(() {});
+                      if (_shouldSetState) safeSetState(() {});
                     },
-                    text: '생성하기',
+                    text: 'AI생성',
                     options: FFButtonOptions(
                       width: 175.0,
                       height: 40.0,
@@ -670,28 +919,64 @@ class _ImagecreatebottomsheetWidgetState
                   ),
                   FFButtonWidget(
                     onPressed: () async {
-                      if (_model.generatedImageUrl != null &&
-                          _model.generatedImageUrl != '') {
-                        FFAppState().tempEnglishPrompt = _model.englishPrompt!;
-                        safeSetState(() {});
-                        Navigator.pop(context, _model.generatedImageUrl);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '먼저 이미지를 생성해주세요.',
-                              style: TextStyle(
-                                color: FlutterFlowTheme.of(context).primaryText,
-                              ),
+                      final selectedMedia =
+                          await selectMediaWithSourceBottomSheet(
+                        context: context,
+                        allowPhoto: true,
+                      );
+                      if (selectedMedia != null &&
+                          selectedMedia.every((m) =>
+                              validateFileFormat(m.storagePath, context))) {
+                        safeSetState(
+                            () => _model.isDataUploading_downloadUrl = true);
+                        var selectedUploadedFiles = <FFUploadedFile>[];
+
+                        var downloadUrls = <String>[];
+                        try {
+                          selectedUploadedFiles = selectedMedia
+                              .map((m) => FFUploadedFile(
+                                    name: m.storagePath.split('/').last,
+                                    bytes: m.bytes,
+                                    height: m.dimensions?.height,
+                                    width: m.dimensions?.width,
+                                    blurHash: m.blurHash,
+                                    originalFilename: m.originalFilename,
+                                  ))
+                              .toList();
+
+                          downloadUrls = (await Future.wait(
+                            selectedMedia.map(
+                              (m) async =>
+                                  await uploadData(m.storagePath, m.bytes),
                             ),
-                            duration: Duration(milliseconds: 4000),
-                            backgroundColor:
-                                FlutterFlowTheme.of(context).secondary,
-                          ),
-                        );
+                          ))
+                              .where((u) => u != null)
+                              .map((u) => u!)
+                              .toList();
+                        } finally {
+                          _model.isDataUploading_downloadUrl = false;
+                        }
+                        if (selectedUploadedFiles.length ==
+                                selectedMedia.length &&
+                            downloadUrls.length == selectedMedia.length) {
+                          safeSetState(() {
+                            _model.uploadedLocalFile_downloadUrl =
+                                selectedUploadedFiles.first;
+                            _model.uploadedFileUrl_downloadUrl =
+                                downloadUrls.first;
+                          });
+                        } else {
+                          safeSetState(() {});
+                          return;
+                        }
                       }
+
+                      _model.generatedImageUrl =
+                          _model.uploadedFileUrl_downloadUrl;
+                      _model.isImageLoading = false;
+                      safeSetState(() {});
                     },
-                    text: '적용하기',
+                    text: '업로드',
                     options: FFButtonOptions(
                       width: 175.0,
                       height: 40.0,

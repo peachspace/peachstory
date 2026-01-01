@@ -1,9 +1,8 @@
-import '/backend/firebase_storage/storage.dart';
+import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/upload_data.dart';
 import '/story/imagecreatebottomsheet/imagecreatebottomsheet_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
@@ -57,11 +56,8 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
 
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (widget.characterData?.image != null &&
-          widget.characterData?.image != '') {
-        _model.tempImage = widget.characterData?.image;
-        safeSetState(() {});
-      }
+      _model.deleteCharacter = widget.characterData;
+      safeSetState(() {});
     });
 
     _model.charNameTextController ??= TextEditingController(
@@ -225,7 +221,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                   Align(
                     alignment: AlignmentDirectional(-1.0, 0.0),
                     child: Text(
-                      '이미지',
+                      '프로필 이미지',
                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                             font: GoogleFonts.inter(
                               fontWeight: FontWeight.w600,
@@ -266,77 +262,12 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                     .elementAtOrNull(widget.index!)
                                     ?.image ==
                                 '')
-                          Container(
-                            width: 200.0,
-                            height: 200.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
-                              borderRadius: BorderRadius.circular(15.0),
-                            ),
-                            child: Align(
-                              alignment: AlignmentDirectional(0.0, 0.0),
-                              child: Text(
-                                '캐릭터의 프로필로 사용될 \n이미지를 업로드해주세요.',
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ),
-                          ),
-                        if (FFAppState()
-                                    .Characters
-                                    .elementAtOrNull(widget.index!)
-                                    ?.image !=
-                                null &&
-                            FFAppState()
-                                    .Characters
-                                    .elementAtOrNull(widget.index!)
-                                    ?.image !=
-                                '')
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(15.0),
-                            child: Image.network(
-                              FFAppState()
-                                  .Characters
-                                  .elementAtOrNull(widget.index!)!
-                                  .image,
-                              width: 200.0,
-                              height: 200.0,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 2.0, 0.0),
-                          child: FFButtonWidget(
-                            onPressed: () async {
+                          InkWell(
+                            splashColor: Colors.transparent,
+                            focusColor: Colors.transparent,
+                            hoverColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            onTap: () async {
                               if (FFAppState()
                                       .Characters
                                       .elementAtOrNull(widget.index!)
@@ -392,14 +323,187 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
 
                               safeSetState(() {});
                             },
-                            text: 'AI생성',
+                            child: Container(
+                              width: 200.0,
+                              height: 200.0,
+                              decoration: BoxDecoration(
+                                color: FlutterFlowTheme.of(context)
+                                    .primaryBackground,
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        0.0, 30.0, 0.0, 10.0),
+                                    child: Icon(
+                                      Icons.upload,
+                                      color: FlutterFlowTheme.of(context)
+                                          .primaryText,
+                                      size: 30.0,
+                                    ),
+                                  ),
+                                  Align(
+                                    alignment: AlignmentDirectional(0.0, 0.0),
+                                    child: Text(
+                                      '캐릭터의 프로필로 사용될 \n이미지를 업로드해주세요.',
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontWeight,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontStyle,
+                                            ),
+                                            letterSpacing: 0.0,
+                                            fontWeight:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMedium
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMedium
+                                                    .fontStyle,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        if (FFAppState()
+                                    .Characters
+                                    .elementAtOrNull(widget.index!)
+                                    ?.image !=
+                                null &&
+                            FFAppState()
+                                    .Characters
+                                    .elementAtOrNull(widget.index!)
+                                    ?.image !=
+                                '')
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(15.0),
+                            child: Image.network(
+                              FFAppState()
+                                  .Characters
+                                  .elementAtOrNull(widget.index!)!
+                                  .image,
+                              width: 200.0,
+                              height: 200.0,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional(-1.0, 0.0),
+                    child: Padding(
+                      padding:
+                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+                      child: Text(
+                        '감정 이미지',
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              fontSize: 18.0,
+                              letterSpacing: 0.0,
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                      ),
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 0.0, 10.0, 0.0),
+                          child: FFButtonWidget(
+                            onPressed: () async {
+                              await showModalBottomSheet(
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                enableDrag: false,
+                                context: context,
+                                builder: (context) {
+                                  return WebViewAware(
+                                    child: Padding(
+                                      padding: MediaQuery.viewInsetsOf(context),
+                                      child: ImagecreatebottomsheetWidget(
+                                        generationContext: '',
+                                        imageMode: 'emotion',
+                                        isSourceEmpty: FFAppState()
+                                                        .Characters
+                                                        .elementAtOrNull(
+                                                            widget.index!)
+                                                        ?.image !=
+                                                    null &&
+                                                FFAppState()
+                                                        .Characters
+                                                        .elementAtOrNull(
+                                                            widget.index!)
+                                                        ?.image !=
+                                                    ''
+                                            ? false
+                                            : true,
+                                        warningMessage: '먼저 프로필 이미지를 생성해주세요.',
+                                        seed: FFAppState()
+                                            .Characters
+                                            .elementAtOrNull(widget.index!)
+                                            ?.characterSeed,
+                                        baseimage: FFAppState()
+                                            .Characters
+                                            .elementAtOrNull(widget.index!)
+                                            ?.image,
+                                        characterIndex: widget.index,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ).then((value) => safeSetState(
+                                  () => _model.createdemotionimage = value));
+
+                              safeSetState(() {});
+                            },
+                            text: 'Button',
+                            icon: Icon(
+                              Icons.add_sharp,
+                              size: 35.0,
+                            ),
                             options: FFButtonOptions(
-                              width: 100.0,
-                              height: 40.0,
+                              width: 70.0,
+                              height: 70.0,
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   16.0, 0.0, 16.0, 0.0),
-                              iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 0.0),
+                              iconPadding: EdgeInsets.all(2.0),
+                              iconColor:
+                                  FlutterFlowTheme.of(context).primaryText,
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
                               textStyle: FlutterFlowTheme.of(context)
@@ -413,8 +517,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                           .titleSmall
                                           .fontStyle,
                                     ),
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
+                                    color: Colors.white,
                                     letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .titleSmall
@@ -426,126 +529,52 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                               elevation: 0.0,
                               borderSide: BorderSide(
                                 color: FlutterFlowTheme.of(context).alternate,
-                                width: 1.0,
                               ),
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(10.0),
                             ),
                             showLoadingIndicator: false,
                           ),
                         ),
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              2.0, 0.0, 0.0, 0.0),
-                          child: FFButtonWidget(
-                            onPressed: () async {
-                              final selectedMedia =
-                                  await selectMediaWithSourceBottomSheet(
-                                context: context,
-                                allowPhoto: true,
-                              );
-                              if (selectedMedia != null &&
-                                  selectedMedia.every((m) => validateFileFormat(
-                                      m.storagePath, context))) {
-                                safeSetState(() => _model
-                                    .isDataUploading_uploadCharImage = true);
-                                var selectedUploadedFiles = <FFUploadedFile>[];
+                        Builder(
+                          builder: (context) {
+                            final emotionItem = widget
+                                    .characterData?.emotionImages
+                                    .toList() ??
+                                [];
 
-                                var downloadUrls = <String>[];
-                                try {
-                                  selectedUploadedFiles = selectedMedia
-                                      .map((m) => FFUploadedFile(
-                                            name: m.storagePath.split('/').last,
-                                            bytes: m.bytes,
-                                            height: m.dimensions?.height,
-                                            width: m.dimensions?.width,
-                                            blurHash: m.blurHash,
-                                            originalFilename:
-                                                m.originalFilename,
-                                          ))
-                                      .toList();
-
-                                  downloadUrls = (await Future.wait(
-                                    selectedMedia.map(
-                                      (m) async => await uploadData(
-                                          m.storagePath, m.bytes),
+                            return Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: List.generate(emotionItem.length,
+                                  (emotionItemIndex) {
+                                final emotionItemItem =
+                                    emotionItem[emotionItemIndex];
+                                return InkWell(
+                                  splashColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  onLongPress: () async {
+                                    _model.updateDeleteCharacterStruct(
+                                      (e) => e
+                                        ..updateEmotionImages(
+                                          (e) => e.remove(emotionItemItem),
+                                        ),
+                                    );
+                                    safeSetState(() {});
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: Image.network(
+                                      emotionItemItem.image,
+                                      width: 70.0,
+                                      height: 70.0,
+                                      fit: BoxFit.cover,
                                     ),
-                                  ))
-                                      .where((u) => u != null)
-                                      .map((u) => u!)
-                                      .toList();
-                                } finally {
-                                  _model.isDataUploading_uploadCharImage =
-                                      false;
-                                }
-                                if (selectedUploadedFiles.length ==
-                                        selectedMedia.length &&
-                                    downloadUrls.length ==
-                                        selectedMedia.length) {
-                                  safeSetState(() {
-                                    _model.uploadedLocalFile_uploadCharImage =
-                                        selectedUploadedFiles.first;
-                                    _model.uploadedFileUrl_uploadCharImage =
-                                        downloadUrls.first;
-                                  });
-                                } else {
-                                  safeSetState(() {});
-                                  return;
-                                }
-                              }
-
-                              _model.tempImage =
-                                  _model.uploadedFileUrl_uploadCharImage;
-                              safeSetState(() {});
-                              FFAppState().updateCharactersAtIndex(
-                                widget.index!,
-                                (e) => e
-                                  ..image =
-                                      _model.uploadedFileUrl_uploadCharImage
-                                  ..imageUrl =
-                                      _model.uploadedFileUrl_uploadCharImage,
-                              );
-                              safeSetState(() {});
-                            },
-                            text: '업로드',
-                            options: FFButtonOptions(
-                              width: 100.0,
-                              height: 40.0,
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 0.0, 16.0, 0.0),
-                              iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 0.0),
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .titleSmall
-                                  .override(
-                                    font: GoogleFonts.interTight(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .titleSmall
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .titleSmall
-                                          .fontStyle,
-                                    ),
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontStyle,
                                   ),
-                              elevation: 0.0,
-                              borderSide: BorderSide(
-                                color: FlutterFlowTheme.of(context).alternate,
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            showLoadingIndicator: false,
-                          ),
+                                );
+                              }),
+                            );
+                          },
                         ),
                       ],
                     ),

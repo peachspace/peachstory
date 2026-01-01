@@ -314,21 +314,22 @@ class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
                                           _model.textController.text == '',
                                       warningMessage: '상황을 먼저 입력해주세요.',
                                       seed: 0,
+                                      characterIndex: 0,
                                     ),
                                   ),
                                 );
                               },
                             ).then((value) => safeSetState(
-                                () => _model.createdsituationmage = value));
+                                () => _model.createdsituationimage = value));
 
-                            if (_model.createdsituationmage != null &&
-                                _model.createdsituationmage != '') {
+                            if (_model.createdsituationimage != null &&
+                                _model.createdsituationimage != '') {
                               FFAppState().updateSituationalImagesAtIndex(
                                 widget.index!,
                                 (e) => e
-                                  ..imageUrl = _model.createdsituationmage
+                                  ..imageUrl = _model.createdsituationimage
                                   ..image = functions.stringToImagePath(
-                                      _model.createdsituationmage!),
+                                      _model.createdsituationimage!),
                               );
                               safeSetState(() {});
                             }

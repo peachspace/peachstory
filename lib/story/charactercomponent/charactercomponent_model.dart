@@ -1,3 +1,5 @@
+import '/backend/backend.dart';
+import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'charactercomponent_widget.dart' show CharactercomponentWidget;
 import 'package:flutter/material.dart';
@@ -6,19 +8,19 @@ class CharactercomponentModel
     extends FlutterFlowModel<CharactercomponentWidget> {
   ///  Local state fields for this component.
 
-  String? tempImage;
-
   String? tempAppearance;
+
+  CharacterStructStruct? deleteCharacter;
+  void updateDeleteCharacterStruct(Function(CharacterStructStruct) updateFn) {
+    updateFn(deleteCharacter ??= CharacterStructStruct());
+  }
 
   ///  State fields for stateful widgets in this component.
 
   // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in charaicreate widget.
   String? createdcharacterImage;
-  bool isDataUploading_uploadCharImage = false;
-  FFUploadedFile uploadedLocalFile_uploadCharImage =
-      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
-  String uploadedFileUrl_uploadCharImage = '';
-
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in emotionaddutton widget.
+  String? createdemotionimage;
   // State field(s) for charName widget.
   FocusNode? charNameFocusNode;
   TextEditingController? charNameTextController;
