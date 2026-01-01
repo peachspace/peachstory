@@ -480,7 +480,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                         baseimage: FFAppState()
                                             .Characters
                                             .elementAtOrNull(widget.index!)
-                                            ?.image,
+                                            ?.imageUrl,
                                         characterIndex: widget.index,
                                       ),
                                     ),

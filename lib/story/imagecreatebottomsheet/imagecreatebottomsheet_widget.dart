@@ -1,4 +1,5 @@
 import '/backend/firebase_storage/storage.dart';
+import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_choice_chips.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -140,18 +141,19 @@ class _ImagecreatebottomsheetWidgetState
                       if (_model.generatedImageUrl != null &&
                           _model.generatedImageUrl != '') {
                         if (widget.imageMode == 'emotion') {
-                          if (_model.emotionChoiceChipsValue == '기쁨') {
-                            FFAppState().updateCharactersAtIndex(
-                              widget.seed!,
-                              (e) => e,
-                            );
-                            safeSetState(() {});
-                          } else if (_model.emotionChoiceChipsValue == '슬픔') {
-                          } else if (_model.emotionChoiceChipsValue == '화남') {
-                          } else if (_model.emotionChoiceChipsValue == '놀람') {
-                          } else {
-                            return;
-                          }
+                          FFAppState().updateCharactersAtIndex(
+                            widget.characterIndex!,
+                            (e) => e
+                              ..updateEmotionImages(
+                                (e) => e.add(EmotionImageStructStruct(
+                                  emotion: _model.emotionChoiceChipsValue,
+                                  image: functions.stringToImagePath(
+                                      _model.generatedImageUrl!),
+                                )),
+                              ),
+                          );
+                          safeSetState(() {});
+                          Navigator.pop(context);
                         } else {
                           FFAppState().tempEnglishPrompt =
                               _model.englishPrompt!;
@@ -844,8 +846,8 @@ class _ImagecreatebottomsheetWidgetState
                         _model.newemotionmageResult =
                             await actions.callGenerateImageCloud(
                           'emotion',
-                          '${_model.emotionChoiceChipsValue}, ${_model.imagecreatepromptTextController.text}',
-                          functions.imageToString(widget.baseimage),
+                          '${_model.emotionChoiceChipsValue}, ${_model.englishPrompt}',
+                          widget.baseimage,
                         );
                         _shouldSetState = true;
                         _model.generatedImageUrl = _model.newemotionmageResult;
