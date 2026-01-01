@@ -67,12 +67,12 @@ class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
       }
     });
 
-    _model.textController ??= TextEditingController(
+    _model.situationsetTextController ??= TextEditingController(
         text: FFAppState()
             .SituationalImages
             .elementAtOrNull(widget.index!)
             ?.condition);
-    _model.textFieldFocusNode ??= FocusNode();
+    _model.situationsetFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -308,10 +308,11 @@ class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
                                     padding: MediaQuery.viewInsetsOf(context),
                                     child: ImagecreatebottomsheetWidget(
                                       generationContext:
-                                          '[FOCUS: Appearance]: \\n[FOCUS: Situation]\\n[Current Situation]: ${_model.textController.text}\\n[Background Context]: ${widget.storyContext}',
+                                          '[FOCUS: Appearance]: \\n[FOCUS: Situation]\\n[Current Situation]: ${_model.situationsetTextController.text}\\n[Background Context]: ${widget.storyContext}',
                                       imageMode: 'situation',
-                                      isSourceEmpty:
-                                          _model.textController.text == '',
+                                      isSourceEmpty: _model.situationsetTextController
+                                                  .text ==
+                                              '',
                                       warningMessage: '상황을 먼저 입력해주세요.',
                                       seed: 0,
                                       characterIndex: 0,
@@ -538,12 +539,14 @@ class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
                     child: Container(
                       width: double.infinity,
                       child: TextFormField(
-                        controller: _model.textController,
-                        focusNode: _model.textFieldFocusNode,
+                        controller: _model.situationsetTextController,
+                        focusNode: _model.situationsetFocusNode,
                         onFieldSubmitted: (_) async {
                           FFAppState().updateSituationalImagesAtIndex(
                             widget.index!,
-                            (e) => e..condition = _model.textController.text,
+                            (e) => e
+                              ..condition =
+                                  _model.situationsetTextController.text,
                           );
                           safeSetState(() {});
                         },
@@ -643,8 +646,8 @@ class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
                         maxLength: 500,
                         maxLengthEnforcement: MaxLengthEnforcement.enforced,
                         cursorColor: FlutterFlowTheme.of(context).primaryText,
-                        validator:
-                            _model.textControllerValidator.asValidator(context),
+                        validator: _model.situationsetTextControllerValidator
+                            .asValidator(context),
                       ),
                     ),
                   ),
@@ -677,7 +680,7 @@ class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
                           return;
                         } else {
                           safeSetState(() {
-                            _model.textController?.text = '생성 중...';
+                            _model.situationsetTextController?.text = '생성 중...';
                           });
                           _model.generatedCondition =
                               await actions.generateSingleTextField(
@@ -691,7 +694,7 @@ class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
                           );
                           safeSetState(() {});
                           safeSetState(() {
-                            _model.textController?.text =
+                            _model.situationsetTextController?.text =
                                 _model.generatedCondition!;
                           });
                         }

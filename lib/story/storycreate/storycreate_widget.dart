@@ -113,9 +113,9 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
         TextEditingController(text: _model.introduce);
     _model.introduceFocusNode ??= FocusNode();
 
-    _model.textController6 ??=
+    _model.detailinfotextTextController ??=
         TextEditingController(text: _model.selectedDetailMode);
-    _model.textFieldFocusNode ??= FocusNode();
+    _model.detailinfotextFocusNode ??= FocusNode();
 
     _model.authorCommentTextController ??=
         TextEditingController(text: widget.storyToEdit?.authorNotes);
@@ -3671,9 +3671,9 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                     width: double.infinity,
                                                     child: TextFormField(
                                                       controller: _model
-                                                          .textController6,
+                                                          .detailinfotextTextController,
                                                       focusNode: _model
-                                                          .textFieldFocusNode,
+                                                          .detailinfotextFocusNode,
                                                       autofocus: false,
                                                       enabled: true,
                                                       obscureText: false,
@@ -3830,7 +3830,7 @@ class _StorycreateWidgetState extends State<StorycreateWidget>
                                                       enableInteractiveSelection:
                                                           true,
                                                       validator: _model
-                                                          .textController6Validator
+                                                          .detailinfotextTextControllerValidator
                                                           .asValidator(context),
                                                     ),
                                                   ),

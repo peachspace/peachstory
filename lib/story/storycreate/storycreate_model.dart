@@ -74,25 +74,25 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   FocusNode? storyNameFocusNode;
   TextEditingController? storyNameTextController;
   String? Function(BuildContext, String?)? storyNameTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  // Stores action output result for [Custom Action - generateSingleTextField] action in storynameaicreatebutton widget.
   String? generatedtitle;
   // State field(s) for worldSettings widget.
   FocusNode? worldSettingsFocusNode;
   TextEditingController? worldSettingsTextController;
   String? Function(BuildContext, String?)? worldSettingsTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  // Stores action output result for [Custom Action - generateSingleTextField] action in worldviewaicreatebutton widget.
   String? generatedworldview;
   // State field(s) for prologue widget.
   FocusNode? prologueFocusNode;
   TextEditingController? prologueTextController;
   String? Function(BuildContext, String?)? prologueTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  // Stores action output result for [Custom Action - generateSingleTextField] action in prologueaicreatebutton widget.
   String? generatedprologue;
   // State field(s) for UserRoleInfo widget.
   FocusNode? userRoleInfoFocusNode;
   TextEditingController? userRoleInfoTextController;
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  // Stores action output result for [Custom Action - generateSingleTextField] action in userroleaicreatebutton widget.
   String? generateduserrole;
   // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in Button widget.
   String? createdImage;
@@ -105,12 +105,13 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   FocusNode? introduceFocusNode;
   TextEditingController? introduceTextController;
   String? Function(BuildContext, String?)? introduceTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  // Stores action output result for [Custom Action - generateSingleTextField] action in storyintroaicreatebutton widget.
   String? generatedintroduce;
-  // State field(s) for TextField widget.
-  FocusNode? textFieldFocusNode;
-  TextEditingController? textController6;
-  String? Function(BuildContext, String?)? textController6Validator;
+  // State field(s) for detailinfotext widget.
+  FocusNode? detailinfotextFocusNode;
+  TextEditingController? detailinfotextTextController;
+  String? Function(BuildContext, String?)?
+      detailinfotextTextControllerValidator;
   bool isDataUploading_uploadDatadetail = false;
   FFUploadedFile uploadedLocalFile_uploadDatadetail =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
@@ -127,7 +128,7 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
   FocusNode? hashitagFocusNode;
   TextEditingController? hashitagTextController;
   String? Function(BuildContext, String?)? hashitagTextControllerValidator;
-  // Stores action output result for [Backend Call - Create Document] action in Button widget.
+  // Stores action output result for [Backend Call - Create Document] action in storycreateandeditutton widget.
   StoriesRecord? newStoryRef;
 
   @override
@@ -151,8 +152,8 @@ class StorycreateModel extends FlutterFlowModel<StorycreateWidget> {
     introduceFocusNode?.dispose();
     introduceTextController?.dispose();
 
-    textFieldFocusNode?.dispose();
-    textController6?.dispose();
+    detailinfotextFocusNode?.dispose();
+    detailinfotextTextController?.dispose();
 
     authorCommentFocusNode?.dispose();
     authorCommentTextController?.dispose();

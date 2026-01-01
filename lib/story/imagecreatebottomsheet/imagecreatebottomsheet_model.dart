@@ -27,26 +27,26 @@ class ImagecreatebottomsheetModel
 
   ///  State fields for stateful widgets in this component.
 
-  // State field(s) for ChoiceChips widget.
-  FormFieldController<List<String>>? choiceChipsValueController;
-  String? get choiceChipsValue =>
-      choiceChipsValueController?.value?.firstOrNull;
-  set choiceChipsValue(String? val) =>
-      choiceChipsValueController?.value = val != null ? [val] : [];
-  // State field(s) for imagemakeprompt widget.
-  FocusNode? imagemakepromptFocusNode;
-  TextEditingController? imagemakepromptTextController;
+  // State field(s) for emotionChoiceChips widget.
+  FormFieldController<List<String>>? emotionChoiceChipsValueController;
+  String? get emotionChoiceChipsValue =>
+      emotionChoiceChipsValueController?.value?.firstOrNull;
+  set emotionChoiceChipsValue(String? val) =>
+      emotionChoiceChipsValueController?.value = val != null ? [val] : [];
+  // State field(s) for imagecreateprompt widget.
+  FocusNode? imagecreatepromptFocusNode;
+  TextEditingController? imagecreatepromptTextController;
   String? Function(BuildContext, String?)?
-      imagemakepromptTextControllerValidator;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in imagemakepromptaibottun widget.
+      imagecreatepromptTextControllerValidator;
+  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbottun widget.
   String? suggestedPrompt;
-  // Stores action output result for [Custom Action - translateToEnglish] action in aimake widget.
+  // Stores action output result for [Custom Action - translateToEnglish] action in aicreateimagebutton widget.
   String? englishPrompt;
-  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aimake widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   String? newcharacterImageResult;
-  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aimake widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   String? newsituationImageResult;
-  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aimake widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   String? newemotionmageResult;
   bool isDataUploading_downloadUrl = false;
   FFUploadedFile uploadedLocalFile_downloadUrl =
@@ -58,7 +58,7 @@ class ImagecreatebottomsheetModel
 
   @override
   void dispose() {
-    imagemakepromptFocusNode?.dispose();
-    imagemakepromptTextController?.dispose();
+    imagecreatepromptFocusNode?.dispose();
+    imagecreatepromptTextController?.dispose();
   }
 }

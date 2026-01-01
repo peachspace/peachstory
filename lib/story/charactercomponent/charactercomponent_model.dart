@@ -25,19 +25,19 @@ class CharactercomponentModel
   FocusNode? charNameFocusNode;
   TextEditingController? charNameTextController;
   String? Function(BuildContext, String?)? charNameTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  // Stores action output result for [Custom Action - generateSingleTextField] action in charnameaicreate widget.
   String? name;
   // State field(s) for charSetting widget.
   FocusNode? charSettingFocusNode;
   TextEditingController? charSettingTextController;
   String? Function(BuildContext, String?)? charSettingTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  // Stores action output result for [Custom Action - generateSingleTextField] action in charsettingaicreate widget.
   String? personality;
   // State field(s) for charintroduce widget.
   FocusNode? charintroduceFocusNode;
   TextEditingController? charintroduceTextController;
   String? Function(BuildContext, String?)? charintroduceTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in Container widget.
+  // Stores action output result for [Custom Action - generateSingleTextField] action in charintroaicreate widget.
   String? introduce;
 
   @override
