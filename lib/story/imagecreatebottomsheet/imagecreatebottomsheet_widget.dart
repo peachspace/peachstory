@@ -846,7 +846,10 @@ class _ImagecreatebottomsheetWidgetState
                         _model.newemotionmageResult =
                             await actions.callGenerateImageCloud(
                           'emotion',
-                          '${_model.emotionChoiceChipsValue}, ${_model.englishPrompt}',
+                          _model.imagecreatepromptTextController.text !=
+                                      ''
+                              ? '${_model.emotionChoiceChipsValue}, ${_model.englishPrompt}'
+                              : _model.emotionChoiceChipsValue!,
                           widget.baseimage,
                         );
                         _shouldSetState = true;
