@@ -91,24 +91,34 @@ exports.generateReplicateImage = functions
       // [CASE 3] 감정 생성 (Emotion / Image-to-Image)
       // ====================================================
       else if (mode === "emotion") {
-        version = ANIMAGINE_VERSION;
+        version = IDEOGRAM_VERSION; // ★ 상황 생성과 동일한 모델 사용
+
         const validUrl = await getValidUrl(characterImageUrl);
         if (!validUrl)
           throw new Error(
             "감정 생성을 위해서는 원본 캐릭터 이미지가 필수입니다.",
           );
 
+        // 한글 감정을 영어 지시어로 변환 (매핑)
+        const emotionMap = {
+          기쁨: "joyful smile, happy expression",
+          슬픔: "sad face, crying, tears",
+          화남: "angry expression, frowning",
+          놀람: "surprised face, wide eyes",
+          두려움: "scared face, fearful",
+          중립: "neutral expression",
+        };
+
+        // 입력된 프롬프트(예: '기쁨')가 맵에 있으면 영어로, 없으면 그대로 사용
+        const cleanPrompt = prompt ? prompt.trim() : "";
+        const emotionPrompt = emotionMap[cleanPrompt] || cleanPrompt;
+
         inputData = {
-          // 프롬프트에 감정 키워드를 강조하고 얼굴 클로즈업 유도
-          prompt: `masterpiece, best quality, face shot, close up, ${prompt}, consistent character, same face`,
-          negative_prompt:
-            "lowres, bad anatomy, bad hands, text, error, extra digit, fewer digits, cropped, worst quality, low quality, blurry, changing hair color, changing eye color, different person",
-          image: validUrl, // ★ 원본 이미지를 참조
-          strength: 0.75, // ★ 0.75: 원본을 적당히 유지하면서 표정 변화 허용
-          width: 1024,
-          height: 1024,
-          guidance_scale: 7,
-          num_inference_steps: 28,
+          // ★ 프롬프트: 얼굴 클로즈업 + 감정 표현 + 캐릭터 유지 강조
+          prompt: `A close-up portrait of the character, ${emotionPrompt}, keeping the same face features, same hair style, consistent character, high quality, anime style`,
+          character_reference_image: validUrl, // ★ 상황 생성처럼 강력한 참조 기능 사용
+          style_type: "Fiction",
+          aspect_ratio: "1:1",
         };
       } else {
         throw new Error("유효하지 않은 모드입니다.");

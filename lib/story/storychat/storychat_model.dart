@@ -83,10 +83,11 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
   String? aitext;
   // Stores action output result for [Bottom Sheet - storybottom] action in Icon widget.
   String? chosenModel;
-  // State field(s) for TextField widget.
-  FocusNode? textFieldFocusNode;
-  TextEditingController? textController;
-  String? Function(BuildContext, String?)? textControllerValidator;
+  // State field(s) for messageTextField widget.
+  FocusNode? messageTextFieldFocusNode;
+  TextEditingController? messageTextFieldTextController;
+  String? Function(BuildContext, String?)?
+      messageTextFieldTextControllerValidator;
   // Stores action output result for [Custom Action - getAndProcessHistory] action in messagesendbutton widget.
   List<dynamic>? formattedHistory;
   // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.
@@ -105,25 +106,25 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
   StorychatsRecord? characterChatDoc;
   // Stores action output result for [Custom Action - callAiSummaryAction] action in messagesendbutton widget.
   String? summary;
-  // Stores action output result for [Custom Action - getAndProcessHistory] action in messagesendbutton widget.
+  // Stores action output result for [Custom Action - getAndProcessHistory] action in continuebutton widget.
   List<dynamic>? formattedHistory1;
-  // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.
+  // Stores action output result for [Backend Call - Read Document] action in continuebutton widget.
   StorychatsRecord? updatedChatDoc1;
-  // Stores action output result for [Custom Action - getPointCostAction] action in messagesendbutton widget.
+  // Stores action output result for [Custom Action - getPointCostAction] action in continuebutton widget.
   int? pointsToDeduct1;
-  // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in messagesendbutton widget.
+  // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in continuebutton widget.
   int? creatorShare1;
-  // Stores action output result for [Custom Action - getNextPhaseCommand] action in messagesendbutton widget.
+  // Stores action output result for [Custom Action - getNextPhaseCommand] action in continuebutton widget.
   String? nextCommand;
-  // Stores action output result for [Custom Action - callAiProxy] action in messagesendbutton widget.
+  // Stores action output result for [Custom Action - callAiProxy] action in continuebutton widget.
   String? aiFullText1;
-  // Stores action output result for [Custom Action - removeThinkingMessage] action in messagesendbutton widget.
+  // Stores action output result for [Custom Action - removeThinkingMessage] action in continuebutton widget.
   List<StoryChatMessageStructStruct>? cleanList1;
-  // Stores action output result for [Firestore Query - Query a collection] action in messagesendbutton widget.
+  // Stores action output result for [Firestore Query - Query a collection] action in continuebutton widget.
   int? messageCount2;
-  // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.
+  // Stores action output result for [Backend Call - Read Document] action in continuebutton widget.
   StorychatsRecord? characterChatDoc1;
-  // Stores action output result for [Custom Action - callAiSummaryAction] action in messagesendbutton widget.
+  // Stores action output result for [Custom Action - callAiSummaryAction] action in continuebutton widget.
   String? summary1;
 
   @override
@@ -131,7 +132,7 @@ class StorychatModel extends FlutterFlowModel<StorychatWidget> {
 
   @override
   void dispose() {
-    textFieldFocusNode?.dispose();
-    textController?.dispose();
+    messageTextFieldFocusNode?.dispose();
+    messageTextFieldTextController?.dispose();
   }
 }

@@ -152,8 +152,8 @@ class _StorychatWidgetState extends State<StorychatWidget>
       }
     });
 
-    _model.textController ??= TextEditingController();
-    _model.textFieldFocusNode ??= FocusNode();
+    _model.messageTextFieldTextController ??= TextEditingController();
+    _model.messageTextFieldFocusNode ??= FocusNode();
 
     animationsMap.addAll({
       'textOnPageLoadAnimation': AnimationInfo(
@@ -501,8 +501,10 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                   child: Container(
                                     width: double.infinity,
                                     child: TextFormField(
-                                      controller: _model.textController,
-                                      focusNode: _model.textFieldFocusNode,
+                                      controller:
+                                          _model.messageTextFieldTextController,
+                                      focusNode:
+                                          _model.messageTextFieldFocusNode,
                                       autofocus: false,
                                       textCapitalization:
                                           TextCapitalization.sentences,
@@ -561,7 +563,8 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                               required isFocused,
                                               maxLength}) =>
                                           null,
-                                      validator: _model.textControllerValidator
+                                      validator: _model
+                                          .messageTextFieldTextControllerValidator
                                           .asValidator(context),
                                       inputFormatters: [
                                         if (!isAndroid && !isiOS)
@@ -612,12 +615,14 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                   _model.addToChatMessages(
                                                       StoryChatMessageStructStruct(
                                                     text: _model
-                                                        .textController.text,
+                                                        .messageTextFieldTextController
+                                                        .text,
                                                     type: 'user',
                                                   ));
                                                   safeSetState(() {});
                                                   _model.userinput = _model
-                                                      .textController.text;
+                                                      .messageTextFieldTextController
+                                                      .text;
                                                   safeSetState(() {});
 
                                                   firestoreBatch.set(
@@ -641,7 +646,8 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                                   ));
                                                   safeSetState(() {});
                                                   safeSetState(() {
-                                                    _model.textController
+                                                    _model
+                                                        .messageTextFieldTextController
                                                         ?.clear();
                                                   });
                                                   _model.formattedHistory =
@@ -921,7 +927,8 @@ class _StorychatWidgetState extends State<StorychatWidget>
                                   ));
                                   safeSetState(() {});
                                   safeSetState(() {
-                                    _model.textController?.clear();
+                                    _model.messageTextFieldTextController
+                                        ?.clear();
                                   });
                                   _model.formattedHistory1 =
                                       await actions.getAndProcessHistory(
