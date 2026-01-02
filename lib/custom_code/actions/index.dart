@@ -19,4 +19,3 @@ export 'generate_single_text_field.dart' show generateSingleTextField;
 export 'call_generate_image_cloud.dart' show callGenerateImageCloud;
 export 'generate_image_prompt.dart' show generateImagePrompt;
 export 'translate_to_english.dart' show translateToEnglish;
-export 'save_replicate_image_to_storage.dart' show saveReplicateImageToStorage;

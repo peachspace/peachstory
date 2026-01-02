@@ -17,9 +17,14 @@ Future<String?> callGenerateImageCloud(
   String? characterImageUrl,
 ) async {
   try {
-    // 1. 리전 확인 (본인의 Firebase 리전과 일치해야 함!)
+    // 1. 타임아웃을 120초(2분)로 설정하는 옵션 추가
+    final options = HttpsCallableOptions(timeout: const Duration(seconds: 120));
+
     final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
-    final callable = functions.httpsCallable('generateReplicateImage');
+
+    // 2. 옵션을 적용해서 함수 호출 객체 생성
+    final callable =
+        functions.httpsCallable('generateReplicateImage', options: options);
 
     print('DEBUG: 호출 시작 Mode=$mode');
 
@@ -30,24 +35,13 @@ Future<String?> callGenerateImageCloud(
     });
 
     final rawData = results.data;
-    print('DEBUG: 서버 응답 $rawData');
-
+    // ... (나머지 코드는 기존과 동일)
     if (rawData is Map && rawData['imageUrl'] != null) {
       return rawData['imageUrl'].toString();
     }
-
-    // 서버가 에러 메시지를 보낸 경우 확인
-    if (rawData is Map && rawData['error'] != null) {
-      print('DEBUG: 서버 로직 에러: ${rawData['error']}');
-    }
-
-    return null;
-  } on FirebaseFunctionsException catch (e) {
-    // ★ 여기서 404인지 확실히 알 수 있습니다.
-    print('DEBUG: Firebase 함수 에러 (Code: ${e.code}): ${e.message}');
     return null;
   } catch (e) {
-    print('DEBUG: 알 수 없는 에러 $e');
+    print('DEBUG: 에러 발생 $e');
     return null;
   }
 }

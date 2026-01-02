@@ -848,7 +848,7 @@ class _ImagecreatebottomsheetWidgetState
                           'emotion',
                           _model.imagecreatepromptTextController.text !=
                                       ''
-                              ? '${_model.emotionChoiceChipsValue}, ${_model.englishPrompt}'
+                              ? '${_model.emotionChoiceChipsValue} ${_model.englishPrompt}'
                               : _model.emotionChoiceChipsValue!,
                           widget.baseimage,
                         );

@@ -23,7 +23,8 @@ exports.generateReplicateImage = functions
 
     try {
       const userId = context.auth.uid;
-      const mode = data.mode || "character";
+      const rawMode = data.mode || "character";
+      const mode = String(rawMode).trim().toLowerCase();
       const prompt = data.prompt || "anime style";
       let characterImageUrl = data.characterImageUrl;
 
