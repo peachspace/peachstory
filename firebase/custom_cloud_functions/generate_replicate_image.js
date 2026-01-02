@@ -6,31 +6,33 @@ if (!admin.apps.length) admin.initializeApp();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// 모델 버전 상수 정의
+// ★ 모델 정의 (둘 다 IDEOGRAM 사용 추천, 또는 얼굴 참조가 되는 모델로 통일)
 const ANIMAGINE_VERSION =
-  "6d17167db6b7e31a65191c51f3d3cd0f864c14aee708a66ecfbc8c4e696ad06b"; // 캐릭터 & 감정 생성용
+  "6d17167db6b7e31a65191c51f3d3cd0f864c14aee708a66ecfbc8c4e696ad06b";
 const IDEOGRAM_VERSION =
-  "77d8da192375ce51fa632db399ba3765e6f08da36890f0be5e3e479e09dd79ea"; // 상황 생성용
+  "77d8da192375ce51fa632db399ba3765e6f08da36890f0be5e3e479e09dd79ea";
 
 exports.generateReplicateImage = functions
   .runWith({
     secrets: ["REPLICATE_API_KEY"],
     timeoutSeconds: 540,
     memory: "1GB",
+    minInstances: 1, // 속도 향상을 위해 1개 상시 대기
   })
   .https.onCall(async (data, context) => {
     if (!context.auth) return { success: false, error: "로그인이 필요합니다." };
 
     try {
       const userId = context.auth.uid;
+      // 공백/대소문자 문제 방지
       const rawMode = data.mode || "character";
       const mode = String(rawMode).trim().toLowerCase();
+
       const prompt = data.prompt || "anime style";
       let characterImageUrl = data.characterImageUrl;
 
       console.log(`DEBUG: 시작 Mode=${mode}, Prompt=${prompt}`);
 
-      // [공통 함수] 이미지 URL 유효성 검사 및 변환 (GS -> Signed URL)
       const getValidUrl = async (url) => {
         if (!url || url.length < 5) return null;
         if (url.startsWith("http")) return url;
@@ -56,9 +58,6 @@ exports.generateReplicateImage = functions
       let version;
       let inputData;
 
-      // ====================================================
-      // [CASE 1] 캐릭터 생성 (Text-to-Image)
-      // ====================================================
       if (mode === "character") {
         version = ANIMAGINE_VERSION;
         inputData = {
@@ -70,11 +69,7 @@ exports.generateReplicateImage = functions
           guidance_scale: 7,
           num_inference_steps: 28,
         };
-      }
-      // ====================================================
-      // [CASE 2] 상황 생성 (Image-to-Image / Reference)
-      // ====================================================
-      else if (mode === "situation") {
+      } else if (mode === "situation") {
         version = IDEOGRAM_VERSION;
         const validUrl = await getValidUrl(characterImageUrl);
         if (!validUrl)
@@ -87,11 +82,9 @@ exports.generateReplicateImage = functions
           aspect_ratio: "1:1",
         };
       }
-      // ====================================================
-      // [CASE 3] 감정 생성 (Emotion / Image-to-Image)
-      // ====================================================
+      // ★ [수정됨] 감정 생성 로직 변경
       else if (mode === "emotion") {
-        version = IDEOGRAM_VERSION; // ★ 상황 생성과 동일한 모델 사용
+        version = IDEOGRAM_VERSION; // 상황 생성과 동일한 강력한 모델 사용
 
         const validUrl = await getValidUrl(characterImageUrl);
         if (!validUrl)
@@ -99,24 +92,24 @@ exports.generateReplicateImage = functions
             "감정 생성을 위해서는 원본 캐릭터 이미지가 필수입니다.",
           );
 
-        // 한글 감정을 영어 지시어로 변환 (매핑)
+        // 감정 매핑 (한글 -> 영어 묘사)
         const emotionMap = {
           기쁨: "joyful smile, happy expression",
           슬픔: "sad face, crying, tears",
           화남: "angry expression, frowning",
           놀람: "surprised face, wide eyes",
           두려움: "scared face, fearful",
+          혐오: "disgusted face",
           중립: "neutral expression",
         };
-
-        // 입력된 프롬프트(예: '기쁨')가 맵에 있으면 영어로, 없으면 그대로 사용
+        // 입력된 프롬프트가 매핑에 있으면 영어로, 없으면 그대로 사용 (공백 제거)
         const cleanPrompt = prompt ? prompt.trim() : "";
-        const emotionPrompt = emotionMap[cleanPrompt] || cleanPrompt;
+        const emotionDesc = emotionMap[cleanPrompt] || cleanPrompt;
 
         inputData = {
-          // ★ 프롬프트: 얼굴 클로즈업 + 감정 표현 + 캐릭터 유지 강조
-          prompt: `A close-up portrait of the character, ${emotionPrompt}, keeping the same face features, same hair style, consistent character, high quality, anime style`,
-          character_reference_image: validUrl, // ★ 상황 생성처럼 강력한 참조 기능 사용
+          // 얼굴 클로즈업 + 감정 표현 + 캐릭터 유지 강조
+          prompt: `A close-up portrait of the character, ${emotionDesc}, keeping the same face features, same hair style, consistent character, high quality, anime style`,
+          character_reference_image: validUrl, // ★ 얼굴 참조 사용
           style_type: "Fiction",
           aspect_ratio: "1:1",
         };
@@ -124,7 +117,7 @@ exports.generateReplicateImage = functions
         throw new Error("유효하지 않은 모드입니다.");
       }
 
-      // Replicate 호출
+      // Replicate 호출 (재시도 로직 포함 권장하지만 여기선 기본 호출)
       const response = await axios.post(
         "https://api.replicate.com/v1/predictions",
         { version: version, input: inputData },
@@ -133,16 +126,16 @@ exports.generateReplicateImage = functions
         },
       );
 
+      // ... (이후 폴링 및 저장 로직은 기존과 동일)
       let prediction = response.data;
       const getUrl = prediction.urls.get;
 
-      // Polling
       let attempts = 0;
       while (
         prediction.status === "starting" ||
         prediction.status === "processing"
       ) {
-        if (attempts++ > 60) throw new Error("Timeout");
+        if (attempts++ > 120) throw new Error("Timeout"); // 타임아웃 넉넉히
         await sleep(2000);
         prediction = (
           await axios.get(getUrl, {
@@ -156,13 +149,11 @@ exports.generateReplicateImage = functions
       if (prediction.status !== "succeeded")
         throw new Error(prediction.error || "생성 실패");
 
-      // Output 파싱
       let rawAiUrl = prediction.output;
       if (Array.isArray(rawAiUrl)) rawAiUrl = rawAiUrl[0];
       if (typeof rawAiUrl !== "string")
         throw new Error("결과 URL을 찾을 수 없습니다.");
 
-      // 서버 저장 및 반환
       try {
         const imgResp = await axios.get(rawAiUrl, {
           responseType: "arraybuffer",
@@ -172,7 +163,6 @@ exports.generateReplicateImage = functions
           .storage()
           .bucket()
           .file(`users/${userId}/uploads/${fileName}`);
-
         await file.save(imgResp.data, {
           metadata: { contentType: "image/png" },
         });
@@ -180,7 +170,6 @@ exports.generateReplicateImage = functions
           action: "read",
           expires: "03-01-2100",
         });
-
         return { success: true, imageUrl: permUrl };
       } catch (saveErr) {
         console.error("저장 실패:", saveErr);
