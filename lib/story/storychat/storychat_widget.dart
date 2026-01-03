@@ -433,22 +433,29 @@ class _StorychatWidgetState extends State<StorychatWidget>
                               } else if (functions.isSceneType(
                                       currentLoop2Item, 'show_image') ==
                                   true) {
-                                _model.addToChatMessages(
-                                    StoryChatMessageStructStruct(
-                                  type: getJsonField(
-                                    currentLoop2Item,
-                                    r'''$.type''',
-                                  ).toString(),
-                                  storyImageUrl: functions
-                                      .findSituationalImageUrlByCondition(
-                                          getJsonField(
-                                            currentLoop2Item,
-                                            r'''$.condition''',
-                                          ).toString(),
-                                          _model.pageSituationalImages
-                                              .toList()),
-                                ));
-                                safeSetState(() {});
+                                if (functions
+                                        .findSituationalImageUrlByCondition(
+                                            getJsonField(
+                                              currentLoop2Item,
+                                              r'''$.condition''',
+                                            ).toString(),
+                                            _model.pageSituationalImages
+                                                .toList()) ==
+                                    '') {
+                                  _model.addToChatMessages(
+                                      StoryChatMessageStructStruct(
+                                    type: 'story_image',
+                                    storyImageUrl: functions
+                                        .findSituationalImageUrlByCondition(
+                                            getJsonField(
+                                              currentLoop2Item,
+                                              r'''$.condition''',
+                                            ).toString(),
+                                            _model.pageSituationalImages
+                                                .toList()),
+                                  ));
+                                  safeSetState(() {});
+                                }
                               }
                             }
                             _model.istyping = false;

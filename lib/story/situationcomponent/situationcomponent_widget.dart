@@ -90,9 +90,6 @@ class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
 
     return Container(
       width: double.infinity,
-      constraints: BoxConstraints(
-        minHeight: 700.0,
-      ),
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
         borderRadius: BorderRadius.circular(10.0),
