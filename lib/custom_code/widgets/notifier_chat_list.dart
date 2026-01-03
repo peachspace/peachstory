@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'index.dart'; // Imports other custom widgets
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/scheduler.dart';
@@ -45,27 +44,42 @@ class NotifierChatList extends StatefulWidget {
   State<NotifierChatList> createState() => _NotifierChatListState();
 }
 
-class _NotifierChatListState extends State<NotifierChatList> {
+class _NotifierChatListState extends State<NotifierChatList>
+    with SingleTickerProviderStateMixin {
   late ValueNotifier<List<StoryChatMessageStructStruct>> _messagesNotifier;
   final ScrollController _scrollController = ScrollController();
   List<dynamic> _scenes = [];
+  int _currentSceneIndex = 0;
+  bool _isTyping = false; // 타이핑 상태 변수 복구
+
+  late AnimationController _loadingController;
+  late Animation<double> _loadingAnimation;
 
   @override
   void initState() {
     super.initState();
     _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
     WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
+
+    _loadingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _loadingAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _loadingController, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.initialMessages != null) {
+    // 1. 리스트 동기화 (타이핑 중엔 방해 금지)
+    if (widget.initialMessages != null && !_isTyping) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
-
       bool shouldUpdate = false;
+
       if (parentList.length != currentList.length) {
         shouldUpdate = true;
       } else if (parentList.isNotEmpty && currentList.isNotEmpty) {
@@ -86,11 +100,14 @@ class _NotifierChatListState extends State<NotifierChatList> {
       }
     }
 
+    // 2. AI 스크립트 처리 (타이핑 시작)
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
+        widget.newResponseScript != '" "' &&
         !widget.newResponseScript.contains("BLOCKED_CONTENT")) {
-      _processScriptImmediately(widget.newResponseScript);
+      if (_isTyping) return;
+      SchedulerBinding.instance.addPostFrameCallback((_) => _startDirecting());
     }
   }
 
@@ -98,42 +115,147 @@ class _NotifierChatListState extends State<NotifierChatList> {
   void dispose() {
     _messagesNotifier.dispose();
     _scrollController.dispose();
+    _loadingController.dispose();
     super.dispose();
   }
 
-  void _processScriptImmediately(String script) {
-    String cleanScript =
-        script.replaceAll('```json', '').replaceAll('```', '').trim();
+  void _startDirecting() {
+    if (!mounted) return;
+    setState(() => _isTyping = true); // 타이핑 시작
+
+    String script = widget.newResponseScript
+        .replaceAll('```json', '')
+        .replaceAll('```', '')
+        .trim();
     _scenes = [];
 
     try {
-      int bracketIndex = cleanScript.indexOf('[');
+      int bracketIndex = script.indexOf('[');
       if (bracketIndex != -1) {
-        String jsonPart = cleanScript.substring(bracketIndex).trim();
+        String jsonPart = script.substring(bracketIndex).trim();
         try {
+          int lastBracket = jsonPart.lastIndexOf(']'); // 닫는 괄호 처리 추가
+          if (lastBracket != -1) {
+            jsonPart = jsonPart.substring(0, lastBracket + 1);
+          }
           final dynamic decoded = jsonDecode(jsonPart);
           if (decoded is List) _scenes = decoded;
         } catch (_) {}
       }
-      if (_scenes.isEmpty) _scenes = _parseScriptIntoScenes(cleanScript);
+      if (_scenes.isEmpty) _scenes = _parseScriptIntoScenes(script);
     } catch (e) {
-      _scenes = _parseScriptIntoScenes(cleanScript);
+      _scenes = _parseScriptIntoScenes(script);
     }
 
-    if (_scenes.isEmpty && cleanScript.isNotEmpty) {
-      _scenes.add({"type": "narration", "content": cleanScript});
+    if (_scenes.isEmpty && script.isNotEmpty) {
+      _scenes.add({"type": "narration", "content": script});
     }
 
-    if (widget.onTurnComplete != null) {
-      widget.onTurnComplete!(_scenes);
+    _currentSceneIndex = 0;
+    _processNextScene();
+  }
+
+  void _processNextScene() async {
+    if (!mounted || _currentSceneIndex >= _scenes.length) {
+      setState(() => _isTyping = false); // 타이핑 종료
+      if (widget.onTurnComplete != null) {
+        await widget.onTurnComplete!(_scenes);
+      }
+      // 종료 후 최종 동기화 (선택사항)
+      if (widget.initialMessages != null) {
+        _messagesNotifier.value = List.from(widget.initialMessages!);
+      }
+      _animateToBottom();
+      return;
+    }
+
+    final scene = _scenes[_currentSceneIndex];
+    _currentSceneIndex++;
+    final type = scene['type'] ?? 'narration';
+    _jumpToBottom();
+
+    if (type == 'show_image') {
+      final imageUrl = _findSituationalImageUrlByCondition(
+          scene['condition'] ?? '', widget.situationalImageList ?? []);
+
+      if (imageUrl.isNotEmpty && imageUrl != 'null') {
+        final imageMessage = createStoryChatMessageStructStruct(
+          type: 'story_image',
+          storyImageUrl: imageUrl,
+          isStreaming: false,
+          text: '',
+          speakerName: '',
+          actionText: '',
+          speakerImage: '',
+        );
+        _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
+        _jumpToBottom();
+        await Future.delayed(const Duration(milliseconds: 800));
+      }
+      _processNextScene();
+    } else if (type == 'narration' || type == 'dialogue') {
+      await _animateTextScene(scene); // 타이핑 효과 호출
+      if (mounted) _processNextScene();
+    } else {
+      _processNextScene();
+    }
+  }
+
+  // ★ [복구] 타이핑 애니메이션 로직
+  Future<void> _animateTextScene(dynamic scene) async {
+    final placeholder = _createStructFromScene(scene, '', true);
+    if (placeholder == null) return;
+
+    _messagesNotifier.value = [..._messagesNotifier.value, placeholder];
+    _jumpToBottom();
+
+    final String content = scene['content'] ?? '';
+
+    for (int i = 0; i <= content.length; i++) {
+      if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 15)); // 속도 조절
+
+      final currentList =
+          List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
+      if (currentList.isEmpty) return;
+
+      final updatedMessage =
+          _createStructFromScene(scene, content.substring(0, i), true);
+
+      if (updatedMessage != null) {
+        currentList[currentList.length - 1] = updatedMessage;
+        _messagesNotifier.value = currentList;
+        if (i % 20 == 0) _jumpToBottom();
+      }
+    }
+
+    final currentList =
+        List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
+    final finalMessage = _createStructFromScene(scene, content, false);
+    if (finalMessage != null) {
+      currentList[currentList.length - 1] = finalMessage;
+      _messagesNotifier.value = currentList;
     }
     _jumpToBottom();
+    await Future.delayed(const Duration(milliseconds: 200));
   }
 
   void _jumpToBottom() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
+  }
+
+  void _animateToBottom() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutQuad,
+        );
       }
     });
   }
@@ -152,19 +274,11 @@ class _NotifierChatListState extends State<NotifierChatList> {
 
             if (chatItem.type == 'user') {
               if (chatItem.text == '생각 중' || chatItem.type == 'thinking') {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12.0),
-                  child: Text("생각하는 중...",
-                      style: TextStyle(color: Colors.grey, fontSize: 13)),
-                );
+                return _buildThinkingIndicator();
               }
               return _buildDialogueMessage(chatItem, isUser: true);
             } else if (chatItem.type == 'thinking') {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.0),
-                child: Text("생각하는 중...",
-                    style: TextStyle(color: Colors.grey, fontSize: 13)),
-              );
+              return _buildThinkingIndicator();
             } else {
               return _buildAiMessage(chatItem);
             }
@@ -174,7 +288,73 @@ class _NotifierChatListState extends State<NotifierChatList> {
     );
   }
 
-  // ★ [핵심] 대사 출력 UI (말풍선/원형프사 제거, 큰 이미지 추가)
+  Widget _buildThinkingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: FadeTransition(
+          opacity: _loadingAnimation,
+          child: Text(
+            "생각하는 중...",
+            style: TextStyle(color: Colors.grey[500], fontSize: 13),
+          ),
+        ),
+      ),
+    );
+  }
+
+  StoryChatMessageStructStruct? _createStructFromScene(
+      dynamic scene, String text, bool isStreaming) {
+    if (scene == null) return null;
+
+    final String type = (scene['type'] ?? 'narration').toString();
+    final String speaker = (scene['speaker'] ?? '').toString();
+    final String action = (scene['action'] ?? '').toString();
+
+    // 이미지 찾기
+    final String resolvedImage =
+        _resolveCharacterImageUrl(speaker, action) ?? '';
+
+    return createStoryChatMessageStructStruct(
+      type: type,
+      speakerName: speaker,
+      actionText: action,
+      text: text,
+      isStreaming: isStreaming,
+      storyImageUrl: '',
+      speakerImage: resolvedImage,
+    );
+  }
+
+  String? _resolveCharacterImageUrl(String speakerName, String? emotionKey) {
+    final name = speakerName.trim();
+    if (name.isEmpty) return null;
+
+    final characters = widget.preDefinedCharacters ?? [];
+    CharacterStructStruct? character;
+    try {
+      character = characters.firstWhere((c) => c.name.trim() == name);
+    } catch (_) {
+      return null;
+    }
+
+    final key = (emotionKey ?? '').trim();
+    if (key.isNotEmpty) {
+      for (final e in character.emotionImages) {
+        if (e.emotion != null && e.emotion.trim() == key) {
+          if (e.image != null && e.image.startsWith('http')) {
+            return e.image;
+          }
+        }
+      }
+    }
+    if (character.imageUrl != null && character.imageUrl!.startsWith('http')) {
+      return character.imageUrl;
+    }
+    return character.image;
+  }
+
   Widget _buildDialogueMessage(StoryChatMessageStructStruct chatItem,
       {bool isUser = false}) {
     final speaker =
@@ -194,9 +374,9 @@ class _NotifierChatListState extends State<NotifierChatList> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. [이미지] 감정/프로필 이미지가 있으면 크게 출력
+          // 1. [이미지] 감정 이미지 출력 (큰 이미지)
           if (!isUser && imageUrl.isNotEmpty && imageUrl.startsWith('http'))
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
@@ -204,15 +384,16 @@ class _NotifierChatListState extends State<NotifierChatList> {
                 borderRadius: BorderRadius.circular(8.0),
                 child: Image.network(
                   imageUrl,
-                  width: double.infinity, // 가로 꽉 차게
-                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  fit: BoxFit.cover, // 꽉 채우기
+                  // height: 300, // 높이 고정 없이 원본 비율 유지하거나, 필요 시 주석 해제하여 고정
                   errorBuilder: (context, error, stackTrace) =>
                       const SizedBox.shrink(),
                 ),
               ),
             ),
 
-          // 2. [텍스트] Speaker :: Text (기존 스타일)
+          // 2. [텍스트] Speaker :: Text
           RichText(
             text: TextSpan(
               children: [
@@ -240,35 +421,6 @@ class _NotifierChatListState extends State<NotifierChatList> {
         ],
       ),
     );
-  }
-
-  // Helper: 이미지 URL 찾기
-  String? _resolveCharacterImageUrl(String speakerName, String? emotionKey) {
-    final name = speakerName.trim();
-    if (name.isEmpty) return null;
-
-    final characters = widget.preDefinedCharacters ?? [];
-    CharacterStructStruct? character;
-    try {
-      character = characters.firstWhere((c) => c.name.trim() == name);
-    } catch (_) {
-      return null;
-    }
-
-    final key = (emotionKey ?? '').trim();
-    if (key.isNotEmpty) {
-      for (final e in character.emotionImages) {
-        if (e.emotion != null && e.emotion.trim() == key) {
-          if (e.image != null && e.image.startsWith('http')) {
-            return e.image;
-          }
-        }
-      }
-    }
-    if (character.imageUrl != null && character.imageUrl!.startsWith('http')) {
-      return character.imageUrl;
-    }
-    return character.image;
   }
 
   Widget _buildNarration(StoryChatMessageStructStruct message) {

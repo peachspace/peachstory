@@ -84,7 +84,7 @@ exports.generateReplicateImage = functions
       }
       // ★ [수정됨] 감정 생성 로직 변경
       else if (mode === "emotion") {
-        version = IDEOGRAM_VERSION; // 상황 생성과 동일한 강력한 모델 사용
+        version = IDEOGRAM_VERSION; // 상황 생성과 동일한 모델 사용 (얼굴 참조 기능 활용)
 
         const validUrl = await getValidUrl(characterImageUrl);
         if (!validUrl)
@@ -92,7 +92,6 @@ exports.generateReplicateImage = functions
             "감정 생성을 위해서는 원본 캐릭터 이미지가 필수입니다.",
           );
 
-        // 감정 매핑 (한글 -> 영어 묘사)
         const emotionMap = {
           기쁨: "joyful smile, happy expression",
           슬픔: "sad face, crying, tears",
@@ -102,16 +101,15 @@ exports.generateReplicateImage = functions
           혐오: "disgusted face",
           중립: "neutral expression",
         };
-        // 입력된 프롬프트가 매핑에 있으면 영어로, 없으면 그대로 사용 (공백 제거)
         const cleanPrompt = prompt ? prompt.trim() : "";
         const emotionDesc = emotionMap[cleanPrompt] || cleanPrompt;
 
         inputData = {
-          // 얼굴 클로즈업 + 감정 표현 + 캐릭터 유지 강조
-          prompt: `A close-up portrait of the character, ${emotionDesc}, keeping the same face features, same hair style, consistent character, high quality, anime style`,
-          character_reference_image: validUrl, // ★ 얼굴 참조 사용
+          // ★ [수정] 'close up', 'face shot' 제거 -> 'portrait', 'upper body' 등으로 변경하여 자연스럽게
+          prompt: `A high-quality anime portrait of the character, ${emotionDesc}, upper body shot, keeping the exact same face features and hair style as the reference image, consistent character design, detailed background`,
+          character_reference_image: validUrl, // 얼굴 고정
           style_type: "Fiction",
-          aspect_ratio: "1:1",
+          aspect_ratio: "1:1", // 필요시 비율 조정
         };
       } else {
         throw new Error("유효하지 않은 모드입니다.");
