@@ -843,18 +843,40 @@ class _ImagecreatebottomsheetWidgetState
                             _model.newsituationImageResult;
                         safeSetState(() {});
                       } else if (widget.imageMode == 'emotion') {
-                        _model.newemotionmageResult =
-                            await actions.callGenerateImageCloud(
-                          'emotion',
-                          _model.imagecreatepromptTextController.text !=
-                                      ''
-                              ? '${_model.emotionChoiceChipsValue} ${_model.englishPrompt}'
-                              : _model.emotionChoiceChipsValue!,
-                          widget.baseimage,
-                        );
-                        _shouldSetState = true;
-                        _model.generatedImageUrl = _model.newemotionmageResult;
-                        safeSetState(() {});
+                        if (widget.baseimage != null &&
+                            widget.baseimage != '') {
+                          _model.newemotionmageResult =
+                              await actions.callGenerateImageCloud(
+                            'emotion',
+                            _model.imagecreatepromptTextController
+                                            .text !=
+                                        ''
+                                ? '${_model.emotionChoiceChipsValue} ${_model.englishPrompt}'
+                                : _model.emotionChoiceChipsValue!,
+                            widget.baseimage,
+                          );
+                          _shouldSetState = true;
+                          _model.generatedImageUrl =
+                              _model.newemotionmageResult;
+                          safeSetState(() {});
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '프로필 이미지를 먼저 생성해주세요.',
+                                style: TextStyle(
+                                  color:
+                                      FlutterFlowTheme.of(context).primaryText,
+                                ),
+                              ),
+                              duration: Duration(milliseconds: 4000),
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).secondary,
+                            ),
+                          );
+                          if (_shouldSetState) safeSetState(() {});
+                          return;
+                        }
                       } else {
                         if (_shouldSetState) safeSetState(() {});
                         return;
