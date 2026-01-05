@@ -7,16 +7,14 @@ if (!admin.apps.length) admin.initializeApp();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // 모델 정의
-// 1. 프로필: Animagine XL 4.0 (애니메이션 퀄리티 최상)
 const ANIMAGINE_XL_4_VERSION =
   "7af46ee494f1cf196d49a8592737f4eb789e34a5a995751b23a869d19f5dc2ba";
-// 2. 감정: InstantID (얼굴 고정 특화)
 const INSTANT_ID_VERSION =
   "5225e059ede1d8378c27ea6e859fa95c3ade3d3b1e7aad19d8ddfa9890972f1b";
 
 exports.generateReplicateImage = functions
   .runWith({
-    // secrets: ["REPLICATE_API_KEY"], // ★ [배포 에러 원인 1] 제거 (기존 환경설정 사용)
+    secrets: ["REPLICATE_API_KEY"],
     timeoutSeconds: 540,
     memory: "1GB",
     minInstances: 1,
@@ -31,7 +29,6 @@ exports.generateReplicateImage = functions
       const promptInput = data.prompt || "";
       const characterImageUrl = data.characterImageUrl;
 
-      // URL 변환 헬퍼
       const getValidUrl = async (url) => {
         if (!url || url.length < 5) return null;
         if (url.startsWith("http")) return url;
@@ -54,7 +51,6 @@ exports.generateReplicateImage = functions
         return null;
       };
 
-      // 입력값 분리
       const parseEmotionInput = (raw) => {
         const s = (raw || "").trim();
         if (!s) return { key: "", extra: "" };
@@ -67,7 +63,7 @@ exports.generateReplicateImage = functions
       };
 
       const emotionMap = {
-        기쁨: "joyful smile, happy expression, laughing",
+        기쁨: "joyful smile, happy, laughing",
         슬픔: "sad face, crying, tears",
         화남: "angry expression, frowning, rage",
         분노: "angry, furious, shouting",
@@ -81,23 +77,25 @@ exports.generateReplicateImage = functions
       let inputData;
 
       // -----------------------------------------------------
-      // 1. 캐릭터(프로필) 생성
+      // 1. 캐릭터(프로필) 생성 - Animagine XL 4.0
       // -----------------------------------------------------
       if (mode === "character") {
         version = ANIMAGINE_XL_4_VERSION;
         inputData = {
-          // 얼굴 인식을 위해 상반신/인물화 강제
           prompt: `1girl, masterpiece, best quality, anime style, portrait, upper body, focus on face, ${promptInput}`,
           negative_prompt:
             "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, full body, wide shot",
-          num_inference_steps: 25,
+
+          // ★ [Animagine 파라미터]
+          // Animagine은 'num_inference_steps'를 사용합니다.
+          num_inference_steps: 22, // 28 -> 22 (품질 타협 없이 속도 향상)
           guidance_scale: 7,
           width: 1024,
           height: 1024,
         };
       }
       // -----------------------------------------------------
-      // 2. 감정 생성 (InstantID)
+      // 2. 감정 생성 - InstantID Basic
       // -----------------------------------------------------
       else if (mode === "emotion") {
         version = INSTANT_ID_VERSION;
@@ -114,37 +112,33 @@ exports.generateReplicateImage = functions
         const finalPrompt = `anime style, flat color, cel shaded, ${emotionDesc}, ${extra}, upper body, same character identity, high quality`;
 
         inputData = {
-          image: validUrl, // 참조 이미지
+          image: validUrl,
           prompt: finalPrompt,
           negative_prompt:
             "lowres, bad anatomy, bad hands, text, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, blurry, different face, realistic, 3d, photorealistic, nsfw",
 
-          // ★ [핵심] 얼굴 고정 파라미터 상향 (1.0 = 최대)
-          identity_scale: 1.0,
+          // ★ [InstantID Basic 파라미터 - 핵심 수정]
+          // 이 모델은 'num_inference_steps' 대신 'steps'를, 'guidance_scale' 대신 'cfg'를 씁니다.
+          // 이름이 틀리면 Replicate가 무시하거나 에러를 냅니다.
+
+          steps: 12, // ★ 30 -> 12 (속도 2.5배 향상)
+          cfg: 4.0, // ★ guidance_scale 대신 cfg 사용
+
+          identity_scale: 0.9,
           ip_adapter_scale: 0.8,
           instantid_weight: 0.8,
 
-          // ★ [속도 개선] LCM 적용 (빠른 생성)
-          enable_lcm: true,
-          num_inference_steps: 8, // LCM 사용 시 8스텝이면 충분 (기존 30 -> 8)
-          guidance_scale: 1.5, // LCM은 낮은 guidance 필요
+          // enable_lcm: true, // 이 버전은 LCM 미지원 가능성이 높으므로 제거 (안정성 우선)
 
           width: 1024,
           height: 1024,
         };
-      }
-      // -----------------------------------------------------
-      // 3. 상황 생성
-      // -----------------------------------------------------
-      else if (mode === "situation") {
+      } else if (mode === "situation") {
         throw new Error("상황 생성은 별도 구현 필요");
       } else {
         throw new Error("유효하지 않은 모드입니다.");
       }
 
-      // Replicate 호출
-      // ★ API Key는 secrets 대신 process.env 사용 (기존 설정이 있다면)
-      // 만약 환경변수가 없다면 아래 headers 부분에 직접 키를 넣어서 테스트 해보세요.
       const response = await axios.post(
         "https://api.replicate.com/v1/predictions",
         { version: version, input: inputData },
@@ -179,7 +173,6 @@ exports.generateReplicateImage = functions
         ? prediction.output[0]
         : prediction.output;
 
-      // 저장 로직
       try {
         const imgResp = await axios.get(rawAiUrl, {
           responseType: "arraybuffer",
