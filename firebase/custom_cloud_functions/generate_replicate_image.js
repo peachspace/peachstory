@@ -19,7 +19,7 @@ exports.generateReplicateImage = functions
     // secrets: ["REPLICATE_API_KEY"], // ★ [배포 에러 원인 1] 제거 (기존 환경설정 사용)
     timeoutSeconds: 540,
     memory: "1GB",
-    // minInstances: 1, // ★ [배포 에러 원인 2] 제거 (Spark 요금제 호환성 이슈 방지)
+    minInstances: 1,
   })
   .https.onCall(async (data, context) => {
     if (!context.auth) return { success: false, error: "로그인이 필요합니다." };

@@ -29,7 +29,7 @@ Future<String?> callGenerateImageCloud(
 ) async {
   try {
     // 1. 타임아웃 120초(2분) 설정
-    final options = HttpsCallableOptions(timeout: const Duration(seconds: 120));
+    final options = HttpsCallableOptions(timeout: const Duration(seconds: 540));
 
     final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
     final callable =
