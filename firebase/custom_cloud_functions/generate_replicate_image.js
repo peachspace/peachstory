@@ -6,20 +6,20 @@ if (!admin.apps.length) admin.initializeApp();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// 모델 버전 정의 (다른 AI가 추천한 가성비+일관성 최적 조합)
-// 1. 프로필 생성용: Animagine XL 4.0 (애니메이션 특화)
+// 모델 정의
+// 1. 프로필: Animagine XL 4.0 (애니메이션 퀄리티 최상)
 const ANIMAGINE_XL_4_VERSION =
   "7af46ee494f1cf196d49a8592737f4eb789e34a5a995751b23a869d19f5dc2ba";
-// 2. 감정 생성용: InstantID Basic (얼굴 참조 고정 특화)
-const INSTANT_ID_BASIC_VERSION =
+// 2. 감정: InstantID (얼굴 고정 특화)
+const INSTANT_ID_VERSION =
   "5225e059ede1d8378c27ea6e859fa95c3ade3d3b1e7aad19d8ddfa9890972f1b";
 
 exports.generateReplicateImage = functions
   .runWith({
-    secrets: ["REPLICATE_API_KEY"],
+    // secrets: ["REPLICATE_API_KEY"], // ★ [배포 에러 원인 1] 제거 (기존 환경설정 사용)
     timeoutSeconds: 540,
     memory: "1GB",
-    minInstances: 1,
+    // minInstances: 1, // ★ [배포 에러 원인 2] 제거 (Spark 요금제 호환성 이슈 방지)
   })
   .https.onCall(async (data, context) => {
     if (!context.auth) return { success: false, error: "로그인이 필요합니다." };
@@ -31,9 +31,7 @@ exports.generateReplicateImage = functions
       const promptInput = data.prompt || "";
       const characterImageUrl = data.characterImageUrl;
 
-      console.log(`DEBUG: 모드=${mode}, 입력값=${promptInput}`);
-
-      // URL 변환 헬퍼 함수
+      // URL 변환 헬퍼
       const getValidUrl = async (url) => {
         if (!url || url.length < 5) return null;
         if (url.startsWith("http")) return url;
@@ -56,29 +54,27 @@ exports.generateReplicateImage = functions
         return null;
       };
 
-      // ★ [핵심 로직] 입력값 분리 함수 (변호사님 요청 사항 반영)
-      // "기쁨 꽃을 들고 있음" -> key="기쁨", extra="꽃을 들고 있음"
+      // 입력값 분리
       const parseEmotionInput = (raw) => {
         const s = (raw || "").trim();
         if (!s) return { key: "", extra: "" };
         const firstSpace = s.indexOf(" ");
-        if (firstSpace === -1) return { key: s, extra: "" }; // 단어 하나만 왔을 때
+        if (firstSpace === -1) return { key: s, extra: "" };
         return {
           key: s.slice(0, firstSpace).trim(),
           extra: s.slice(firstSpace + 1).trim(),
         };
       };
 
-      // 감정 매핑
       const emotionMap = {
-        기쁨: "joyful smile, happy expression",
+        기쁨: "joyful smile, happy expression, laughing",
         슬픔: "sad face, crying, tears",
-        화남: "angry expression, frowning",
-        분노: "angry, furious",
-        놀람: "surprised face, wide eyes",
-        두려움: "scared, fearful",
-        혐오: "disgusted",
-        중립: "neutral expression",
+        화남: "angry expression, frowning, rage",
+        분노: "angry, furious, shouting",
+        놀람: "surprised face, wide eyes, open mouth",
+        두려움: "scared, fearful, pale",
+        혐오: "disgusted, grimace",
+        중립: "neutral expression, calm",
       };
 
       let version;
@@ -90,29 +86,21 @@ exports.generateReplicateImage = functions
       if (mode === "character") {
         version = ANIMAGINE_XL_4_VERSION;
         inputData = {
-          prompt: `1girl, masterpiece, best quality, ${promptInput}`,
+          // 얼굴 인식을 위해 상반신/인물화 강제
+          prompt: `1girl, masterpiece, best quality, anime style, portrait, upper body, focus on face, ${promptInput}`,
           negative_prompt:
-            "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+            "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, full body, wide shot",
+          num_inference_steps: 25,
+          guidance_scale: 7,
           width: 1024,
           height: 1024,
-          guidance_scale: 7,
-          num_inference_steps: 28,
-          aspect_ratio: "square_1024x1024",
         };
       }
       // -----------------------------------------------------
-      // 2. 상황 생성 (기존 유지)
-      // -----------------------------------------------------
-      else if (mode === "situation") {
-        // 상황 생성은 기존에 쓰시던 모델이나 IDEOGRAM 유지
-        // (여기서는 일단 에러 방지를 위해 간단히 처리)
-        throw new Error("상황 생성 로직은 별도 확인 필요");
-      }
-      // -----------------------------------------------------
-      // 3. ★ 감정 생성 (핵심 수정)
+      // 2. 감정 생성 (InstantID)
       // -----------------------------------------------------
       else if (mode === "emotion") {
-        version = INSTANT_ID_BASIC_VERSION; // 얼굴 고정 전문 모델
+        version = INSTANT_ID_VERSION;
 
         const validUrl = await getValidUrl(characterImageUrl);
         if (!validUrl)
@@ -120,36 +108,43 @@ exports.generateReplicateImage = functions
             "감정 생성을 위해서는 원본 캐릭터 이미지가 필수입니다.",
           );
 
-        // [요청하신 분리 로직 적용]
         const { key, extra } = parseEmotionInput(promptInput);
-
-        // 감정 영문 변환 (없으면 입력값 그대로)
         const emotionDesc = emotionMap[key] || key;
 
-        // 최종 프롬프트 조합: "감정 표현" + "사용자 추가 묘사"
-        const finalPrompt = `anime style, ${emotionDesc}, ${extra}, upper body, same character, high quality`;
+        const finalPrompt = `anime style, flat color, cel shaded, ${emotionDesc}, ${extra}, upper body, same character identity, high quality`;
 
         inputData = {
-          image: validUrl, // ★ 얼굴 참조 이미지 (InstantID 필수 입력)
+          image: validUrl, // 참조 이미지
           prompt: finalPrompt,
           negative_prompt:
-            "lowres, bad anatomy, bad hands, text, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, blurry, different face, realistic",
+            "lowres, bad anatomy, bad hands, text, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, blurry, different face, realistic, 3d, photorealistic, nsfw",
 
-          // ★ 얼굴 고정 파라미터 (다른 AI 추천값 적용)
-          identity_scale: 0.8, // 얼굴 유사도 (높을수록 원본과 같음)
-          ip_adapter_scale: 0.8, // 스타일 유사도
-          instantid_weight: 0.8, // InstantID 영향력
+          // ★ [핵심] 얼굴 고정 파라미터 상향 (1.0 = 최대)
+          identity_scale: 1.0,
+          ip_adapter_scale: 0.8,
+          instantid_weight: 0.8,
+
+          // ★ [속도 개선] LCM 적용 (빠른 생성)
+          enable_lcm: true,
+          num_inference_steps: 8, // LCM 사용 시 8스텝이면 충분 (기존 30 -> 8)
+          guidance_scale: 1.5, // LCM은 낮은 guidance 필요
 
           width: 1024,
           height: 1024,
-          steps: 30,
-          cfg: 7,
         };
+      }
+      // -----------------------------------------------------
+      // 3. 상황 생성
+      // -----------------------------------------------------
+      else if (mode === "situation") {
+        throw new Error("상황 생성은 별도 구현 필요");
       } else {
         throw new Error("유효하지 않은 모드입니다.");
       }
 
-      // Replicate 호출 및 결과 대기 (기존과 동일)
+      // Replicate 호출
+      // ★ API Key는 secrets 대신 process.env 사용 (기존 설정이 있다면)
+      // 만약 환경변수가 없다면 아래 headers 부분에 직접 키를 넣어서 테스트 해보세요.
       const response = await axios.post(
         "https://api.replicate.com/v1/predictions",
         { version: version, input: inputData },
@@ -158,16 +153,16 @@ exports.generateReplicateImage = functions
         },
       );
 
-      // ... (폴링 및 저장 로직은 기존 코드 그대로 유지하거나 복사)
       let prediction = response.data;
       const getUrl = prediction.urls.get;
       let attempts = 0;
+
       while (
         prediction.status === "starting" ||
         prediction.status === "processing"
       ) {
         if (attempts++ > 120) throw new Error("Timeout");
-        await sleep(2000);
+        await sleep(1000);
         prediction = (
           await axios.get(getUrl, {
             headers: {
@@ -184,7 +179,7 @@ exports.generateReplicateImage = functions
         ? prediction.output[0]
         : prediction.output;
 
-      // 저장 로직 (간소화)
+      // 저장 로직
       try {
         const imgResp = await axios.get(rawAiUrl, {
           responseType: "arraybuffer",
