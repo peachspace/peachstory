@@ -119,17 +119,21 @@ exports.generateReplicateImage = functions
           negative_prompt:
             "lowres, bad anatomy, bad hands, text, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, blurry, different face, realistic, 3d, photorealistic, nsfw",
 
-          // ★ [핵심] 얼굴 고정 파라미터 상향 (1.0 = 최대)
-          identity_scale: 1.0,
-          ip_adapter_scale: 0.8,
+          // ★ [핵심 1] 출력 포맷 명시 (포맷 불일치 에러 방지)
+          output_format: "png",
+
+          // ★ [핵심 2] 해상도 최적화 (1024 실패 -> 768 성공 & 빠름)
+          width: 768,
+          height: 768,
+
+          // ★ [핵심 3] 안정적인 파라미터 (성공률 100% 목표)
+          steps: 15, // 8은 너무 낮아 깨질 수 있음 -> 15로 안정화
+          cfg: 4.0, // 1.5는 너무 낮아 표정 안 나옴 -> 4.0으로 정상화
+
+          // 모델 스키마에 맞는 가중치 파라미터
+          ipadapter_weight: 0.8,
           instantid_weight: 0.8,
-
-          // ★ [속도 개선] LCM 적용 (빠른 생성)
-          steps: 8, // 'num_inference_steps' -> 'steps'
-          cfg: 1.5, // 'guidance_scale' -> 'cfg'
-
-          width: 1024,
-          height: 1024,
+          identity_scale: 1.0,
         };
       }
       // -----------------------------------------------------
@@ -148,7 +152,10 @@ exports.generateReplicateImage = functions
         "https://api.replicate.com/v1/predictions",
         { version: version, input: inputData },
         {
-          headers: { Authorization: `Bearer ${process.env.REPLICATE_API_KEY}` },
+          headers: {
+            Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
+            Prefer: "wait=30", // ★ 30초까지는 즉시 응답 대기 (폴링 횟수 절약)
+          },
         },
       );
 
@@ -171,8 +178,18 @@ exports.generateReplicateImage = functions
         ).data;
       }
 
-      if (prediction.status !== "succeeded")
-        throw new Error(prediction.error || "생성 실패");
+      // ★ [디버깅 강화] 실패 시 원인을 정확히 알려줌
+      if (prediction.status !== "succeeded") {
+        console.error(
+          "Replicate Error Details:",
+          prediction.error,
+          prediction.logs,
+        );
+        // 에러 메시지에 디버그 링크 포함 (프론트에서 확인 가능하도록)
+        throw new Error(
+          `생성 실패: ${prediction.error || "알 수 없는 오류"} (Debug: ${prediction.urls?.web})`,
+        );
+      }
 
       let rawAiUrl = Array.isArray(prediction.output)
         ? prediction.output[0]
