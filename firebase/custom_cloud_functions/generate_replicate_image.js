@@ -111,7 +111,8 @@ exports.generateReplicateImage = functions
         const { key, extra } = parseEmotionInput(promptInput);
         const emotionDesc = emotionMap[key] || key;
 
-        const finalPrompt = `anime style, flat color, cel shaded, ${emotionDesc}, ${extra}, upper body, same character identity, high quality`;
+        // ★ [핵심 1] 프롬프트 단순화: 스타일 강요 제거, 얼굴 고정 강조
+        const finalPrompt = `close-up portrait of the same person as the reference image, ${emotionDesc}, ${extra}, keep the same face features, same hairstyle, same outfit, only change expression and pose, high quality`;
 
         inputData = {
           image: validUrl, // 참조 이미지
@@ -127,12 +128,12 @@ exports.generateReplicateImage = functions
           height: 768,
 
           // ★ [핵심 3] 안정적인 파라미터 (성공률 100% 목표)
-          steps: 15, // 8은 너무 낮아 깨질 수 있음 -> 15로 안정화
+          steps: 12, // 8은 너무 낮아 깨질 수 있음 -> 15로 안정화
           cfg: 4.0, // 1.5는 너무 낮아 표정 안 나옴 -> 4.0으로 정상화
 
-          // 모델 스키마에 맞는 가중치 파라미터
-          ipadapter_weight: 0.8,
-          instantid_weight: 0.8,
+          // ★ [핵심 5] 동일성 가중치 강화 (다른 사람 방지)
+          instantid_weight: 1.2,
+          ipadapter_weight: 0.9,
           identity_scale: 1.0,
         };
       }
@@ -154,7 +155,7 @@ exports.generateReplicateImage = functions
         {
           headers: {
             Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
-            Prefer: "wait=30", // ★ 30초까지는 즉시 응답 대기 (폴링 횟수 절약)
+            Prefer: "wait=60", // ★ 30초까지는 즉시 응답 대기 (폴링 횟수 절약)
           },
         },
       );
