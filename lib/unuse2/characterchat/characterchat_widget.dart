@@ -5,7 +5,7 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/shared/login/login_widget.dart';
+import '/shared/loginpage/loginpage_widget.dart';
 import '/unuse2/characterbottom/characterbottom_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/custom_code/widgets/index.dart' as custom_widgets;
@@ -17,7 +17,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:webviewx_plus/webviewx_plus.dart';
 import 'characterchat_model.dart';
 export 'characterchat_model.dart';
 
@@ -168,7 +167,7 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
             hoverColor: Colors.transparent,
             highlightColor: Colors.transparent,
             onTap: () async {
-              context.pushNamed(ChatlistWidget.routeName);
+              context.pushNamed(ChatlistpageWidget.routeName);
             },
             child: Icon(
               Icons.arrow_back_ios_new,
@@ -211,18 +210,16 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
                     enableDrag: false,
                     context: context,
                     builder: (context) {
-                      return WebViewAware(
-                        child: GestureDetector(
-                          onTap: () {
-                            FocusScope.of(context).unfocus();
-                            FocusManager.instance.primaryFocus?.unfocus();
-                          },
-                          child: Padding(
-                            padding: MediaQuery.viewInsetsOf(context),
-                            child: CharacterbottomWidget(
-                              characterchatRef: _model.currentDocRef!,
-                              currentSelectedModel: _model.pageSelectedModel,
-                            ),
+                      return GestureDetector(
+                        onTap: () {
+                          FocusScope.of(context).unfocus();
+                          FocusManager.instance.primaryFocus?.unfocus();
+                        },
+                        child: Padding(
+                          padding: MediaQuery.viewInsetsOf(context),
+                          child: CharacterbottomWidget(
+                            characterchatRef: _model.currentDocRef!,
+                            currentSelectedModel: _model.pageSelectedModel,
                           ),
                         ),
                       );
@@ -621,28 +618,26 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
                                                   context: context,
                                                   builder:
                                                       (alertDialogContext) {
-                                                    return WebViewAware(
-                                                      child: AlertDialog(
-                                                        title: Text('피치 부족'),
-                                                        content: Text(
-                                                            '피치가 부족합니다. 충전하시겠습니까?'),
-                                                        actions: [
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.pop(
-                                                                    alertDialogContext,
-                                                                    false),
-                                                            child: Text('이동'),
-                                                          ),
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.pop(
-                                                                    alertDialogContext,
-                                                                    true),
-                                                            child: Text('취소'),
-                                                          ),
-                                                        ],
-                                                      ),
+                                                    return AlertDialog(
+                                                      title: Text('피치 부족'),
+                                                      content: Text(
+                                                          '피치가 부족합니다. 충전하시겠습니까?'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                  alertDialogContext,
+                                                                  false),
+                                                          child: Text('이동'),
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                  alertDialogContext,
+                                                                  true),
+                                                          child: Text('취소'),
+                                                        ),
+                                                      ],
                                                     );
                                                   },
                                                 ) ??
@@ -655,21 +650,16 @@ class _CharacterchatWidgetState extends State<CharacterchatWidget>
                                         enableDrag: false,
                                         context: context,
                                         builder: (context) {
-                                          return WebViewAware(
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                FocusScope.of(context)
-                                                    .unfocus();
-                                                FocusManager
-                                                    .instance.primaryFocus
-                                                    ?.unfocus();
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                    MediaQuery.viewInsetsOf(
-                                                        context),
-                                                child: LoginWidget(),
-                                              ),
+                                          return GestureDetector(
+                                            onTap: () {
+                                              FocusScope.of(context).unfocus();
+                                              FocusManager.instance.primaryFocus
+                                                  ?.unfocus();
+                                            },
+                                            child: Padding(
+                                              padding: MediaQuery.viewInsetsOf(
+                                                  context),
+                                              child: LoginpageWidget(),
                                             ),
                                           );
                                         },

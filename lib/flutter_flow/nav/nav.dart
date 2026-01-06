@@ -77,7 +77,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
       errorBuilder: (context, state) => RootPageContext.wrap(
-        appStateNotifier.loggedIn ? CreatelistWidget() : HomeWidget(),
+        appStateNotifier.loggedIn ? CreatelistpageWidget() : HomepageWidget(),
         errorRoute: state.uri.toString(),
       ),
       routes: [
@@ -85,29 +85,31 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: '_initialize',
           path: '/',
           builder: (context, _) => RootPageContext.wrap(
-            appStateNotifier.loggedIn ? CreatelistWidget() : HomeWidget(),
+            appStateNotifier.loggedIn
+                ? CreatelistpageWidget()
+                : HomepageWidget(),
           ),
         ),
         FFRoute(
-          name: HomeWidget.routeName,
-          path: HomeWidget.routePath,
-          builder: (context, params) => HomeWidget(),
+          name: HomepageWidget.routeName,
+          path: HomepageWidget.routePath,
+          builder: (context, params) => HomepageWidget(),
         ),
         FFRoute(
-          name: ChatlistWidget.routeName,
-          path: ChatlistWidget.routePath,
-          builder: (context, params) => ChatlistWidget(),
+          name: ChatlistpageWidget.routeName,
+          path: ChatlistpageWidget.routePath,
+          builder: (context, params) => ChatlistpageWidget(),
         ),
         FFRoute(
-          name: CreatelistWidget.routeName,
-          path: CreatelistWidget.routePath,
-          builder: (context, params) => CreatelistWidget(),
+          name: CreatelistpageWidget.routeName,
+          path: CreatelistpageWidget.routePath,
+          builder: (context, params) => CreatelistpageWidget(),
         ),
         FFRoute(
-          name: MyWidget.routeName,
-          path: MyWidget.routePath,
+          name: MypageWidget.routeName,
+          path: MypageWidget.routePath,
           requireAuth: true,
-          builder: (context, params) => MyWidget(),
+          builder: (context, params) => MypageWidget(),
         ),
         FFRoute(
           name: CharatercreateWidget.routeName,
@@ -122,11 +124,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               ParamType.Document,
             ),
           ),
-        ),
-        FFRoute(
-          name: TemplateWidget.routeName,
-          path: TemplateWidget.routePath,
-          builder: (context, params) => TemplateWidget(),
         ),
         FFRoute(
           name: CharactermainWidget.routeName,
@@ -155,14 +152,14 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
-          name: StorycreateWidget.routeName,
-          path: StorycreateWidget.routePath,
+          name: StorycreatepageWidget.routeName,
+          path: StorycreatepageWidget.routePath,
           requireAuth: true,
           asyncParams: {
             'storyDoc': getDoc(['stories'], StoriesRecord.fromSnapshot),
             'storyToEdit': getDoc(['stories'], StoriesRecord.fromSnapshot),
           },
-          builder: (context, params) => StorycreateWidget(
+          builder: (context, params) => StorycreatepageWidget(
             storyDoc: params.getParam(
               'storyDoc',
               ParamType.Document,
@@ -174,9 +171,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
-          name: StorymainWidget.routeName,
-          path: StorymainWidget.routePath,
-          builder: (context, params) => StorymainWidget(
+          name: StorymainpageWidget.routeName,
+          path: StorymainpageWidget.routePath,
+          builder: (context, params) => StorymainpageWidget(
             storymainRef: params.getParam(
               'storymainRef',
               ParamType.DocumentReference,
@@ -196,9 +193,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
-          name: StorycommentlistWidget.routeName,
-          path: StorycommentlistWidget.routePath,
-          builder: (context, params) => StorycommentlistWidget(
+          name: StorycommentlistpageWidget.routeName,
+          path: StorycommentlistpageWidget.routePath,
+          builder: (context, params) => StorycommentlistpageWidget(
             storyRef: params.getParam(
               'storyRef',
               ParamType.DocumentReference,
@@ -208,10 +205,10 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
-          name: StorychatWidget.routeName,
-          path: StorychatWidget.routePath,
+          name: StorychatpageWidget.routeName,
+          path: StorychatpageWidget.routePath,
           requireAuth: true,
-          builder: (context, params) => StorychatWidget(
+          builder: (context, params) => StorychatpageWidget(
             storyRef: params.getParam(
               'storyRef',
               ParamType.DocumentReference,
@@ -235,9 +232,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
-          name: PointchargeWidget.routeName,
-          path: PointchargeWidget.routePath,
-          builder: (context, params) => PointchargeWidget(),
+          name: PointchargepageWidget.routeName,
+          path: PointchargepageWidget.routePath,
+          builder: (context, params) => PointchargepageWidget(),
         ),
         FFRoute(
           name: CharacterchatWidget.routeName,
@@ -259,44 +256,19 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
-          name: HeartlistWidget.routeName,
-          path: HeartlistWidget.routePath,
-          builder: (context, params) => HeartlistWidget(),
+          name: HeartlistpageWidget.routeName,
+          path: HeartlistpageWidget.routePath,
+          builder: (context, params) => HeartlistpageWidget(),
         ),
         FFRoute(
-          name: CreatorrequestWidget.routeName,
-          path: CreatorrequestWidget.routePath,
-          builder: (context, params) => CreatorrequestWidget(),
+          name: CreatorrequestpageWidget.routeName,
+          path: CreatorrequestpageWidget.routePath,
+          builder: (context, params) => CreatorrequestpageWidget(),
         ),
         FFRoute(
-          name: SearchWidget.routeName,
-          path: SearchWidget.routePath,
-          builder: (context, params) => SearchWidget(),
-        ),
-        FFRoute(
-          name: PaysuccessWidget.routeName,
-          path: PaysuccessWidget.routePath,
-          builder: (context, params) => PaysuccessWidget(),
-        ),
-        FFRoute(
-          name: PayfailWidget.routeName,
-          path: PayfailWidget.routePath,
-          builder: (context, params) => PayfailWidget(),
-        ),
-        FFRoute(
-          name: PaywebWidget.routeName,
-          path: PaywebWidget.routePath,
-          builder: (context, params) => PaywebWidget(
-            checkoutUrl: params.getParam(
-              'checkoutUrl',
-              ParamType.String,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: EntryWidget.routeName,
-          path: EntryWidget.routePath,
-          builder: (context, params) => EntryWidget(),
+          name: SearchpageWidget.routeName,
+          path: SearchpageWidget.routePath,
+          builder: (context, params) => SearchpageWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
@@ -469,7 +441,7 @@ class FFRoute {
 
           if (requireAuth && !appStateNotifier.loggedIn) {
             appStateNotifier.setRedirectLocationIfUnset(state.uri.toString());
-            return '/home';
+            return '/homepage';
           }
           return null;
         },

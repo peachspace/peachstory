@@ -1,28 +1,29 @@
 // Export pages
-export '/shared/home/home_widget.dart' show HomeWidget;
-export '/shared/chatlist/chatlist_widget.dart' show ChatlistWidget;
-export '/shared/createlist/createlist_widget.dart' show CreatelistWidget;
-export '/shared/my/my_widget.dart' show MyWidget;
+export '/shared/homepage/homepage_widget.dart' show HomepageWidget;
+export '/shared/chatlistpage/chatlistpage_widget.dart' show ChatlistpageWidget;
+export '/shared/createlistpage/createlistpage_widget.dart'
+    show CreatelistpageWidget;
+export '/shared/mypage/mypage_widget.dart' show MypageWidget;
 export '/unuse2/charatercreate/charatercreate_widget.dart'
     show CharatercreateWidget;
-export '/shared/template/template_widget.dart' show TemplateWidget;
 export '/unuse2/charactermain/charactermain_widget.dart'
     show CharactermainWidget;
 export '/unuse2/charactercommentlist/charactercommentlist_widget.dart'
     show CharactercommentlistWidget;
-export '/story/storycreate/storycreate_widget.dart' show StorycreateWidget;
-export '/story/storymain/storymain_widget.dart' show StorymainWidget;
-export '/story/storycommentlist/storycommentlist_widget.dart'
-    show StorycommentlistWidget;
-export '/story/storychat/storychat_widget.dart' show StorychatWidget;
-export '/shared/pointcharge/pointcharge_widget.dart' show PointchargeWidget;
+export '/story/storycreatepage/storycreatepage_widget.dart'
+    show StorycreatepageWidget;
+export '/story/storymainpage/storymainpage_widget.dart'
+    show StorymainpageWidget;
+export '/story/storycommentlistpage/storycommentlistpage_widget.dart'
+    show StorycommentlistpageWidget;
+export '/story/storychatpage/storychatpage_widget.dart'
+    show StorychatpageWidget;
+export '/shared/pointchargepage/pointchargepage_widget.dart'
+    show PointchargepageWidget;
 export '/unuse2/characterchat/characterchat_widget.dart'
     show CharacterchatWidget;
-export '/shared/heartlist/heartlist_widget.dart' show HeartlistWidget;
-export '/shared/creatorrequest/creatorrequest_widget.dart'
-    show CreatorrequestWidget;
-export '/shared/search/search_widget.dart' show SearchWidget;
-export '/shared/paysuccess/paysuccess_widget.dart' show PaysuccessWidget;
-export '/shared/payfail/payfail_widget.dart' show PayfailWidget;
-export '/shared/payweb/payweb_widget.dart' show PaywebWidget;
-export '/shared/entry/entry_widget.dart' show EntryWidget;
+export '/shared/heartlistpage/heartlistpage_widget.dart'
+    show HeartlistpageWidget;
+export '/shared/creatorrequestpage/creatorrequestpage_widget.dart'
+    show CreatorrequestpageWidget;
+export '/shared/searchpage/searchpage_widget.dart' show SearchpageWidget;

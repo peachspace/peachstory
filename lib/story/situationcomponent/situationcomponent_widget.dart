@@ -12,7 +12,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:webviewx_plus/webviewx_plus.dart';
 import 'situationcomponent_model.dart';
 export 'situationcomponent_model.dart';
 
@@ -300,20 +299,18 @@ class _SituationcomponentWidgetState extends State<SituationcomponentWidget> {
                               enableDrag: false,
                               context: context,
                               builder: (context) {
-                                return WebViewAware(
-                                  child: Padding(
-                                    padding: MediaQuery.viewInsetsOf(context),
-                                    child: ImagecreatebottomsheetWidget(
-                                      generationContext:
-                                          '[FOCUS: Appearance]: \\n[FOCUS: Situation]\\n[Current Situation]: ${_model.situationsetTextController.text}\\n[Background Context]: ${widget.storyContext}',
-                                      imageMode: 'situation',
-                                      isSourceEmpty: _model.situationsetTextController
-                                                  .text ==
-                                              '',
-                                      warningMessage: '상황을 먼저 입력해주세요.',
-                                      seed: 0,
-                                      characterIndex: 0,
-                                    ),
+                                return Padding(
+                                  padding: MediaQuery.viewInsetsOf(context),
+                                  child: ImagecreatebottomsheetWidget(
+                                    generationContext:
+                                        '[FOCUS: Appearance]: \\n[FOCUS: Situation]\\n[Current Situation]: ${_model.situationsetTextController.text}\\n[Background Context]: ${widget.storyContext}',
+                                    imageMode: 'situation',
+                                    isSourceEmpty: _model.situationsetTextController
+                                                .text ==
+                                            '',
+                                    warningMessage: '상황을 먼저 입력해주세요.',
+                                    seed: 0,
+                                    characterIndex: 0,
                                   ),
                                 );
                               },

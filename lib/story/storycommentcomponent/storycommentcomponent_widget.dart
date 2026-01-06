@@ -9,29 +9,29 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'charactercomment_copy_model.dart';
-export 'charactercomment_copy_model.dart';
+import 'storycommentcomponent_model.dart';
+export 'storycommentcomponent_model.dart';
 
-class CharactercommentCopyWidget extends StatefulWidget {
-  const CharactercommentCopyWidget({
+class StorycommentcomponentWidget extends StatefulWidget {
+  const StorycommentcomponentWidget({
     super.key,
-    this.charactercommentDocument,
-    this.parentcharacterRef,
+    this.commentDocument,
+    this.parentStoryRef,
     bool? isReply,
   }) : this.isReply = isReply ?? false;
 
-  final CharacterCommentsRecord? charactercommentDocument;
-  final DocumentReference? parentcharacterRef;
+  final CommentsRecord? commentDocument;
+  final DocumentReference? parentStoryRef;
   final bool isReply;
 
   @override
-  State<CharactercommentCopyWidget> createState() =>
-      _CharactercommentCopyWidgetState();
+  State<StorycommentcomponentWidget> createState() =>
+      _StorycommentcomponentWidgetState();
 }
 
-class _CharactercommentCopyWidgetState
-    extends State<CharactercommentCopyWidget> {
-  late CharactercommentCopyModel _model;
+class _StorycommentcomponentWidgetState
+    extends State<StorycommentcomponentWidget> {
+  late StorycommentcomponentModel _model;
 
   @override
   void setState(VoidCallback callback) {
@@ -42,13 +42,12 @@ class _CharactercommentCopyWidgetState
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => CharactercommentCopyModel());
+    _model = createModel(context, () => StorycommentcomponentModel());
 
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.isLikedByUser = functions.didUserLike(
-          widget.charactercommentDocument?.likedBy.toList(),
-          currentUserReference);
+          widget.commentDocument?.likedBy.toList(), currentUserReference);
       safeSetState(() {});
     });
 
@@ -85,7 +84,7 @@ class _CharactercommentCopyWidgetState
                     shape: BoxShape.circle,
                   ),
                   child: Image.network(
-                    widget.charactercommentDocument!.userProfileImage,
+                    widget.commentDocument!.userProfileImage,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -101,7 +100,7 @@ class _CharactercommentCopyWidgetState
                             EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 3.0),
                         child: Text(
                           valueOrDefault<String>(
-                            widget.charactercommentDocument?.userName,
+                            widget.commentDocument?.userName,
                             'No name',
                           ),
                           style:
@@ -127,7 +126,7 @@ class _CharactercommentCopyWidgetState
                       Text(
                         dateTimeFormat(
                           "relative",
-                          widget.charactercommentDocument!.timestamp!,
+                          widget.commentDocument!.timestamp!,
                           locale: FFLocalizations.of(context).languageCode,
                         ),
                         style: FlutterFlowTheme.of(context).labelSmall.override(
@@ -153,8 +152,7 @@ class _CharactercommentCopyWidgetState
                 ),
               ],
             ),
-            if (currentUserReference ==
-                widget.charactercommentDocument?.userRef)
+            if (currentUserReference == widget.commentDocument?.userRef)
               InkWell(
                 splashColor: Colors.transparent,
                 focusColor: Colors.transparent,
@@ -184,7 +182,7 @@ class _CharactercommentCopyWidgetState
                           },
                         ) ??
                         false;
-                    await widget.charactercommentDocument!.reference.delete();
+                    await widget.commentDocument!.reference.delete();
                   } else {
                     var confirmDialogResponse = await showDialog<bool>(
                           context: context,
@@ -213,8 +211,7 @@ class _CharactercommentCopyWidgetState
                               region: 'us-central1')
                           .httpsCallable('deleteCommentAndReplies')
                           .call({
-                        "commentId":
-                            widget.charactercommentDocument!.reference.id,
+                        "commentId": widget.commentDocument!.reference.id,
                         "collectionName": 'comments',
                       });
                       _model.cloudFunction =
@@ -249,7 +246,7 @@ class _CharactercommentCopyWidgetState
             padding: EdgeInsetsDirectional.fromSTEB(40.0, 10.0, 0.0, 0.0),
             child: Text(
               valueOrDefault<String>(
-                widget.charactercommentDocument?.content,
+                widget.commentDocument?.content,
                 'No comment',
               ),
               style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -302,7 +299,7 @@ class _CharactercommentCopyWidgetState
                     ),
                     Text(
                       formatNumber(
-                        widget.charactercommentDocument!.replyCount,
+                        widget.commentDocument!.replyCount,
                         formatType: FormatType.compact,
                       ),
                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -339,8 +336,7 @@ class _CharactercommentCopyWidgetState
                           safeSetState(() =>
                               _model.isLikedByUser = !_model.isLikedByUser);
                           if (_model.isLikedByUser == true) {
-                            await widget.charactercommentDocument!.reference
-                                .update({
+                            await widget.commentDocument!.reference.update({
                               ...mapToFirestore(
                                 {
                                   'like_count': FieldValue.increment(-(1)),
@@ -350,8 +346,7 @@ class _CharactercommentCopyWidgetState
                               ),
                             });
                           } else {
-                            await widget.charactercommentDocument!.reference
-                                .update({
+                            await widget.commentDocument!.reference.update({
                               ...mapToFirestore(
                                 {
                                   'like_count': FieldValue.increment(1),
@@ -379,7 +374,7 @@ class _CharactercommentCopyWidgetState
                       ),
                       Text(
                         formatNumber(
-                          widget.charactercommentDocument!.likeCount,
+                          widget.commentDocument!.likeCount,
                           formatType: FormatType.compact,
                         ),
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -414,16 +409,14 @@ class _CharactercommentCopyWidgetState
           Column(
             mainAxisSize: MainAxisSize.max,
             children: [
-              StreamBuilder<List<CharacterCommentsRecord>>(
-                stream: queryCharacterCommentsRecord(
-                  queryBuilder: (characterCommentsRecord) =>
-                      characterCommentsRecord
-                          .where(
-                            'parent_comment_ref',
-                            isEqualTo:
-                                widget.charactercommentDocument?.reference,
-                          )
-                          .orderBy('timestamp'),
+              StreamBuilder<List<CommentsRecord>>(
+                stream: queryCommentsRecord(
+                  queryBuilder: (commentsRecord) => commentsRecord
+                      .where(
+                        'parent_comment_ref',
+                        isEqualTo: widget.commentDocument?.reference,
+                      )
+                      .orderBy('timestamp'),
                 ),
                 builder: (context, snapshot) {
                   // Customize what your widget looks like when it's loading.
@@ -440,27 +433,26 @@ class _CharactercommentCopyWidgetState
                       ),
                     );
                   }
-                  List<CharacterCommentsRecord>
-                      listViewCharacterCommentsRecordList = snapshot.data!;
+                  List<CommentsRecord> listViewCommentsRecordList =
+                      snapshot.data!;
 
                   return ListView.builder(
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
                     scrollDirection: Axis.vertical,
-                    itemCount: listViewCharacterCommentsRecordList.length,
+                    itemCount: listViewCommentsRecordList.length,
                     itemBuilder: (context, listViewIndex) {
-                      final listViewCharacterCommentsRecord =
-                          listViewCharacterCommentsRecordList[listViewIndex];
+                      final listViewCommentsRecord =
+                          listViewCommentsRecordList[listViewIndex];
                       return Padding(
                         padding:
                             EdgeInsetsDirectional.fromSTEB(40.0, 0.0, 0.0, 0.0),
-                        child: CharactercommentCopyWidget(
+                        child: StorycommentcomponentWidget(
                           key: Key(
-                              'Keyj9z_${listViewIndex}_of_${listViewCharacterCommentsRecordList.length}'),
+                              'Keymne_${listViewIndex}_of_${listViewCommentsRecordList.length}'),
                           isReply: true,
-                          charactercommentDocument:
-                              widget.charactercommentDocument,
-                          parentcharacterRef: widget.parentcharacterRef,
+                          commentDocument: listViewCommentsRecord,
+                          parentStoryRef: widget.parentStoryRef,
                         ),
                       );
                     },
@@ -599,24 +591,23 @@ class _CharactercommentCopyWidgetState
                           hoverColor: Colors.transparent,
                           highlightColor: Colors.transparent,
                           onTap: () async {
-                            await CharacterCommentsRecord.collection
+                            await CommentsRecord.collection
                                 .doc()
-                                .set(createCharacterCommentsRecordData(
+                                .set(createCommentsRecordData(
+                                  storyRef: widget.parentStoryRef,
                                   userRef: currentUserReference,
                                   userName: currentUserDisplayName,
                                   userProfileImage: currentUserPhoto,
                                   content: _model.textController.text,
                                   timestamp: getCurrentTimestamp,
-                                  characterRef: widget.parentcharacterRef,
-                                  parentCommentRef: widget
-                                      .charactercommentDocument?.reference,
+                                  parentCommentRef:
+                                      widget.commentDocument?.reference,
                                 ));
                             safeSetState(() {
                               _model.textController?.clear();
                             });
 
-                            await widget.charactercommentDocument!.reference
-                                .update({
+                            await widget.commentDocument!.reference.update({
                               ...mapToFirestore(
                                 {
                                   'reply_count': FieldValue.increment(1),

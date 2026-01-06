@@ -9,7 +9,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:webviewx_plus/webviewx_plus.dart';
 import 'comment2_model.dart';
 export 'comment2_model.dart';
 
@@ -162,23 +161,21 @@ class _Comment2WidgetState extends State<Comment2Widget> {
                     var confirmDialogResponse = await showDialog<bool>(
                           context: context,
                           builder: (alertDialogContext) {
-                            return WebViewAware(
-                              child: AlertDialog(
-                                title: Text('삭제'),
-                                content: Text('정말 삭제하시겠습니까?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(
-                                        alertDialogContext, false),
-                                    child: Text('취소'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(alertDialogContext, true),
-                                    child: Text('확인'),
-                                  ),
-                                ],
-                              ),
+                            return AlertDialog(
+                              title: Text('삭제'),
+                              content: Text('정말 삭제하시겠습니까?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(alertDialogContext, false),
+                                  child: Text('취소'),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(alertDialogContext, true),
+                                  child: Text('확인'),
+                                ),
+                              ],
                             );
                           },
                         ) ??
@@ -188,23 +185,21 @@ class _Comment2WidgetState extends State<Comment2Widget> {
                     var confirmDialogResponse = await showDialog<bool>(
                           context: context,
                           builder: (alertDialogContext) {
-                            return WebViewAware(
-                              child: AlertDialog(
-                                title: Text('삭제'),
-                                content: Text('정말 삭제하시겠습니까?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(
-                                        alertDialogContext, false),
-                                    child: Text('취소'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(alertDialogContext, true),
-                                    child: Text('확인'),
-                                  ),
-                                ],
-                              ),
+                            return AlertDialog(
+                              title: Text('삭제'),
+                              content: Text('정말 삭제하시겠습니까?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(alertDialogContext, false),
+                                  child: Text('취소'),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(alertDialogContext, true),
+                                  child: Text('확인'),
+                                ),
+                              ],
                             );
                           },
                         ) ??

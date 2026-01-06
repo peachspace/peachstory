@@ -12,7 +12,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:webviewx_plus/webviewx_plus.dart';
 import 'charactercomponent_model.dart';
 export 'charactercomponent_model.dart';
 
@@ -287,22 +286,20 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                 enableDrag: false,
                                 context: context,
                                 builder: (context) {
-                                  return WebViewAware(
-                                    child: Padding(
-                                      padding: MediaQuery.viewInsetsOf(context),
-                                      child: ImagecreatebottomsheetWidget(
-                                        generationContext:
-                                            '[FOCUS: Character Portrait]\\n[Appearance & Personality]: ${_model.charSettingTextController.text}\\n[Background Context]: ${widget.storyContext}',
-                                        imageMode: 'character',
-                                        isSourceEmpty: _model.charSettingTextController
-                                                    .text ==
-                                                '',
-                                        warningMessage: '캐릭터 설정을 먼저 입력해주세요.',
-                                        seed: FFAppState()
-                                            .Characters
-                                            .elementAtOrNull(widget.index!)
-                                            ?.characterSeed,
-                                      ),
+                                  return Padding(
+                                    padding: MediaQuery.viewInsetsOf(context),
+                                    child: ImagecreatebottomsheetWidget(
+                                      generationContext:
+                                          '[FOCUS: Character Portrait]\\n[Appearance & Personality]: ${_model.charSettingTextController.text}\\n[Background Context]: ${widget.storyContext}',
+                                      imageMode: 'character',
+                                      isSourceEmpty: _model.charSettingTextController
+                                                  .text ==
+                                              '',
+                                      warningMessage: '캐릭터 설정을 먼저 입력해주세요.',
+                                      seed: FFAppState()
+                                          .Characters
+                                          .elementAtOrNull(widget.index!)
+                                          ?.characterSeed,
                                     ),
                                   );
                                 },
@@ -452,37 +449,35 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                 enableDrag: false,
                                 context: context,
                                 builder: (context) {
-                                  return WebViewAware(
-                                    child: Padding(
-                                      padding: MediaQuery.viewInsetsOf(context),
-                                      child: ImagecreatebottomsheetWidget(
-                                        generationContext: '',
-                                        imageMode: 'emotion',
-                                        isSourceEmpty: FFAppState()
-                                                        .Characters
-                                                        .elementAtOrNull(
-                                                            widget.index!)
-                                                        ?.image !=
-                                                    null &&
-                                                FFAppState()
-                                                        .Characters
-                                                        .elementAtOrNull(
-                                                            widget.index!)
-                                                        ?.image !=
-                                                    ''
-                                            ? false
-                                            : true,
-                                        warningMessage: '먼저 프로필 이미지를 생성해주세요.',
-                                        seed: FFAppState()
-                                            .Characters
-                                            .elementAtOrNull(widget.index!)
-                                            ?.characterSeed,
-                                        baseimage: FFAppState()
-                                            .Characters
-                                            .elementAtOrNull(widget.index!)
-                                            ?.imageUrl,
-                                        characterIndex: widget.index,
-                                      ),
+                                  return Padding(
+                                    padding: MediaQuery.viewInsetsOf(context),
+                                    child: ImagecreatebottomsheetWidget(
+                                      generationContext: '',
+                                      imageMode: 'emotion',
+                                      isSourceEmpty: FFAppState()
+                                                      .Characters
+                                                      .elementAtOrNull(
+                                                          widget.index!)
+                                                      ?.image !=
+                                                  null &&
+                                              FFAppState()
+                                                      .Characters
+                                                      .elementAtOrNull(
+                                                          widget.index!)
+                                                      ?.image !=
+                                                  ''
+                                          ? false
+                                          : true,
+                                      warningMessage: '먼저 프로필 이미지를 생성해주세요.',
+                                      seed: FFAppState()
+                                          .Characters
+                                          .elementAtOrNull(widget.index!)
+                                          ?.characterSeed,
+                                      baseimage: FFAppState()
+                                          .Characters
+                                          .elementAtOrNull(widget.index!)
+                                          ?.imageUrl,
+                                      characterIndex: widget.index,
                                     ),
                                   );
                                 },

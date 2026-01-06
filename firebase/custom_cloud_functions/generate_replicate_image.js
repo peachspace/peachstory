@@ -87,10 +87,10 @@ exports.generateReplicateImage = functions
         version = ANIMAGINE_XL_4_VERSION;
         inputData = {
           // 얼굴 인식을 위해 상반신/인물화 강제
-          prompt: `1girl, masterpiece, best quality, anime style, portrait, upper body, focus on face, ${promptInput}`,
+          prompt: `masterpiece, best quality, anime style, portrait, upper body, focus on face, ${promptInput}`,
           negative_prompt:
             "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, full body, wide shot",
-          num_inference_steps: 25,
+          num_inference_steps: 15,
           guidance_scale: 7,
           width: 1024,
           height: 1024,
@@ -160,7 +160,7 @@ exports.generateReplicateImage = functions
         prediction.status === "starting" ||
         prediction.status === "processing"
       ) {
-        if (attempts++ > 120) throw new Error("Timeout");
+        if (attempts++ > 660) throw new Error("Timeout");
         await sleep(1000);
         prediction = (
           await axios.get(getUrl, {
