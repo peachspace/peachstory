@@ -559,20 +559,31 @@ class _ImagecreatebottomsheetWidgetState
                   children: [
                     Align(
                       alignment: AlignmentDirectional(-1.0, -1.0),
-                      child: Container(
-                        width: double.infinity,
-                        child: TextFormField(
-                          controller: _model.imagecreatepromptTextController,
-                          focusNode: _model.imagecreatepromptFocusNode,
-                          autofocus: false,
-                          enabled: true,
-                          obscureText: false,
-                          decoration: InputDecoration(
-                            isDense: true,
-                            labelStyle: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .override(
-                                  font: GoogleFonts.inter(
+                      child: Padding(
+                        padding:
+                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+                        child: Container(
+                          width: double.infinity,
+                          child: TextFormField(
+                            controller: _model.imagecreatepromptTextController,
+                            focusNode: _model.imagecreatepromptFocusNode,
+                            autofocus: false,
+                            enabled: true,
+                            obscureText: false,
+                            decoration: InputDecoration(
+                              isDense: true,
+                              labelStyle: FlutterFlowTheme.of(context)
+                                  .labelMedium
+                                  .override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .labelMedium
                                         .fontWeight,
@@ -580,19 +591,19 @@ class _ImagecreatebottomsheetWidgetState
                                         .labelMedium
                                         .fontStyle,
                                   ),
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .labelMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .labelMedium
-                                      .fontStyle,
-                                ),
-                            hintText: '생성할 이미지에 대해 구체적으로 묘사해주세요.',
-                            hintStyle: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .override(
-                                  font: GoogleFonts.inter(
+                              hintText: '생성할 이미지에 대해 구체적으로 묘사해주세요.',
+                              hintStyle: FlutterFlowTheme.of(context)
+                                  .labelMedium
+                                  .override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .labelMedium
                                         .fontWeight,
@@ -600,78 +611,73 @@ class _ImagecreatebottomsheetWidgetState
                                         .labelMedium
                                         .fontStyle,
                                   ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0x00000000),
+                                  width: 1.0,
+                                ),
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0x00000000),
+                                  width: 1.0,
+                                ),
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: FlutterFlowTheme.of(context).error,
+                                  width: 1.0,
+                                ),
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: FlutterFlowTheme.of(context).error,
+                                  width: 1.0,
+                                ),
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              filled: true,
+                              fillColor: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              contentPadding: EdgeInsetsDirectional.fromSTEB(
+                                  10.0, 15.0, 10.0, 15.0),
+                            ),
+                            style: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  font: GoogleFonts.inter(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                                  color: _model.isImageLoading == true
+                                      ? FlutterFlowTheme.of(context).primary
+                                      : FlutterFlowTheme.of(context)
+                                          .primaryText,
                                   letterSpacing: 0.0,
                                   fontWeight: FlutterFlowTheme.of(context)
-                                      .labelMedium
+                                      .bodyMedium
                                       .fontWeight,
                                   fontStyle: FlutterFlowTheme.of(context)
-                                      .labelMedium
+                                      .bodyMedium
                                       .fontStyle,
                                 ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Color(0x00000000),
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(20.0),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Color(0x00000000),
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(20.0),
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: FlutterFlowTheme.of(context).error,
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(20.0),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: FlutterFlowTheme.of(context).error,
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(20.0),
-                            ),
-                            filled: true,
-                            fillColor: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                            contentPadding: EdgeInsetsDirectional.fromSTEB(
-                                10.0, 15.0, 10.0, 15.0),
+                            maxLines: null,
+                            maxLength: 1000,
+                            maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                            cursorColor:
+                                FlutterFlowTheme.of(context).primaryText,
+                            enableInteractiveSelection: true,
+                            validator: _model
+                                .imagecreatepromptTextControllerValidator
+                                .asValidator(context),
                           ),
-                          style: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .override(
-                                font: GoogleFonts.inter(
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                                color: _model.isImageLoading == true
-                                    ? FlutterFlowTheme.of(context).primary
-                                    : FlutterFlowTheme.of(context).primaryText,
-                                letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontWeight,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontStyle,
-                              ),
-                          maxLines: null,
-                          maxLength: 1000,
-                          maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                          cursorColor: FlutterFlowTheme.of(context).primaryText,
-                          enableInteractiveSelection: true,
-                          validator: _model
-                              .imagecreatepromptTextControllerValidator
-                              .asValidator(context),
                         ),
                       ),
                     ),
