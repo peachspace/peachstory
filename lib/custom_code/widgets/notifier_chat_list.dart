@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'index.dart'; // Imports other custom widgets
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math'; // ★ 랜덤 기능을 위해 추가
 import 'package:flutter/scheduler.dart';
 import '/auth/firebase_auth/auth_util.dart';
 
@@ -50,7 +51,7 @@ class _NotifierChatListState extends State<NotifierChatList>
   final ScrollController _scrollController = ScrollController();
   List<dynamic> _scenes = [];
   int _currentSceneIndex = 0;
-  bool _isTyping = false; // 타이핑 상태 변수 복구
+  bool _isTyping = false;
 
   late AnimationController _loadingController;
   late Animation<double> _loadingAnimation;
@@ -74,7 +75,6 @@ class _NotifierChatListState extends State<NotifierChatList>
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // 1. 리스트 동기화 (타이핑 중엔 방해 금지)
     if (widget.initialMessages != null && !_isTyping) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
@@ -100,7 +100,6 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
     }
 
-    // 2. AI 스크립트 처리 (타이핑 시작)
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
@@ -121,7 +120,7 @@ class _NotifierChatListState extends State<NotifierChatList>
 
   void _startDirecting() {
     if (!mounted) return;
-    setState(() => _isTyping = true); // 타이핑 시작
+    setState(() => _isTyping = true);
 
     String script = widget.newResponseScript
         .replaceAll('```json', '')
@@ -134,7 +133,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       if (bracketIndex != -1) {
         String jsonPart = script.substring(bracketIndex).trim();
         try {
-          int lastBracket = jsonPart.lastIndexOf(']'); // 닫는 괄호 처리 추가
+          int lastBracket = jsonPart.lastIndexOf(']');
           if (lastBracket != -1) {
             jsonPart = jsonPart.substring(0, lastBracket + 1);
           }
@@ -157,11 +156,10 @@ class _NotifierChatListState extends State<NotifierChatList>
 
   void _processNextScene() async {
     if (!mounted || _currentSceneIndex >= _scenes.length) {
-      setState(() => _isTyping = false); // 타이핑 종료
+      setState(() => _isTyping = false);
       if (widget.onTurnComplete != null) {
         await widget.onTurnComplete!(_scenes);
       }
-      // 종료 후 최종 동기화 (선택사항)
       if (widget.initialMessages != null) {
         _messagesNotifier.value = List.from(widget.initialMessages!);
       }
@@ -194,14 +192,13 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
       _processNextScene();
     } else if (type == 'narration' || type == 'dialogue') {
-      await _animateTextScene(scene); // 타이핑 효과 호출
+      await _animateTextScene(scene);
       if (mounted) _processNextScene();
     } else {
       _processNextScene();
     }
   }
 
-  // ★ [복구] 타이핑 애니메이션 로직
   Future<void> _animateTextScene(dynamic scene) async {
     final placeholder = _createStructFromScene(scene, '', true);
     if (placeholder == null) return;
@@ -213,7 +210,7 @@ class _NotifierChatListState extends State<NotifierChatList>
 
     for (int i = 0; i <= content.length; i++) {
       if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 15)); // 속도 조절
+      await Future.delayed(const Duration(milliseconds: 15));
 
       final currentList =
           List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
@@ -327,6 +324,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
+  // ★ [수정됨] 랜덤 이미지 선택 로직 적용
   String? _resolveCharacterImageUrl(String speakerName, String? emotionKey) {
     final name = speakerName.trim();
     if (name.isEmpty) return null;
@@ -339,22 +337,35 @@ class _NotifierChatListState extends State<NotifierChatList>
       return null;
     }
 
-    final key = (emotionKey ?? '').trim();
-    if (key.isNotEmpty) {
-      for (final e in character.emotionImages) {
-        if (e.emotion != null && e.emotion.trim() == key) {
-          if (e.image != null && e.image.startsWith('http')) {
-            return e.image;
-          }
+    // 감정 키가 없으면 '무감정'을 기본값으로 설정
+    final key = (emotionKey != null && emotionKey.trim().isNotEmpty)
+        ? emotionKey.trim()
+        : '무감정';
+
+    // 1. 해당 감정에 맞는 이미지들을 모두 찾습니다.
+    final List<String> candidates = [];
+
+    for (final e in character.emotionImages) {
+      if (e.emotion != null && e.emotion!.trim() == key) {
+        if (e.image != null && e.image!.startsWith('http')) {
+          candidates.add(e.image!);
         }
       }
     }
+
+    // 2. 후보가 있다면 랜덤으로 하나 선택
+    if (candidates.isNotEmpty) {
+      return candidates[Random().nextInt(candidates.length)];
+    }
+
+    // 3. 감정 이미지가 없으면 기본 프로필 이미지 반환
     if (character.imageUrl != null && character.imageUrl!.startsWith('http')) {
       return character.imageUrl;
     }
     return character.image;
   }
 
+  // ★ [수정됨] 구분자 '|' 적용 및 스타일 변경
   Widget _buildDialogueMessage(StoryChatMessageStructStruct chatItem,
       {bool isUser = false}) {
     final speaker =
@@ -376,7 +387,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. [이미지] 감정 이미지 출력 (큰 이미지)
+          // 1. [이미지] 감정 이미지 출력
           if (!isUser && imageUrl.isNotEmpty && imageUrl.startsWith('http'))
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
@@ -385,25 +396,33 @@ class _NotifierChatListState extends State<NotifierChatList>
                 child: Image.network(
                   imageUrl,
                   width: double.infinity,
-                  fit: BoxFit.cover, // 꽉 채우기
-                  // height: 300, // 높이 고정 없이 원본 비율 유지하거나, 필요 시 주석 해제하여 고정
+                  fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       const SizedBox.shrink(),
                 ),
               ),
             ),
 
-          // 2. [텍스트] Speaker :: Text
+          // 2. [텍스트] 이름 | 대사 형식으로 변경
           RichText(
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: "$speaker :: ",
+                  text: "$speaker ",
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'Inter',
                         color: nameColor,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w900, // 이름 더 굵게
                         fontSize: 15.0,
+                      ),
+                ),
+                TextSpan(
+                  text: "| ", // ★ 구분자 변경
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily: 'Inter',
+                        color: Colors.grey.shade400, // 연한 회색
+                        fontWeight: FontWeight.normal,
+                        fontSize: 14.0,
                       ),
                 ),
                 TextSpan(

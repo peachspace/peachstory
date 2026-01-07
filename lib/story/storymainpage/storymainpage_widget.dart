@@ -508,6 +508,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                               ),
                                               Text(
                                                 item2Item.introduce,
+                                                maxLines: 2,
                                                 style: FlutterFlowTheme.of(
                                                         context)
                                                     .bodyMedium
@@ -540,6 +541,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                               .bodyMedium
                                                               .fontStyle,
                                                     ),
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ],
                                           ),

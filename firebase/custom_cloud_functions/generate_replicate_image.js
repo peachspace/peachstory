@@ -67,14 +67,48 @@ exports.generateReplicateImage = functions
       };
 
       const emotionMap = {
-        기쁨: "joyful smile, happy expression, laughing",
-        슬픔: "sad face, crying, tears",
-        화남: "angry expression, frowning, rage",
-        분노: "angry, furious, shouting",
-        놀람: "surprised face, wide eyes, open mouth",
-        두려움: "scared, fearful, pale",
-        혐오: "disgusted, grimace",
-        중립: "neutral expression, calm",
+        // [기본 감정]
+        무감정:
+          "neutral expression, calm face, looking straight, closed mouth, serene",
+        기쁨: "joyful smile, happy expression, laughing, beaming, radiant",
+        슬픔: "sad face, teary eyes, crying, melancholic, gloomy, depressed",
+        화남: "angry expression, frowning, rage, furious, annoyed, mad",
+        놀람: "surprised face, wide eyes, open mouth, shocked, stunned",
+        공포: "horrified, screaming, trembling, pale face",
+        혐오: "disgusted expression, grimace, revolted, loathing",
+
+        // [긍정적 감정]
+        사랑: "loving gaze, blushing, romantic expression, affectionate",
+        설렘: "excited, anticipating, blushing, sparkling eyes",
+        안도: "relieved sigh, relaxed face, at ease, comforted",
+        감동: "touched, emotional, teary smile, moved",
+        자신감: "confident smirk, determined look, proud, bold",
+        장난: "playful wink, sticking tongue out, mischievous smile, teasing",
+        만족: "satisfied nod, content smile, pleased, fulfilled",
+        감사: "thankful expression, gentle smile, appreciative",
+
+        // [부정적 감정]
+        짜증: "annoyed, irritated, rolling eyes, grumpy",
+        질투: "jealous glare, pouting, envious, resentful",
+        실망: "disappointed, sighing, looking down, let down",
+        우울: "depressed, lifeless eyes, heavy atmosphere, hopeless",
+        고통: "painful expression, agony, suffering, wincing",
+        부끄러움: "embarrassed, blushing heavily, hiding face, shy, ashamed",
+        당황: "flustered, sweating, confused, awkward smile",
+        경멸: "scornful look, sneering, looking down on, disdain",
+        불안: "anxious, biting nails, nervous, worried, uneasy",
+        피곤: "tired, dark circles, yawning, exhausted, sleepy",
+        지루함: "bored, resting chin on hand, dull eyes, uniterested",
+
+        // [복합/기타 감정]
+        멍함: "blank stare, dazed, spacing out, empty eyes",
+        호기심: "curious look, tilting head, sparkling eyes, interested",
+        진지: "serious face, focused, stern, intense gaze",
+        결의: "determined eyes, strong will, unwavering",
+        미침: "insane laughter, crazy eyes, yandere, psycho",
+        취함: "drund, flushed face, dizzy eyes, tipsy",
+        아픔: "sick, pale, feverish, coughing, weak",
+        배고픔: "drooling, looking at food, hungry",
       };
 
       let version;
@@ -87,7 +121,7 @@ exports.generateReplicateImage = functions
         version = ANIMAGINE_XL_4_VERSION;
         inputData = {
           // 얼굴 인식을 위해 상반신/인물화 강제
-          prompt: `masterpiece, best quality, anime style, portrait, upper body, focus on face, ${promptInput}`,
+          prompt: `solo, masterpiece, best quality, anime style, portrait, upper body, focus on face, ${promptInput}`,
           negative_prompt:
             "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, full body, wide shot",
           num_inference_steps: 15,
