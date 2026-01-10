@@ -13,20 +13,28 @@ class ImagecreatebottomsheetModel
 
   bool isGenerating = false;
 
-  List<int> selectedIndices = [];
-  void addToSelectedIndices(int item) => selectedIndices.add(item);
-  void removeFromSelectedIndices(int item) => selectedIndices.remove(item);
-  void removeAtIndexFromSelectedIndices(int index) =>
-      selectedIndices.removeAt(index);
-  void insertAtIndexInSelectedIndices(int index, int item) =>
-      selectedIndices.insert(index, item);
-  void updateSelectedIndicesAtIndex(int index, Function(int) updateFn) =>
-      selectedIndices[index] = updateFn(selectedIndices[index]);
-
   String? selectedCharImage;
+
+  int? generatedSeed;
+
+  String? generatedBasePrompt;
 
   ///  State fields for stateful widgets in this component.
 
+  // State field(s) for situationprompt widget.
+  FocusNode? situationpromptFocusNode;
+  TextEditingController? situationpromptTextController;
+  String? Function(BuildContext, String?)?
+      situationpromptTextControllerValidator;
+  // Stores action output result for [Custom Action - generateImagePrompt] action in situationaipromptbutton widget.
+  String? situationPrompt;
+  // State field(s) for backgroundprompt widget.
+  FocusNode? backgroundpromptFocusNode;
+  TextEditingController? backgroundpromptTextController;
+  String? Function(BuildContext, String?)?
+      backgroundpromptTextControllerValidator;
+  // Stores action output result for [Custom Action - generateImagePrompt] action in backgroundaipromptbutton widget.
+  String? backgroundPrompt;
   // State field(s) for emotionChoiceChips widget.
   FormFieldController<List<String>>? emotionChoiceChipsValueController;
   String? get emotionChoiceChipsValue =>
@@ -38,16 +46,22 @@ class ImagecreatebottomsheetModel
   TextEditingController? imagecreatepromptTextController;
   String? Function(BuildContext, String?)?
       imagecreatepromptTextControllerValidator;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbottun widget.
-  String? suggestedPrompt;
+  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
+  String? suggestedcharacterPrompt;
+  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
+  String? suggestedsituationPrompt;
+  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
+  String? suggestedbackgroundPrompt;
   // Stores action output result for [Custom Action - translateToEnglish] action in aicreateimagebutton widget.
   String? englishPrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
-  String? newcharacterImageResult;
+  dynamic characterImageResult;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
-  String? newsituationImageResult;
+  dynamic emotionimageResult;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
-  String? newemotionmageResult;
+  dynamic situationImageResult;
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
+  dynamic backgroundimageResult;
   bool isDataUploading_downloadUrl = false;
   FFUploadedFile uploadedLocalFile_downloadUrl =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
@@ -58,6 +72,12 @@ class ImagecreatebottomsheetModel
 
   @override
   void dispose() {
+    situationpromptFocusNode?.dispose();
+    situationpromptTextController?.dispose();
+
+    backgroundpromptFocusNode?.dispose();
+    backgroundpromptTextController?.dispose();
+
     imagecreatepromptFocusNode?.dispose();
     imagecreatepromptTextController?.dispose();
   }

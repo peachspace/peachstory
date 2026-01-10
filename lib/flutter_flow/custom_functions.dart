@@ -88,7 +88,7 @@ String buildCharacterPrompt(
   String setting,
   List<String> dialogueList,
   String userinput,
-  List<SituationalImageStructStruct> situationalImages,
+  List situationalImages,
   String? userNote,
 ) {
   final String dialogueExamples = formatExamplesToString(dialogueList) ?? '';
@@ -231,13 +231,13 @@ String buildStoryPrompt(
   List<CharacterStructStruct> characters,
   String userRole,
   String prologue,
-  List<SituationalImageStructStruct> situationalImages,
+  List<BackgroundStructStruct> backgrounds,
   String userNote,
   String userInChatName,
   String? summary,
   bool isNovelMode,
 ) {
-  // 1. 캐릭터 설명
+  // 1. 캐릭터 설명 생성
   final characterDescriptions = StringBuffer();
   for (final char in characters) {
     characterDescriptions.writeln('<character>');
@@ -247,26 +247,47 @@ String buildStoryPrompt(
     characterDescriptions.writeln('</character>');
   }
 
-  // 2. 상황 이미지
-  final situationalImageListXml = StringBuffer();
-  for (final img in situationalImages) {
-    situationalImageListXml.writeln('  <image condition="${img.condition}" />');
-  }
-  final imageSection = situationalImages.isNotEmpty
-      ? '''
-<situational_images>
-${situationalImageListXml.toString()}
-</situational_images>
-- Use [SHOW_IMAGE="condition"] to display an image when the scene matches.
-'''
-      : '';
+  // 2. [이사 완료] 시각적 연출 규칙 및 조건 리스트 생성
+  // (기존 callAiProxy에 있던 로직을 여기서 처리)
+  final conditionBuffer = StringBuffer();
 
-  // 3. 유저 노트
+  // 2-1. 배경(Background) 조건 추가
+  for (final bg in backgrounds) {
+    conditionBuffer.writeln('- [Background]: "${bg.placeName}"');
+  }
+
+  // 2-2. 캐릭터별 상황(Situation) 조건 추가
+  for (final char in characters) {
+    for (final sit in char.situationImages) {
+      conditionBuffer.writeln('- [${char.name} Action]: "${sit.condition}"');
+    }
+  }
+
+  // 2-3. 최종 시각 규칙 문자열 조립
+  final String visualRules = '''
+### 🎬 VISUAL DIRECTOR RULES
+You MUST trigger images when the story matches specific conditions.
+Output exactly: `{"type": "show_image", "condition": "Condition Text"}`.
+Check the **Condition List** below:
+<condition_list>
+${conditionBuffer.toString()}
+</condition_list>
+''';
+
+  // 3. [이사 완료] 감정 연기 규칙 (Emotion Rules)
+  const String emotionRules = '''
+### 🎭 EMOTION ACTING RULES
+When a character speaks, infer their emotion and include it in the `action` attribute.
+Keywords: "무감정", "기쁨", "슬픔", "화남", "놀람", "두려움", "행복", "사랑", "설렘", "부끄러움", "짜증", "실망", "우울", "진지".
+Example: {"type": "dialogue", "speaker": "Hero", "action": "분노", "content": "Get out!"}
+''';
+
+  // 4. 유저 노트
   final userNoteSection = (userNote != null && userNote.isNotEmpty)
       ? '<user_note>\n${userNote}\n</user_note>'
       : '';
 
-  // 4. 요약
+  // 5. 요약 (Summary) - 과거 기억
   final summarySection = (summary != null && summary.isNotEmpty)
       ? '''
 ### 📜 PREVIOUS STORY SUMMARY (MEMORY)
@@ -277,7 +298,17 @@ ${summary}
 '''
       : '';
 
-  // 5. 모드별 지침 (강화됨)
+  // 6. 프롤로그 (Prologue) - 조건부 생성
+  // 내용이 있을 때만 태그를 포함, 없으면 빈 문자열 반환 (2번째 턴부터 자동 숨김)
+  final prologueSection = (prologue != null && prologue.isNotEmpty)
+      ? '''
+<prologue_instruction>
+${prologue}
+</prologue_instruction>
+'''
+      : '';
+
+  // 7. 모드별 지침
   String modeGuidelines;
 
   if (isNovelMode) {
@@ -287,13 +318,7 @@ You are the sole author of a high-quality web novel.
 1.  **Protagonist:** You have full control. The user ("${userInChatName}") is an observer.
 2.  **Length:** 500~800 characters per response.
 3.  **NO Actions in Dialogue:** Do NOT use parenthetical actions (e.g., "(smiling)") inside dialogue. Describe actions in **Narration**.
-4.  **★ STRICT FORMATTING RULE (DO NOT FAIL):**
-    - Even in Novel Mode, you **MUST** separate direct speech into `dialogue` objects.
-    - **WRONG:** `{"type": "narration", "content": "Cheolsu shouted, 'Stop right there!'"}`
-    - **CORRECT:**
-      `{"type": "narration", "content": "Cheolsu shouted loudly."}`
-      `{"type": "dialogue", "speaker": "Cheolsu", "content": "Stop right there!"}`
-5.  **Style:** Immersive descriptions and realistic dialogue.
+4.  **★ STRICT FORMATTING RULE:** Separate direct speech into `dialogue` objects.
 ''';
   } else {
     modeGuidelines = '''
@@ -301,30 +326,32 @@ You are the sole author of a high-quality web novel.
 You are interacting with the user ("${userInChatName}").
 1.  **Interaction:** Wait for user input.
 2.  **NO User Impersonation:** Never speak for the user.
-3.  **NO Actions in Dialogue:** Describe actions in **Narration**, not in dialogue parentheses.
+3.  **NO Actions in Dialogue:** Describe actions in **Narration**.
 ''';
   }
 
+  // 8. 최종 프롬프트 조립
   return '''
 ### ABSOLUTE ROLE
 You are an AI storyteller using the JSON output format.
 
 ${modeGuidelines}
 
+${emotionRules}
+
+${visualRules}
+
 ### WRITING STYLE
-- **Narration:** Detailed, immersive, and descriptive. Use this for all actions, scenery, and internal thoughts.
+- **Narration:** Detailed, immersive, and descriptive.
 - **Dialogue:** Clean speech ONLY. No parentheses.
 
 ### OUTPUT FORMAT (CRITICAL)
 **You must output a valid JSON list of objects.**
 [
   {"type": "narration", "content": "Descriptive text..."},
-  {"type": "dialogue", "speaker": "Name", "content": "Speech text only"},
+  {"type": "dialogue", "speaker": "Name", "action": "Emotion", "content": "Speech text only"},
   {"type": "show_image", "condition": "Condition"}
 ]
-
-### DIRECTING CONTROL
-${imageSection}
 
 ### STORY BIBLE
 ${summarySection}
@@ -337,9 +364,7 @@ ${userNoteSection}
 ${characterDescriptions.toString()}
 </characters>
 
-<prologue_instruction>
-${prologue}
-</prologue_instruction>
+${prologueSection}
 
 Now, start or continue the story in JSON format. Do NOT include Markdown code blocks (```json). Just the raw JSON array.
 ''';
@@ -369,7 +394,7 @@ bool isSceneType(
 
 String? findSituationalImageUrlByCondition(
   String condition,
-  List<SituationalImageStructStruct> imageList,
+  List imageList,
 ) {
 // imageList가 null이거나 비어있으면 null을 반환합니다.
   if (imageList == null || imageList.isEmpty) {
@@ -589,50 +614,10 @@ bool isValidImage(String? imageUrl) {
   return true;
 }
 
-dynamic assemblePromptAndSeed(
-  String mode,
-  List<int> selectedIndices,
-  List<CharacterStructStruct> allCharacters,
-  String userPrompt,
-  int? passedSeed,
-) {
-// [Case A] 캐릭터 탭에서 온 경우 (단일 생성)
-  if (mode == 'character') {
-    return {
-      "seed": passedSeed ?? 0, // 0이면 랜덤
-      "prompt": userPrompt // 이미 앞단에서 외모 묘사 포함해서 보냈다고 가정
-    };
-  }
-
-  // [Case B] 상황 탭에서 온 경우 (멀티/배경 선택)
-
-  // 1. 배경 전용 (아무도 선택 안 함)
-  if (selectedIndices.isEmpty) {
-    return {
-      "seed": 0, // 랜덤 시드
-      "prompt": "scenery, no humans, background only, " + userPrompt
-    };
-  }
-
-  // 2. 캐릭터 선택됨 (외모 합치기)
-  String combinedAppearance = "";
-  // 선택된 캐릭터들의 외모 묘사를 콤마로 연결
-  for (int index in selectedIndices) {
-    if (index >= 0 && index < allCharacters.length) {
-      String appearance = allCharacters[index].appearancePrompt ?? "";
-      // appearancePrompt가 비었으면 personality라도 (안전장치)
-      if (appearance == "") appearance = allCharacters[index].personality ?? "";
-      combinedAppearance += appearance + ", ";
-    }
-  }
-
-  // 3. 시드 결정 (첫 번째 선택된 녀석의 시드를 메인으로 사용)
-  int firstIndex = selectedIndices[0];
-  int mainSeed = allCharacters[firstIndex].characterSeed;
-
-  return {"seed": mainSeed, "prompt": combinedAppearance + " " + userPrompt};
-}
-
 String? imageToString(String? imagePath) {
   return imagePath;
+}
+
+bool isSummaryTurn(int messageCount) {
+  return messageCount > 0 && messageCount % 20 == 0;
 }

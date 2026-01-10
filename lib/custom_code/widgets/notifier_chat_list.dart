@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'index.dart'; // Imports other custom widgets
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math'; // ★ 랜덤 기능을 위해 추가
+import 'dart:math';
 import 'package:flutter/scheduler.dart';
 import '/auth/firebase_auth/auth_util.dart';
 
@@ -26,7 +26,7 @@ class NotifierChatList extends StatefulWidget {
     required this.newResponseScript,
     this.userInChatName,
     this.preDefinedCharacters,
-    this.situationalImageList,
+    this.backgroundList, // ★ [변경] 배경 리스트 (BackgroundStruct)
     this.onTurnComplete,
     this.isNovelMode,
   });
@@ -37,7 +37,7 @@ class NotifierChatList extends StatefulWidget {
   final String newResponseScript;
   final String? userInChatName;
   final List<CharacterStructStruct>? preDefinedCharacters;
-  final List<SituationalImageStructStruct>? situationalImageList;
+  final List<BackgroundStructStruct>? backgroundList; // ★ [변경] 타입 변경됨
   final Future<dynamic> Function(List<dynamic>? scenes)? onTurnComplete;
   final bool? isNovelMode;
 
@@ -74,12 +74,11 @@ class _NotifierChatListState extends State<NotifierChatList>
   @override
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
-
+    // (메시지 업데이트 로직 동일 - 생략 없이 포함)
     if (widget.initialMessages != null && !_isTyping) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
       bool shouldUpdate = false;
-
       if (parentList.length != currentList.length) {
         shouldUpdate = true;
       } else if (parentList.isNotEmpty && currentList.isNotEmpty) {
@@ -87,13 +86,10 @@ class _NotifierChatListState extends State<NotifierChatList>
         final c = currentList.last;
         if (p.text != c.text ||
             p.type != c.type ||
-            p.storyImageUrl != c.storyImageUrl ||
-            p.speakerName != c.speakerName ||
-            p.speakerImage != c.speakerImage) {
+            p.storyImageUrl != c.storyImageUrl) {
           shouldUpdate = true;
         }
       }
-
       if (shouldUpdate) {
         _messagesNotifier.value = List.from(parentList);
         WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
@@ -103,7 +99,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
-        widget.newResponseScript != '" "' &&
         !widget.newResponseScript.contains("BLOCKED_CONTENT")) {
       if (_isTyping) return;
       SchedulerBinding.instance.addPostFrameCallback((_) => _startDirecting());
@@ -134,9 +129,8 @@ class _NotifierChatListState extends State<NotifierChatList>
         String jsonPart = script.substring(bracketIndex).trim();
         try {
           int lastBracket = jsonPart.lastIndexOf(']');
-          if (lastBracket != -1) {
+          if (lastBracket != -1)
             jsonPart = jsonPart.substring(0, lastBracket + 1);
-          }
           final dynamic decoded = jsonDecode(jsonPart);
           if (decoded is List) _scenes = decoded;
         } catch (_) {}
@@ -157,12 +151,9 @@ class _NotifierChatListState extends State<NotifierChatList>
   void _processNextScene() async {
     if (!mounted || _currentSceneIndex >= _scenes.length) {
       setState(() => _isTyping = false);
-      if (widget.onTurnComplete != null) {
-        await widget.onTurnComplete!(_scenes);
-      }
-      if (widget.initialMessages != null) {
+      if (widget.onTurnComplete != null) await widget.onTurnComplete!(_scenes);
+      if (widget.initialMessages != null)
         _messagesNotifier.value = List.from(widget.initialMessages!);
-      }
       _animateToBottom();
       return;
     }
@@ -173,8 +164,9 @@ class _NotifierChatListState extends State<NotifierChatList>
     _jumpToBottom();
 
     if (type == 'show_image') {
-      final imageUrl = _findSituationalImageUrlByCondition(
-          scene['condition'] ?? '', widget.situationalImageList ?? []);
+      final condition = scene['condition'] ?? '';
+      // ★ [핵심] 여기서 이미지 검색 실행
+      final imageUrl = _findSituationalImageUrlByCondition(condition);
 
       if (imageUrl.isNotEmpty && imageUrl != 'null') {
         final imageMessage = createStoryChatMessageStructStruct(
@@ -199,26 +191,56 @@ class _NotifierChatListState extends State<NotifierChatList>
     }
   }
 
+  // ★ [최적화] 이미지 찾는 함수: 배경(BackgroundStruct)과 캐릭터(CharacterStruct) 분리 검색
+  String _findSituationalImageUrlByCondition(String condition) {
+    final target = condition.trim();
+    if (target.isEmpty) return '';
+
+    // 1. [Background] 배경 리스트 검색 (BackgroundStruct.placeName)
+    final bgList = widget.backgroundList ?? [];
+    for (final bg in bgList) {
+      if (bg.placeName.trim() == target) {
+        // placeName 필드 비교
+        return bg.imageUrl;
+      }
+    }
+
+    // 2. [Character Situation] 캐릭터 상황 이미지 검색
+    final charList = widget.preDefinedCharacters ?? [];
+    for (final char in charList) {
+      for (final sit in char.situationImages) {
+        if (sit.condition.trim() == target) {
+          return sit.imageUrl;
+        }
+      }
+    }
+
+    return ''; // 발견 실패
+  }
+
+  // ... (나머지 _animateTextScene, _build... 함수들은 기존 로직과 동일하여 생략하지 않고 포함)
+
   Future<void> _animateTextScene(dynamic scene) async {
-    final placeholder = _createStructFromScene(scene, '', true);
+    final String speaker = (scene['speaker'] ?? '').toString();
+    final String action = (scene['action'] ?? '').toString();
+    final String fixedImageUrl =
+        _resolveCharacterImageUrl(speaker, action) ?? '';
+
+    final placeholder = _createStructFromScene(scene, '', true, fixedImageUrl);
     if (placeholder == null) return;
 
     _messagesNotifier.value = [..._messagesNotifier.value, placeholder];
     _jumpToBottom();
 
     final String content = scene['content'] ?? '';
-
     for (int i = 0; i <= content.length; i++) {
       if (!mounted) return;
       await Future.delayed(const Duration(milliseconds: 15));
-
       final currentList =
           List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
       if (currentList.isEmpty) return;
-
-      final updatedMessage =
-          _createStructFromScene(scene, content.substring(0, i), true);
-
+      final updatedMessage = _createStructFromScene(
+          scene, content.substring(0, i), true, fixedImageUrl);
       if (updatedMessage != null) {
         currentList[currentList.length - 1] = updatedMessage;
         _messagesNotifier.value = currentList;
@@ -228,7 +250,8 @@ class _NotifierChatListState extends State<NotifierChatList>
 
     final currentList =
         List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
-    final finalMessage = _createStructFromScene(scene, content, false);
+    final finalMessage =
+        _createStructFromScene(scene, content, false, fixedImageUrl);
     if (finalMessage != null) {
       currentList[currentList.length - 1] = finalMessage;
       _messagesNotifier.value = currentList;
@@ -236,6 +259,8 @@ class _NotifierChatListState extends State<NotifierChatList>
     _jumpToBottom();
     await Future.delayed(const Duration(milliseconds: 200));
   }
+
+  // ... (Helper Functions: _jumpToBottom, _createStructFromScene, _resolveCharacterImageUrl 등 기존 코드 유지)
 
   void _jumpToBottom() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -257,6 +282,65 @@ class _NotifierChatListState extends State<NotifierChatList>
     });
   }
 
+  StoryChatMessageStructStruct? _createStructFromScene(
+      dynamic scene, String text, bool isStreaming, String fixedImageUrl) {
+    if (scene == null) return null;
+    final String type = (scene['type'] ?? 'narration').toString();
+    final String speaker = (scene['speaker'] ?? '').toString();
+    final String action = (scene['action'] ?? '').toString();
+    return createStoryChatMessageStructStruct(
+      type: type,
+      speakerName: speaker,
+      actionText: action,
+      text: text,
+      isStreaming: isStreaming,
+      storyImageUrl: '',
+      speakerImage: fixedImageUrl,
+    );
+  }
+
+  String? _resolveCharacterImageUrl(String speakerName, String? emotionKey) {
+    final name = speakerName.trim();
+    if (name.isEmpty) return null;
+    final characters = widget.preDefinedCharacters ?? [];
+    CharacterStructStruct? character;
+    try {
+      character = characters.firstWhere((c) => c.name.trim() == name);
+    } catch (_) {
+      return null;
+    }
+
+    final key = (emotionKey != null && emotionKey.trim().isNotEmpty)
+        ? emotionKey.trim()
+        : '무감정';
+    final List<String> candidates = [];
+    for (final e in character.emotionImages) {
+      if (e.emotion != null && e.emotion!.trim() == key) {
+        if (e.image != null && e.image!.startsWith('http'))
+          candidates.add(e.image!);
+      }
+    }
+    if (candidates.isNotEmpty)
+      return candidates[Random().nextInt(candidates.length)];
+    if (character.imageUrl != null && character.imageUrl!.startsWith('http'))
+      return character.imageUrl;
+    return character.image;
+  }
+
+  Widget _buildThinkingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: FadeTransition(
+          opacity: _loadingAnimation,
+          child: Text("생각하는 중...",
+              style: TextStyle(color: Colors.grey[500], fontSize: 13)),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<List<StoryChatMessageStructStruct>>(
@@ -268,11 +352,9 @@ class _NotifierChatListState extends State<NotifierChatList>
           itemCount: chatMessages.length,
           itemBuilder: (context, index) {
             final chatItem = chatMessages[index];
-
             if (chatItem.type == 'user') {
-              if (chatItem.text == '생각 중' || chatItem.type == 'thinking') {
+              if (chatItem.text == '생각 중' || chatItem.type == 'thinking')
                 return _buildThinkingIndicator();
-              }
               return _buildDialogueMessage(chatItem, isUser: true);
             } else if (chatItem.type == 'thinking') {
               return _buildThinkingIndicator();
@@ -285,155 +367,61 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
-  Widget _buildThinkingIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: FadeTransition(
-          opacity: _loadingAnimation,
-          child: Text(
-            "생각하는 중...",
-            style: TextStyle(color: Colors.grey[500], fontSize: 13),
-          ),
-        ),
-      ),
-    );
-  }
-
-  StoryChatMessageStructStruct? _createStructFromScene(
-      dynamic scene, String text, bool isStreaming) {
-    if (scene == null) return null;
-
-    final String type = (scene['type'] ?? 'narration').toString();
-    final String speaker = (scene['speaker'] ?? '').toString();
-    final String action = (scene['action'] ?? '').toString();
-
-    // 이미지 찾기
-    final String resolvedImage =
-        _resolveCharacterImageUrl(speaker, action) ?? '';
-
-    return createStoryChatMessageStructStruct(
-      type: type,
-      speakerName: speaker,
-      actionText: action,
-      text: text,
-      isStreaming: isStreaming,
-      storyImageUrl: '',
-      speakerImage: resolvedImage,
-    );
-  }
-
-  // ★ [수정됨] 랜덤 이미지 선택 로직 적용
-  String? _resolveCharacterImageUrl(String speakerName, String? emotionKey) {
-    final name = speakerName.trim();
-    if (name.isEmpty) return null;
-
-    final characters = widget.preDefinedCharacters ?? [];
-    CharacterStructStruct? character;
-    try {
-      character = characters.firstWhere((c) => c.name.trim() == name);
-    } catch (_) {
-      return null;
-    }
-
-    // 감정 키가 없으면 '무감정'을 기본값으로 설정
-    final key = (emotionKey != null && emotionKey.trim().isNotEmpty)
-        ? emotionKey.trim()
-        : '무감정';
-
-    // 1. 해당 감정에 맞는 이미지들을 모두 찾습니다.
-    final List<String> candidates = [];
-
-    for (final e in character.emotionImages) {
-      if (e.emotion != null && e.emotion!.trim() == key) {
-        if (e.image != null && e.image!.startsWith('http')) {
-          candidates.add(e.image!);
-        }
-      }
-    }
-
-    // 2. 후보가 있다면 랜덤으로 하나 선택
-    if (candidates.isNotEmpty) {
-      return candidates[Random().nextInt(candidates.length)];
-    }
-
-    // 3. 감정 이미지가 없으면 기본 프로필 이미지 반환
-    if (character.imageUrl != null && character.imageUrl!.startsWith('http')) {
-      return character.imageUrl;
-    }
-    return character.image;
-  }
-
-  // ★ [수정됨] 구분자 '|' 적용 및 스타일 변경
+  // (Widget Builders: _buildDialogueMessage, _buildNarration, _buildStoryImage 등 기존 코드 유지)
   Widget _buildDialogueMessage(StoryChatMessageStructStruct chatItem,
       {bool isUser = false}) {
     final speaker =
         isUser ? (widget.userInChatName ?? '나') : chatItem.speakerName;
     final nameColor = isUser ? Colors.red : Colors.black87;
-
     String imageUrl = '';
     if (!isUser) {
       imageUrl = chatItem.speakerImage;
-      if (imageUrl.isEmpty) {
+      if (imageUrl.isEmpty)
         imageUrl = _resolveCharacterImageUrl(
                 chatItem.speakerName, chatItem.actionText) ??
             '';
-      }
     }
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. [이미지] 감정 이미지 출력
           if (!isUser && imageUrl.isNotEmpty && imageUrl.startsWith('http'))
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
-                child: Image.network(
-                  imageUrl,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const SizedBox.shrink(),
-                ),
+                child: Image.network(imageUrl,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const SizedBox.shrink()),
               ),
             ),
-
-          // 2. [텍스트] 이름 | 대사 형식으로 변경
           RichText(
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: "$speaker ",
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    text: "$speaker ",
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'Inter',
                         color: nameColor,
-                        fontWeight: FontWeight.w900, // 이름 더 굵게
-                        fontSize: 15.0,
-                      ),
-                ),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15.0)),
                 TextSpan(
-                  text: "| ", // ★ 구분자 변경
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    text: "| ",
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'Inter',
-                        color: Colors.grey.shade400, // 연한 회색
+                        color: Colors.grey.shade400,
                         fontWeight: FontWeight.normal,
-                        fontSize: 14.0,
-                      ),
-                ),
+                        fontSize: 14.0)),
                 TextSpan(
-                  text: chatItem.text,
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    text: chatItem.text,
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'Inter',
                         color: Colors.black87,
                         fontSize: 15.0,
-                        lineHeight: 1.6,
-                      ),
-                ),
+                        lineHeight: 1.6)),
               ],
             ),
           ),
@@ -447,16 +435,13 @@ class _NotifierChatListState extends State<NotifierChatList>
       padding: const EdgeInsets.only(bottom: 24.0),
       child: Container(
         width: double.infinity,
-        child: Text(
-          message.text,
-          textAlign: TextAlign.start,
-          style: FlutterFlowTheme.of(context).bodyMedium.override(
+        child: Text(message.text,
+            textAlign: TextAlign.start,
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
                 fontFamily: 'Inter',
                 color: const Color(0xFF666666),
                 fontSize: 15.0,
-                lineHeight: 1.8,
-              ),
-        ),
+                lineHeight: 1.8)),
       ),
     );
   }
@@ -464,31 +449,26 @@ class _NotifierChatListState extends State<NotifierChatList>
   Widget _buildStoryImage(StoryChatMessageStructStruct chatItem) {
     if (chatItem.storyImageUrl == null ||
         chatItem.storyImageUrl.isEmpty ||
-        chatItem.storyImageUrl == 'null') {
-      return const SizedBox.shrink();
-    }
+        chatItem.storyImageUrl == 'null') return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8.0),
-        child: Image.network(
-          chatItem.storyImageUrl,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-        ),
+        child: Image.network(chatItem.storyImageUrl,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) =>
+                const SizedBox.shrink()),
       ),
     );
   }
 
   Widget _buildAiMessage(StoryChatMessageStructStruct chatItem) {
-    if (chatItem.type == 'narration') {
+    if (chatItem.type == 'narration')
       return _buildNarration(chatItem);
-    } else if (chatItem.type == 'dialogue') {
+    else if (chatItem.type == 'dialogue')
       return _buildDialogueMessage(chatItem);
-    } else if (chatItem.type == 'story_image') {
-      return _buildStoryImage(chatItem);
-    }
+    else if (chatItem.type == 'story_image') return _buildStoryImage(chatItem);
     return const SizedBox.shrink();
   }
 
@@ -499,37 +479,25 @@ class _NotifierChatListState extends State<NotifierChatList>
         dotAll: true,
         multiLine: true);
     final matches = exp.allMatches(scriptText);
-
     if (matches.isNotEmpty) {
       for (final m in matches) {
-        if (m.group(3) != null) {
+        if (m.group(3) != null)
           scenes
               .add({"type": "narration", "content": m.group(4)?.trim() ?? ''});
-        } else if (m.group(5) != null) {
+        else if (m.group(5) != null)
           scenes.add({
             "type": "dialogue",
             "speaker": m.group(6)?.trim() ?? '',
             "action": m.group(7)?.trim(),
             "content": m.group(8)?.trim() ?? ''
           });
-        } else if (m.group(1) != null) {
+        else if (m.group(1) != null)
           scenes.add(
               {"type": "show_image", "condition": m.group(2)?.trim() ?? ''});
-        }
       }
     } else {
       scenes.add({"type": "narration", "content": scriptText});
     }
     return scenes;
-  }
-
-  String _findSituationalImageUrlByCondition(
-      String condition, List<SituationalImageStructStruct> imageList) {
-    for (final img in imageList) {
-      if (img.condition == condition) {
-        return img.imageUrl;
-      }
-    }
-    return '';
   }
 }

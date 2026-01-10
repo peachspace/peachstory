@@ -890,16 +890,8 @@ class _CharactermainWidgetState extends State<CharactermainWidget> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       child: FFButtonWidget(
-                        onPressed: () async {
-                          context.pushNamed(
-                            CharacterchatWidget.routeName,
-                            queryParameters: {
-                              'characterRef': serializeParam(
-                                widget.characterRef,
-                                ParamType.DocumentReference,
-                              ),
-                            }.withoutNulls,
-                          );
+                        onPressed: () {
+                          print('Button pressed ...');
                         },
                         text: '시작하기',
                         options: FFButtonOptions(

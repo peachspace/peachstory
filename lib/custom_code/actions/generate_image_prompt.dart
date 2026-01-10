@@ -9,55 +9,58 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'package:cloud_functions/cloud_functions.dart'; // 필수
+// ... imports ...
+import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> generateImagePrompt(
+  String mode,
   String contextInput,
+  String? baseContext,
 ) async {
-  // [수정] 시스템 프롬프트: 한글 묘사 생성
-  String systemPrompt = """
-당신은 AI 이미지 생성을 위한 '프롬프트 번역 및 요약 전문가'입니다.
-사용자가 제공하는 스토리 정보(세계관, 캐릭터 등)를 바탕으로, 그림을 그리기 위한 **핵심 시각 묘사**만 추출하여 **한국어**로 작성하세요.
-사용자가 제공하는 내용을 바탕으로 **최고 품질의 일본 애니메이션 스타일(Japanese Anime Style)** 프롬프트를 영어로 작성하세요.
+  String systemPrompt = "";
+  // 사용자가 아무것도 입력하지 않았을 때 처리
+  String finalInput = contextInput.trim().isEmpty
+      ? "Create a random, unique, and attractive anime character."
+      : contextInput;
 
-[필수 스타일 키워드]
-모든 프롬프트의 맨 앞부분에 반드시 다음 키워드를 포함하세요:
-"masterpiece, best quality, high resolution, japanese anime style, cel shaded, vibrant colors, "
-다음 키워드를 포함하지 마세요:
-"photorealistic, 3d, realistic, nose, lips, ugly, bad anatomy"
-
-[중요 규칙]
-1. 입력 텍스트에 '[FOCUS: Character Portrait]'가 있다면, **인물 묘사(눈, 머리색, 의상, 표정)를 최우선**으로 작성하세요. 배경은 아주 간단하게(simple background) 처리하세요.
-2. 입력 텍스트에 '[FOCUS: Situation]'이 있다면, 행동과 배경 묘사에 집중하세요.
-3. 결과물은 오직 **영어 프롬프트 텍스트**만 출력하세요. (설명 금지)
-4. 인물 묘사 시 눈, 머리카락, 표정을 섬세하게 묘사하세요 (예: beautiful detailed eyes).
-5. 'Title:', 'Setting:' 같은 라벨을 붙이지 말고, 쉼표(,)로 구분된 영어 키워드만 나열하세요.
-6. 배경 묘사도 애니메이션 배경(anime background) 느낌이 나도록 키워드를 선택하세요.
-
-[절대 금지 사항]
-1. 'Title:', 'Setting:', 'Character:' 같은 **영어 라벨이나 분류 형식을 절대 사용하지 마세요.**
-2. 영어를 출력하지 마세요. 무조건 한국어로만 작성하세요.
-3. 문장 형태보다는 쉼표(,)로 구분된 구체적인 묘사 키워드 위주로 작성하세요.
-
-[작성 예시]
-(X) Title: Dragon, Setting: Cave...
-(O) 어두운 동굴 안, 거대한 붉은 용, 빛나는 비늘, 긴장감 넘치는 분위기, 판타지 스타일, 웅장한 조명
+  // 1. 모드별 시스템 프롬프트
+  if (mode == "background") {
+    systemPrompt = """
+You are an expert AI Art Prompt Engineer for Anime Backgrounds.
+Convert the user's "Situation" and "World Setting" into a high-quality, comma-separated English prompt.
+Start with: "masterpiece, best quality, anime style, scenery, no humans".
+Combine the 'World Setting' context with the specific 'Situation'.
 """;
+  } else if (mode == "situation") {
+    systemPrompt = """
+You are an expert AI Art Prompt Engineer for Anime Characters.
+Convert the "Action" into a dynamic English prompt describing the pose and action.
+Focus purely on the dynamic movement.
+Style: "masterpiece, best quality, anime style".
+""";
+  } else {
+    // [Character Mode] 무작위 생성 지원
+    systemPrompt = """
+You are an expert AI Art Prompt Engineer for Anime Characters.
+If the input is "Random" or empty, create a detailed description for a unique anime character (hair, eyes, clothes).
+If the user provides a description, convert it into English prompt keys.
+Start with: "masterpiece, best quality, anime style, solo, portrait".
+""";
+  }
 
   String userPrompt = """
-[스토리 정보]
-$contextInput
+[Mode: $mode]
+[User Input]: $finalInput
+[Base Context]: ${baseContext ?? "None"}
 
-[요청]
-위 내용을 바탕으로 이미지 생성에 필요한 시각적 묘사만 한국어로 작성해 주세요.
+Request: Create a detailed, high-quality English prompt.
 """;
 
-  // 3. Cloud Function 호출 (기존 callAiProxy 재사용)
   try {
     final HttpsCallable callable =
         FirebaseFunctions.instance.httpsCallable('callAiProxy');
     final result = await callable.call(<String, dynamic>{
-      'modelName': 'gpt-4o-mini', // 빠르고 저렴한 모델 추천
+      'modelName': 'gpt-4o-mini',
       'systemPrompt': systemPrompt,
       'messages': [
         {'role': 'user', 'content': userPrompt}
@@ -68,6 +71,3 @@ $contextInput
     return "Error: $e";
   }
 }
-
-// Set your action name, define your arguments and return parameter,
-// and then add the boilerplate code using the green button on the right!

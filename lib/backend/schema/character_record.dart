@@ -75,12 +75,6 @@ class CharacterRecord extends FirestoreRecord {
   String get aiModel => _aiModel ?? '';
   bool hasAiModel() => _aiModel != null;
 
-  // "situational_images" field.
-  List<SituationalImageStructStruct>? _situationalImages;
-  List<SituationalImageStructStruct> get situationalImages =>
-      _situationalImages ?? const [];
-  bool hasSituationalImages() => _situationalImages != null;
-
   // "user_ref" field.
   DocumentReference? _userRef;
   DocumentReference? get userRef => _userRef;
@@ -134,10 +128,6 @@ class CharacterRecord extends FirestoreRecord {
     _dialogueExample = getDataList(snapshotData['dialogueExample']);
     _creatorRef = snapshotData['creator_ref'] as DocumentReference?;
     _aiModel = snapshotData['aiModel'] as String?;
-    _situationalImages = getStructList(
-      snapshotData['situational_images'],
-      SituationalImageStructStruct.fromMap,
-    );
     _userRef = snapshotData['user_ref'] as DocumentReference?;
     _viewCount = castToType<int>(snapshotData['view_count']);
     _heartCount = castToType<int>(snapshotData['heart_count']);
@@ -247,7 +237,6 @@ class CharacterRecordDocumentEquality implements Equality<CharacterRecord> {
         listEquality.equals(e1?.dialogueExample, e2?.dialogueExample) &&
         e1?.creatorRef == e2?.creatorRef &&
         e1?.aiModel == e2?.aiModel &&
-        listEquality.equals(e1?.situationalImages, e2?.situationalImages) &&
         e1?.userRef == e2?.userRef &&
         e1?.viewCount == e2?.viewCount &&
         e1?.heartCount == e2?.heartCount &&
@@ -272,7 +261,6 @@ class CharacterRecordDocumentEquality implements Equality<CharacterRecord> {
         e?.dialogueExample,
         e?.creatorRef,
         e?.aiModel,
-        e?.situationalImages,
         e?.userRef,
         e?.viewCount,
         e?.heartCount,

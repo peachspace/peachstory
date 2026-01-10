@@ -6,7 +6,6 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/story/imagecreatebottomsheet/imagecreatebottomsheet_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
-import '/flutter_flow/random_data_util.dart' as random_data;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -267,19 +266,6 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                             hoverColor: Colors.transparent,
                             highlightColor: Colors.transparent,
                             onTap: () async {
-                              if (FFAppState()
-                                      .Characters
-                                      .elementAtOrNull(widget.index!)
-                                      ?.characterSeed ==
-                                  null) {
-                                FFAppState().updateCharactersAtIndex(
-                                  widget.index!,
-                                  (e) => e
-                                    ..characterSeed = random_data.randomInteger(
-                                        1, 2100000000),
-                                );
-                                safeSetState(() {});
-                              }
                               await showModalBottomSheet(
                                 isScrollControlled: true,
                                 backgroundColor: Colors.transparent,
@@ -289,34 +275,32 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                   return Padding(
                                     padding: MediaQuery.viewInsetsOf(context),
                                     child: ImagecreatebottomsheetWidget(
-                                      generationContext:
-                                          '[FOCUS: Character Portrait]\\n[Appearance & Personality]: ${_model.charSettingTextController.text}\\n[Background Context]: ${widget.storyContext}',
                                       imageMode: 'character',
                                       isSourceEmpty: _model.charSettingTextController
                                                   .text ==
                                               '',
                                       warningMessage: '캐릭터 설정을 먼저 입력해주세요.',
-                                      seed: FFAppState()
-                                          .Characters
-                                          .elementAtOrNull(widget.index!)
-                                          ?.characterSeed,
+                                      receivedcharsettings:
+                                          _model.charSettingTextController.text,
                                     ),
                                   );
                                 },
-                              ).then((value) => safeSetState(
-                                  () => _model.createdcharacterImage = value));
+                              ).then((value) => safeSetState(() =>
+                                  _model.generatedcharacterImage = value));
 
-                              if (_model.createdcharacterImage != null &&
-                                  _model.createdcharacterImage != '') {
-                                FFAppState().updateCharactersAtIndex(
-                                  widget.index!,
-                                  (e) => e
-                                    ..image = functions.stringToImagePath(
-                                        _model.createdcharacterImage!)
-                                    ..imageUrl = _model.createdcharacterImage,
-                                );
-                                safeSetState(() {});
-                              }
+                              FFAppState().updateCharactersAtIndex(
+                                widget.index!,
+                                (e) => e
+                                  ..profileimage =
+                                      _model.generatedcharacterImage?.imageurl
+                                  ..seed = _model.generatedcharacterImage?.seed
+                                  ..basePrompt = _model
+                                      .generatedcharacterImage?.basePrompt,
+                              );
+                              safeSetState(() {});
+                              _model.profileimage =
+                                  _model.generatedcharacterImage?.imageurl;
+                              safeSetState(() {});
 
                               safeSetState(() {});
                             },
@@ -388,10 +372,12 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(15.0),
                             child: Image.network(
-                              FFAppState()
-                                  .Characters
-                                  .elementAtOrNull(widget.index!)!
-                                  .image,
+                              _model.profileimage != null &&
+                                      _model.profileimage != ''
+                                  ? functions
+                                      .stringToImagePath(_model.profileimage!)
+                                  : functions.stringToImagePath(
+                                      widget.characterData!.profileimage),
                               width: 200.0,
                               height: 200.0,
                               fit: BoxFit.cover,
@@ -452,7 +438,6 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                   return Padding(
                                     padding: MediaQuery.viewInsetsOf(context),
                                     child: ImagecreatebottomsheetWidget(
-                                      generationContext: '',
                                       imageMode: 'emotion',
                                       isSourceEmpty: FFAppState()
                                                       .Characters
@@ -469,20 +454,33 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                           ? false
                                           : true,
                                       warningMessage: '먼저 프로필 이미지를 생성해주세요.',
-                                      seed: FFAppState()
+                                      receivedSeed: FFAppState()
                                           .Characters
                                           .elementAtOrNull(widget.index!)
-                                          ?.characterSeed,
-                                      baseimage: FFAppState()
+                                          ?.seed,
+                                      receivedBasePrompt: FFAppState()
                                           .Characters
                                           .elementAtOrNull(widget.index!)
-                                          ?.imageUrl,
-                                      characterIndex: widget.index,
+                                          ?.basePrompt,
                                     ),
                                   );
                                 },
                               ).then((value) => safeSetState(
-                                  () => _model.createdemotionimage = value));
+                                  () => _model.generatedemotionimage = value));
+
+                              FFAppState().updateCharactersAtIndex(
+                                widget.index!,
+                                (e) => e
+                                  ..updateEmotionimages(
+                                    (e) => e.add(EmotionImageStructStruct(
+                                      emotion:
+                                          _model.generatedemotionimage?.text,
+                                      imageurl: _model
+                                          .generatedemotionimage?.imageurl,
+                                    )),
+                                  ),
+                              );
+                              safeSetState(() {});
 
                               safeSetState(() {});
                             },
@@ -532,10 +530,8 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                         ),
                         Builder(
                           builder: (context) {
-                            final emotionItem = widget
-                                    .characterData?.emotionImages
-                                    .toList() ??
-                                [];
+                            final emotionItem =
+                                _model.emotionimagelist.toList();
 
                             return Row(
                               mainAxisSize: MainAxisSize.max,
@@ -551,7 +547,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                   onLongPress: () async {
                                     _model.updateDeleteCharacterStruct(
                                       (e) => e
-                                        ..updateEmotionImages(
+                                        ..updateEmotionimages(
                                           (e) => e.remove(emotionItemItem),
                                         ),
                                     );
@@ -560,11 +556,181 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(10.0),
                                     child: Image.network(
-                                      emotionItemItem.image,
+                                      functions.stringToImagePath(
+                                          emotionItemItem.imageurl),
                                       width: 70.0,
                                       height: 70.0,
                                       fit: BoxFit.cover,
                                     ),
+                                  ),
+                                );
+                              }),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional(-1.0, 0.0),
+                    child: Padding(
+                      padding:
+                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+                      child: Text(
+                        '상황 이미지',
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              fontSize: 18.0,
+                              letterSpacing: 0.0,
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                      ),
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 0.0, 10.0, 0.0),
+                          child: FFButtonWidget(
+                            onPressed: () async {
+                              await showModalBottomSheet(
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                enableDrag: false,
+                                context: context,
+                                builder: (context) {
+                                  return Padding(
+                                    padding: MediaQuery.viewInsetsOf(context),
+                                    child: ImagecreatebottomsheetWidget(
+                                      imageMode: 'situation',
+                                      isSourceEmpty: FFAppState()
+                                                      .Characters
+                                                      .elementAtOrNull(
+                                                          widget.index!)
+                                                      ?.image !=
+                                                  null &&
+                                              FFAppState()
+                                                      .Characters
+                                                      .elementAtOrNull(
+                                                          widget.index!)
+                                                      ?.image !=
+                                                  ''
+                                          ? false
+                                          : true,
+                                      warningMessage: '먼저 프로필 이미지를 생성해주세요.',
+                                      receivedSeed: FFAppState()
+                                          .Characters
+                                          .elementAtOrNull(widget.index!)
+                                          ?.seed,
+                                      receivedBasePrompt: FFAppState()
+                                          .Characters
+                                          .elementAtOrNull(widget.index!)
+                                          ?.basePrompt,
+                                    ),
+                                  );
+                                },
+                              ).then((value) => safeSetState(() =>
+                                  _model.generatedsituationimage = value));
+
+                              FFAppState().updateCharactersAtIndex(
+                                widget.index!,
+                                (e) => e
+                                  ..updateSituationImages(
+                                    (e) => e.add(SituationalImageStructStruct(
+                                      condition:
+                                          _model.generatedsituationimage?.text,
+                                      imageUrl: _model
+                                          .generatedsituationimage?.imageurl,
+                                    )),
+                                  ),
+                              );
+                              safeSetState(() {});
+
+                              safeSetState(() {});
+                            },
+                            text: 'Button',
+                            icon: Icon(
+                              Icons.add_sharp,
+                              size: 35.0,
+                            ),
+                            options: FFButtonOptions(
+                              width: 70.0,
+                              height: 70.0,
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 0.0, 16.0, 0.0),
+                              iconPadding: EdgeInsets.all(2.0),
+                              iconColor:
+                                  FlutterFlowTheme.of(context).primaryText,
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .titleSmall
+                                  .override(
+                                    font: GoogleFonts.interTight(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontStyle,
+                                    ),
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
+                                  ),
+                              elevation: 0.0,
+                              borderSide: BorderSide(
+                                color: FlutterFlowTheme.of(context).alternate,
+                              ),
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            showLoadingIndicator: false,
+                          ),
+                        ),
+                        Builder(
+                          builder: (context) {
+                            final situationtem = _model.situationimage.toList();
+
+                            return Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: List.generate(situationtem.length,
+                                  (situationtemIndex) {
+                                final situationtemItem =
+                                    situationtem[situationtemIndex];
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: Image.network(
+                                    functions.stringToImagePath(
+                                        situationtemItem.imageUrl),
+                                    width: 70.0,
+                                    height: 70.0,
+                                    fit: BoxFit.cover,
                                   ),
                                 );
                               }),

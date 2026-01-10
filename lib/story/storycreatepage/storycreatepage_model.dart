@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   ///  Local state fields for this page.
 
-  String? tempmainImage = '';
+  String? mainImage;
 
   List<String> hashitags = [];
   void addToHashitags(String item) => hashitags.add(item);
@@ -33,20 +33,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String? genre = '';
 
-  List<SituationalImageStructStruct> newSituationalImages = [];
-  void addToNewSituationalImages(SituationalImageStructStruct item) =>
-      newSituationalImages.add(item);
-  void removeFromNewSituationalImages(SituationalImageStructStruct item) =>
-      newSituationalImages.remove(item);
-  void removeAtIndexFromNewSituationalImages(int index) =>
-      newSituationalImages.removeAt(index);
-  void insertAtIndexInNewSituationalImages(
-          int index, SituationalImageStructStruct item) =>
-      newSituationalImages.insert(index, item);
-  void updateNewSituationalImagesAtIndex(
-          int index, Function(SituationalImageStructStruct) updateFn) =>
-      newSituationalImages[index] = updateFn(newSituationalImages[index]);
-
   bool isGeneratingtitle = false;
 
   bool isGeneratingworldview = false;
@@ -59,7 +45,31 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String selectedDetailMode = 'text';
 
-  String? uploadedIntroImage;
+  List<CharacterStructStruct> characterlist = [];
+  void addToCharacterlist(CharacterStructStruct item) =>
+      characterlist.add(item);
+  void removeFromCharacterlist(CharacterStructStruct item) =>
+      characterlist.remove(item);
+  void removeAtIndexFromCharacterlist(int index) =>
+      characterlist.removeAt(index);
+  void insertAtIndexInCharacterlist(int index, CharacterStructStruct item) =>
+      characterlist.insert(index, item);
+  void updateCharacterlistAtIndex(
+          int index, Function(CharacterStructStruct) updateFn) =>
+      characterlist[index] = updateFn(characterlist[index]);
+
+  List<BackgroundStructStruct> backgroundlist = [];
+  void addToBackgroundlist(BackgroundStructStruct item) =>
+      backgroundlist.add(item);
+  void removeFromBackgroundlist(BackgroundStructStruct item) =>
+      backgroundlist.remove(item);
+  void removeAtIndexFromBackgroundlist(int index) =>
+      backgroundlist.removeAt(index);
+  void insertAtIndexInBackgroundlist(int index, BackgroundStructStruct item) =>
+      backgroundlist.insert(index, item);
+  void updateBackgroundlistAtIndex(
+          int index, Function(BackgroundStructStruct) updateFn) =>
+      backgroundlist[index] = updateFn(backgroundlist[index]);
 
   ///  State fields for stateful widgets in this page.
 
@@ -82,20 +92,22 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? Function(BuildContext, String?)? worldSettingsTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in worldviewaicreatebutton widget.
   String? generatedworldview;
-  // State field(s) for prologue widget.
-  FocusNode? prologueFocusNode;
-  TextEditingController? prologueTextController;
-  String? Function(BuildContext, String?)? prologueTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in prologueaicreatebutton widget.
-  String? generatedprologue;
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in backgroundaddbutton widget.
+  GenResultStructStruct? generatedbackgroundimage;
   // State field(s) for UserRoleInfo widget.
   FocusNode? userRoleInfoFocusNode;
   TextEditingController? userRoleInfoTextController;
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in userroleaicreatebutton widget.
   String? generateduserrole;
+  // State field(s) for prologue widget.
+  FocusNode? prologueFocusNode;
+  TextEditingController? prologueTextController;
+  String? Function(BuildContext, String?)? prologueTextControllerValidator;
+  // Stores action output result for [Custom Action - generateSingleTextField] action in prologueaicreatebutton widget.
+  String? generatedprologue;
   // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in Button widget.
-  String? createdImage;
+  GenResultStructStruct? generaltedmainimage;
   bool isDataUploading_uploadedMainImage = false;
   FFUploadedFile uploadedLocalFile_uploadedMainImage =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
@@ -128,7 +140,7 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? hashitagFocusNode;
   TextEditingController? hashitagTextController;
   String? Function(BuildContext, String?)? hashitagTextControllerValidator;
-  // Stores action output result for [Backend Call - Create Document] action in storycreateandeditutton widget.
+  // Stores action output result for [Backend Call - Create Document] action in storycreateandeditbutton widget.
   StoriesRecord? newStoryRef;
 
   @override
@@ -143,11 +155,11 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
     worldSettingsFocusNode?.dispose();
     worldSettingsTextController?.dispose();
 
-    prologueFocusNode?.dispose();
-    prologueTextController?.dispose();
-
     userRoleInfoFocusNode?.dispose();
     userRoleInfoTextController?.dispose();
+
+    prologueFocusNode?.dispose();
+    prologueTextController?.dispose();
 
     introduceFocusNode?.dispose();
     introduceTextController?.dispose();

@@ -75,13 +75,12 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
         _model.storyDoc?.prologue,
         '무제',
       );
-      _model.pageSituationalImages = _model.storyDoc!.situationalImages
-          .toList()
-          .cast<SituationalImageStructStruct>();
       _model.pageSelectedModel = valueOrDefault<String>(
         _model.storyDoc?.aiModel,
         'claude-3-haiku-20240307',
       );
+      _model.backgrounds =
+          _model.storyDoc!.backgrounds.toList().cast<BackgroundStructStruct>();
       safeSetState(() {});
       _model.existingChatRoom = await queryStorychatsRecordOnce(
         queryBuilder: (storychatsRecord) => storychatsRecord
@@ -136,15 +135,13 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
               _model.characters.toList(),
               _model.userrole,
               _model.prologue,
-              _model.pageSituationalImages.toList(),
+              _model.backgrounds.toList(),
               '',
               widget.userInChatName!,
               _model.updatedChatDoc?.summary,
               widget.isNovelMode!),
           functions.prologue('도입부를 생성하라.').toList(),
           '',
-          '',
-          _model.pageSituationalImages.toList(),
         );
         _model.aiResponseScript = _model.aitext!;
         safeSetState(() {});
@@ -317,147 +314,58 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                           initialMessages: _model.chatMessages,
                           preDefinedCharacters: _model.characters,
                           userInChatName: widget.userInChatName,
-                          situationalImageList: _model.pageSituationalImages,
+                          backgroundList: _model.backgrounds,
+                          isNovelMode: false,
                           onTurnComplete: (scenes) async {
-                            for (int loop1Index = 0;
-                                loop1Index < scenes!.length;
-                                loop1Index++) {
-                              final currentLoop1Item = scenes[loop1Index];
-                              if (functions.isSceneType(
-                                      currentLoop1Item, 'dialogue') ==
-                                  true) {
-                                await StorymessagesRecord.createDoc(
-                                        _model.currentDocRef!)
-                                    .set(createStorymessagesRecordData(
-                                  text: getJsonField(
-                                    currentLoop1Item,
-                                    r'''$.content''',
-                                  ).toString(),
-                                  type: 'dialogue',
-                                  timestamp: getCurrentTimestamp,
-                                  speakerName: getJsonField(
-                                    currentLoop1Item,
-                                    r'''$.speaker''',
-                                  ).toString(),
-                                  actionText: getJsonField(
-                                    currentLoop1Item,
-                                    r'''$.action''',
-                                  ).toString(),
-                                ));
-                              } else if (functions.isSceneType(
-                                      currentLoop1Item, 'narration') ==
-                                  true) {
-                                await StorymessagesRecord.createDoc(
-                                        _model.currentDocRef!)
-                                    .set(createStorymessagesRecordData(
-                                  text: getJsonField(
-                                    currentLoop1Item,
-                                    r'''$.content''',
-                                  ).toString(),
-                                  type: 'narration',
-                                  timestamp: getCurrentTimestamp,
-                                ));
-                              } else if (functions.isSceneType(
-                                      currentLoop1Item, 'show_image') ==
-                                  true) {
-                                await StorymessagesRecord.createDoc(
-                                        _model.currentDocRef!)
-                                    .set(createStorymessagesRecordData(
-                                  type: 'story_image',
-                                  timestamp: getCurrentTimestamp,
-                                  storyImageUrl: functions
-                                      .findSituationalImageUrlByCondition(
-                                          getJsonField(
-                                            currentLoop1Item,
-                                            r'''$.condition''',
-                                          ).toString(),
-                                          _model.pageSituationalImages
-                                              .toList()),
-                                ));
-                              }
-                            }
-                            for (int loop2Index = 0;
-                                loop2Index < scenes.length;
-                                loop2Index++) {
-                              final currentLoop2Item = scenes[loop2Index];
-                              if (functions.isSceneType(
-                                      currentLoop2Item, 'dialogue') ==
-                                  true) {
-                                _model.addToChatMessages(
-                                    StoryChatMessageStructStruct(
-                                  text: getJsonField(
-                                    currentLoop2Item,
-                                    r'''$.content''',
-                                  ).toString(),
-                                  type: getJsonField(
-                                    currentLoop2Item,
-                                    r'''$.type''',
-                                  ).toString(),
-                                  isStreaming: false,
-                                  speakerName: getJsonField(
-                                    currentLoop2Item,
-                                    r'''$.speaker''',
-                                  ).toString(),
-                                  speakerImage:
-                                      functions.findCharacterImageByName(
-                                          getJsonField(
-                                            currentLoop2Item,
-                                            r'''$.speaker''',
-                                          ).toString(),
-                                          _model.characters.toList(),
-                                          ''),
-                                  actionText: getJsonField(
-                                    currentLoop2Item,
-                                    r'''$.action''',
-                                  ).toString(),
-                                ));
-                                safeSetState(() {});
-                              } else if (functions.isSceneType(
-                                      currentLoop2Item, 'narration') ==
-                                  true) {
-                                _model.addToChatMessages(
-                                    StoryChatMessageStructStruct(
-                                  text: getJsonField(
-                                    currentLoop2Item,
-                                    r'''$.content''',
-                                  ).toString(),
-                                  type: getJsonField(
-                                    currentLoop2Item,
-                                    r'''$.type''',
-                                  ).toString(),
-                                ));
-                                safeSetState(() {});
-                              } else if (functions.isSceneType(
-                                      currentLoop2Item, 'show_image') ==
-                                  true) {
-                                if (functions
-                                        .findSituationalImageUrlByCondition(
-                                            getJsonField(
-                                              currentLoop2Item,
-                                              r'''$.condition''',
-                                            ).toString(),
-                                            _model.pageSituationalImages
-                                                .toList()) ==
-                                    '') {
-                                  _model.addToChatMessages(
-                                      StoryChatMessageStructStruct(
-                                    type: 'story_image',
-                                    storyImageUrl: functions
-                                        .findSituationalImageUrlByCondition(
-                                            getJsonField(
-                                              currentLoop2Item,
-                                              r'''$.condition''',
-                                            ).toString(),
-                                            _model.pageSituationalImages
-                                                .toList()),
-                                  ));
-                                  safeSetState(() {});
-                                }
-                              }
+                            await actions.saveChatTurnToDB(
+                              scenes!.toList(),
+                              widget.storyRef!,
+                              _model.backgrounds.toList(),
+                              _model.characters.toList(),
+                            );
+                            if (functions
+                                .isSummaryTurn(_model.chatMessages.length)) {
+                              _model.summary =
+                                  await actions.callAiSummaryAction(
+                                _model.currentDocRef,
+                              );
+
+                              await _model.currentDocRef!
+                                  .update(createStorychatsRecordData(
+                                summary: _model.summary,
+                                lastSummaryMessageCount:
+                                    _model.chatMessages.length,
+                              ));
                             }
                             _model.istyping = false;
+                            _model.aiResponseScript = '';
+                            safeSetState(() {});
+
                             safeSetState(() {});
                           },
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      decoration: BoxDecoration(),
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                            25.0, 0.0, 25.0, 0.0),
+                        child: custom_widgets.NotifierChatList(
+                          width: double.infinity,
+                          height: double.infinity,
+                          newResponseScript: _model.aiResponseScript,
+                          initialMessages: _model.chatMessages,
+                          preDefinedCharacters: _model.characters,
+                          userInChatName: widget.userInChatName,
+                          backgroundList: _model.backgrounds,
+                          isNovelMode: false,
+                          onTurnComplete: (scenes) async {},
                         ),
                       ),
                     ),
@@ -721,8 +629,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                               .toList(),
                                                           _model.userrole,
                                                           '',
-                                                          _model
-                                                              .pageSituationalImages
+                                                          _model.backgrounds
                                                               .toList(),
                                                           _model.updatedChatDoc!
                                                               .userNote,
@@ -734,11 +641,6 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                       _model.formattedHistory
                                                           ?.toList(),
                                                       _model.userinput,
-                                                      _model.currentChatDoc
-                                                          ?.summary,
-                                                      _model
-                                                          .pageSituationalImages
-                                                          .toList(),
                                                     );
                                                     _model.cleanList =
                                                         await actions
@@ -779,38 +681,6 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                       _model.aiResponseScript =
                                                           _model.aiFullText!;
                                                       safeSetState(() {});
-                                                      _model.messageCount =
-                                                          await queryStorymessagesRecordCount(
-                                                        parent: _model
-                                                            .currentDocRef,
-                                                      );
-                                                      _model.characterChatDoc =
-                                                          await StorychatsRecord
-                                                              .getDocumentOnce(
-                                                                  _model
-                                                                      .currentDocRef!);
-                                                      if (functions.shouldSummarize(
-                                                          _model.messageCount!,
-                                                          _model
-                                                              .characterChatDoc!
-                                                              .lastSummaryMessageCount)) {
-                                                        _model.summary =
-                                                            await actions
-                                                                .callAiSummaryAction(
-                                                          _model.currentDocRef,
-                                                        );
-
-                                                        firestoreBatch.update(
-                                                            _model
-                                                                .currentDocRef!,
-                                                            createStorychatsRecordData(
-                                                              lastSummaryMessageCount:
-                                                                  _model
-                                                                      .messageCount,
-                                                              summary: _model
-                                                                  .summary,
-                                                            ));
-                                                      }
                                                     }
                                                   } else {
                                                     var confirmDialogResponse =
@@ -982,15 +852,13 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                           _model.characters.toList(),
                                           _model.userrole,
                                           '',
-                                          _model.pageSituationalImages.toList(),
+                                          _model.backgrounds.toList(),
                                           _model.updatedChatDoc1!.userNote,
                                           widget.userInChatName!,
                                           _model.updatedChatDoc1?.summary,
                                           true),
                                       _model.formattedHistory1?.toList(),
                                       _model.nextCommand,
-                                      _model.currentChatDoc?.summary,
-                                      _model.pageSituationalImages.toList(),
                                     );
                                     _model.cleanList1 =
                                         await actions.removeThinkingMessage(
@@ -1023,31 +891,6 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                       _model.aiResponseScript =
                                           _model.aiFullText1!;
                                       safeSetState(() {});
-                                      _model.messageCount2 =
-                                          await queryStorymessagesRecordCount(
-                                        parent: _model.currentDocRef,
-                                      );
-                                      _model.characterChatDoc1 =
-                                          await StorychatsRecord
-                                              .getDocumentOnce(
-                                                  _model.currentDocRef!);
-                                      if (functions.shouldSummarize(
-                                          _model.messageCount2!,
-                                          _model.characterChatDoc1!
-                                              .lastSummaryMessageCount)) {
-                                        _model.summary1 =
-                                            await actions.callAiSummaryAction(
-                                          _model.currentDocRef,
-                                        );
-
-                                        firestoreBatch.update(
-                                            _model.currentDocRef!,
-                                            createStorychatsRecordData(
-                                              lastSummaryMessageCount:
-                                                  _model.messageCount2,
-                                              summary: _model.summary1,
-                                            ));
-                                      }
                                     }
                                   } else {
                                     var confirmDialogResponse =

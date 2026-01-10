@@ -77,12 +77,6 @@ class StoriesRecord extends FirestoreRecord {
   List<String> get hashtags => _hashtags ?? const [];
   bool hasHashtags() => _hashtags != null;
 
-  // "situationalImages" field.
-  List<SituationalImageStructStruct>? _situationalImages;
-  List<SituationalImageStructStruct> get situationalImages =>
-      _situationalImages ?? const [];
-  bool hasSituationalImages() => _situationalImages != null;
-
   // "aiModel" field.
   String? _aiModel;
   String get aiModel => _aiModel ?? '';
@@ -133,6 +127,11 @@ class StoriesRecord extends FirestoreRecord {
   String get detailimage => _detailimage ?? '';
   bool hasDetailimage() => _detailimage != null;
 
+  // "backgrounds" field.
+  List<BackgroundStructStruct>? _backgrounds;
+  List<BackgroundStructStruct> get backgrounds => _backgrounds ?? const [];
+  bool hasBackgrounds() => _backgrounds != null;
+
   void _initializeFields() {
     _title = snapshotData['title'] as String?;
     _worldview = snapshotData['worldview'] as String?;
@@ -149,10 +148,6 @@ class StoriesRecord extends FirestoreRecord {
     _authorNotes = snapshotData['author_notes'] as String?;
     _createdAt = snapshotData['created_at'] as DateTime?;
     _hashtags = getDataList(snapshotData['hashtags']);
-    _situationalImages = getStructList(
-      snapshotData['situationalImages'],
-      SituationalImageStructStruct.fromMap,
-    );
     _aiModel = snapshotData['aiModel'] as String?;
     _userRef = snapshotData['user_ref'] as DocumentReference?;
     _viewCount = castToType<int>(snapshotData['view_count']);
@@ -163,6 +158,10 @@ class StoriesRecord extends FirestoreRecord {
     _createdTimestamp = snapshotData['created_timestamp'] as DateTime?;
     _detailmode = snapshotData['detailmode'] as String?;
     _detailimage = snapshotData['detailimage'] as String?;
+    _backgrounds = getStructList(
+      snapshotData['backgrounds'],
+      BackgroundStructStruct.fromMap,
+    );
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -216,12 +215,6 @@ class StoriesRecord extends FirestoreRecord {
           'hashtags': safeGet(
             () => snapshot.data['hashtags'].toList(),
           ),
-          'situationalImages': safeGet(
-            () => (snapshot.data['situationalImages'] as Iterable)
-                .map((d) =>
-                    SituationalImageStructStruct.fromAlgoliaData(d).toMap())
-                .toList(),
-          ),
           'aiModel': snapshot.data['aiModel'],
           'user_ref': convertAlgoliaParam(
             snapshot.data['user_ref'],
@@ -248,6 +241,11 @@ class StoriesRecord extends FirestoreRecord {
           ),
           'detailmode': snapshot.data['detailmode'],
           'detailimage': snapshot.data['detailimage'],
+          'backgrounds': safeGet(
+            () => (snapshot.data['backgrounds'] as Iterable)
+                .map((d) => BackgroundStructStruct.fromAlgoliaData(d).toMap())
+                .toList(),
+          ),
         },
         StoriesRecord.collection.doc(snapshot.objectID),
       );
@@ -351,7 +349,6 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.authorNotes == e2?.authorNotes &&
         e1?.createdAt == e2?.createdAt &&
         listEquality.equals(e1?.hashtags, e2?.hashtags) &&
-        listEquality.equals(e1?.situationalImages, e2?.situationalImages) &&
         e1?.aiModel == e2?.aiModel &&
         e1?.userRef == e2?.userRef &&
         e1?.viewCount == e2?.viewCount &&
@@ -361,7 +358,8 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.authorIsCreator == e2?.authorIsCreator &&
         e1?.createdTimestamp == e2?.createdTimestamp &&
         e1?.detailmode == e2?.detailmode &&
-        e1?.detailimage == e2?.detailimage;
+        e1?.detailimage == e2?.detailimage &&
+        listEquality.equals(e1?.backgrounds, e2?.backgrounds);
   }
 
   @override
@@ -378,7 +376,6 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.authorNotes,
         e?.createdAt,
         e?.hashtags,
-        e?.situationalImages,
         e?.aiModel,
         e?.userRef,
         e?.viewCount,
@@ -388,7 +385,8 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.authorIsCreator,
         e?.createdTimestamp,
         e?.detailmode,
-        e?.detailimage
+        e?.detailimage,
+        e?.backgrounds
       ]);
 
   @override

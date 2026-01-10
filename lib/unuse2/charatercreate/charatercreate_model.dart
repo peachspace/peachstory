@@ -45,20 +45,6 @@ class CharatercreateModel extends FlutterFlowModel<CharatercreateWidget> {
 
   String? characterimage = '';
 
-  List<SituationalImageStructStruct> newSituationalImages = [];
-  void addToNewSituationalImages(SituationalImageStructStruct item) =>
-      newSituationalImages.add(item);
-  void removeFromNewSituationalImages(SituationalImageStructStruct item) =>
-      newSituationalImages.remove(item);
-  void removeAtIndexFromNewSituationalImages(int index) =>
-      newSituationalImages.removeAt(index);
-  void insertAtIndexInNewSituationalImages(
-          int index, SituationalImageStructStruct item) =>
-      newSituationalImages.insert(index, item);
-  void updateNewSituationalImagesAtIndex(
-          int index, Function(SituationalImageStructStruct) updateFn) =>
-      newSituationalImages[index] = updateFn(newSituationalImages[index]);
-
   ///  State fields for stateful widgets in this page.
 
   // Stores action output result for [Backend Call - Read Document] action in charatercreate widget.

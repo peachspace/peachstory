@@ -45,20 +45,6 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
 
   String prologue = '\" \"';
 
-  List<SituationalImageStructStruct> pageSituationalImages = [];
-  void addToPageSituationalImages(SituationalImageStructStruct item) =>
-      pageSituationalImages.add(item);
-  void removeFromPageSituationalImages(SituationalImageStructStruct item) =>
-      pageSituationalImages.remove(item);
-  void removeAtIndexFromPageSituationalImages(int index) =>
-      pageSituationalImages.removeAt(index);
-  void insertAtIndexInPageSituationalImages(
-          int index, SituationalImageStructStruct item) =>
-      pageSituationalImages.insert(index, item);
-  void updatePageSituationalImagesAtIndex(
-          int index, Function(SituationalImageStructStruct) updateFn) =>
-      pageSituationalImages[index] = updateFn(pageSituationalImages[index]);
-
   String aiResponseScript = '\" \"';
 
   int requiredPoints = 0;
@@ -68,6 +54,17 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   StorychatsRecord? currentChatDoc;
 
   bool istyping = false;
+
+  List<BackgroundStructStruct> backgrounds = [];
+  void addToBackgrounds(BackgroundStructStruct item) => backgrounds.add(item);
+  void removeFromBackgrounds(BackgroundStructStruct item) =>
+      backgrounds.remove(item);
+  void removeAtIndexFromBackgrounds(int index) => backgrounds.removeAt(index);
+  void insertAtIndexInBackgrounds(int index, BackgroundStructStruct item) =>
+      backgrounds.insert(index, item);
+  void updateBackgroundsAtIndex(
+          int index, Function(BackgroundStructStruct) updateFn) =>
+      backgrounds[index] = updateFn(backgrounds[index]);
 
   ///  State fields for stateful widgets in this page.
 
@@ -83,6 +80,8 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   String? aitext;
   // Stores action output result for [Bottom Sheet - storychatsettingcomponent] action in storychatsettingbutton widget.
   String? chosenModel;
+  // Stores action output result for [Custom Action - callAiSummaryAction] action in NotifierChatList widget.
+  String? summary;
   // State field(s) for messageTextField widget.
   FocusNode? messageTextFieldFocusNode;
   TextEditingController? messageTextFieldTextController;
@@ -100,12 +99,6 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   String? aiFullText;
   // Stores action output result for [Custom Action - removeThinkingMessage] action in messagesendbutton widget.
   List<StoryChatMessageStructStruct>? cleanList;
-  // Stores action output result for [Firestore Query - Query a collection] action in messagesendbutton widget.
-  int? messageCount;
-  // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.
-  StorychatsRecord? characterChatDoc;
-  // Stores action output result for [Custom Action - callAiSummaryAction] action in messagesendbutton widget.
-  String? summary;
   // Stores action output result for [Custom Action - getAndProcessHistory] action in continuebutton widget.
   List<dynamic>? formattedHistory1;
   // Stores action output result for [Backend Call - Read Document] action in continuebutton widget.
@@ -120,12 +113,6 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   String? aiFullText1;
   // Stores action output result for [Custom Action - removeThinkingMessage] action in continuebutton widget.
   List<StoryChatMessageStructStruct>? cleanList1;
-  // Stores action output result for [Firestore Query - Query a collection] action in continuebutton widget.
-  int? messageCount2;
-  // Stores action output result for [Backend Call - Read Document] action in continuebutton widget.
-  StorychatsRecord? characterChatDoc1;
-  // Stores action output result for [Custom Action - callAiSummaryAction] action in continuebutton widget.
-  String? summary1;
 
   @override
   void initState(BuildContext context) {}

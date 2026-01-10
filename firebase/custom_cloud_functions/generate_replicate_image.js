@@ -6,68 +6,41 @@ if (!admin.apps.length) admin.initializeApp();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// 모델 정의
-// 1. 프로필: Animagine XL 4.0 (애니메이션 퀄리티 최상)
+// ★ 모델: Animagine XL 4.0
 const ANIMAGINE_XL_4_VERSION =
   "7af46ee494f1cf196d49a8592737f4eb789e34a5a995751b23a869d19f5dc2ba";
-// 2. 감정: InstantID (얼굴 고정 특화)
-const INSTANT_ID_VERSION =
-  "5225e059ede1d8378c27ea6e859fa95c3ade3d3b1e7aad19d8ddfa9890972f1b";
 
 exports.generateReplicateImage = functions
   .runWith({
-    // secrets: ["REPLICATE_API_KEY"], // ★ [배포 에러 원인 1] 제거 (기존 환경설정 사용)
     timeoutSeconds: 540,
     memory: "1GB",
-    // minInstances: 1, // ★ [배포 에러 원인 2] 제거 (Spark 요금제 호환성 이슈 방지)
   })
   .https.onCall(async (data, context) => {
-    if (!context.auth) return { success: false, error: "로그인이 필요합니다." };
+    // [TRACE] 로그
+    console.log("[TRACE] generateReplicateImage Started");
+
+    if (!context.auth) return { success: false, error: "Auth required." };
 
     try {
       const userId = context.auth.uid;
       const rawMode = data.mode || "character";
       const mode = String(rawMode).trim().toLowerCase();
+
       const promptInput = data.prompt || "";
-      const characterImageUrl = data.characterImageUrl;
+      const baseDescription = data.basePrompt || "";
 
-      // URL 변환 헬퍼
-      const getValidUrl = async (url) => {
-        if (!url || url.length < 5) return null;
-        if (url.startsWith("http")) return url;
-        try {
-          const bucket = admin.storage().bucket();
-          let path = url.startsWith("gs://")
-            ? url.split("/").slice(3).join("/")
-            : url;
-          const [exists] = await bucket.file(path).exists();
-          if (exists) {
-            const [signedUrl] = await bucket.file(path).getSignedUrl({
-              action: "read",
-              expires: Date.now() + 3600000,
-            });
-            return signedUrl;
-          }
-        } catch (e) {
-          console.error("URL 변환 실패", e);
-        }
-        return null;
-      };
+      // Seed 처리 (상황 모드는 Seed 필수, 배경은 선택)
+      let seed =
+        data.seed && parseInt(data.seed) !== 0
+          ? parseInt(data.seed)
+          : Math.floor(Math.random() * 2147483647);
 
-      // 입력값 분리
-      const parseEmotionInput = (raw) => {
-        const s = (raw || "").trim();
-        if (!s) return { key: "", extra: "" };
-        const firstSpace = s.indexOf(" ");
-        if (firstSpace === -1) return { key: s, extra: "" };
-        return {
-          key: s.slice(0, firstSpace).trim(),
-          extra: s.slice(firstSpace + 1).trim(),
-        };
-      };
+      console.log(
+        `[REQ] mode=${mode}, seed=${seed}, base=${!!baseDescription}, prompt=${promptInput}`,
+      );
 
+      // ★ [기존 코드 유지] 감정 매핑 (삭제하지 않음!)
       const emotionMap = {
-        // [기본 감정]
         무감정:
           "neutral expression, calm face, looking straight, closed mouth, serene",
         기쁨: "joyful smile, happy expression, laughing, beaming, radiant",
@@ -76,8 +49,6 @@ exports.generateReplicateImage = functions
         놀람: "surprised face, wide eyes, open mouth, shocked, stunned",
         공포: "horrified, screaming, trembling, pale face",
         혐오: "disgusted expression, grimace, revolted, loathing",
-
-        // [긍정적 감정]
         사랑: "loving gaze, blushing, romantic expression, affectionate",
         설렘: "excited, anticipating, blushing, sparkling eyes",
         안도: "relieved sigh, relaxed face, at ease, comforted",
@@ -86,8 +57,6 @@ exports.generateReplicateImage = functions
         장난: "playful wink, sticking tongue out, mischievous smile, teasing",
         만족: "satisfied nod, content smile, pleased, fulfilled",
         감사: "thankful expression, gentle smile, appreciative",
-
-        // [부정적 감정]
         짜증: "annoyed, irritated, rolling eyes, grumpy",
         질투: "jealous glare, pouting, envious, resentful",
         실망: "disappointed, sighing, looking down, let down",
@@ -99,8 +68,6 @@ exports.generateReplicateImage = functions
         불안: "anxious, biting nails, nervous, worried, uneasy",
         피곤: "tired, dark circles, yawning, exhausted, sleepy",
         지루함: "bored, resting chin on hand, dull eyes, uniterested",
-
-        // [복합/기타 감정]
         멍함: "blank stare, dazed, spacing out, empty eyes",
         호기심: "curious look, tilting head, sparkling eyes, interested",
         진지: "serious face, focused, stern, intense gaze",
@@ -109,87 +76,76 @@ exports.generateReplicateImage = functions
         취함: "drund, flushed face, dizzy eyes, tipsy",
         아픔: "sick, pale, feverish, coughing, weak",
         배고픔: "drooling, looking at food, hungry",
+        중립: "neutral expression, calm, indifferent",
       };
 
-      let version;
-      let inputData;
+      // 공통 설정
+      let inputData = {
+        num_inference_steps: 28,
+        guidance_scale: 7,
+        width: 896,
+        height: 1152, // 세로 비율
+        seed: seed,
+        negative_prompt:
+          "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, full body, wide shot",
+      };
 
       // -----------------------------------------------------
-      // 1. 캐릭터(프로필) 생성
+      // 1. Character (기존 유지)
       // -----------------------------------------------------
       if (mode === "character") {
-        version = ANIMAGINE_XL_4_VERSION;
-        inputData = {
-          // 얼굴 인식을 위해 상반신/인물화 강제
-          prompt: `solo, masterpiece, best quality, anime style, portrait, upper body, focus on face, ${promptInput}`,
-          negative_prompt:
-            "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, full body, wide shot",
-          num_inference_steps: 15,
-          guidance_scale: 7,
-          width: 1024,
-          height: 1024,
-        };
+        inputData.prompt = `solo, masterpiece, best quality, anime style, portrait, upper body, focus on face, ${promptInput}`;
+        inputData.negative_prompt += ", multiple views, comic panels";
       }
       // -----------------------------------------------------
-      // 2. 감정 생성 (InstantID)
+      // 2. Emotion (기존 유지)
       // -----------------------------------------------------
       else if (mode === "emotion") {
-        version = INSTANT_ID_VERSION;
+        if (!baseDescription)
+          throw new Error("캐릭터의 Base Prompt가 필요합니다.");
 
-        const validUrl = await getValidUrl(characterImageUrl);
-        if (!validUrl)
-          throw new Error(
-            "감정 생성을 위해서는 원본 캐릭터 이미지가 필수입니다.",
-          );
+        // 기존 로직 복구: 입력된 감정 키워드를 Map에서 찾아서 변환
+        let emotionKey = promptInput.trim().split(" ")[0];
+        let extraDesc = promptInput.replace(emotionKey, "").trim();
+        let emotionEng = emotionMap[emotionKey] || promptInput; // 매핑 없으면 입력값 그대로
 
-        const { key, extra } = parseEmotionInput(promptInput);
-        const emotionDesc = emotionMap[key] || key;
-
-        // ★ [핵심 1] 프롬프트 단순화: 스타일 강요 제거, 얼굴 고정 강조
-        const finalPrompt = `close-up portrait of the same person as the reference image, ${emotionDesc}, ${extra}, keep the same face features, same hairstyle, same outfit, only change expression and pose, high quality`;
-
-        inputData = {
-          image: validUrl, // 참조 이미지
-          prompt: finalPrompt,
-          negative_prompt:
-            "lowres, bad anatomy, bad hands, text, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, blurry, different face, realistic, 3d, photorealistic, nsfw",
-
-          // ★ [핵심 1] 출력 포맷 명시 (포맷 불일치 에러 방지)
-          output_format: "png",
-
-          // ★ [핵심 2] 해상도 최적화 (1024 실패 -> 768 성공 & 빠름)
-          width: 768,
-          height: 768,
-
-          // ★ [핵심 3] 안정적인 파라미터 (성공률 100% 목표)
-          steps: 12, // 8은 너무 낮아 깨질 수 있음 -> 15로 안정화
-          cfg: 4.0, // 1.5는 너무 낮아 표정 안 나옴 -> 4.0으로 정상화
-
-          // ★ [핵심 5] 동일성 가중치 강화 (다른 사람 방지)
-          instantid_weight: 1.2,
-          ipadapter_weight: 0.9,
-          identity_scale: 1.0,
-        };
+        inputData.prompt = `solo, masterpiece, best quality, anime style, portrait, upper body, focus on face, ${baseDescription}, ${emotionEng}, ${extraDesc}`;
       }
       // -----------------------------------------------------
-      // 3. 상황 생성
+      // 3. Situation (행동/상황) - [수정됨: 행동 우선순위 강화]
       // -----------------------------------------------------
       else if (mode === "situation") {
-        throw new Error("상황 생성은 별도 구현 필요");
+        if (!baseDescription)
+          throw new Error("Base Prompt required for consistency.");
+
+        // ★ [변경점] 구도를 잡기 위해 행동(promptInput)을 앞에 둠
+        inputData.prompt = `masterpiece, best quality, anime style, solo, ${promptInput}, ${baseDescription}`;
+
+        // 전신이 나와야 하므로 'full body' 등의 네거티브 제거 (필수)
+        inputData.negative_prompt =
+          "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, multiple views";
+      }
+      // -----------------------------------------------------
+      // 4. Background (배경) - [신규 추가]
+      // -----------------------------------------------------
+      else if (mode === "background") {
+        // 배경은 사람 없이 풍경만
+        inputData.prompt = `masterpiece, best quality, anime style, scenery, no humans, landscape, indoors or outdoors, ${promptInput}`;
+        // 사람 관련 태그 강력 차단
+        inputData.negative_prompt +=
+          ", girl, boy, woman, man, people, character, person, human, 1girl, 1boy, face, body";
       } else {
-        throw new Error("유효하지 않은 모드입니다.");
+        throw new Error(`Invalid mode: ${mode}`);
       }
 
-      // Replicate 호출
-      // ★ API Key는 secrets 대신 process.env 사용 (기존 설정이 있다면)
-      // 만약 환경변수가 없다면 아래 headers 부분에 직접 키를 넣어서 테스트 해보세요.
+      // Replicate 호출 (Animagine 단일 모델)
       const response = await axios.post(
         "https://api.replicate.com/v1/predictions",
-        { version: version, input: inputData },
+        { version: ANIMAGINE_XL_4_VERSION, input: inputData },
         {
           headers: {
             Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
-            Prefer: "wait=60", // ★ 30초까지는 즉시 응답 대기 (폴링 횟수 절약)
+            Prefer: "wait=60",
           },
         },
       );
@@ -202,7 +158,7 @@ exports.generateReplicateImage = functions
         prediction.status === "starting" ||
         prediction.status === "processing"
       ) {
-        if (attempts++ > 660) throw new Error("Timeout");
+        if (attempts++ > 600) throw new Error("Timeout");
         await sleep(1000);
         prediction = (
           await axios.get(getUrl, {
@@ -213,24 +169,14 @@ exports.generateReplicateImage = functions
         ).data;
       }
 
-      // ★ [디버깅 강화] 실패 시 원인을 정확히 알려줌
-      if (prediction.status !== "succeeded") {
-        console.error(
-          "Replicate Error Details:",
-          prediction.error,
-          prediction.logs,
-        );
-        // 에러 메시지에 디버그 링크 포함 (프론트에서 확인 가능하도록)
-        throw new Error(
-          `생성 실패: ${prediction.error || "알 수 없는 오류"} (Debug: ${prediction.urls?.web})`,
-        );
-      }
+      if (prediction.status !== "succeeded")
+        throw new Error(prediction.error || "Failed");
 
       let rawAiUrl = Array.isArray(prediction.output)
         ? prediction.output[0]
         : prediction.output;
 
-      // 저장 로직
+      // Storage Upload (기존 로직 유지)
       try {
         const imgResp = await axios.get(rawAiUrl, {
           responseType: "arraybuffer",
@@ -247,9 +193,11 @@ exports.generateReplicateImage = functions
           action: "read",
           expires: "03-01-2100",
         });
-        return { success: true, imageUrl: permUrl };
+
+        // ★ seed 반환 (앱에서 저장용)
+        return { success: true, imageUrl: permUrl, seed: seed };
       } catch (saveErr) {
-        return { success: true, imageUrl: rawAiUrl };
+        return { success: true, imageUrl: rawAiUrl, seed: seed };
       }
     } catch (error) {
       console.error(error);

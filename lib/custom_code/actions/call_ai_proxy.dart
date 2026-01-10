@@ -9,68 +9,24 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'index.dart'; // Imports other custom actions
-
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String?> callAiProxy(
   String? modelName,
-  String? systemPrompt,
-  List<dynamic>? messages,
-  String? recentUserMessage,
-  String? summary,
-  List<SituationalImageStructStruct>? situationalImages,
+  String? systemPrompt, // buildStoryPrompt의 결과물 (여기에 모든 규칙과 요약이 포함됨)
+  List<dynamic>? messages, // 과거 대화 기록 (JSON List)
+  String? recentUserMessage, // 방금 유저가 입력한 말 (또는 getNextPhaseCommand)
 ) async {
   final functions = FirebaseFunctions.instance;
   final callable = functions.httpsCallable('callAiProxy');
 
-  // 1. 상황 이미지 규칙 생성
-  String situationRules = "";
-  if (situationalImages != null && situationalImages.isNotEmpty) {
-    situationRules = "\n[VISUAL DIRECTOR RULES]\n"
-        "You have a list of 'Situational Images' that must be displayed when specific events occur.\n"
-        "IF the user's action or the current story flow matches a 'Condition' below, you MUST insert the tag `[SHOW_IMAGE=\"Condition Text\"]` at the exact moment in your response.\n\n"
-        "--- Condition List ---\n";
-
-    for (var item in situationalImages) {
-      situationRules += "- Condition: \"${item.condition}\"\n";
-    }
-    situationRules += "----------------------\n"
-        "Example: \"As you open the door... [SHOW_IMAGE=\"Entering the dungeon\"] a cold wind blows.\"\n";
-  }
-
-  // ★ [추가] 2. 감정 연기 규칙 (Emotion Acting Rules)
-  // AI가 대사 칠 때 감정을 자동으로 인식해서 ACTION 태그에 넣도록 지시합니다.
-  String emotionRules = """
-[EMOTION ACTING RULES]
-When a character speaks, you MUST infer their emotion from the context and include it in the `ACTION` attribute of the `[DIALOGUE]` tag.
-- Available Emotions: "무감정" (neutral/default), "기쁨" (joy), "슬픔" (sadness), "화남" (anger), "놀람" (surprise), "두려움" (fear), "혐오" (disgust), "설렘" (excited), "사랑" (love), "부끄러움" (shy), "당황" (flustered).
-- If the character is calm or has no specific emotion, use "무감정".
-- Example: [DIALOGUE SPEAKER="Hero" ACTION="화남"]Don't you dare touch that![/DIALOGUE]
-- Example: [DIALOGUE SPEAKER="Heroine" ACTION="무감정"]The weather is nice today.[/DIALOGUE]
-""";
-
-  // 3. 시스템 프롬프트 강화 (기존 + 상황 규칙 + 감정 규칙 + 출력 형식)
-  String reinforcedSystemPrompt = """
-${systemPrompt ?? "You are a professional story writer."}
-
-$situationRules
-
-$emotionRules
-
-[CRITICAL OUTPUT RULES]
-1. Output MUST be a valid JSON array of scenes (e.g., [{"type": "narration", "content": "..."}]).
-2. To show an image, use a scene object: {"type": "show_image", "condition": "EXACT_CONDITION_TEXT_FROM_LIST"}.
-3. For dialogues, use: {"type": "dialogue", "speaker": "Name", "action": "Emotion_Keyword", "content": "Speech"}.
-4. Do not change the condition text; copy it exactly.
-""";
-
-  if (summary != null && summary.isNotEmpty) {
-    reinforcedSystemPrompt += "\n\n[STORY SUMMARY]\n$summary";
-  }
-
-  // 4. 메시지 병합
+  // 1. 메시지 리스트 준비
+  // messages가 null이면 빈 리스트로 시작
   List<dynamic> finalMessages = messages != null ? List.from(messages) : [];
+
+  // 2. 최근 유저 메시지 병합
+  // (recentUserMessage가 있으면 messages 리스트의 맨 끝에 'user' 역할로 추가)
+  // 이 부분이 '현재' 시점의 대화를 담당합니다.
   if (recentUserMessage != null && recentUserMessage.isNotEmpty) {
     finalMessages.add({
       'role': 'user',
@@ -78,16 +34,19 @@ $emotionRules
     });
   }
 
-  // 5. 서버 호출
+  // 3. 서버(Cloud Function) 호출
+  // 복잡한 규칙 조립 로직은 모두 제거했습니다. buildStoryPrompt를 믿고 그대로 보냅니다.
   try {
     final HttpsCallableResult result = await callable.call(<String, dynamic>{
-      'modelName': modelName,
-      'systemPrompt': reinforcedSystemPrompt,
-      'messages': finalMessages,
+      'modelName': modelName ?? 'gpt-4o', // 모델명이 없으면 기본값 (필요시 수정)
+      'systemPrompt': systemPrompt, // 완성된 프롬프트 전달
+      'messages': finalMessages, // 과거+현재 대화 전달
     });
+
+    // Cloud Function에서 return { fullText: "..." } 형태로 준다고 가정
     return result.data['fullText'];
   } on FirebaseFunctionsException catch (e) {
-    return 'ERROR: ${e.message}';
+    return 'ERROR: Firebase Functions 오류 - ${e.message}';
   } catch (e) {
     return 'ERROR: 알 수 없는 오류 발생 ($e)';
   }

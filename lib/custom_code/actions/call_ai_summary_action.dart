@@ -82,7 +82,14 @@ $newConversation
     if (result.data != null &&
         result.data['choices'] != null &&
         result.data['choices'].isNotEmpty) {
-      return result.data['choices'][0]['message']['content'];
+      // 1. 결과값을 변수에 먼저 담습니다.
+      String summaryResult = result.data['choices'][0]['message']['content'];
+
+      // 2. 여기서 디버그 로그를 출력합니다.
+      print('DEBUG SUMMARY: $summaryResult');
+
+      // 3. 그 다음 리턴합니다.
+      return summaryResult;
     }
     return previousSummary; // 실패시 기존 요약 유지
   } catch (e) {

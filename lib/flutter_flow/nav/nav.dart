@@ -237,25 +237,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => PointchargepageWidget(),
         ),
         FFRoute(
-          name: CharacterchatWidget.routeName,
-          path: CharacterchatWidget.routePath,
-          requireAuth: true,
-          builder: (context, params) => CharacterchatWidget(
-            characterRef: params.getParam(
-              'characterRef',
-              ParamType.DocumentReference,
-              isList: false,
-              collectionNamePath: ['character'],
-            ),
-            characterchatRef: params.getParam(
-              'characterchatRef',
-              ParamType.DocumentReference,
-              isList: false,
-              collectionNamePath: ['characterchats'],
-            ),
-          ),
-        ),
-        FFRoute(
           name: HeartlistpageWidget.routeName,
           path: HeartlistpageWidget.routePath,
           builder: (context, params) => HeartlistpageWidget(),

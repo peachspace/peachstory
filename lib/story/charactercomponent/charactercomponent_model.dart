@@ -8,19 +8,51 @@ class CharactercomponentModel
     extends FlutterFlowModel<CharactercomponentWidget> {
   ///  Local state fields for this component.
 
-  String? tempAppearance;
-
   CharacterStructStruct? deleteCharacter;
   void updateDeleteCharacterStruct(Function(CharacterStructStruct) updateFn) {
     updateFn(deleteCharacter ??= CharacterStructStruct());
   }
 
+  String? profileimage;
+
+  List<EmotionImageStructStruct> emotionimagelist = [];
+  void addToEmotionimagelist(EmotionImageStructStruct item) =>
+      emotionimagelist.add(item);
+  void removeFromEmotionimagelist(EmotionImageStructStruct item) =>
+      emotionimagelist.remove(item);
+  void removeAtIndexFromEmotionimagelist(int index) =>
+      emotionimagelist.removeAt(index);
+  void insertAtIndexInEmotionimagelist(
+          int index, EmotionImageStructStruct item) =>
+      emotionimagelist.insert(index, item);
+  void updateEmotionimagelistAtIndex(
+          int index, Function(EmotionImageStructStruct) updateFn) =>
+      emotionimagelist[index] = updateFn(emotionimagelist[index]);
+
+  List<SituationalImageStructStruct> situationimage = [];
+  void addToSituationimage(SituationalImageStructStruct item) =>
+      situationimage.add(item);
+  void removeFromSituationimage(SituationalImageStructStruct item) =>
+      situationimage.remove(item);
+  void removeAtIndexFromSituationimage(int index) =>
+      situationimage.removeAt(index);
+  void insertAtIndexInSituationimage(
+          int index, SituationalImageStructStruct item) =>
+      situationimage.insert(index, item);
+  void updateSituationimageAtIndex(
+          int index, Function(SituationalImageStructStruct) updateFn) =>
+      situationimage[index] = updateFn(situationimage[index]);
+
+  int? seed;
+
   ///  State fields for stateful widgets in this component.
 
   // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in charaicreate widget.
-  String? createdcharacterImage;
+  GenResultStructStruct? generatedcharacterImage;
   // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in emotionaddutton widget.
-  String? createdemotionimage;
+  GenResultStructStruct? generatedemotionimage;
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in situationaddutton widget.
+  GenResultStructStruct? generatedsituationimage;
   // State field(s) for charName widget.
   FocusNode? charNameFocusNode;
   TextEditingController? charNameTextController;

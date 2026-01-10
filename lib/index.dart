@@ -20,8 +20,6 @@ export '/story/storychatpage/storychatpage_widget.dart'
     show StorychatpageWidget;
 export '/shared/pointchargepage/pointchargepage_widget.dart'
     show PointchargepageWidget;
-export '/unuse2/characterchat/characterchat_widget.dart'
-    show CharacterchatWidget;
 export '/shared/heartlistpage/heartlistpage_widget.dart'
     show HeartlistpageWidget;
 export '/shared/creatorrequestpage/creatorrequestpage_widget.dart'
