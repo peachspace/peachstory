@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-// ... imports ...
+import 'index.dart'; // Imports other custom actions
+
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> generateImagePrompt(
@@ -19,33 +20,67 @@ Future<String> generateImagePrompt(
 ) async {
   String systemPrompt = "";
   // 사용자가 아무것도 입력하지 않았을 때 처리
-  String finalInput = contextInput.trim().isEmpty
-      ? "Create a random, unique, and attractive anime character."
-      : contextInput;
+  String finalInput = contextInput.trim().isEmpty ? "Random" : contextInput;
 
-  // 1. 모드별 시스템 프롬프트
-  if (mode == "background") {
-    systemPrompt = """
-You are an expert AI Art Prompt Engineer for Anime Backgrounds.
-Convert the user's "Situation" and "World Setting" into a high-quality, comma-separated English prompt.
-Start with: "masterpiece, best quality, anime style, scenery, no humans".
-Combine the 'World Setting' context with the specific 'Situation'.
+  // =========================================================
+  // 1. [Trigger Mode] 조건문 생성 (예: "학교" -> "학교에 도착할 때")
+  // =========================================================
+  if (mode.endsWith("_trigger")) {
+    if (mode == "background_trigger") {
+      systemPrompt = """
+You are a story narrator helper.
+YOUR TASK: Convert the user's location keyword into a natural 'Time/Place Condition' phrase for a story.
+RULES:
+1. Output ONLY the condition phrase in Korean.
+2. Example Input: "학교" -> Output: "학교에 도착했을 때"
+3. Example Input: "숲" -> Output: "깊은 숲속으로 들어갔을 때"
+4. Keep it short and natural.
 """;
-  } else if (mode == "situation") {
-    systemPrompt = """
-You are an expert AI Art Prompt Engineer for Anime Characters.
-Convert the "Action" into a dynamic English prompt describing the pose and action.
-Focus purely on the dynamic movement.
-Style: "masterpiece, best quality, anime style".
+    } else if (mode == "situation_trigger") {
+      systemPrompt = """
+You are a story narrator helper.
+YOUR TASK: Convert the user's action keyword into a natural 'Action Condition' phrase.
+RULES:
+1. Output ONLY the condition phrase in Korean.
+2. Example Input: "달리기" -> Output: "전력으로 달릴 때"
+3. Example Input: "공격" -> Output: "적을 향해 무기를 휘두를 때"
 """;
-  } else {
-    // [Character Mode] 무작위 생성 지원
-    systemPrompt = """
-You are an expert AI Art Prompt Engineer for Anime Characters.
-If the input is "Random" or empty, create a detailed description for a unique anime character (hair, eyes, clothes).
-If the user provides a description, convert it into English prompt keys.
-Start with: "masterpiece, best quality, anime style, solo, portrait".
+    }
+  }
+  // =========================================================
+  // 2. [Image Mode] 시각적 태그 생성 (예: "학교..." -> "sky, building...")
+  // =========================================================
+  else {
+    // 공통 규칙: 시각적 태그만 출력
+    String baseRules = """
+You are an expert AI Art Prompt Engineer.
+YOUR TASK: Create a comma-separated list of visual tags based on the input.
+RULES:
+1. Output ONLY English visual tags. NO sentences.
+2. Incorporate the 'Base Context' (World View or Character Appearance) to enrich the visual details.
 """;
+
+    if (mode == "background_image") {
+      systemPrompt = """
+$baseRules
+3. Focus on Scenery, Architecture, Weather, Lighting based on the 'User Input' condition.
+4. Start with: "masterpiece, best quality, anime style, scenery, no humans".
+""";
+    } else if (mode == "situation_image") {
+      systemPrompt = """
+$baseRules
+3. Focus on Character Pose, Action, Camera Angle based on the 'User Input' action.
+4. IMPORTANT: Describe the Character's looks from 'Base Context'.
+5. Start with: "masterpiece, best quality, anime style, solo".
+""";
+    } else {
+      // Character Mode (기존 유지)
+      systemPrompt = """
+$baseRules
+3. Focus on Character Design (Hair, Eyes, Clothes).
+4. Start with: "masterpiece, best quality, anime style, solo, portrait".
+""";
+    }
   }
 
   String userPrompt = """
@@ -53,14 +88,14 @@ Start with: "masterpiece, best quality, anime style, solo, portrait".
 [User Input]: $finalInput
 [Base Context]: ${baseContext ?? "None"}
 
-Request: Create a detailed, high-quality English prompt.
+Request: Generate the output according to the system rules.
 """;
 
   try {
     final HttpsCallable callable =
         FirebaseFunctions.instance.httpsCallable('callAiProxy');
     final result = await callable.call(<String, dynamic>{
-      'modelName': 'gpt-4o-mini',
+      'modelName': 'gpt-4o-mini', // 또는 gpt-4o
       'systemPrompt': systemPrompt,
       'messages': [
         {'role': 'user', 'content': userPrompt}

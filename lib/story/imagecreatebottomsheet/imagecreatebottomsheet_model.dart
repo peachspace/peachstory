@@ -21,13 +21,6 @@ class ImagecreatebottomsheetModel
 
   ///  State fields for stateful widgets in this component.
 
-  // State field(s) for situationprompt widget.
-  FocusNode? situationpromptFocusNode;
-  TextEditingController? situationpromptTextController;
-  String? Function(BuildContext, String?)?
-      situationpromptTextControllerValidator;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in situationaipromptbutton widget.
-  String? situationPrompt;
   // State field(s) for backgroundprompt widget.
   FocusNode? backgroundpromptFocusNode;
   TextEditingController? backgroundpromptTextController;
@@ -35,6 +28,13 @@ class ImagecreatebottomsheetModel
       backgroundpromptTextControllerValidator;
   // Stores action output result for [Custom Action - generateImagePrompt] action in backgroundaipromptbutton widget.
   String? backgroundPrompt;
+  // State field(s) for situationprompt widget.
+  FocusNode? situationpromptFocusNode;
+  TextEditingController? situationpromptTextController;
+  String? Function(BuildContext, String?)?
+      situationpromptTextControllerValidator;
+  // Stores action output result for [Custom Action - generateImagePrompt] action in situationaipromptbutton widget.
+  String? situationPrompt;
   // State field(s) for emotionChoiceChips widget.
   FormFieldController<List<String>>? emotionChoiceChipsValueController;
   String? get emotionChoiceChipsValue =>
@@ -72,11 +72,11 @@ class ImagecreatebottomsheetModel
 
   @override
   void dispose() {
-    situationpromptFocusNode?.dispose();
-    situationpromptTextController?.dispose();
-
     backgroundpromptFocusNode?.dispose();
     backgroundpromptTextController?.dispose();
+
+    situationpromptFocusNode?.dispose();
+    situationpromptTextController?.dispose();
 
     imagecreatepromptFocusNode?.dispose();
     imagecreatepromptTextController?.dispose();

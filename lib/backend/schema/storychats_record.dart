@@ -70,6 +70,11 @@ class StorychatsRecord extends FirestoreRecord {
   bool get isNovelMode => _isNovelMode ?? false;
   bool hasIsNovelMode() => _isNovelMode != null;
 
+  // "messageCount" field.
+  int? _messageCount;
+  int get messageCount => _messageCount ?? 0;
+  bool hasMessageCount() => _messageCount != null;
+
   void _initializeFields() {
     _storyRef = snapshotData['story_ref'] as DocumentReference?;
     _userRef = snapshotData['user_ref'] as DocumentReference?;
@@ -83,6 +88,7 @@ class StorychatsRecord extends FirestoreRecord {
     _selectedAiModel = snapshotData['selectedAiModel'] as String?;
     _creatorRef = snapshotData['creator_ref'] as DocumentReference?;
     _isNovelMode = snapshotData['isNovelMode'] as bool?;
+    _messageCount = castToType<int>(snapshotData['messageCount']);
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -132,6 +138,7 @@ Map<String, dynamic> createStorychatsRecordData({
   String? selectedAiModel,
   DocumentReference? creatorRef,
   bool? isNovelMode,
+  int? messageCount,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -146,6 +153,7 @@ Map<String, dynamic> createStorychatsRecordData({
       'selectedAiModel': selectedAiModel,
       'creator_ref': creatorRef,
       'isNovelMode': isNovelMode,
+      'messageCount': messageCount,
     }.withoutNulls,
   );
 
@@ -167,7 +175,8 @@ class StorychatsRecordDocumentEquality implements Equality<StorychatsRecord> {
         e1?.userNote == e2?.userNote &&
         e1?.selectedAiModel == e2?.selectedAiModel &&
         e1?.creatorRef == e2?.creatorRef &&
-        e1?.isNovelMode == e2?.isNovelMode;
+        e1?.isNovelMode == e2?.isNovelMode &&
+        e1?.messageCount == e2?.messageCount;
   }
 
   @override
@@ -182,7 +191,8 @@ class StorychatsRecordDocumentEquality implements Equality<StorychatsRecord> {
         e?.userNote,
         e?.selectedAiModel,
         e?.creatorRef,
-        e?.isNovelMode
+        e?.isNovelMode,
+        e?.messageCount
       ]);
 
   @override

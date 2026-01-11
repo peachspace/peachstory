@@ -80,8 +80,6 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   String? aitext;
   // Stores action output result for [Bottom Sheet - storychatsettingcomponent] action in storychatsettingbutton widget.
   String? chosenModel;
-  // Stores action output result for [Custom Action - callAiSummaryAction] action in NotifierChatList widget.
-  String? summary;
   // State field(s) for messageTextField widget.
   FocusNode? messageTextFieldFocusNode;
   TextEditingController? messageTextFieldTextController;

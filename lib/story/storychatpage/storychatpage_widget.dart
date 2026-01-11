@@ -311,11 +311,11 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                           width: double.infinity,
                           height: double.infinity,
                           newResponseScript: _model.aiResponseScript,
+                          userInChatName: widget.userInChatName,
+                          isNovelMode: false,
                           initialMessages: _model.chatMessages,
                           preDefinedCharacters: _model.characters,
-                          userInChatName: widget.userInChatName,
                           backgroundList: _model.backgrounds,
-                          isNovelMode: false,
                           onTurnComplete: (scenes) async {
                             await actions.saveChatTurnToDB(
                               scenes!.toList(),
@@ -323,49 +323,31 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                               _model.backgrounds.toList(),
                               _model.characters.toList(),
                             );
-                            if (functions
-                                .isSummaryTurn(_model.chatMessages.length)) {
-                              _model.summary =
-                                  await actions.callAiSummaryAction(
-                                _model.currentDocRef,
-                              );
 
+                            await _model.currentDocRef!.update({
+                              ...mapToFirestore(
+                                {
+                                  'messageCount': FieldValue.increment(1),
+                                },
+                              ),
+                            });
+                            if (functions.isSummaryTurn(valueOrDefault<int>(
+                                  _model.currentChatDoc?.messageCount,
+                                  0,
+                                ) +
+                                1)) {
                               await _model.currentDocRef!
                                   .update(createStorychatsRecordData(
-                                summary: _model.summary,
-                                lastSummaryMessageCount:
-                                    _model.chatMessages.length,
+                                lastSummaryMessageCount: valueOrDefault<int>(
+                                      _model.currentChatDoc?.messageCount,
+                                      0,
+                                    ) +
+                                    1,
                               ));
                             }
-                            _model.istyping = false;
                             _model.aiResponseScript = '';
                             safeSetState(() {});
-
-                            safeSetState(() {});
                           },
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      decoration: BoxDecoration(),
-                      child: Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(
-                            25.0, 0.0, 25.0, 0.0),
-                        child: custom_widgets.NotifierChatList(
-                          width: double.infinity,
-                          height: double.infinity,
-                          newResponseScript: _model.aiResponseScript,
-                          initialMessages: _model.chatMessages,
-                          preDefinedCharacters: _model.characters,
-                          userInChatName: widget.userInChatName,
-                          backgroundList: _model.backgrounds,
-                          isNovelMode: false,
-                          onTurnComplete: (scenes) async {},
                         ),
                       ),
                     ),

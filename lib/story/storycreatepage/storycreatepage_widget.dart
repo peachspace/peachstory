@@ -231,7 +231,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                               text: '캐릭터',
                             ),
                             Tab(
-                              text: '이미지',
+                              text: '프롤로그',
                             ),
                             Tab(
                               text: '인트로',
@@ -356,7 +356,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                         Container(
                                           decoration: BoxDecoration(
                                             borderRadius:
-                                                BorderRadius.circular(15.0),
+                                                BorderRadius.circular(8.0),
                                             border: Border.all(
                                               color:
                                                   FlutterFlowTheme.of(context)
@@ -616,7 +616,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           .secondaryBackground,
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              10.0),
+                                                              5.0),
                                                       border: Border.all(
                                                         color:
                                                             FlutterFlowTheme.of(
@@ -802,7 +802,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                           Container(
                                             decoration: BoxDecoration(
                                               borderRadius:
-                                                  BorderRadius.circular(15.0),
+                                                  BorderRadius.circular(8.0),
                                               border: Border.all(
                                                 color:
                                                     FlutterFlowTheme.of(context)
@@ -1067,7 +1067,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                             .secondaryBackground,
                                                         borderRadius:
                                                             BorderRadius
-                                                                .circular(10.0),
+                                                                .circular(5.0),
                                                         border: Border.all(
                                                           color: FlutterFlowTheme
                                                                   .of(context)
@@ -2568,7 +2568,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                             .primaryBackground,
                                                         borderRadius:
                                                             BorderRadius
-                                                                .circular(15.0),
+                                                                .circular(10.0),
                                                         border: Border.all(
                                                           color: FlutterFlowTheme
                                                                   .of(context)
@@ -2617,7 +2617,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                     ClipRRect(
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              8.0),
+                                                              10.0),
                                                       child: Image.network(
                                                         functions
                                                             .stringToImagePath(
@@ -3041,7 +3041,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                           Container(
                                             decoration: BoxDecoration(
                                               borderRadius:
-                                                  BorderRadius.circular(15.0),
+                                                  BorderRadius.circular(8.0),
                                               border: Border.all(
                                                 color:
                                                     FlutterFlowTheme.of(context)
@@ -3306,7 +3306,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                             .secondaryBackground,
                                                         borderRadius:
                                                             BorderRadius
-                                                                .circular(10.0),
+                                                                .circular(5.0),
                                                         border: Border.all(
                                                           color: FlutterFlowTheme
                                                                   .of(context)
@@ -3683,7 +3683,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(
-                                                                      15.0),
+                                                                      8.0),
                                                         ),
                                                         focusedBorder:
                                                             OutlineInputBorder(
@@ -3696,7 +3696,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(
-                                                                      15.0),
+                                                                      8.0),
                                                         ),
                                                         errorBorder:
                                                             OutlineInputBorder(
@@ -3709,7 +3709,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(
-                                                                      15.0),
+                                                                      8.0),
                                                         ),
                                                         focusedErrorBorder:
                                                             OutlineInputBorder(
@@ -3722,7 +3722,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(
-                                                                      15.0),
+                                                                      8.0),
                                                         ),
                                                         filled: true,
                                                         fillColor: FlutterFlowTheme
@@ -3784,7 +3784,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(
-                                                                      15.0),
+                                                                      10.0),
                                                           border: Border.all(
                                                             color: FlutterFlowTheme
                                                                     .of(context)
@@ -3973,7 +3973,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                           Container(
                                             decoration: BoxDecoration(
                                               borderRadius:
-                                                  BorderRadius.circular(15.0),
+                                                  BorderRadius.circular(8.0),
                                               border: Border.all(
                                                 color:
                                                     FlutterFlowTheme.of(context)
@@ -4198,7 +4198,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           .secondaryBackground,
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              10.0),
+                                                              5.0),
                                                       border: Border.all(
                                                         color:
                                                             FlutterFlowTheme.of(
@@ -4371,7 +4371,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                       borderColor: FlutterFlowTheme.of(context)
                                           .alternate,
                                       borderWidth: 1.0,
-                                      borderRadius: 10.0,
+                                      borderRadius: 8.0,
                                       margin: EdgeInsetsDirectional.fromSTEB(
                                           12.0, 0.0, 12.0, 0.0),
                                       hidesUnderline: true,
@@ -4424,7 +4424,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                           Padding(
                                             padding:
                                                 EdgeInsetsDirectional.fromSTEB(
-                                                    0.0, 0.0, 0.0, 20.0),
+                                                    0.0, 0.0, 0.0, 10.0),
                                             child: Container(
                                               width: double.infinity,
                                               child: TextFormField(
@@ -4519,7 +4519,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                     ),
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            10.0),
+                                                            8.0),
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
@@ -4529,7 +4529,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                     ),
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            10.0),
+                                                            8.0),
                                                   ),
                                                   errorBorder:
                                                       OutlineInputBorder(
@@ -4539,7 +4539,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                     ),
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            10.0),
+                                                            8.0),
                                                   ),
                                                   focusedErrorBorder:
                                                       OutlineInputBorder(
@@ -4549,7 +4549,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                     ),
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            10.0),
+                                                            8.0),
                                                   ),
                                                   filled: true,
                                                   fillColor:

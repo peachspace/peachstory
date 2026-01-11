@@ -47,12 +47,6 @@ class CharactercomponentModel
 
   ///  State fields for stateful widgets in this component.
 
-  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in charaicreate widget.
-  GenResultStructStruct? generatedcharacterImage;
-  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in emotionaddutton widget.
-  GenResultStructStruct? generatedemotionimage;
-  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in situationaddutton widget.
-  GenResultStructStruct? generatedsituationimage;
   // State field(s) for charName widget.
   FocusNode? charNameFocusNode;
   TextEditingController? charNameTextController;
@@ -71,6 +65,12 @@ class CharactercomponentModel
   String? Function(BuildContext, String?)? charintroduceTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in charintroaicreate widget.
   String? introduce;
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in charaicreate widget.
+  GenResultStructStruct? generatedcharacterImage;
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in emotionaddutton widget.
+  GenResultStructStruct? generatedemotionimage;
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in situationaddutton widget.
+  GenResultStructStruct? generatedsituationimage;
 
   @override
   void initState(BuildContext context) {}

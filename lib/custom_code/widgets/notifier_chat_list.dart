@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'index.dart'; // Imports other custom widgets
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -26,7 +27,7 @@ class NotifierChatList extends StatefulWidget {
     required this.newResponseScript,
     this.userInChatName,
     this.preDefinedCharacters,
-    this.backgroundList, // ★ [변경] 배경 리스트 (BackgroundStruct)
+    this.backgroundList,
     this.onTurnComplete,
     this.isNovelMode,
   });
@@ -37,7 +38,7 @@ class NotifierChatList extends StatefulWidget {
   final String newResponseScript;
   final String? userInChatName;
   final List<CharacterStructStruct>? preDefinedCharacters;
-  final List<BackgroundStructStruct>? backgroundList; // ★ [변경] 타입 변경됨
+  final List<BackgroundStructStruct>? backgroundList;
   final Future<dynamic> Function(List<dynamic>? scenes)? onTurnComplete;
   final bool? isNovelMode;
 
@@ -74,7 +75,7 @@ class _NotifierChatListState extends State<NotifierChatList>
   @override
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // (메시지 업데이트 로직 동일 - 생략 없이 포함)
+    // 1. 부모(DB)에서 새로운 메시지 리스트가 내려오면 화면 갱신
     if (widget.initialMessages != null && !_isTyping) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
@@ -96,6 +97,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
     }
 
+    // 2. 새 스크립트가 들어오면 타이핑 애니메이션 시작
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
@@ -149,11 +151,32 @@ class _NotifierChatListState extends State<NotifierChatList>
   }
 
   void _processNextScene() async {
+    // 모든 장면 재생 완료 시
     if (!mounted || _currentSceneIndex >= _scenes.length) {
       setState(() => _isTyping = false);
-      if (widget.onTurnComplete != null) await widget.onTurnComplete!(_scenes);
+
+      // [디버그 로그 추가] 요약/저장 로직 실행 시점 확인
+      print('====================================');
+      print('[NotifierChatList] AI Typing Finished.');
+      print('[NotifierChatList] Total Scenes: ${_scenes.length}');
+
+      if (widget.onTurnComplete != null) {
+        print('[NotifierChatList] Executing onTurnComplete callback...');
+        await widget.onTurnComplete!(_scenes);
+        print('[NotifierChatList] onTurnComplete Finished.');
+      } else {
+        print('[NotifierChatList] onTurnComplete callback is NULL!');
+      }
+      print('====================================');
+
+      // ★ [수정됨] 여기가 문제였습니다.
+      // 타이핑이 끝나자마자 '옛날 리스트(initialMessages)'로 강제로 되돌리는 코드를 삭제했습니다.
+      // 이제 화면에 타이핑된 내용이 그대로 남아있다가, DB가 업데이트되면 didUpdateWidget에서 자연스럽게 교체됩니다.
+      /* 삭제된 코드:
       if (widget.initialMessages != null)
         _messagesNotifier.value = List.from(widget.initialMessages!);
+      */
+
       _animateToBottom();
       return;
     }
@@ -165,7 +188,6 @@ class _NotifierChatListState extends State<NotifierChatList>
 
     if (type == 'show_image') {
       final condition = scene['condition'] ?? '';
-      // ★ [핵심] 여기서 이미지 검색 실행
       final imageUrl = _findSituationalImageUrlByCondition(condition);
 
       if (imageUrl.isNotEmpty && imageUrl != 'null') {
@@ -191,21 +213,19 @@ class _NotifierChatListState extends State<NotifierChatList>
     }
   }
 
-  // ★ [최적화] 이미지 찾는 함수: 배경(BackgroundStruct)과 캐릭터(CharacterStruct) 분리 검색
   String _findSituationalImageUrlByCondition(String condition) {
     final target = condition.trim();
     if (target.isEmpty) return '';
 
-    // 1. [Background] 배경 리스트 검색 (BackgroundStruct.placeName)
+    // 1. [Background]
     final bgList = widget.backgroundList ?? [];
     for (final bg in bgList) {
       if (bg.placeName.trim() == target) {
-        // placeName 필드 비교
         return bg.imageUrl;
       }
     }
 
-    // 2. [Character Situation] 캐릭터 상황 이미지 검색
+    // 2. [Character Situation]
     final charList = widget.preDefinedCharacters ?? [];
     for (final char in charList) {
       for (final sit in char.situationImages) {
@@ -215,14 +235,13 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
     }
 
-    return ''; // 발견 실패
+    return '';
   }
-
-  // ... (나머지 _animateTextScene, _build... 함수들은 기존 로직과 동일하여 생략하지 않고 포함)
 
   Future<void> _animateTextScene(dynamic scene) async {
     final String speaker = (scene['speaker'] ?? '').toString();
     final String action = (scene['action'] ?? '').toString();
+
     final String fixedImageUrl =
         _resolveCharacterImageUrl(speaker, action) ?? '';
 
@@ -259,8 +278,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     _jumpToBottom();
     await Future.delayed(const Duration(milliseconds: 200));
   }
-
-  // ... (Helper Functions: _jumpToBottom, _createStructFromScene, _resolveCharacterImageUrl 등 기존 코드 유지)
 
   void _jumpToBottom() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -314,17 +331,27 @@ class _NotifierChatListState extends State<NotifierChatList>
         ? emotionKey.trim()
         : '무감정';
     final List<String> candidates = [];
-    for (final e in character.emotionImages) {
-      if (e.emotion != null && e.emotion!.trim() == key) {
-        if (e.image != null && e.image!.startsWith('http'))
-          candidates.add(e.image!);
+
+    // 스크린샷 4번: e.imageurl (소문자 url)
+    for (final e in character.emotionimages) {
+      if (e.emotion == key) {
+        if (e.imageurl != null && e.imageurl!.startsWith('http'))
+          candidates.add(e.imageurl!);
       }
     }
+
     if (candidates.isNotEmpty)
       return candidates[Random().nextInt(candidates.length)];
-    if (character.imageUrl != null && character.imageUrl!.startsWith('http'))
-      return character.imageUrl;
-    return character.image;
+
+    // 스크린샷 1번: profileimage 우선
+    if (character.profileimage != null &&
+        character.profileimage!.startsWith('http'))
+      return character.profileimage;
+
+    if (character.image != null && character.image!.isNotEmpty)
+      return character.image;
+
+    return null;
   }
 
   Widget _buildThinkingIndicator() {
@@ -367,13 +394,13 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
-  // (Widget Builders: _buildDialogueMessage, _buildNarration, _buildStoryImage 등 기존 코드 유지)
   Widget _buildDialogueMessage(StoryChatMessageStructStruct chatItem,
       {bool isUser = false}) {
     final speaker =
         isUser ? (widget.userInChatName ?? '나') : chatItem.speakerName;
     final nameColor = isUser ? Colors.red : Colors.black87;
     String imageUrl = '';
+
     if (!isUser) {
       imageUrl = chatItem.speakerImage;
       if (imageUrl.isEmpty)
@@ -381,6 +408,7 @@ class _NotifierChatListState extends State<NotifierChatList>
                 chatItem.speakerName, chatItem.actionText) ??
             '';
     }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
       child: Column(
