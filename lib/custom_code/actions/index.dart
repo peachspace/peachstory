@@ -1,7 +1,5 @@
 export 'call_ai_proxy.dart' show callAiProxy;
 export 'get_and_process_history.dart' show getAndProcessHistory;
-export 'get_history_as_json.dart' show getHistoryAsJson;
-export 'get_character_history_as_json.dart' show getCharacterHistoryAsJson;
 export 'get_hearted_posts.dart' show getHeartedPosts;
 export 'load_new_posts.dart' show loadNewPosts;
 export 'load_ranking_posts.dart' show loadRankingPosts;
@@ -20,3 +18,5 @@ export 'call_generate_image_cloud.dart' show callGenerateImageCloud;
 export 'generate_image_prompt.dart' show generateImagePrompt;
 export 'translate_to_english.dart' show translateToEnglish;
 export 'save_chat_turn_to_d_b.dart' show saveChatTurnToDB;
+export 'get_recent_history_as_json.dart' show getRecentHistoryAsJson;
+export 'get_previous_chat_history.dart' show getPreviousChatHistory;

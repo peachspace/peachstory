@@ -66,13 +66,23 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
           int index, Function(BackgroundStructStruct) updateFn) =>
       backgrounds[index] = updateFn(backgrounds[index]);
 
+  List<dynamic> messageAsJson = [];
+  void addToMessageAsJson(dynamic item) => messageAsJson.add(item);
+  void removeFromMessageAsJson(dynamic item) => messageAsJson.remove(item);
+  void removeAtIndexFromMessageAsJson(int index) =>
+      messageAsJson.removeAt(index);
+  void insertAtIndexInMessageAsJson(int index, dynamic item) =>
+      messageAsJson.insert(index, item);
+  void updateMessageAsJsonAtIndex(int index, Function(dynamic) updateFn) =>
+      messageAsJson[index] = updateFn(messageAsJson[index]);
+
   ///  State fields for stateful widgets in this page.
 
   // Stores action output result for [Backend Call - Read Document] action in storychatpage widget.
   StoriesRecord? storyDoc;
   // Stores action output result for [Firestore Query - Query a collection] action in storychatpage widget.
   List<StorychatsRecord>? existingChatRoom;
-  // Stores action output result for [Custom Action - getHistoryAsJson] action in storychatpage widget.
+  // Stores action output result for [Custom Action - getRecentHistoryAsJson] action in storychatpage widget.
   List<dynamic>? messagesAsJson;
   // Stores action output result for [Backend Call - Create Document] action in storychatpage widget.
   StorychatsRecord? newChatRef;
@@ -80,6 +90,10 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   String? aitext;
   // Stores action output result for [Bottom Sheet - storychatsettingcomponent] action in storychatsettingbutton widget.
   String? chosenModel;
+  // Stores action output result for [Custom Action - getRecentHistoryAsJson] action in NotifierChatList widget.
+  List<dynamic>? updatedHistoryJson;
+  // Stores action output result for [Custom Action - getPreviousChatHistory] action in NotifierChatList widget.
+  List<dynamic>? olderMessages;
   // State field(s) for messageTextField widget.
   FocusNode? messageTextFieldFocusNode;
   TextEditingController? messageTextFieldTextController;

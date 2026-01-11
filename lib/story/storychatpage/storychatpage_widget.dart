@@ -98,8 +98,9 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
         _model.pageSelectedModel =
             _model.existingChatRoom!.firstOrNull!.selectedAiModel;
         safeSetState(() {});
-        _model.messagesAsJson = await actions.getHistoryAsJson(
-          _model.currentDocRef,
+        _model.messagesAsJson = await actions.getRecentHistoryAsJson(
+          _model.currentDocRef!,
+          30,
         );
         _model.chatMessages = functions
             .mapJsonToStoryChatStructs(_model.messagesAsJson!.toList())
@@ -323,6 +324,17 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                               _model.backgrounds.toList(),
                               _model.characters.toList(),
                             );
+                            _model.updatedHistoryJson =
+                                await actions.getRecentHistoryAsJson(
+                              _model.currentDocRef!,
+                              30,
+                            );
+                            _model.chatMessages = functions
+                                .mapJsonToStoryChatStructs(
+                                    _model.updatedHistoryJson!.toList())
+                                .toList()
+                                .cast<StoryChatMessageStructStruct>();
+                            safeSetState(() {});
 
                             await _model.currentDocRef!.update({
                               ...mapToFirestore(
@@ -346,6 +358,25 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                               ));
                             }
                             _model.aiResponseScript = '';
+                            safeSetState(() {});
+
+                            safeSetState(() {});
+                          },
+                          onLoadOlderMessages: () async {
+                            _model.olderMessages =
+                                await actions.getPreviousChatHistory(
+                              _model.currentDocRef!,
+                              _model.messageAsJson.toList(),
+                              30,
+                            );
+                            _model.messageAsJson = functions
+                                .combineJsonLists(
+                                    _model.olderMessages?.toList(),
+                                    _model.messageAsJson.toList())
+                                .toList()
+                                .cast<dynamic>();
+                            safeSetState(() {});
+
                             safeSetState(() {});
                           },
                         ),

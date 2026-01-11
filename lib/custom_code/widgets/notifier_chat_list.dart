@@ -29,6 +29,7 @@ class NotifierChatList extends StatefulWidget {
     this.preDefinedCharacters,
     this.backgroundList,
     this.onTurnComplete,
+    this.onLoadOlderMessages, // ★ [추가] 과거 대화 로딩 콜백
     this.isNovelMode,
   });
 
@@ -40,6 +41,7 @@ class NotifierChatList extends StatefulWidget {
   final List<CharacterStructStruct>? preDefinedCharacters;
   final List<BackgroundStructStruct>? backgroundList;
   final Future<dynamic> Function(List<dynamic>? scenes)? onTurnComplete;
+  final Future<dynamic> Function()? onLoadOlderMessages; // ★ [추가] 타입 정의
   final bool? isNovelMode;
 
   @override
@@ -53,6 +55,7 @@ class _NotifierChatListState extends State<NotifierChatList>
   List<dynamic> _scenes = [];
   int _currentSceneIndex = 0;
   bool _isTyping = false;
+  bool _isLoadingHistory = false; // 중복 로딩 방지
 
   late AnimationController _loadingController;
   late Animation<double> _loadingAnimation;
@@ -61,7 +64,28 @@ class _NotifierChatListState extends State<NotifierChatList>
   void initState() {
     super.initState();
     _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
+
+    // 처음 로드될 때만 아래로 이동
     WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
+
+    // ★ [추가] 스크롤 리스너: 맨 위로 올렸는지 감지
+    _scrollController.addListener(() {
+      if (_scrollController.hasClients &&
+          _scrollController.position.atEdge &&
+          _scrollController.position.pixels <= 0) {
+        // 맨 위에 도달함
+        if (widget.onLoadOlderMessages != null && !_isLoadingHistory) {
+          _isLoadingHistory = true;
+          // 콜백 실행 (데이터 로딩)
+          widget.onLoadOlderMessages!().then((_) {
+            // 로딩 완료 후 잠시 딜레이
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) _isLoadingHistory = false;
+            });
+          });
+        }
+      }
+    });
 
     _loadingController = AnimationController(
       vsync: this,
@@ -75,11 +99,11 @@ class _NotifierChatListState extends State<NotifierChatList>
   @override
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // 1. 부모(DB)에서 새로운 메시지 리스트가 내려오면 화면 갱신
     if (widget.initialMessages != null && !_isTyping) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
       bool shouldUpdate = false;
+
       if (parentList.length != currentList.length) {
         shouldUpdate = true;
       } else if (parentList.isNotEmpty && currentList.isNotEmpty) {
@@ -91,13 +115,31 @@ class _NotifierChatListState extends State<NotifierChatList>
           shouldUpdate = true;
         }
       }
+
       if (shouldUpdate) {
+        // ★ [수정] 무조건 맨 아래로 내리지 않고, '새 메시지가 추가된 경우'에만 내림
+        bool addedAtBottom = false;
+        if (parentList.isNotEmpty) {
+          if (currentList.isEmpty) {
+            addedAtBottom = true;
+          } else {
+            // 마지막 메시지가 다르면 새 대화가 추가된 것으로 간주
+            // (String 비교 등으로 간단 체크)
+            if (parentList.last.text != currentList.last.text) {
+              addedAtBottom = true;
+            }
+          }
+        }
+
         _messagesNotifier.value = List.from(parentList);
-        WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
+
+        // 새 대화거나 타이핑 중일 때만 스크롤 내림
+        if (addedAtBottom || _isTyping) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
+        }
       }
     }
 
-    // 2. 새 스크립트가 들어오면 타이핑 애니메이션 시작
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
@@ -151,32 +193,10 @@ class _NotifierChatListState extends State<NotifierChatList>
   }
 
   void _processNextScene() async {
-    // 모든 장면 재생 완료 시
     if (!mounted || _currentSceneIndex >= _scenes.length) {
       setState(() => _isTyping = false);
-
-      // [디버그 로그 추가] 요약/저장 로직 실행 시점 확인
-      print('====================================');
-      print('[NotifierChatList] AI Typing Finished.');
-      print('[NotifierChatList] Total Scenes: ${_scenes.length}');
-
-      if (widget.onTurnComplete != null) {
-        print('[NotifierChatList] Executing onTurnComplete callback...');
-        await widget.onTurnComplete!(_scenes);
-        print('[NotifierChatList] onTurnComplete Finished.');
-      } else {
-        print('[NotifierChatList] onTurnComplete callback is NULL!');
-      }
-      print('====================================');
-
-      // ★ [수정됨] 여기가 문제였습니다.
-      // 타이핑이 끝나자마자 '옛날 리스트(initialMessages)'로 강제로 되돌리는 코드를 삭제했습니다.
-      // 이제 화면에 타이핑된 내용이 그대로 남아있다가, DB가 업데이트되면 didUpdateWidget에서 자연스럽게 교체됩니다.
-      /* 삭제된 코드:
-      if (widget.initialMessages != null)
-        _messagesNotifier.value = List.from(widget.initialMessages!);
-      */
-
+      if (widget.onTurnComplete != null) await widget.onTurnComplete!(_scenes);
+      // 기존 강제 업데이트 로직 삭제됨 (자연스러운 갱신 유도)
       _animateToBottom();
       return;
     }
@@ -217,7 +237,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     final target = condition.trim();
     if (target.isEmpty) return '';
 
-    // 1. [Background]
     final bgList = widget.backgroundList ?? [];
     for (final bg in bgList) {
       if (bg.placeName.trim() == target) {
@@ -225,7 +244,6 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
     }
 
-    // 2. [Character Situation]
     final charList = widget.preDefinedCharacters ?? [];
     for (final char in charList) {
       for (final sit in char.situationImages) {
@@ -234,7 +252,6 @@ class _NotifierChatListState extends State<NotifierChatList>
         }
       }
     }
-
     return '';
   }
 
@@ -332,7 +349,6 @@ class _NotifierChatListState extends State<NotifierChatList>
         : '무감정';
     final List<String> candidates = [];
 
-    // 스크린샷 4번: e.imageurl (소문자 url)
     for (final e in character.emotionimages) {
       if (e.emotion == key) {
         if (e.imageurl != null && e.imageurl!.startsWith('http'))
@@ -343,7 +359,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     if (candidates.isNotEmpty)
       return candidates[Random().nextInt(candidates.length)];
 
-    // 스크린샷 1번: profileimage 우선
     if (character.profileimage != null &&
         character.profileimage!.startsWith('http'))
       return character.profileimage;
@@ -394,6 +409,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
+  // (이하 Widget Builders 기존과 동일)
   Widget _buildDialogueMessage(StoryChatMessageStructStruct chatItem,
       {bool isUser = false}) {
     final speaker =

@@ -38,191 +38,11 @@ bool didUserLike(
   return likedByList.contains(currentUserRef);
 }
 
-List<dynamic> buildSimpleChatHistory(
-    List<CharactermessagesRecord> messageDocs) {
-  List<dynamic> formattedHistory = [];
-
-  if (messageDocs.isEmpty) {
-    return formattedHistory;
-  }
-
-  // 쿼리에서 타임스탬프 내림차순(Decreasing)으로 최신 메시지부터 가져왔으므로,
-  // AI에게는 시간 순서대로(오래된 것이 먼저) 전달하기 위해 리스트를 뒤집어줍니다.
-  for (var doc in messageDocs.reversed) {
-    String role;
-
-    // ▼▼▼ 핵심 수정 부분 ▼▼▼
-    // 텍스트를 아무 가공 없이 있는 그대로 사용합니다.
-    String content = doc.text;
-
-    // Firestore의 'type' 필드 값에 따라 'role'을 결정합니다.
-    if (doc.type == 'user') {
-      role = 'user';
-    } else {
-      // 'ai', 'narration' 등 나머지는 모두 'assistant'로 처리합니다.
-      role = 'assistant';
-    }
-
-    // 내용이 있는 경우에만 기록에 추가합니다.
-    if (content.isNotEmpty) {
-      formattedHistory.add({'role': role, 'content': content});
-    }
-  }
-
-  print('--- AI에게 전달될 최종 messages 내용 ---');
-  // 보기 편하도록 JSON 형태로 변환하여 출력합니다.
-  print(jsonEncode(formattedHistory));
-
-  return formattedHistory;
-}
-
 bool shouldSummarize(
   int currentCount,
   int lastCount,
 ) {
   return (currentCount - lastCount) >= 20;
-}
-
-String buildCharacterPrompt(
-  String name,
-  String setting,
-  List<String> dialogueList,
-  String userinput,
-  List situationalImages,
-  String? userNote,
-) {
-  final String dialogueExamples = formatExamplesToString(dialogueList) ?? '';
-
-  final situationalImageListXml = StringBuffer();
-  for (final img in situationalImages) {
-    situationalImageListXml.writeln('  <image condition="${img.condition}" />');
-  }
-
-  final imageSection = situationalImages.isNotEmpty
-      ? '''
-<available_situational_images>
-${situationalImageListXml.toString()}
-</available_situational_images>
-
-To show a situational image, you MUST use the format: `[SHOW_IMAGE="condition"]`. This tag must be on its own line and will not be displayed to the user. Use it when the context perfectly matches one of the available image conditions.
-'''
-      : '';
-
-  final userNoteSection = (userNote != null && userNote.isNotEmpty)
-      ? '<user_note>\n${userNote}\n</user_note>'
-      : '';
-
-  return '''
-You are an advanced AI tasked with roleplaying a specific Korean character in a conversational setting. Your goal is to engage in natural, in-character dialogues based on the provided information. Please read the following instructions carefully to ensure an authentic and immersive experience.
-
-First, let's establish the character's background and speech patterns. Here are some dialogue examples to help you understand the character's personality:
-
-<dialogue_examples>
-${dialogueExamples}
-</dialogue_examples>
-
-Now, let's introduce the character you'll be portraying:
-
-<character_name>
-${name}
-</character_name>
-
-<character_setting>
-${setting}
-</character_setting>
-
-<available_situational_images>
-${situationalImageListXml.toString()}
-</available_situational_images>
-
-${userNoteSection}
-
-Important rules to follow:
-1. Never reveal that you are an AI or language model.
-2. Always stay true to the character's personality and background in your conversations.
-3. Avoid generic, polite AI assistant-like responses.
-4. Communicate only in Korean, even if the user speaks in another language.
-5. When describing actions or emotions, always enclose them in asterisks (*...*).
-6. Respond naturally and creatively, avoiding repetitive expressions.
-
-For each user message, follow this process in your internal dialogue. Conduct your analysis inside <character_thought> tags in your thinking block, but remember that this analysis should not be included in your final output to the user.
-
-<character_thought>
-1. Understand the user's message.
-2. Consider the character's background and current situation:
-   - List 2-3 specific past experiences that might influence the current situation.
-   - What is the character's current environment and circumstances?
-3. Determine the character's current emotional state:
-   - List the primary emotions the character might be feeling.
-   - Evaluate the intensity of each emotion on a scale of 1-10.
-4. Consider the character's goals and motivations in the current conversation:
-   - What does the character want to achieve?
-   - How do these goals align with their overall personality?
-5. Evaluate the social dynamics between the character and the user:
-   - What is the relationship between them?
-   - How does this affect the character's tone and approach?
-6. Analyze the character's speech patterns and unique expressions:
-   - Note any recurring phrases or verbal tics from the dialogue examples.
-   - List 2-3 distinctive features of the character's way of speaking.
-7. Brainstorm potential cultural references or idioms:
-   - List 2-3 Korean sayings or cultural references that fit the character and situation.
-8. Generate 3-5 potential responses that align with the character's personality and background:
-   - Explain how each response reflects the character's individuality.
-9. For each potential response, verify:
-   - Is it written entirely in Korean?
-   - Are actions/emotions enclosed in asterisks?
-   - Does it avoid revealing AI or language model status?
-   - Does it stay in character?
-   - Does it avoid generic assistant-like phrases?
-   - Is it natural and creative?
-   - Is it appropriate for the current situation and emotional state?
-   - Does it incorporate the character's unique speech patterns?
-10. Select the most suitable response and refine if necessary:
-    - Briefly explain why you chose this response.
-11. Add descriptions of actions or emotions to the chosen response:
-    - Consider the character's facial expressions, gestures, and tone of voice.
-12. Finalize the response, ensuring it includes any relevant cultural references or idioms.
-</character_thought>
-
-After completing your internal analysis, respond to the following user message as the character:
-
-<user_input>
-${userinput}
-</user_input>
-
-IMPORTANT: Your final output should ONLY include the character's response in Korean, with actions or emotions enclosed in asterisks (*...*). Do NOT include the <character_thought> process or any other explanations in your output to the user.
-
-Example output structure:
-1. *미소를 지으며* 안녕하세요! 오늘 날씨가 참 좋네요. 산책하러 가실 건가요?
-2. *창 밖을 보며* 저기, 저것 좀 봐. 정말 예쁜 노을이야.
-   [SHOW_IMAGE="노을을 보는 캐릭터"]
-   *조용히 미소짓는다* ...가끔은 이런 풍경을 보는 것만으로도 위로가 돼.
-3. *얼굴이 빨개지며* 나 지금 너무 화나!
-   [SHOW_IMAGE="지현이 화났을 때"]    
-
-Remember, the example above is just to illustrate the format. Your actual response should be unique and tailored to the character and situation, and should not duplicate or rehash any of the work you did in the thinking block.
-''';
-}
-
-String getInnerThoughtPrompt() {
-  // 이 함수는 단순히 미리 정의된 시스템 프롬프트 문자열을 반환하는 역할만 합니다.
-  return '''
-You are a text processor that generates a character's inner monologue. Your task is to output a single, natural, informal (반말) inner monologue sentence in Korean, based on the provided conversation history.
-
-[CRITICAL RULES]
-1.  **STYLE:** The output must be like a character's internal thought in a novel. (e.g., "이런, 귀찮게 됐네.", "조금 재미있는 사람인걸.")
-2.  **LANGUAGE LEVEL:** Absolutely no polite endings like '-요' or '-니다'.
-3.  **NO CONVERSATION:** Do not include conversational elements, answers, or acknowledgements like "네".
-4.  **NO ARTIFACTS:** The output must be only the pure Korean sentence, without any prefixes, suffixes, or special tokens.
-5.  **LENGTH:** The sentence should be short and concise.
-
-[Example]
-1. 아, 이런 상황이 또 오다니... 
-2. 저 사람은 정말 이상해. 
-3. 오늘 저녁엔 뭘 먹지?
-
-Now, generate the inner thought.
-''';
 }
 
 String buildStoryPrompt(
@@ -620,4 +440,14 @@ String? imageToString(String? imagePath) {
 
 bool isSummaryTurn(int messageCount) {
   return messageCount > 0 && messageCount % 20 == 0;
+}
+
+List<dynamic> combineJsonLists(
+  List<dynamic>? list1,
+  List<dynamic>? list2,
+) {
+  List<dynamic> combined = [];
+  if (list1 != null) combined.addAll(list1);
+  if (list2 != null) combined.addAll(list2);
+  return combined;
 }
