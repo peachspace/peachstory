@@ -27,11 +27,6 @@ class StoriesRecord extends FirestoreRecord {
   String get worldview => _worldview ?? '';
   bool hasWorldview() => _worldview != null;
 
-  // "prologue" field.
-  String? _prologue;
-  String get prologue => _prologue ?? '';
-  bool hasPrologue() => _prologue != null;
-
   // "category" field.
   String? _category;
   String get category => _category ?? '';
@@ -132,10 +127,19 @@ class StoriesRecord extends FirestoreRecord {
   List<BackgroundStructStruct> get backgrounds => _backgrounds ?? const [];
   bool hasBackgrounds() => _backgrounds != null;
 
+  // "prologuetext" field.
+  String? _prologuetext;
+  String get prologuetext => _prologuetext ?? '';
+  bool hasProloguetext() => _prologuetext != null;
+
+  // "prologueimage" field.
+  String? _prologueimage;
+  String get prologueimage => _prologueimage ?? '';
+  bool hasPrologueimage() => _prologueimage != null;
+
   void _initializeFields() {
     _title = snapshotData['title'] as String?;
     _worldview = snapshotData['worldview'] as String?;
-    _prologue = snapshotData['prologue'] as String?;
     _category = snapshotData['category'] as String?;
     _characters = getStructList(
       snapshotData['characters'],
@@ -162,6 +166,8 @@ class StoriesRecord extends FirestoreRecord {
       snapshotData['backgrounds'],
       BackgroundStructStruct.fromMap,
     );
+    _prologuetext = snapshotData['prologuetext'] as String?;
+    _prologueimage = snapshotData['prologueimage'] as String?;
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -191,7 +197,6 @@ class StoriesRecord extends FirestoreRecord {
         {
           'title': snapshot.data['title'],
           'worldview': snapshot.data['worldview'],
-          'prologue': snapshot.data['prologue'],
           'category': snapshot.data['category'],
           'characters': safeGet(
             () => (snapshot.data['characters'] as Iterable)
@@ -246,6 +251,8 @@ class StoriesRecord extends FirestoreRecord {
                 .map((d) => BackgroundStructStruct.fromAlgoliaData(d).toMap())
                 .toList(),
           ),
+          'prologuetext': snapshot.data['prologuetext'],
+          'prologueimage': snapshot.data['prologueimage'],
         },
         StoriesRecord.collection.doc(snapshot.objectID),
       );
@@ -284,7 +291,6 @@ class StoriesRecord extends FirestoreRecord {
 Map<String, dynamic> createStoriesRecordData({
   String? title,
   String? worldview,
-  String? prologue,
   String? category,
   DocumentReference? creatorRef,
   String? userRole,
@@ -302,12 +308,13 @@ Map<String, dynamic> createStoriesRecordData({
   DateTime? createdTimestamp,
   String? detailmode,
   String? detailimage,
+  String? prologuetext,
+  String? prologueimage,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
       'title': title,
       'worldview': worldview,
-      'prologue': prologue,
       'category': category,
       'creator_ref': creatorRef,
       'user_role': userRole,
@@ -325,6 +332,8 @@ Map<String, dynamic> createStoriesRecordData({
       'created_timestamp': createdTimestamp,
       'detailmode': detailmode,
       'detailimage': detailimage,
+      'prologuetext': prologuetext,
+      'prologueimage': prologueimage,
     }.withoutNulls,
   );
 
@@ -339,7 +348,6 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
     const listEquality = ListEquality();
     return e1?.title == e2?.title &&
         e1?.worldview == e2?.worldview &&
-        e1?.prologue == e2?.prologue &&
         e1?.category == e2?.category &&
         listEquality.equals(e1?.characters, e2?.characters) &&
         e1?.creatorRef == e2?.creatorRef &&
@@ -359,14 +367,15 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.createdTimestamp == e2?.createdTimestamp &&
         e1?.detailmode == e2?.detailmode &&
         e1?.detailimage == e2?.detailimage &&
-        listEquality.equals(e1?.backgrounds, e2?.backgrounds);
+        listEquality.equals(e1?.backgrounds, e2?.backgrounds) &&
+        e1?.prologuetext == e2?.prologuetext &&
+        e1?.prologueimage == e2?.prologueimage;
   }
 
   @override
   int hash(StoriesRecord? e) => const ListEquality().hash([
         e?.title,
         e?.worldview,
-        e?.prologue,
         e?.category,
         e?.characters,
         e?.creatorRef,
@@ -386,7 +395,9 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.createdTimestamp,
         e?.detailmode,
         e?.detailimage,
-        e?.backgrounds
+        e?.backgrounds,
+        e?.prologuetext,
+        e?.prologueimage
       ]);
 
   @override

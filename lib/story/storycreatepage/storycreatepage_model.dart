@@ -25,8 +25,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String? userrole = '';
 
-  String? prologue = '';
-
   String? introduce = '';
 
   String? author = '';
@@ -71,6 +69,10 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
           int index, Function(BackgroundStructStruct) updateFn) =>
       backgroundlist[index] = updateFn(backgroundlist[index]);
 
+  String? prologueimage;
+
+  String? prologuetext;
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TabBar widget.
@@ -100,19 +102,20 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in userroleaicreatebutton widget.
   String? generateduserrole;
-  // State field(s) for prologue widget.
-  FocusNode? prologueFocusNode;
-  TextEditingController? prologueTextController;
-  String? Function(BuildContext, String?)? prologueTextControllerValidator;
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in prologueimageeditbutton widget.
+  GenResultStructStruct? editedprologueimage;
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in prologueimageaddbutton widget.
+  GenResultStructStruct? generatedprologueimage;
+  // State field(s) for prologuetext widget.
+  FocusNode? prologuetextFocusNode;
+  TextEditingController? prologuetextTextController;
+  String? Function(BuildContext, String?)? prologuetextTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in prologueaicreatebutton widget.
   String? generatedprologue;
-  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in Button widget.
-  GenResultStructStruct? generaltedmainimage;
-  bool isDataUploading_uploadedMainImage = false;
-  FFUploadedFile uploadedLocalFile_uploadedMainImage =
-      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
-  String uploadedFileUrl_uploadedMainImage = '';
-
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in addmainimagebutton widget.
+  GenResultStructStruct? generatedmainimage;
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in editmainimagebutton widget.
+  GenResultStructStruct? editedmainimage;
   // State field(s) for introduce widget.
   FocusNode? introduceFocusNode;
   TextEditingController? introduceTextController;
@@ -158,8 +161,8 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
     userRoleInfoFocusNode?.dispose();
     userRoleInfoTextController?.dispose();
 
-    prologueFocusNode?.dispose();
-    prologueTextController?.dispose();
+    prologuetextFocusNode?.dispose();
+    prologuetextTextController?.dispose();
 
     introduceFocusNode?.dispose();
     introduceTextController?.dispose();

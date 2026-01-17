@@ -55,6 +55,11 @@ class StorymessagesRecord extends FirestoreRecord {
   DocumentReference? get userRef => _userRef;
   bool hasUserRef() => _userRef != null;
 
+  // "role" field.
+  String? _role;
+  String get role => _role ?? '';
+  bool hasRole() => _role != null;
+
   DocumentReference get parentReference => reference.parent.parent!;
 
   void _initializeFields() {
@@ -66,6 +71,7 @@ class StorymessagesRecord extends FirestoreRecord {
     _actionText = snapshotData['actionText'] as String?;
     _storyImageUrl = snapshotData['storyImageUrl'] as String?;
     _userRef = snapshotData['user_ref'] as DocumentReference?;
+    _role = snapshotData['role'] as String?;
   }
 
   static Query<Map<String, dynamic>> collection([DocumentReference? parent]) =>
@@ -118,6 +124,7 @@ Map<String, dynamic> createStorymessagesRecordData({
   String? actionText,
   String? storyImageUrl,
   DocumentReference? userRef,
+  String? role,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -129,6 +136,7 @@ Map<String, dynamic> createStorymessagesRecordData({
       'actionText': actionText,
       'storyImageUrl': storyImageUrl,
       'user_ref': userRef,
+      'role': role,
     }.withoutNulls,
   );
 
@@ -148,7 +156,8 @@ class StorymessagesRecordDocumentEquality
         e1?.speakerName == e2?.speakerName &&
         e1?.actionText == e2?.actionText &&
         e1?.storyImageUrl == e2?.storyImageUrl &&
-        e1?.userRef == e2?.userRef;
+        e1?.userRef == e2?.userRef &&
+        e1?.role == e2?.role;
   }
 
   @override
@@ -160,7 +169,8 @@ class StorymessagesRecordDocumentEquality
         e?.speakerName,
         e?.actionText,
         e?.storyImageUrl,
-        e?.userRef
+        e?.userRef,
+        e?.role
       ]);
 
   @override

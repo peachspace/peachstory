@@ -5,9 +5,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/shared/chatlistdeletesheet/chatlistdeletesheet_widget.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'chatlistpage_model.dart';
 export 'chatlistpage_model.dart';
 
@@ -31,9 +29,6 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
     super.initState();
     _model = createModel(context, () => ChatlistpageModel());
 
-    // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {});
-
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -46,8 +41,6 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();

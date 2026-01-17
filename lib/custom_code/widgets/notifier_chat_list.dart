@@ -10,8 +10,6 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'index.dart'; // Imports other custom widgets
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -29,7 +27,7 @@ class NotifierChatList extends StatefulWidget {
     this.preDefinedCharacters,
     this.backgroundList,
     this.onTurnComplete,
-    this.onLoadOlderMessages, // ★ [추가] 과거 대화 로딩 콜백
+    this.onLoadOlderMessages,
     this.isNovelMode,
   });
 
@@ -41,7 +39,7 @@ class NotifierChatList extends StatefulWidget {
   final List<CharacterStructStruct>? preDefinedCharacters;
   final List<BackgroundStructStruct>? backgroundList;
   final Future<dynamic> Function(List<dynamic>? scenes)? onTurnComplete;
-  final Future<dynamic> Function()? onLoadOlderMessages; // ★ [추가] 타입 정의
+  final Future<dynamic> Function()? onLoadOlderMessages;
   final bool? isNovelMode;
 
   @override
@@ -55,7 +53,7 @@ class _NotifierChatListState extends State<NotifierChatList>
   List<dynamic> _scenes = [];
   int _currentSceneIndex = 0;
   bool _isTyping = false;
-  bool _isLoadingHistory = false; // 중복 로딩 방지
+  bool _isLoadingHistory = false;
 
   late AnimationController _loadingController;
   late Animation<double> _loadingAnimation;
@@ -65,20 +63,16 @@ class _NotifierChatListState extends State<NotifierChatList>
     super.initState();
     _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
 
-    // 처음 로드될 때만 아래로 이동
     WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
 
-    // ★ [추가] 스크롤 리스너: 맨 위로 올렸는지 감지
+    // 스크롤 리스너: 맨 위로 올렸는지 감지
     _scrollController.addListener(() {
       if (_scrollController.hasClients &&
           _scrollController.position.atEdge &&
           _scrollController.position.pixels <= 0) {
-        // 맨 위에 도달함
         if (widget.onLoadOlderMessages != null && !_isLoadingHistory) {
           _isLoadingHistory = true;
-          // 콜백 실행 (데이터 로딩)
           widget.onLoadOlderMessages!().then((_) {
-            // 로딩 완료 후 잠시 딜레이
             Future.delayed(const Duration(milliseconds: 500), () {
               if (mounted) _isLoadingHistory = false;
             });
@@ -117,14 +111,11 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
 
       if (shouldUpdate) {
-        // ★ [수정] 무조건 맨 아래로 내리지 않고, '새 메시지가 추가된 경우'에만 내림
         bool addedAtBottom = false;
         if (parentList.isNotEmpty) {
           if (currentList.isEmpty) {
             addedAtBottom = true;
           } else {
-            // 마지막 메시지가 다르면 새 대화가 추가된 것으로 간주
-            // (String 비교 등으로 간단 체크)
             if (parentList.last.text != currentList.last.text) {
               addedAtBottom = true;
             }
@@ -133,7 +124,6 @@ class _NotifierChatListState extends State<NotifierChatList>
 
         _messagesNotifier.value = List.from(parentList);
 
-        // 새 대화거나 타이핑 중일 때만 스크롤 내림
         if (addedAtBottom || _isTyping) {
           WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
         }
@@ -196,7 +186,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     if (!mounted || _currentSceneIndex >= _scenes.length) {
       setState(() => _isTyping = false);
       if (widget.onTurnComplete != null) await widget.onTurnComplete!(_scenes);
-      // 기존 강제 업데이트 로직 삭제됨 (자연스러운 갱신 유도)
       _animateToBottom();
       return;
     }
@@ -218,7 +207,7 @@ class _NotifierChatListState extends State<NotifierChatList>
           text: '',
           speakerName: '',
           actionText: '',
-          speakerImage: '',
+          // speakerImage: '',  <-- [삭제됨]
         );
         _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
         _jumpToBottom();
@@ -259,6 +248,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     final String speaker = (scene['speaker'] ?? '').toString();
     final String action = (scene['action'] ?? '').toString();
 
+    // fixedImageUrl은 계산은 하지만 Struct에는 넣지 않음 (화면 그릴 때 다시 계산)
     final String fixedImageUrl =
         _resolveCharacterImageUrl(speaker, action) ?? '';
 
@@ -329,7 +319,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       text: text,
       isStreaming: isStreaming,
       storyImageUrl: '',
-      speakerImage: fixedImageUrl,
+      // speakerImage: fixedImageUrl, <-- [삭제됨] 필드가 없으므로 저장 불가
     );
   }
 
@@ -409,7 +399,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
-  // (이하 Widget Builders 기존과 동일)
   Widget _buildDialogueMessage(StoryChatMessageStructStruct chatItem,
       {bool isUser = false}) {
     final speaker =
@@ -418,11 +407,11 @@ class _NotifierChatListState extends State<NotifierChatList>
     String imageUrl = '';
 
     if (!isUser) {
-      imageUrl = chatItem.speakerImage;
-      if (imageUrl.isEmpty)
-        imageUrl = _resolveCharacterImageUrl(
-                chatItem.speakerName, chatItem.actionText) ??
-            '';
+      // [수정됨] speakerImage 필드 접근 코드 삭제
+      // 대신 항상 실시간으로 이미지를 찾습니다.
+      imageUrl = _resolveCharacterImageUrl(
+              chatItem.speakerName, chatItem.actionText) ??
+          '';
     }
 
     return Padding(

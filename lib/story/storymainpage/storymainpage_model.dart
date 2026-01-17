@@ -13,12 +13,8 @@ class StorymainpageModel extends FlutterFlowModel<StorymainpageWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  // Stores action output result for [Backend Call - Read Document] action in storymainpage widget.
-  StoriesRecord? loadedStory;
-  // Stores action output result for [Backend Call - Read Document] action in storymainpage widget.
-  UsersRecord? currentUserDoc;
-  // Stores action output result for [Firestore Query - Query a collection] action in Button widget.
-  List<StorychatsRecord>? existingChat;
+  // Stores action output result for [Firestore Query - Query a collection] action in startButton widget.
+  StorychatsRecord? foundChat;
 
   @override
   void initState(BuildContext context) {}

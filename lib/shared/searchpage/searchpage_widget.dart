@@ -1,6 +1,4 @@
-import '/backend/api_requests/api_calls.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -32,8 +30,8 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
     super.initState();
     _model = createModel(context, () => SearchpageModel());
 
-    _model.textController ??= TextEditingController();
-    _model.textFieldFocusNode ??= FocusNode();
+    _model.searchTextFieldTextController ??= TextEditingController();
+    _model.searchTextFieldFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -120,8 +118,8 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                           child: Container(
                             width: 200.0,
                             child: TextFormField(
-                              controller: _model.textController,
-                              focusNode: _model.textFieldFocusNode,
+                              controller: _model.searchTextFieldTextController,
+                              focusNode: _model.searchTextFieldFocusNode,
                               autofocus: false,
                               obscureText: false,
                               decoration: InputDecoration(
@@ -218,7 +216,8 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                                   ),
                               cursorColor:
                                   FlutterFlowTheme.of(context).primaryText,
-                              validator: _model.textControllerValidator
+                              validator: _model
+                                  .searchTextFieldTextControllerValidator
                                   .asValidator(context),
                             ),
                           ),
@@ -232,30 +231,22 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                             hoverColor: Colors.transparent,
                             highlightColor: Colors.transparent,
                             onTap: () async {
-                              _model.apiResult = await ApiSearchAllCall.call(
-                                query: _model.textController.text,
-                                sortOption: _model.dropDownValue,
-                              );
+                              safeSetState(
+                                  () => _model.algoliaSearchResults = null);
+                              await StoriesRecord.search(
+                                term: _model.searchTextFieldTextController.text,
+                              )
+                                  .then((r) => _model.algoliaSearchResults = r)
+                                  .onError((_, __) =>
+                                      _model.algoliaSearchResults = [])
+                                  .whenComplete(() => safeSetState(() {}));
 
-                              if ((_model.apiResult?.succeeded ?? true)) {
-                                _model.searchResults = (getJsonField(
-                                  (_model.apiResult?.jsonBody ?? ''),
-                                  r'''$.result.results''',
-                                  true,
-                                )!
-                                            .toList()
-                                            .map<CombinedListItemStructStruct?>(
-                                                CombinedListItemStructStruct
-                                                    .maybeFromMap)
-                                            .toList()
-                                        as Iterable<
-                                            CombinedListItemStructStruct?>)
-                                    .withoutNulls
-                                    .toList()
-                                    .cast<CombinedListItemStructStruct>();
-                                safeSetState(() {});
-                              }
-
+                              _model.searchResultList = functions
+                                  .sortStories(
+                                      _model.algoliaSearchResults!.toList(),
+                                      _model.searchSortOption)
+                                  .toList()
+                                  .cast<StoriesRecord>();
                               safeSetState(() {});
                             },
                             child: Icon(
@@ -302,7 +293,7 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                                 10.0, 0.0, 0.0, 0.0),
                             child: Text(
                               valueOrDefault<String>(
-                                _model.searchResults.length.toString(),
+                                _model.algoliaSearchResults?.length.toString(),
                                 '0',
                               ),
                               style: FlutterFlowTheme.of(context)
@@ -329,38 +320,21 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                         ],
                       ),
                       FlutterFlowDropDown<String>(
-                        controller: _model.dropDownValueController ??=
+                        controller: _model.searchDropDownValueController ??=
                             FormFieldController<String>(
-                          _model.dropDownValue ??= _model.searchSortOption,
+                          _model.searchDropDownValue ??=
+                              _model.searchSortOption,
                         ),
                         options: ['인기순', '최신순'],
                         onChanged: (val) async {
-                          safeSetState(() => _model.dropDownValue = val);
-                          _model.searchSortOption = _model.dropDownValue!;
+                          safeSetState(() => _model.searchDropDownValue = val);
+                          _model.searchSortOption = _model.searchDropDownValue!;
                           safeSetState(() {});
-                          _model.apiResult1 = await ApiSearchAllCall.call(
-                            query: _model.textController.text,
-                            sortOption: _model.dropDownValue,
-                          );
-
-                          if ((_model.apiResult1?.succeeded ?? true)) {
-                            _model.searchResults = (getJsonField(
-                              (_model.apiResult1?.jsonBody ?? ''),
-                              r'''$.result.results''',
-                              true,
-                            )!
-                                        .toList()
-                                        .map<CombinedListItemStructStruct?>(
-                                            CombinedListItemStructStruct
-                                                .maybeFromMap)
-                                        .toList()
-                                    as Iterable<CombinedListItemStructStruct?>)
-                                .withoutNulls
-                                .toList()
-                                .cast<CombinedListItemStructStruct>();
-                            safeSetState(() {});
-                          }
-
+                          _model.searchResultList = functions
+                              .sortStories(_model.searchResultList.toList(),
+                                  _model.searchDropDownValue!)
+                              .toList()
+                              .cast<StoriesRecord>();
                           safeSetState(() {});
                         },
                         width: 70.0,
@@ -411,7 +385,7 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                         EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
                     child: Builder(
                       builder: (context) {
-                        final searchitem = _model.searchResults.toList();
+                        final search = _model.searchResultList.toList();
 
                         return GridView.builder(
                           padding: EdgeInsets.zero,
@@ -423,56 +397,65 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                             childAspectRatio: 0.65,
                           ),
                           scrollDirection: Axis.vertical,
-                          itemCount: searchitem.length,
-                          itemBuilder: (context, searchitemIndex) {
-                            final searchitemItem = searchitem[searchitemIndex];
+                          itemCount: search.length,
+                          itemBuilder: (context, searchIndex) {
+                            final searchItem = search[searchIndex];
                             return InkWell(
                               splashColor: Colors.transparent,
                               focusColor: Colors.transparent,
                               hoverColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                               onTap: () async {
+                                await searchItem.reference.update({
+                                  ...mapToFirestore(
+                                    {
+                                      'view_count': FieldValue.increment(1),
+                                    },
+                                  ),
+                                });
+
                                 context.pushNamed(
                                   StorymainpageWidget.routeName,
                                   queryParameters: {
-                                    'storymainRef': serializeParam(
-                                      searchitemItem.storyRef,
+                                    'storyRef': serializeParam(
+                                      searchItem.reference,
                                       ParamType.DocumentReference,
                                     ),
                                   }.withoutNulls,
                                 );
                               },
-                              child: Container(
-                                width: 160.0,
-                                height: 280.0,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Stack(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 150.0,
+                                    height: 150.0,
+                                    decoration: BoxDecoration(
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryBackground,
+                                      image: DecorationImage(
+                                        fit: BoxFit.cover,
+                                        image: Image.network(
+                                          searchItem.mainImage,
+                                        ).image,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
                                       children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                          child: Image.network(
-                                            searchitemItem.imageUrl,
-                                            width: 160.0,
-                                            height: 160.0,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
                                         Opacity(
-                                          opacity: 0.3,
+                                          opacity: 0.6,
                                           child: Align(
                                             alignment:
-                                                AlignmentDirectional(1.0, 1.0),
+                                                AlignmentDirectional(1.0, 0.0),
                                             child: Padding(
                                               padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      0.0, 120.0, 10.0, 0.0),
+                                                  .fromSTEB(0.0, 0.0, 5.0, 5.0),
                                               child: Container(
                                                 decoration: BoxDecoration(
                                                   color: FlutterFlowTheme.of(
@@ -480,7 +463,7 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                                                       .alternate,
                                                   borderRadius:
                                                       BorderRadius.circular(
-                                                          10.0),
+                                                          8.0),
                                                 ),
                                                 child: Padding(
                                                   padding: EdgeInsets.all(5.0),
@@ -512,12 +495,10 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                                                         ),
                                                       ),
                                                       Text(
-                                                        valueOrDefault<String>(
-                                                          functions
-                                                              .formatNumberCompact(
-                                                                  searchitemItem
-                                                                      .viewCount),
-                                                          '0',
+                                                        formatNumber(
+                                                          searchItem.viewCount,
+                                                          formatType: FormatType
+                                                              .compact,
                                                         ),
                                                         style:
                                                             FlutterFlowTheme.of(
@@ -557,31 +538,23 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                                         ),
                                       ],
                                     ),
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 10.0, 0.0, 0.0),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.max,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            searchitemItem.title,
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  font: GoogleFonts.inter(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontStyle,
-                                                  ),
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        0.0, 10.0, 0.0, 0.0),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          searchItem.title,
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                font: GoogleFonts.inter(
                                                   fontWeight: FontWeight.w600,
                                                   fontStyle:
                                                       FlutterFlowTheme.of(
@@ -589,70 +562,156 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                                                           .bodyMedium
                                                           .fontStyle,
                                                 ),
+                                                fontSize: 16.0,
+                                                letterSpacing: 0.0,
+                                                fontWeight: FontWeight.w600,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontStyle,
+                                              ),
+                                        ),
+                                        Padding(
+                                          padding:
+                                              EdgeInsetsDirectional.fromSTEB(
+                                                  0.0, 10.0, 0.0, 10.0),
+                                          child: Text(
+                                            searchItem.description,
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .override(
+                                                  font: GoogleFonts.inter(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontStyle,
+                                                  ),
+                                                  letterSpacing: 0.0,
+                                                  fontWeight:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMedium
+                                                          .fontWeight,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMedium
+                                                          .fontStyle,
+                                                ),
                                           ),
-                                          Padding(
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    0.0, 10.0, 0.0, 10.0),
-                                            child: Text(
-                                              searchitemItem.category,
-                                              style:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
+                                        ),
+                                        Align(
+                                          alignment:
+                                              AlignmentDirectional(-1.0, 0.0),
+                                          child: StreamBuilder<UsersRecord>(
+                                            stream: UsersRecord.getDocument(
+                                                searchItem.creatorRef!),
+                                            builder: (context, snapshot) {
+                                              // Customize what your widget looks like when it's loading.
+                                              if (!snapshot.hasData) {
+                                                return Center(
+                                                  child: SizedBox(
+                                                    width: 50.0,
+                                                    height: 50.0,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                              Color>(
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .primary,
                                                       ),
-                                            ),
-                                          ),
-                                          Builder(
-                                            builder: (context) {
-                                              if (searchitemItem
-                                                  .authorIsCreator) {
-                                                return Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.brightness_7_sharp,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .error,
-                                                      size: 18.0,
                                                     ),
-                                                    Padding(
-                                                      padding:
-                                                          EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  3.0,
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0),
+                                                  ),
+                                                );
+                                              }
+
+                                              final columnUsersRecord =
+                                                  snapshot.data!;
+
+                                              return Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  if (columnUsersRecord
+                                                          .isCreator ==
+                                                      true)
+                                                    Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .brightness_7_sharp,
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .error,
+                                                          size: 18.0,
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                      3.0,
+                                                                      0.0,
+                                                                      0.0,
+                                                                      0.0),
+                                                          child: Text(
+                                                            searchItem
+                                                                .creatorNickname,
+                                                            style: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font:
+                                                                      GoogleFonts
+                                                                          .inter(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondaryText,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  if (columnUsersRecord
+                                                          .isCreator ==
+                                                      false)
+                                                    Align(
+                                                      alignment:
+                                                          AlignmentDirectional(
+                                                              -1.0, 0.0),
                                                       child: Text(
-                                                        searchitemItem
-                                                            .creatorNickname,
+                                                        '@${searchItem.creatorNickname}',
                                                         style:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -686,52 +745,15 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                                                                 ),
                                                       ),
                                                     ),
-                                                  ],
-                                                );
-                                              } else {
-                                                return Text(
-                                                  '@${searchitemItem.creatorNickname}',
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .secondaryText,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                                );
-                                              }
+                                                ],
+                                              );
                                             },
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             );
                           },

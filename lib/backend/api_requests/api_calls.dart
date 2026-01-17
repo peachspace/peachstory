@@ -9,44 +9,6 @@ export 'api_manager.dart' show ApiCallResponse;
 
 const _kPrivateApiFunctionName = 'apiCallAiProxy';
 
-class ApiSearchAllCall {
-  static Future<ApiCallResponse> call({
-    String? query = '',
-    String? sortOption = '',
-  }) async {
-    final ffApiRequestBody = '''
-{
-  "data": {
-    "query": "${escapeStringForJson(query)}",
-    "sortOption": "${escapeStringForJson(sortOption)}"
-  }
-}''';
-    return ApiManager.instance.makeApiCall(
-      callName: 'apiSearchAll',
-      apiUrl: 'https://us-central1-ssss-ehfczw.cloudfunctions.net/searchAll',
-      callType: ApiCallType.POST,
-      headers: {
-        'content-type': 'application/json',
-      },
-      params: {},
-      body: ffApiRequestBody,
-      bodyType: BodyType.JSON,
-      returnBody: true,
-      encodeBodyUtf8: false,
-      decodeUtf8: false,
-      cache: false,
-      isStreamingApi: false,
-      alwaysAllowBody: false,
-    );
-  }
-
-  static List? results(dynamic response) => getJsonField(
-        response,
-        r'''$.result.results''',
-        true,
-      ) as List?;
-}
-
 class ApiCallAiProxyCall {
   static Future<ApiCallResponse> call({
     String? modelName = 'claude-3-5-haiku-20241022',

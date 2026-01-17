@@ -76,19 +76,15 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       debugLogDiagnostics: true,
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
-      errorBuilder: (context, state) => RootPageContext.wrap(
-        appStateNotifier.loggedIn ? CreatelistpageWidget() : HomepageWidget(),
-        errorRoute: state.uri.toString(),
-      ),
+      errorBuilder: (context, state) =>
+          appStateNotifier.loggedIn ? CreatelistpageWidget() : HomepageWidget(),
       routes: [
         FFRoute(
           name: '_initialize',
           path: '/',
-          builder: (context, _) => RootPageContext.wrap(
-            appStateNotifier.loggedIn
-                ? CreatelistpageWidget()
-                : HomepageWidget(),
-          ),
+          builder: (context, _) => appStateNotifier.loggedIn
+              ? CreatelistpageWidget()
+              : HomepageWidget(),
         ),
         FFRoute(
           name: HomepageWidget.routeName,
@@ -173,22 +169,24 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: StorymainpageWidget.routeName,
           path: StorymainpageWidget.routePath,
+          asyncParams: {
+            'storychatdoc':
+                getDoc(['storychats'], StorychatsRecord.fromSnapshot),
+          },
           builder: (context, params) => StorymainpageWidget(
-            storymainRef: params.getParam(
-              'storymainRef',
-              ParamType.DocumentReference,
-              isList: false,
-              collectionNamePath: ['stories'],
-            ),
-            storychatRef: params.getParam(
-              'storychatRef',
-              ParamType.DocumentReference,
-              isList: false,
-              collectionNamePath: ['storychats'],
+            storychatdoc: params.getParam(
+              'storychatdoc',
+              ParamType.Document,
             ),
             isNovelMode: params.getParam(
               'isNovelMode',
               ParamType.bool,
+            ),
+            storyRef: params.getParam(
+              'storyRef',
+              ParamType.DocumentReference,
+              isList: false,
+              collectionNamePath: ['stories'],
             ),
           ),
         ),

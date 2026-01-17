@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_toggle_icon.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/story/modeselectcomponent/modeselectcomponent_widget.dart';
+import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -16,14 +17,14 @@ export 'storymainpage_model.dart';
 class StorymainpageWidget extends StatefulWidget {
   const StorymainpageWidget({
     super.key,
-    this.storymainRef,
-    this.storychatRef,
+    this.storychatdoc,
     this.isNovelMode,
+    required this.storyRef,
   });
 
-  final DocumentReference? storymainRef;
-  final DocumentReference? storychatRef;
+  final StorychatsRecord? storychatdoc;
   final bool? isNovelMode;
+  final DocumentReference? storyRef;
 
   static String routeName = 'storymainpage';
   static String routePath = '/storymainpage';
@@ -44,14 +45,8 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.loadedStory =
-          await StoriesRecord.getDocumentOnce(widget.storymainRef!);
-      _model.loadStory = _model.loadedStory;
-      safeSetState(() {});
-      _model.currentUserDoc =
-          await UsersRecord.getDocumentOnce(currentUserReference!);
-      if (_model.currentUserDoc!.heartedPostPaths
-          .contains(widget.storymainRef?.path)) {
+      if ((currentUserDocument?.heartedstory.toList() ?? [])
+          .contains(widget.storyRef)) {
         _model.isHearted = !_model.isHearted;
         safeSetState(() {});
       }
@@ -70,7 +65,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<StoriesRecord>(
-      stream: StoriesRecord.getDocument(widget.storymainRef!),
+      stream: StoriesRecord.getDocument(widget.storyRef!),
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
@@ -150,23 +145,19 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 20.0, 0.0, 0.0),
                               child: Container(
+                                width: 350.0,
+                                height: 350.0,
                                 decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image: Image.network(
+                                      storymainpageStoriesRecord.mainImage,
+                                    ).image,
+                                  ),
                                   borderRadius: BorderRadius.circular(8.0),
                                   border: Border.all(
                                     color:
                                         FlutterFlowTheme.of(context).alternate,
-                                  ),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: Image.network(
-                                    valueOrDefault<String>(
-                                      _model.loadedStory?.mainImage,
-                                      '\" \"',
-                                    ),
-                                    width: 360.0,
-                                    height: 360.0,
-                                    fit: BoxFit.cover,
                                   ),
                                 ),
                               ),
@@ -182,10 +173,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                   Align(
                                     alignment: AlignmentDirectional(-1.0, 0.0),
                                     child: Text(
-                                      valueOrDefault<String>(
-                                        _model.loadStory?.title,
-                                        '제목없음',
-                                      ),
+                                      storymainpageStoriesRecord.title,
                                       style: FlutterFlowTheme.of(context)
                                           .titleMedium
                                           .override(
@@ -215,19 +203,8 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                     onPressed: () async {
                                       safeSetState(() =>
                                           _model.isHearted = !_model.isHearted);
-                                      if (_model.isHearted == true) {
-                                        await currentUserReference!.update({
-                                          ...mapToFirestore(
-                                            {
-                                              'hearted_post_paths':
-                                                  FieldValue.arrayUnion([
-                                                widget.storymainRef?.path
-                                              ]),
-                                            },
-                                          ),
-                                        });
-
-                                        await widget.storymainRef!.update({
+                                      if (_model.isHearted) {
+                                        await widget.storyRef!.update({
                                           ...mapToFirestore(
                                             {
                                               'heart_count':
@@ -235,23 +212,32 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                             },
                                           ),
                                         });
-                                      } else {
+
                                         await currentUserReference!.update({
                                           ...mapToFirestore(
                                             {
-                                              'hearted_post_paths':
-                                                  FieldValue.arrayRemove([
-                                                widget.storymainRef?.path
-                                              ]),
+                                              'heartedstory':
+                                                  FieldValue.arrayUnion(
+                                                      [widget.storyRef]),
                                             },
                                           ),
                                         });
-
-                                        await widget.storymainRef!.update({
+                                      } else {
+                                        await widget.storyRef!.update({
                                           ...mapToFirestore(
                                             {
                                               'heart_count':
                                                   FieldValue.increment(-(1)),
+                                            },
+                                          ),
+                                        });
+
+                                        await currentUserReference!.update({
+                                          ...mapToFirestore(
+                                            {
+                                              'heartedstory':
+                                                  FieldValue.arrayRemove(
+                                                      [widget.storyRef]),
                                             },
                                           ),
                                         });
@@ -264,7 +250,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                       size: 20.0,
                                     ),
                                     offIcon: Icon(
-                                      Icons.favorite_border,
+                                      Icons.favorite_border_sharp,
                                       color: FlutterFlowTheme.of(context)
                                           .secondaryText,
                                       size: 20.0,
@@ -276,10 +262,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                             Align(
                               alignment: AlignmentDirectional(-1.0, 0.0),
                               child: Text(
-                                valueOrDefault<String>(
-                                  _model.loadStory?.category,
-                                  '일반',
-                                ),
+                                storymainpageStoriesRecord.category,
                                 style: FlutterFlowTheme.of(context)
                                     .bodyMedium
                                     .override(
@@ -310,10 +293,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                 padding: EdgeInsetsDirectional.fromSTEB(
                                     0.0, 20.0, 0.0, 20.0),
                                 child: Text(
-                                  valueOrDefault<String>(
-                                    _model.loadStory?.description,
-                                    '설명없음',
-                                  ),
+                                  storymainpageStoriesRecord.description,
                                   style: FlutterFlowTheme.of(context)
                                       .bodyMedium
                                       .override(
@@ -345,10 +325,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                     0.0, 0.0, 0.0, 20.0),
                                 child: Builder(
                                   builder: (context) {
-                                    final hashtagItem = (_model
-                                                .loadedStory?.hashtags
-                                                .toList() ??
-                                            [])
+                                    final hashtag = storymainpageStoriesRecord
+                                        .hashtags
+                                        .toList()
                                         .take(10)
                                         .toList();
 
@@ -362,13 +341,12 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                       runAlignment: WrapAlignment.start,
                                       verticalDirection: VerticalDirection.down,
                                       clipBehavior: Clip.none,
-                                      children:
-                                          List.generate(hashtagItem.length,
-                                              (hashtagItemIndex) {
-                                        final hashtagItemItem =
-                                            hashtagItem[hashtagItemIndex];
+                                      children: List.generate(hashtag.length,
+                                          (hashtagIndex) {
+                                        final hashtagItem =
+                                            hashtag[hashtagIndex];
                                         return Text(
-                                          '# ${hashtagItemItem}',
+                                          '# ${hashtagItem}',
                                           style: FlutterFlowTheme.of(context)
                                               .bodyMedium
                                               .override(
@@ -436,56 +414,79 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                 ),
                               ),
                             ),
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 10.0, 0.0, 10.0),
-                              child: Container(
-                                height: 250.0,
-                                child: Builder(
-                                  builder: (context) {
-                                    final item2 = _model.loadedStory?.characters
-                                            .toList() ??
-                                        [];
+                            Align(
+                              alignment: AlignmentDirectional(-1.0, 0.0),
+                              child: Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    0.0, 10.0, 0.0, 10.0),
+                                child: Container(
+                                  height: 250.0,
+                                  child: Builder(
+                                    builder: (context) {
+                                      final characters =
+                                          storymainpageStoriesRecord.characters
+                                              .toList();
 
-                                    return ListView.separated(
-                                      padding: EdgeInsets.zero,
-                                      shrinkWrap: true,
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: item2.length,
-                                      separatorBuilder: (_, __) =>
-                                          SizedBox(width: 20.0),
-                                      itemBuilder: (context, item2Index) {
-                                        final item2Item = item2[item2Index];
-                                        return Container(
-                                          width: 150.0,
-                                          height: 250.0,
-                                          decoration: BoxDecoration(),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.max,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                                child: Image.network(
-                                                  item2Item.image,
+                                      return ListView.separated(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        scrollDirection: Axis.horizontal,
+                                        itemCount: characters.length,
+                                        separatorBuilder: (_, __) =>
+                                            SizedBox(width: 20.0),
+                                        itemBuilder:
+                                            (context, charactersIndex) {
+                                          final charactersItem =
+                                              characters[charactersIndex];
+                                          return Container(
+                                            width: 150.0,
+                                            height: 250.0,
+                                            decoration: BoxDecoration(),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.max,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
                                                   width: 150.0,
                                                   height: 150.0,
-                                                  fit: BoxFit.cover,
+                                                  decoration: BoxDecoration(
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondaryBackground,
+                                                    image: DecorationImage(
+                                                      fit: BoxFit.cover,
+                                                      image: Image.network(
+                                                        functions
+                                                            .stringToImagePath(
+                                                                charactersItem
+                                                                    .profileimage),
+                                                      ).image,
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                              Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        0.0, 10.0, 0.0, 5.0),
-                                                child: Text(
-                                                  item2Item.name,
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
+                                                Padding(
+                                                  padding: EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                          0.0, 10.0, 0.0, 5.0),
+                                                  child: Text(
+                                                    charactersItem.name,
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font:
+                                                              GoogleFonts.inter(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          fontSize: 18.0,
+                                                          letterSpacing: 0.0,
                                                           fontWeight:
                                                               FontWeight.w600,
                                                           fontStyle:
@@ -494,26 +495,32 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                                   .bodyMedium
                                                                   .fontStyle,
                                                         ),
-                                                        fontSize: 18.0,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontStyle:
+                                                  ),
+                                                ),
+                                                Text(
+                                                  charactersItem.introduce,
+                                                  maxLines: 2,
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font: GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        color:
                                                             FlutterFlowTheme.of(
                                                                     context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                                ),
-                                              ),
-                                              Text(
-                                                item2Item.introduce,
-                                                maxLines: 2,
-                                                style: FlutterFlowTheme.of(
-                                                        context)
-                                                    .bodyMedium
-                                                    .override(
-                                                      font: GoogleFonts.inter(
+                                                                .secondaryText,
+                                                        letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -525,30 +532,16 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                                 .bodyMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .secondaryText,
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
@@ -583,12 +576,24 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                         ),
                                   ),
                                 ),
-                                Text(
-                                  'Hello World',
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .override(
-                                        font: GoogleFonts.inter(
+                                Align(
+                                  alignment: AlignmentDirectional(-1.0, 0.0),
+                                  child: Text(
+                                    storymainpageStoriesRecord.detailmode,
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          font: GoogleFonts.inter(
+                                            fontWeight:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMedium
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMedium
+                                                    .fontStyle,
+                                          ),
+                                          letterSpacing: 0.0,
                                           fontWeight:
                                               FlutterFlowTheme.of(context)
                                                   .bodyMedium
@@ -598,21 +603,13 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                   .bodyMedium
                                                   .fontStyle,
                                         ),
-                                        letterSpacing: 0.0,
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
+                                  ),
                                 ),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8.0),
                                   child: Image.network(
-                                    'https://picsum.photos/seed/117/600',
-                                    width: 200.0,
-                                    height: 200.0,
+                                    storymainpageStoriesRecord.detailimage,
+                                    width: double.infinity,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -652,47 +649,71 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 20.0, 0.0, 0.0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius:
-                                          BorderRadius.circular(100.0),
-                                      border: Border.all(
-                                        color: FlutterFlowTheme.of(context)
-                                            .alternate,
-                                        width: 1.0,
-                                      ),
-                                    ),
-                                    child: AuthUserStreamWidget(
-                                      builder: (context) => Container(
+                              child: StreamBuilder<UsersRecord>(
+                                stream: UsersRecord.getDocument(
+                                    storymainpageStoriesRecord.creatorRef!),
+                                builder: (context, snapshot) {
+                                  // Customize what your widget looks like when it's loading.
+                                  if (!snapshot.hasData) {
+                                    return Center(
+                                      child: SizedBox(
                                         width: 50.0,
                                         height: 50.0,
-                                        clipBehavior: Clip.antiAlias,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Image.network(
-                                          valueOrDefault<String>(
-                                            currentUserPhoto,
-                                            '\" \"',
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                            FlutterFlowTheme.of(context)
+                                                .primary,
                                           ),
-                                          fit: BoxFit.cover,
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        20.0, 0.0, 0.0, 0.0),
-                                    child: AuthUserStreamWidget(
-                                      builder: (context) => Text(
-                                        currentUserDisplayName,
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .override(
-                                              font: GoogleFonts.inter(
+                                    );
+                                  }
+
+                                  final rowUsersRecord = snapshot.data!;
+
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Container(
+                                        width: 60.0,
+                                        height: 60.0,
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            fit: BoxFit.cover,
+                                            image: Image.network(
+                                              rowUsersRecord.photoUrl,
+                                            ).image,
+                                          ),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: FlutterFlowTheme.of(context)
+                                                .alternate,
+                                            width: 1.0,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            20.0, 0.0, 0.0, 0.0),
+                                        child: Text(
+                                          rowUsersRecord.displayName,
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyLarge
+                                              .override(
+                                                font: GoogleFonts.inter(
+                                                  fontWeight:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyLarge
+                                                          .fontWeight,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyLarge
+                                                          .fontStyle,
+                                                ),
+                                                letterSpacing: 0.0,
                                                 fontWeight:
                                                     FlutterFlowTheme.of(context)
                                                         .bodyLarge
@@ -702,20 +723,11 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                         .bodyLarge
                                                         .fontStyle,
                                               ),
-                                              letterSpacing: 0.0,
-                                              fontWeight:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyLarge
-                                                      .fontWeight,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyLarge
-                                                      .fontStyle,
-                                            ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ],
+                                    ],
+                                  );
+                                },
                               ),
                             ),
                             Align(
@@ -724,10 +736,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                 padding: EdgeInsetsDirectional.fromSTEB(
                                     0.0, 20.0, 0.0, 20.0),
                                 child: Text(
-                                  valueOrDefault<String>(
-                                    _model.loadedStory?.authorNotes,
-                                    'No comment',
-                                  ),
+                                  storymainpageStoriesRecord.authorNotes,
                                   style: FlutterFlowTheme.of(context)
                                       .bodyMedium
                                       .override(
@@ -793,8 +802,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                           queryBuilder: (commentsRecord) =>
                                               commentsRecord.where(
                                             'story_ref',
-                                            isEqualTo:
-                                                _model.loadedStory?.reference,
+                                            isEqualTo: widget.storyRef,
                                           ),
                                         ),
                                         builder: (context, snapshot) {
@@ -868,7 +876,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                         StorycommentlistpageWidget.routeName,
                                         queryParameters: {
                                           'storyRef': serializeParam(
-                                            widget.storymainRef,
+                                            widget.storyRef,
                                             ParamType.DocumentReference,
                                           ),
                                         }.withoutNulls,
@@ -915,7 +923,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                       commentsRecord
                                           .where(
                                             'story_ref',
-                                            isEqualTo: widget.storymainRef,
+                                            isEqualTo: widget.storyRef,
                                           )
                                           .where(
                                             'parent_comment_ref',
@@ -1163,101 +1171,79 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                             ],
                             borderRadius: BorderRadius.circular(10.0),
                           ),
-                          child: Builder(
-                            builder: (context) => FFButtonWidget(
-                              onPressed: () async {
-                                _model.existingChat =
-                                    await queryStorychatsRecordOnce(
-                                  queryBuilder: (storychatsRecord) =>
-                                      storychatsRecord
-                                          .where(
-                                            'user_ref',
-                                            isEqualTo: currentUserReference,
-                                          )
-                                          .where(
-                                            'story_ref',
-                                            isEqualTo: widget.storymainRef,
-                                          ),
-                                );
-                                if (_model.existingChat != null &&
-                                    (_model.existingChat)!.isNotEmpty) {
-                                  context.pushNamed(
-                                    StorychatpageWidget.routeName,
-                                    queryParameters: {
-                                      'storyRef': serializeParam(
-                                        _model.existingChat?.firstOrNull
-                                            ?.storyRef,
-                                        ParamType.DocumentReference,
-                                      ),
-                                      'userInChatName': serializeParam(
-                                        _model.existingChat?.firstOrNull
-                                            ?.userInChatName,
-                                        ParamType.String,
-                                      ),
-                                      'storychatRef': serializeParam(
-                                        _model.existingChat?.firstOrNull
-                                            ?.reference,
-                                        ParamType.DocumentReference,
-                                      ),
-                                      'isNovelMode': serializeParam(
-                                        _model.existingChat?.firstOrNull
-                                            ?.isNovelMode,
-                                        ParamType.bool,
-                                      ),
-                                    }.withoutNulls,
-                                  );
-                                } else {
-                                  await showDialog(
-                                    context: context,
-                                    builder: (dialogContext) {
-                                      return Dialog(
-                                        elevation: 0,
-                                        insetPadding: EdgeInsets.zero,
-                                        backgroundColor: Colors.transparent,
-                                        alignment:
-                                            AlignmentDirectional(0.0, 0.0)
-                                                .resolve(
-                                                    Directionality.of(context)),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            FocusScope.of(dialogContext)
-                                                .unfocus();
-                                            FocusManager.instance.primaryFocus
-                                                ?.unfocus();
-                                          },
-                                          child: ModeselectcomponentWidget(
-                                            storydoc:
-                                                storymainpageStoriesRecord,
-                                          ),
+                          child: FFButtonWidget(
+                            onPressed: () async {
+                              _model.foundChat =
+                                  await queryStorychatsRecordOnce(
+                                queryBuilder: (storychatsRecord) =>
+                                    storychatsRecord
+                                        .where(
+                                          'user_ref',
+                                          isEqualTo: currentUserReference,
+                                        )
+                                        .where(
+                                          'story_ref',
+                                          isEqualTo: widget.storyRef,
                                         ),
-                                      );
-                                    },
-                                  );
-                                }
-
-                                safeSetState(() {});
-                              },
-                              text: '시작하기',
-                              options: FFButtonOptions(
-                                height: 50.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    16.0, 0.0, 16.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                color: Color(0xFFFFD1BA),
-                                textStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .override(
-                                      font: GoogleFonts.interTight(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .titleSmall
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .titleSmall
-                                            .fontStyle,
+                                singleRecord: true,
+                              ).then((s) => s.firstOrNull);
+                              if (_model.foundChat?.reference != null) {
+                                context.pushNamed(
+                                  StorychatpageWidget.routeName,
+                                  queryParameters: {
+                                    'storychatRef': serializeParam(
+                                      _model.foundChat?.reference,
+                                      ParamType.DocumentReference,
+                                    ),
+                                    'userInChatName': serializeParam(
+                                      _model.foundChat?.userInChatName,
+                                      ParamType.String,
+                                    ),
+                                    'isNovelMode': serializeParam(
+                                      _model.foundChat?.isNovelMode,
+                                      ParamType.bool,
+                                    ),
+                                  }.withoutNulls,
+                                );
+                              } else {
+                                await showModalBottomSheet(
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  enableDrag: false,
+                                  context: context,
+                                  builder: (context) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        FocusScope.of(context).unfocus();
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus();
+                                      },
+                                      child: Padding(
+                                        padding:
+                                            MediaQuery.viewInsetsOf(context),
+                                        child: ModeselectcomponentWidget(
+                                          storydoc: storymainpageStoriesRecord,
+                                        ),
                                       ),
-                                      color: Colors.white,
-                                      letterSpacing: 0.0,
+                                    );
+                                  },
+                                ).then((value) => safeSetState(() {}));
+                              }
+
+                              safeSetState(() {});
+                            },
+                            text: '시작하기',
+                            options: FFButtonOptions(
+                              height: 50.0,
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 0.0, 16.0, 0.0),
+                              iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 0.0, 0.0, 0.0),
+                              color: Color(0xFFFFD1BA),
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .titleSmall
+                                  .override(
+                                    font: GoogleFonts.interTight(
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .titleSmall
                                           .fontWeight,
@@ -1265,9 +1251,17 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                           .titleSmall
                                           .fontStyle,
                                     ),
-                                elevation: 0.0,
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
+                                  ),
+                              elevation: 0.0,
+                              borderRadius: BorderRadius.circular(8.0),
                             ),
                           ),
                         ),

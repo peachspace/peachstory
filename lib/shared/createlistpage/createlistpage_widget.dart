@@ -6,9 +6,7 @@ import '/shared/createlisteditanddeletesheet/createlisteditanddeletesheet_widget
 import '/shared/loginpage/loginpage_widget.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'createlistpage_model.dart';
 export 'createlistpage_model.dart';
 
@@ -32,9 +30,6 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
     super.initState();
     _model = createModel(context, () => CreatelistpageModel());
 
-    // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {});
-
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -47,8 +42,6 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -198,7 +191,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                                   context.pushNamed(
                                     StorymainpageWidget.routeName,
                                     queryParameters: {
-                                      'storymainRef': serializeParam(
+                                      'storyRef': serializeParam(
                                         listViewStoriesRecord.reference,
                                         ParamType.DocumentReference,
                                       ),
@@ -284,7 +277,8 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                                                   .fromSTEB(
                                                       0.0, 0.0, 12.0, 0.0),
                                               child: Text(
-                                                listViewStoriesRecord.category,
+                                                listViewStoriesRecord
+                                                    .description,
                                                 style: FlutterFlowTheme.of(
                                                         context)
                                                     .labelSmall

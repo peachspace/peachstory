@@ -160,7 +160,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                       ),
                       Padding(
                         padding:
-                            EdgeInsetsDirectional.fromSTEB(3.0, 0.0, 0.0, 0.0),
+                            EdgeInsetsDirectional.fromSTEB(5.0, 0.0, 0.0, 0.0),
                         child: Text(
                           '1',
                           style: FlutterFlowTheme.of(context)
@@ -1156,12 +1156,19 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                             child: Image.network(
                               _model.profileimage != null &&
                                       _model.profileimage != ''
-                                  ? functions
-                                      .stringToImagePath(_model.profileimage!)
-                                  : functions.stringToImagePath(FFAppState()
-                                      .Characters
-                                      .elementAtOrNull(widget.index!)!
-                                      .profileimage),
+                                  ? valueOrDefault<String>(
+                                      functions.stringToImagePath(
+                                          _model.profileimage!),
+                                      '\"\"',
+                                    )
+                                  : functions
+                                      .stringToImagePath(valueOrDefault<String>(
+                                      FFAppState()
+                                          .Characters
+                                          .elementAtOrNull(widget.index!)
+                                          ?.profileimage,
+                                      '\"\"',
+                                    )),
                               width: 200.0,
                               height: 200.0,
                               fit: BoxFit.cover,
@@ -1345,7 +1352,10 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                     borderRadius: BorderRadius.circular(10.0),
                                     child: Image.network(
                                       functions.stringToImagePath(
-                                          emotionItemItem.imageurl),
+                                          valueOrDefault<String>(
+                                        emotionItemItem.imageurl,
+                                        '\"\"',
+                                      )),
                                       width: 70.0,
                                       height: 70.0,
                                       fit: BoxFit.cover,
@@ -1520,7 +1530,10 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                   borderRadius: BorderRadius.circular(10.0),
                                   child: Image.network(
                                     functions.stringToImagePath(
-                                        situationtemItem.imageUrl),
+                                        valueOrDefault<String>(
+                                      situationtemItem.imageUrl,
+                                      '\"\"',
+                                    )),
                                     width: 70.0,
                                     height: 70.0,
                                     fit: BoxFit.cover,

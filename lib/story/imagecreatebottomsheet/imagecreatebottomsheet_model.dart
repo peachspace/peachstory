@@ -1,3 +1,5 @@
+import '/backend/backend.dart';
+import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
 import 'imagecreatebottomsheet_widget.dart' show ImagecreatebottomsheetWidget;
@@ -13,7 +15,10 @@ class ImagecreatebottomsheetModel
 
   bool isGenerating = false;
 
-  String? selectedCharImage;
+  CharacterStructStruct? selectedCharImage;
+  void updateSelectedCharImageStruct(Function(CharacterStructStruct) updateFn) {
+    updateFn(selectedCharImage ??= CharacterStructStruct());
+  }
 
   int? generatedSeed;
 
@@ -52,6 +57,8 @@ class ImagecreatebottomsheetModel
   String? suggestedsituationPrompt;
   // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
   String? suggestedbackgroundPrompt;
+  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
+  String? suggestedmainPrompt;
   // Stores action output result for [Custom Action - translateToEnglish] action in aicreateimagebutton widget.
   String? englishPrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
@@ -62,6 +69,8 @@ class ImagecreatebottomsheetModel
   dynamic situationImageResult;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   dynamic backgroundimageResult;
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
+  dynamic mainimageResult;
   bool isDataUploading_downloadUrl = false;
   FFUploadedFile uploadedLocalFile_downloadUrl =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');

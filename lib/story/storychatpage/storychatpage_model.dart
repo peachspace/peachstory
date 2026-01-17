@@ -24,7 +24,7 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
           int index, Function(StoryChatMessageStructStruct) updateFn) =>
       chatMessages[index] = updateFn(chatMessages[index]);
 
-  StoriesRecord? currentStory;
+  StoriesRecord? currentdoc;
 
   String title = '\" \"';
 
@@ -78,20 +78,12 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  // Stores action output result for [Backend Call - Read Document] action in storychatpage widget.
-  StoriesRecord? storyDoc;
-  // Stores action output result for [Firestore Query - Query a collection] action in storychatpage widget.
-  List<StorychatsRecord>? existingChatRoom;
   // Stores action output result for [Custom Action - getRecentHistoryAsJson] action in storychatpage widget.
   List<dynamic>? messagesAsJson;
-  // Stores action output result for [Backend Call - Create Document] action in storychatpage widget.
-  StorychatsRecord? newChatRef;
-  // Stores action output result for [Custom Action - callAiProxy] action in storychatpage widget.
-  String? aitext;
   // Stores action output result for [Bottom Sheet - storychatsettingcomponent] action in storychatsettingbutton widget.
   String? chosenModel;
-  // Stores action output result for [Custom Action - getRecentHistoryAsJson] action in NotifierChatList widget.
-  List<dynamic>? updatedHistoryJson;
+  // Stores action output result for [Custom Action - processAndSaveChatTurn] action in NotifierChatList widget.
+  List<StoryChatMessageStructStruct>? newMessages;
   // Stores action output result for [Custom Action - getPreviousChatHistory] action in NotifierChatList widget.
   List<dynamic>? olderMessages;
   // State field(s) for messageTextField widget.
@@ -101,8 +93,6 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
       messageTextFieldTextControllerValidator;
   // Stores action output result for [Custom Action - getAndProcessHistory] action in messagesendbutton widget.
   List<dynamic>? formattedHistory;
-  // Stores action output result for [Backend Call - Read Document] action in messagesendbutton widget.
-  StorychatsRecord? updatedChatDoc;
   // Stores action output result for [Custom Action - getPointCostAction] action in messagesendbutton widget.
   int? pointsToDeduct;
   // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in messagesendbutton widget.
@@ -113,8 +103,6 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   List<StoryChatMessageStructStruct>? cleanList;
   // Stores action output result for [Custom Action - getAndProcessHistory] action in continuebutton widget.
   List<dynamic>? formattedHistory1;
-  // Stores action output result for [Backend Call - Read Document] action in continuebutton widget.
-  StorychatsRecord? updatedChatDoc1;
   // Stores action output result for [Custom Action - getPointCostAction] action in continuebutton widget.
   int? pointsToDeduct1;
   // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in continuebutton widget.

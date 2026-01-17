@@ -1,3 +1,4 @@
+import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -13,9 +14,11 @@ class StoryusernameentercomponentWidget extends StatefulWidget {
   const StoryusernameentercomponentWidget({
     super.key,
     required this.storydoc,
+    required this.novelmode,
   });
 
   final StoriesRecord? storydoc;
+  final bool? novelmode;
 
   @override
   State<StoryusernameentercomponentWidget> createState() =>
@@ -210,6 +213,40 @@ class _StoryusernameentercomponentWidgetState
                   ),
                   showLoadingIndicator: true,
                   onPressed: () async {
+                    var storychatsRecordReference =
+                        StorychatsRecord.collection.doc();
+                    await storychatsRecordReference
+                        .set(createStorychatsRecordData(
+                      storyRef: widget.storydoc?.reference,
+                      userRef: currentUserReference,
+                      userInChatName: _model.textController.text,
+                      selectedAiModel: '',
+                      creatorRef: widget.storydoc?.creatorRef,
+                      isNovelMode: widget.novelmode,
+                    ));
+                    _model.newChatDoc = StorychatsRecord.getDocumentFromData(
+                        createStorychatsRecordData(
+                          storyRef: widget.storydoc?.reference,
+                          userRef: currentUserReference,
+                          userInChatName: _model.textController.text,
+                          selectedAiModel: '',
+                          creatorRef: widget.storydoc?.creatorRef,
+                          isNovelMode: widget.novelmode,
+                        ),
+                        storychatsRecordReference);
+
+                    await StorymessagesRecord.createDoc(
+                            _model.newChatDoc!.reference)
+                        .set(createStorymessagesRecordData(
+                      text: widget.storydoc?.prologuetext,
+                      type: 'narration',
+                      timestamp: getCurrentTimestamp,
+                      speakerName: 'ai',
+                      chatRef: _model.newChatDoc?.reference,
+                      storyImageUrl: widget.storydoc?.prologueimage,
+                      role: 'assistant',
+                    ));
+
                     context.pushNamed(
                       StorychatpageWidget.routeName,
                       queryParameters: {
@@ -221,12 +258,18 @@ class _StoryusernameentercomponentWidgetState
                           _model.textController.text,
                           ParamType.String,
                         ),
+                        'storychatRef': serializeParam(
+                          _model.newChatDoc?.reference,
+                          ParamType.DocumentReference,
+                        ),
                         'isNovelMode': serializeParam(
-                          false,
+                          widget.novelmode,
                           ParamType.bool,
                         ),
                       }.withoutNulls,
                     );
+
+                    safeSetState(() {});
                   },
                 ),
               ],

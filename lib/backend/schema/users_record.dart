@@ -75,6 +75,11 @@ class UsersRecord extends FirestoreRecord {
   int get earnings => _earnings ?? 0;
   bool hasEarnings() => _earnings != null;
 
+  // "heartedstory" field.
+  List<DocumentReference>? _heartedstory;
+  List<DocumentReference> get heartedstory => _heartedstory ?? const [];
+  bool hasHeartedstory() => _heartedstory != null;
+
   void _initializeFields() {
     _email = snapshotData['email'] as String?;
     _displayName = snapshotData['display_name'] as String?;
@@ -88,6 +93,7 @@ class UsersRecord extends FirestoreRecord {
     _heartedPostPaths = getDataList(snapshotData['hearted_post_paths']);
     _isCreator = snapshotData['isCreator'] as bool?;
     _earnings = castToType<int>(snapshotData['earnings']);
+    _heartedstory = getDataList(snapshotData['heartedstory']);
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -173,7 +179,8 @@ class UsersRecordDocumentEquality implements Equality<UsersRecord> {
         e1?.lastCheckInDate == e2?.lastCheckInDate &&
         listEquality.equals(e1?.heartedPostPaths, e2?.heartedPostPaths) &&
         e1?.isCreator == e2?.isCreator &&
-        e1?.earnings == e2?.earnings;
+        e1?.earnings == e2?.earnings &&
+        listEquality.equals(e1?.heartedstory, e2?.heartedstory);
   }
 
   @override
@@ -189,7 +196,8 @@ class UsersRecordDocumentEquality implements Equality<UsersRecord> {
         e?.lastCheckInDate,
         e?.heartedPostPaths,
         e?.isCreator,
-        e?.earnings
+        e?.earnings,
+        e?.heartedstory
       ]);
 
   @override

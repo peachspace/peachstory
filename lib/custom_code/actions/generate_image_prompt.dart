@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'index.dart'; // Imports other custom actions
-
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> generateImagePrompt(
@@ -23,7 +21,7 @@ Future<String> generateImagePrompt(
   String finalInput = contextInput.trim().isEmpty ? "Random" : contextInput;
 
   // =========================================================
-  // 1. [Trigger Mode] 조건문 생성 (예: "학교" -> "학교에 도착할 때")
+  // 1. [Trigger Mode] 조건문 생성
   // =========================================================
   if (mode.endsWith("_trigger")) {
     if (mode == "background_trigger") {
@@ -48,7 +46,7 @@ RULES:
     }
   }
   // =========================================================
-  // 2. [Image Mode] 시각적 태그 생성 (예: "학교..." -> "sky, building...")
+  // 2. [Image Mode] 시각적 태그 생성
   // =========================================================
   else {
     // 공통 규칙: 시각적 태그만 출력
@@ -73,6 +71,23 @@ $baseRules
 4. IMPORTANT: Describe the Character's looks from 'Base Context'.
 5. Start with: "masterpiece, best quality, anime style, solo".
 """;
+    } else if (mode == "main_image") {
+      // [★ 추가된 부분] 메인 이미지 (표지/대표 이미지) 생성 로직
+      systemPrompt = """
+$baseRules
+3. Focus on a High-Quality PORTRAIT or Key Visual for a novel cover.
+4. 'Base Context' contains the Main Character's appearance. USE IT.
+5. 'User Input' contains the Background/Atmosphere or Theme.
+6. Start with: "masterpiece, best quality, anime style, solo, cinematic lighting, looking at viewer".
+""";
+    } else if (mode == "emotion") {
+      // [★ 추가 추천] 감정 표현 극대화 모드
+      systemPrompt = """
+$baseRules
+3. Focus ONLY on the Character's Facial Expression and Emotion.
+4. IMPORTANT: Describe the Character's looks from 'Base Context'.
+5. Start with: "masterpiece, best quality, anime style, solo, extreme close-up, expressive face".
+""";
     } else {
       // Character Mode (기존 유지)
       systemPrompt = """
@@ -95,7 +110,7 @@ Request: Generate the output according to the system rules.
     final HttpsCallable callable =
         FirebaseFunctions.instance.httpsCallable('callAiProxy');
     final result = await callable.call(<String, dynamic>{
-      'modelName': 'gpt-4o-mini', // 또는 gpt-4o
+      'modelName': 'gpt-4o-mini',
       'systemPrompt': systemPrompt,
       'messages': [
         {'role': 'user', 'content': userPrompt}

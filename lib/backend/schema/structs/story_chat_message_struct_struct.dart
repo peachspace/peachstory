@@ -12,17 +12,19 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
     String? type,
     bool? isStreaming,
     String? speakerName,
-    String? speakerImage,
     String? actionText,
     String? storyImageUrl,
+    DateTime? timestamp,
+    String? role,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _text = text,
         _type = type,
         _isStreaming = isStreaming,
         _speakerName = speakerName,
-        _speakerImage = speakerImage,
         _actionText = actionText,
         _storyImageUrl = storyImageUrl,
+        _timestamp = timestamp,
+        _role = role,
         super(firestoreUtilData);
 
   // "text" field.
@@ -53,13 +55,6 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
 
   bool hasSpeakerName() => _speakerName != null;
 
-  // "speakerImage" field.
-  String? _speakerImage;
-  String get speakerImage => _speakerImage ?? '';
-  set speakerImage(String? val) => _speakerImage = val;
-
-  bool hasSpeakerImage() => _speakerImage != null;
-
   // "actionText" field.
   String? _actionText;
   String get actionText => _actionText ?? '';
@@ -74,15 +69,30 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
 
   bool hasStoryImageUrl() => _storyImageUrl != null;
 
+  // "timestamp" field.
+  DateTime? _timestamp;
+  DateTime? get timestamp => _timestamp;
+  set timestamp(DateTime? val) => _timestamp = val;
+
+  bool hasTimestamp() => _timestamp != null;
+
+  // "role" field.
+  String? _role;
+  String get role => _role ?? '';
+  set role(String? val) => _role = val;
+
+  bool hasRole() => _role != null;
+
   static StoryChatMessageStructStruct fromMap(Map<String, dynamic> data) =>
       StoryChatMessageStructStruct(
         text: data['text'] as String?,
         type: data['type'] as String?,
         isStreaming: data['isStreaming'] as bool?,
         speakerName: data['speakerName'] as String?,
-        speakerImage: data['speakerImage'] as String?,
         actionText: data['actionText'] as String?,
         storyImageUrl: data['storyImageUrl'] as String?,
+        timestamp: data['timestamp'] as DateTime?,
+        role: data['role'] as String?,
       );
 
   static StoryChatMessageStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -94,9 +104,10 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
         'type': _type,
         'isStreaming': _isStreaming,
         'speakerName': _speakerName,
-        'speakerImage': _speakerImage,
         'actionText': _actionText,
         'storyImageUrl': _storyImageUrl,
+        'timestamp': _timestamp,
+        'role': _role,
       }.withoutNulls;
 
   @override
@@ -117,16 +128,20 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
           _speakerName,
           ParamType.String,
         ),
-        'speakerImage': serializeParam(
-          _speakerImage,
-          ParamType.String,
-        ),
         'actionText': serializeParam(
           _actionText,
           ParamType.String,
         ),
         'storyImageUrl': serializeParam(
           _storyImageUrl,
+          ParamType.String,
+        ),
+        'timestamp': serializeParam(
+          _timestamp,
+          ParamType.DateTime,
+        ),
+        'role': serializeParam(
+          _role,
           ParamType.String,
         ),
       }.withoutNulls;
@@ -154,11 +169,6 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        speakerImage: deserializeParam(
-          data['speakerImage'],
-          ParamType.String,
-          false,
-        ),
         actionText: deserializeParam(
           data['actionText'],
           ParamType.String,
@@ -166,6 +176,16 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
         ),
         storyImageUrl: deserializeParam(
           data['storyImageUrl'],
+          ParamType.String,
+          false,
+        ),
+        timestamp: deserializeParam(
+          data['timestamp'],
+          ParamType.DateTime,
+          false,
+        ),
+        role: deserializeParam(
+          data['role'],
           ParamType.String,
           false,
         ),
@@ -194,11 +214,6 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        speakerImage: convertAlgoliaParam(
-          data['speakerImage'],
-          ParamType.String,
-          false,
-        ),
         actionText: convertAlgoliaParam(
           data['actionText'],
           ParamType.String,
@@ -206,6 +221,16 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
         ),
         storyImageUrl: convertAlgoliaParam(
           data['storyImageUrl'],
+          ParamType.String,
+          false,
+        ),
+        timestamp: convertAlgoliaParam(
+          data['timestamp'],
+          ParamType.DateTime,
+          false,
+        ),
+        role: convertAlgoliaParam(
+          data['role'],
           ParamType.String,
           false,
         ),
@@ -225,9 +250,10 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
         type == other.type &&
         isStreaming == other.isStreaming &&
         speakerName == other.speakerName &&
-        speakerImage == other.speakerImage &&
         actionText == other.actionText &&
-        storyImageUrl == other.storyImageUrl;
+        storyImageUrl == other.storyImageUrl &&
+        timestamp == other.timestamp &&
+        role == other.role;
   }
 
   @override
@@ -236,9 +262,10 @@ class StoryChatMessageStructStruct extends FFFirebaseStruct {
         type,
         isStreaming,
         speakerName,
-        speakerImage,
         actionText,
-        storyImageUrl
+        storyImageUrl,
+        timestamp,
+        role
       ]);
 }
 
@@ -247,9 +274,10 @@ StoryChatMessageStructStruct createStoryChatMessageStructStruct({
   String? type,
   bool? isStreaming,
   String? speakerName,
-  String? speakerImage,
   String? actionText,
   String? storyImageUrl,
+  DateTime? timestamp,
+  String? role,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
@@ -260,9 +288,10 @@ StoryChatMessageStructStruct createStoryChatMessageStructStruct({
       type: type,
       isStreaming: isStreaming,
       speakerName: speakerName,
-      speakerImage: speakerImage,
       actionText: actionText,
       storyImageUrl: storyImageUrl,
+      timestamp: timestamp,
+      role: role,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,
