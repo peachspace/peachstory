@@ -207,11 +207,25 @@ List<StoryChatMessageStructStruct> mapJsonToStoryChatStructs(
     return [];
   }
 
-  // 👇 생성하는 Struct를 StoryChatMessageStruct로 수정
-  return jsonList
-      .map((json) =>
-          StoryChatMessageStructStruct.fromMap(json as Map<String, dynamic>))
-      .toList();
+  return jsonList.map((json) {
+    final data = json as Map<String, dynamic>;
+    return StoryChatMessageStructStruct(
+      // Firestore의 'text' 또는 'content' 필드를 앱의 'text'로 연결
+      text: data['text'] ?? data['content'] ?? '',
+
+      // Firestore의 'type' (narration 등) 연결. 없으면 narration 기본값.
+      type: data['type'] ?? 'narration',
+
+      // [핵심!] Firestore는 snake_case, 앱은 camelCase일 수 있음. 둘 다 체크.
+      speakerName: data['speaker_name'] ?? data['speakerName'] ?? 'ai',
+
+      // 이미지 URL 연결
+      storyImageUrl: data['story_image_url'] ?? data['storyImageUrl'],
+
+      // Role 연결 (필요 시)
+      // role: data['role'] ?? 'assistant',
+    );
+  }).toList();
 }
 
 String formatNumberCompact(int count) {

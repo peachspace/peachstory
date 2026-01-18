@@ -220,7 +220,7 @@ class _StoryusernameentercomponentWidgetState
                       storyRef: widget.storydoc?.reference,
                       userRef: currentUserReference,
                       userInChatName: _model.textController.text,
-                      selectedAiModel: '',
+                      selectedAiModel: 'gpt-4o',
                       creatorRef: widget.storydoc?.creatorRef,
                       isNovelMode: widget.novelmode,
                     ));
@@ -229,7 +229,7 @@ class _StoryusernameentercomponentWidgetState
                           storyRef: widget.storydoc?.reference,
                           userRef: currentUserReference,
                           userInChatName: _model.textController.text,
-                          selectedAiModel: '',
+                          selectedAiModel: 'gpt-4o',
                           creatorRef: widget.storydoc?.creatorRef,
                           isNovelMode: widget.novelmode,
                         ),

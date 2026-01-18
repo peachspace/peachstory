@@ -65,7 +65,6 @@ class _NotifierChatListState extends State<NotifierChatList>
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
 
-    // 스크롤 리스너: 맨 위로 올렸는지 감지
     _scrollController.addListener(() {
       if (_scrollController.hasClients &&
           _scrollController.position.atEdge &&
@@ -93,16 +92,31 @@ class _NotifierChatListState extends State<NotifierChatList>
   @override
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    // 1. 메시지 리스트 업데이트 로직
     if (widget.initialMessages != null && !_isTyping) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
       bool shouldUpdate = false;
+
+      // [핵심 수정] "생각 중" 메시지가 떠있는 상태인지 확인
+      bool isThinking = currentList.isNotEmpty &&
+          (currentList.last.type == 'thinking' ||
+              currentList.last.text == '생각 중');
+
+      // 부모 리스트가 더 짧은 경우 (DB 로딩 지연 등으로 인해)
+      // 단, "생각 중" 메시지를 지우고 진짜 메시지로 교체되는 순간이라면 업데이트를 허용해야 함
+      if (parentList.length < currentList.length && !isThinking) {
+        // 생각 중인 상황이 아닌데 리스트가 줄어들었다면 -> 로딩 에러로 간주하고 무시
+        return;
+      }
 
       if (parentList.length != currentList.length) {
         shouldUpdate = true;
       } else if (parentList.isNotEmpty && currentList.isNotEmpty) {
         final p = parentList.last;
         final c = currentList.last;
+        // 내용이 바뀌었거나 타입이 바뀌었으면 업데이트
         if (p.text != c.text ||
             p.type != c.type ||
             p.storyImageUrl != c.storyImageUrl) {
@@ -116,6 +130,7 @@ class _NotifierChatListState extends State<NotifierChatList>
           if (currentList.isEmpty) {
             addedAtBottom = true;
           } else {
+            // 마지막 메시지가 달라졌다면 새 메시지 추가로 간주
             if (parentList.last.text != currentList.last.text) {
               addedAtBottom = true;
             }
@@ -130,11 +145,22 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
     }
 
+    // 2. 타이핑(연출) 시작 트리거 로직
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
         !widget.newResponseScript.contains("BLOCKED_CONTENT")) {
+      // 이미 타이핑 중이면 무시
       if (_isTyping) return;
+
+      // [수정] 타이핑 시작 전 "생각 중" 메시지가 있다면 제거 (시각적 깔끔함)
+      final currentList =
+          List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
+      if (currentList.isNotEmpty && currentList.last.type == 'thinking') {
+        currentList.removeLast();
+        _messagesNotifier.value = currentList;
+      }
+
       SchedulerBinding.instance.addPostFrameCallback((_) => _startDirecting());
     }
   }
@@ -207,7 +233,6 @@ class _NotifierChatListState extends State<NotifierChatList>
           text: '',
           speakerName: '',
           actionText: '',
-          // speakerImage: '',  <-- [삭제됨]
         );
         _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
         _jumpToBottom();
@@ -248,7 +273,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     final String speaker = (scene['speaker'] ?? '').toString();
     final String action = (scene['action'] ?? '').toString();
 
-    // fixedImageUrl은 계산은 하지만 Struct에는 넣지 않음 (화면 그릴 때 다시 계산)
     final String fixedImageUrl =
         _resolveCharacterImageUrl(speaker, action) ?? '';
 
@@ -259,9 +283,10 @@ class _NotifierChatListState extends State<NotifierChatList>
     _jumpToBottom();
 
     final String content = scene['content'] ?? '';
+    // [속도 조절] 타이핑 속도를 약간 빠르게 (15ms -> 10ms)
     for (int i = 0; i <= content.length; i++) {
       if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 15));
+      await Future.delayed(const Duration(milliseconds: 10));
       final currentList =
           List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
       if (currentList.isEmpty) return;
@@ -319,7 +344,6 @@ class _NotifierChatListState extends State<NotifierChatList>
       text: text,
       isStreaming: isStreaming,
       storyImageUrl: '',
-      // speakerImage: fixedImageUrl, <-- [삭제됨] 필드가 없으므로 저장 불가
     );
   }
 
@@ -385,10 +409,9 @@ class _NotifierChatListState extends State<NotifierChatList>
           itemBuilder: (context, index) {
             final chatItem = chatMessages[index];
             if (chatItem.type == 'user') {
-              if (chatItem.text == '생각 중' || chatItem.type == 'thinking')
-                return _buildThinkingIndicator();
+              // 유저 메시지 뒤에 "생각 중" 표시는 따로 처리하므로 여기서는 일반 메시지로
               return _buildDialogueMessage(chatItem, isUser: true);
-            } else if (chatItem.type == 'thinking') {
+            } else if (chatItem.type == 'thinking' || chatItem.text == '생각 중') {
               return _buildThinkingIndicator();
             } else {
               return _buildAiMessage(chatItem);
@@ -407,8 +430,6 @@ class _NotifierChatListState extends State<NotifierChatList>
     String imageUrl = '';
 
     if (!isUser) {
-      // [수정됨] speakerImage 필드 접근 코드 삭제
-      // 대신 항상 실시간으로 이미지를 찾습니다.
       imageUrl = _resolveCharacterImageUrl(
               chatItem.speakerName, chatItem.actionText) ??
           '';

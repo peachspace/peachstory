@@ -285,7 +285,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                     _model.newMessages =
                                         await actions.processAndSaveChatTurn(
                                       scenes!.toList(),
-                                      _model.currentDocRef!,
+                                      stackStorychatsRecord.reference,
                                       storychatpageStoriesRecord.backgrounds
                                           .toList(),
                                       storychatpageStoriesRecord.characters
@@ -299,7 +299,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                         .cast<StoryChatMessageStructStruct>();
                                     safeSetState(() {});
 
-                                    await _model.currentDocRef!.update({
+                                    await stackStorychatsRecord.reference
+                                        .update({
                                       ...mapToFirestore(
                                         {
                                           'messageCount':
@@ -309,17 +310,17 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                     });
                                     if (functions
                                         .isSummaryTurn(valueOrDefault<int>(
-                                              _model
-                                                  .currentChatDoc?.messageCount,
+                                              stackStorychatsRecord
+                                                  .messageCount,
                                               0,
                                             ) +
                                             1)) {
-                                      await _model.currentDocRef!
+                                      await stackStorychatsRecord.reference
                                           .update(createStorychatsRecordData(
                                         lastSummaryMessageCount:
                                             valueOrDefault<int>(
-                                                  _model.currentChatDoc
-                                                      ?.messageCount,
+                                                  stackStorychatsRecord
+                                                      .messageCount,
                                                   0,
                                                 ) +
                                                 1,
@@ -333,7 +334,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                   onLoadOlderMessages: () async {
                                     _model.olderMessages =
                                         await actions.getPreviousChatHistory(
-                                      _model.currentDocRef!,
+                                      stackStorychatsRecord.reference,
                                       _model.messageAsJson.toList(),
                                       30,
                                     );
@@ -547,8 +548,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                               firestoreBatch
                                                                   .set(
                                                                       StorymessagesRecord.createDoc(
-                                                                          _model
-                                                                              .currentDocRef!),
+                                                                          stackStorychatsRecord
+                                                                              .reference),
                                                                       createStorymessagesRecordData(
                                                                         timestamp:
                                                                             getCurrentTimestamp,
@@ -610,9 +611,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                                       ),
                                                                     });
                                                                 if (currentUserReference !=
-                                                                    _model
-                                                                        .currentdoc
-                                                                        ?.creatorRef) {
+                                                                    stackStorychatsRecord
+                                                                        .creatorRef) {
                                                                   firestoreBatch.update(
                                                                       stackStorychatsRecord
                                                                           .creatorRef!,
@@ -628,8 +628,12 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                                 _model.aiFullText =
                                                                     await actions
                                                                         .callAiProxy(
-                                                                  stackStorychatsRecord
-                                                                      .selectedAiModel,
+                                                                  valueOrDefault<
+                                                                      String>(
+                                                                    stackStorychatsRecord
+                                                                        .selectedAiModel,
+                                                                    'gpt-4o',
+                                                                  ),
                                                                   functions.buildStoryPrompt(
                                                                       storychatpageStoriesRecord
                                                                           .title,
@@ -852,9 +856,10 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                               ),
                                             });
                                             if (currentUserReference !=
-                                                _model.currentdoc?.creatorRef) {
+                                                stackStorychatsRecord
+                                                    .creatorRef) {
                                               firestoreBatch.update(
-                                                  _model.currentChatDoc!
+                                                  stackStorychatsRecord
                                                       .creatorRef!,
                                                   {
                                                     ...mapToFirestore(
@@ -870,10 +875,15 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                 .getNextPhaseCommand(
                                               _model.chatMessages.length,
                                             );
+                                            _model.aiResponseScript = '';
+                                            safeSetState(() {});
                                             _model.aiFullText1 =
                                                 await actions.callAiProxy(
-                                              stackStorychatsRecord
-                                                  .selectedAiModel,
+                                              valueOrDefault<String>(
+                                                stackStorychatsRecord
+                                                    .selectedAiModel,
+                                                'gpt-4o',
+                                              ),
                                               functions.buildStoryPrompt(
                                                   storychatpageStoriesRecord
                                                       .title,
