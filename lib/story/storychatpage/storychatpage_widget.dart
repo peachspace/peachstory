@@ -813,6 +813,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                               .batch();
                                       try {
                                         if (loggedIn) {
+                                          _model.aiResponseScript = '';
+                                          safeSetState(() {});
                                           _model.istyping = true;
                                           safeSetState(() {});
                                           _model.addToChatMessages(
@@ -875,8 +877,6 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                 .getNextPhaseCommand(
                                               _model.chatMessages.length,
                                             );
-                                            _model.aiResponseScript = '';
-                                            safeSetState(() {});
                                             _model.aiFullText1 =
                                                 await actions.callAiProxy(
                                               valueOrDefault<String>(
