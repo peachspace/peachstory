@@ -4529,13 +4529,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                       child: FFButtonWidget(
                         onPressed: () async {
                           var _shouldSetState = false;
-                          if (functions.checkStoryValidation(
-                              _model.title,
-                              _model.worldview,
-                              _model.prologuetext,
-                              _model.userrole,
-                              FFAppState().Characters.toList(),
-                              _model.mainImage)) {
+                          if (_model.storyNameTextController.text != '') {
                             if (widget.storyToEdit == null) {
                               var storiesRecordReference =
                                   StoriesRecord.collection.doc();

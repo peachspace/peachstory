@@ -1625,7 +1625,7 @@ class _ImagecreatebottomsheetWidgetState
                             _model.englishPrompt!,
                             '',
                             0,
-                            _model.selectedCharImage?.profileimage,
+                            _model.selectedCharImage?.basePrompt,
                           );
                           _shouldSetState = true;
                           _model.generatedImageUrl = getJsonField(
