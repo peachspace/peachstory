@@ -4529,7 +4529,20 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                       child: FFButtonWidget(
                         onPressed: () async {
                           var _shouldSetState = false;
-                          if (_model.storyNameTextController.text != '') {
+                          _model.title = _model.storyNameTextController.text;
+                          _model.worldview =
+                              _model.worldSettingsTextController.text;
+                          _model.introduce =
+                              _model.introduceTextController.text;
+                          _model.genre = _model.genreValue;
+                          _model.userrole =
+                              _model.userRoleInfoTextController.text;
+                          _model.prologuetext =
+                              _model.prologuetextTextController.text;
+                          _model.selectedDetailMode =
+                              _model.detailinfotextTextController.text;
+                          safeSetState(() {});
+                          if (_model.title != null && _model.title != '') {
                             if (widget.storyToEdit == null) {
                               var storiesRecordReference =
                                   StoriesRecord.collection.doc();
