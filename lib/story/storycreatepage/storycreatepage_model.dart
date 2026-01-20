@@ -69,8 +69,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
           int index, Function(BackgroundStructStruct) updateFn) =>
       backgroundlist[index] = updateFn(backgroundlist[index]);
 
-  String? prologueimage;
-
   String? prologuetext;
 
   ///  State fields for stateful widgets in this page.
@@ -102,10 +100,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in userroleaicreatebutton widget.
   String? generateduserrole;
-  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in prologueimageeditbutton widget.
-  GenResultStructStruct? editedprologueimage;
-  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in prologueimageaddbutton widget.
-  GenResultStructStruct? generatedprologueimage;
   // State field(s) for prologuetext widget.
   FocusNode? prologuetextFocusNode;
   TextEditingController? prologuetextTextController;

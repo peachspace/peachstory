@@ -11,7 +11,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
   CharacterStructStruct({
     String? name,
     String? personality,
-    String? image,
     String? introduce,
     String? id,
     int? seed,
@@ -22,7 +21,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _name = name,
         _personality = personality,
-        _image = image,
         _introduce = introduce,
         _id = id,
         _seed = seed,
@@ -45,13 +43,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
   set personality(String? val) => _personality = val;
 
   bool hasPersonality() => _personality != null;
-
-  // "image" field.
-  String? _image;
-  String get image => _image ?? '';
-  set image(String? val) => _image = val;
-
-  bool hasImage() => _image != null;
 
   // "introduce" field.
   String? _introduce;
@@ -121,7 +112,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
       CharacterStructStruct(
         name: data['name'] as String?,
         personality: data['personality'] as String?,
-        image: data['image'] as String?,
         introduce: data['introduce'] as String?,
         id: data['id'] as String?,
         seed: castToType<int>(data['Seed']),
@@ -144,7 +134,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
   Map<String, dynamic> toMap() => {
         'name': _name,
         'personality': _personality,
-        'image': _image,
         'introduce': _introduce,
         'id': _id,
         'Seed': _seed,
@@ -162,10 +151,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
         ),
         'personality': serializeParam(
           _personality,
-          ParamType.String,
-        ),
-        'image': serializeParam(
-          _image,
           ParamType.String,
         ),
         'introduce': serializeParam(
@@ -209,11 +194,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
         ),
         personality: deserializeParam(
           data['personality'],
-          ParamType.String,
-          false,
-        ),
-        image: deserializeParam(
-          data['image'],
           ParamType.String,
           false,
         ),
@@ -265,11 +245,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
         ),
         personality: convertAlgoliaParam(
           data['personality'],
-          ParamType.String,
-          false,
-        ),
-        image: convertAlgoliaParam(
-          data['image'],
           ParamType.String,
           false,
         ),
@@ -325,7 +300,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
     return other is CharacterStructStruct &&
         name == other.name &&
         personality == other.personality &&
-        image == other.image &&
         introduce == other.introduce &&
         id == other.id &&
         seed == other.seed &&
@@ -339,7 +313,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
   int get hashCode => const ListEquality().hash([
         name,
         personality,
-        image,
         introduce,
         id,
         seed,
@@ -353,7 +326,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
 CharacterStructStruct createCharacterStructStruct({
   String? name,
   String? personality,
-  String? image,
   String? introduce,
   String? id,
   int? seed,
@@ -367,7 +339,6 @@ CharacterStructStruct createCharacterStructStruct({
     CharacterStructStruct(
       name: name,
       personality: personality,
-      image: image,
       introduce: introduce,
       id: id,
       seed: seed,

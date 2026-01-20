@@ -377,9 +377,6 @@ class _NotifierChatListState extends State<NotifierChatList>
         character.profileimage!.startsWith('http'))
       return character.profileimage;
 
-    if (character.image != null && character.image!.isNotEmpty)
-      return character.image;
-
     return null;
   }
 

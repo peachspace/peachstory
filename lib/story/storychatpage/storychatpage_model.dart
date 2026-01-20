@@ -78,6 +78,8 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
 
   ///  State fields for stateful widgets in this page.
 
+  // Stores action output result for [Backend Call - Read Document] action in storychatpage widget.
+  StoriesRecord? loadedStory;
   // Stores action output result for [Custom Action - getRecentHistoryAsJson] action in storychatpage widget.
   List<dynamic>? messagesAsJson;
   // Stores action output result for [Bottom Sheet - storychatsettingcomponent] action in storychatsettingbutton widget.

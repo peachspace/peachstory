@@ -132,11 +132,6 @@ class StoriesRecord extends FirestoreRecord {
   String get prologuetext => _prologuetext ?? '';
   bool hasProloguetext() => _prologuetext != null;
 
-  // "prologueimage" field.
-  String? _prologueimage;
-  String get prologueimage => _prologueimage ?? '';
-  bool hasPrologueimage() => _prologueimage != null;
-
   void _initializeFields() {
     _title = snapshotData['title'] as String?;
     _worldview = snapshotData['worldview'] as String?;
@@ -167,7 +162,6 @@ class StoriesRecord extends FirestoreRecord {
       BackgroundStructStruct.fromMap,
     );
     _prologuetext = snapshotData['prologuetext'] as String?;
-    _prologueimage = snapshotData['prologueimage'] as String?;
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -252,7 +246,6 @@ class StoriesRecord extends FirestoreRecord {
                 .toList(),
           ),
           'prologuetext': snapshot.data['prologuetext'],
-          'prologueimage': snapshot.data['prologueimage'],
         },
         StoriesRecord.collection.doc(snapshot.objectID),
       );
@@ -309,7 +302,6 @@ Map<String, dynamic> createStoriesRecordData({
   String? detailmode,
   String? detailimage,
   String? prologuetext,
-  String? prologueimage,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -333,7 +325,6 @@ Map<String, dynamic> createStoriesRecordData({
       'detailmode': detailmode,
       'detailimage': detailimage,
       'prologuetext': prologuetext,
-      'prologueimage': prologueimage,
     }.withoutNulls,
   );
 
@@ -368,8 +359,7 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.detailmode == e2?.detailmode &&
         e1?.detailimage == e2?.detailimage &&
         listEquality.equals(e1?.backgrounds, e2?.backgrounds) &&
-        e1?.prologuetext == e2?.prologuetext &&
-        e1?.prologueimage == e2?.prologueimage;
+        e1?.prologuetext == e2?.prologuetext;
   }
 
   @override
@@ -396,8 +386,7 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.detailmode,
         e?.detailimage,
         e?.backgrounds,
-        e?.prologuetext,
-        e?.prologueimage
+        e?.prologuetext
       ]);
 
   @override

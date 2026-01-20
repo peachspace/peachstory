@@ -28,8 +28,7 @@ class CharactercomponentWidget extends StatefulWidget {
   final CharacterStructStruct? characterData;
   final int? index;
   final Future Function(int indexToDelete)? onDelete;
-  final Future Function(int index, String name, String personality,
-      String image, String introduce)? onUpdate;
+  final Future Function(CharacterStructStruct updatedCharacter)? onUpdate;
   final String? storyContext;
   final bool? isWorldviewEmpty;
 
@@ -1234,13 +1233,13 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                                       .Characters
                                                       .elementAtOrNull(
                                                           widget.index!)
-                                                      ?.image !=
+                                                      ?.profileimage !=
                                                   null &&
                                               FFAppState()
                                                       .Characters
                                                       .elementAtOrNull(
                                                           widget.index!)
-                                                      ?.image !=
+                                                      ?.profileimage !=
                                                   ''
                                           ? false
                                           : true,
@@ -1426,13 +1425,13 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                                       .Characters
                                                       .elementAtOrNull(
                                                           widget.index!)
-                                                      ?.image !=
+                                                      ?.profileimage !=
                                                   null &&
                                               FFAppState()
                                                       .Characters
                                                       .elementAtOrNull(
                                                           widget.index!)
-                                                      ?.image !=
+                                                      ?.profileimage !=
                                                   ''
                                           ? false
                                           : true,

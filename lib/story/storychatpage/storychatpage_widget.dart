@@ -54,6 +54,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      _model.loadedStory =
+          await StoriesRecord.getDocumentOnce(widget.storyRef!);
       _model.messagesAsJson = await actions.getRecentHistoryAsJson(
         widget.storychatRef!,
         30,
@@ -63,6 +65,16 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
           .toList()
           .cast<StoryChatMessageStructStruct>();
       safeSetState(() {});
+      if (!(_model.chatMessages.isNotEmpty)) {
+        _model.chatMessages = functions
+            .parsePrologueToMessages(
+                _model.loadedStory?.prologuetext,
+                _model.loadedStory!.characters.toList(),
+                _model.loadedStory!.backgrounds.toList())
+            .toList()
+            .cast<StoryChatMessageStructStruct>();
+        safeSetState(() {});
+      }
     });
 
     _model.messageTextFieldTextController ??= TextEditingController();
@@ -835,13 +847,19 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                           );
                                           _model.pointsToDeduct1 =
                                               await actions.getPointCostAction(
-                                            stackStorychatsRecord
-                                                .selectedAiModel,
+                                            valueOrDefault<String>(
+                                              stackStorychatsRecord
+                                                  .selectedAiModel,
+                                              'claude-3-haiku-20240307',
+                                            ),
                                           );
                                           _model.creatorShare1 = await actions
                                               .calculateCreatorEarningAction(
-                                            stackStorychatsRecord
-                                                .selectedAiModel,
+                                            valueOrDefault<String>(
+                                              stackStorychatsRecord
+                                                  .selectedAiModel,
+                                              'claude-3-haiku-20240307',
+                                            ),
                                           );
                                           if (valueOrDefault(
                                                   currentUserDocument?.points,

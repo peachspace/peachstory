@@ -304,3 +304,122 @@ List<StoriesRecord> sortStories(
   }
   return sortedList;
 }
+
+List<StoryChatMessageStructStruct> parsePrologueToMessages(
+  String? prologueText,
+  List<CharacterStructStruct> characters,
+  List<BackgroundStructStruct> backgrounds,
+) {
+  if (prologueText == null || prologueText.isEmpty) {
+    return [];
+  }
+
+  List<StoryChatMessageStructStruct> messages = [];
+
+  // 줄바꿈 단위로 쪼개서 분석합니다.
+  final lines = prologueText.split('\n');
+
+  for (var line in lines) {
+    line = line.trim();
+    if (line.isEmpty) continue;
+
+    // 1. 이미지 태그 감지: [Image: Condition]
+    if (line.startsWith('[Image:') && line.endsWith(']')) {
+      String condition = line.substring(7, line.length - 1).trim();
+      String foundImageUrl = '';
+
+      // 배경에서 찾기
+      for (var bg in backgrounds) {
+        if (bg.placeName == condition) foundImageUrl = bg.imageUrl;
+      }
+      // 캐릭터 상황 이미지에서 찾기
+      if (foundImageUrl.isEmpty) {
+        for (var char in characters) {
+          for (var sit in char.situationImages) {
+            if (sit.condition == condition) foundImageUrl = sit.imageUrl;
+          }
+        }
+      }
+
+      if (foundImageUrl.isNotEmpty) {
+        messages.add(createStoryChatMessageStructStruct(
+          type: 'story_image',
+          storyImageUrl: foundImageUrl,
+          text: '',
+          speakerName: '',
+        ));
+      }
+    }
+    // 2. 대사 감지: 이름 | 대사
+    else if (line.contains('|')) {
+      final parts = line.split('|');
+      if (parts.length >= 2) {
+        String name = parts[0].trim();
+        String content = parts.sublist(1).join('|').trim(); // 뒤에 또 |가 있을 수 있으므로
+
+        messages.add(createStoryChatMessageStructStruct(
+          type: 'dialogue',
+          text: content,
+          speakerName: name,
+          storyImageUrl: '',
+        ));
+      } else {
+        // 형식이 애매하면 그냥 지문으로
+        messages.add(createStoryChatMessageStructStruct(
+          type: 'narration',
+          text: line,
+          speakerName: 'ai',
+        ));
+      }
+    }
+    // 3. 나머지는 지문(Narration)
+    else {
+      messages.add(createStoryChatMessageStructStruct(
+        type: 'narration',
+        text: line,
+        speakerName: 'ai',
+      ));
+    }
+  }
+
+  return messages;
+}
+
+bool checkStoryValidation(
+  String? title,
+  String? worldview,
+  String? prologue,
+  String? userRole,
+  List<CharacterStructStruct> characters,
+  String? mainImage,
+) {
+// 1. 기본 텍스트 필드 및 이미지 검사
+  if (title == null || title.trim().isEmpty) return false;
+  if (worldview == null || worldview.trim().isEmpty) return false;
+  if (prologue == null || prologue.trim().isEmpty) return false;
+  if (userRole == null || userRole.trim().isEmpty) return false;
+  if (mainImage == null || mainImage.trim().isEmpty) return false;
+
+  // 2. 캐릭터 리스트 정밀 검사
+  if (characters.isEmpty) return false; // 최소 1명 필수
+
+  for (var char in characters) {
+    // [수정됨] 실제 필드명(name, personality, introduce, profileimage) 적용
+    if ((char.name == null || char.name.trim().isEmpty) ||
+        (char.introduce == null || char.introduce.trim().isEmpty) ||
+        (char.personality == null || char.personality.trim().isEmpty) ||
+        (char.profileimage == null || char.profileimage.trim().isEmpty)) {
+      return false;
+    }
+  }
+
+  return true; // 모든 관문을 통과함
+}
+
+List<EmotionImageStructStruct> getEmptyEmotionList() {
+  return [];
+}
+
+List<SituationalImageStructStruct> getEmptysituationList() {
+  return [];
+}

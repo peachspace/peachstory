@@ -220,7 +220,7 @@ class _StoryusernameentercomponentWidgetState
                       storyRef: widget.storydoc?.reference,
                       userRef: currentUserReference,
                       userInChatName: _model.textController.text,
-                      selectedAiModel: 'gpt-4o',
+                      selectedAiModel: 'claude-3-haiku-20240307',
                       creatorRef: widget.storydoc?.creatorRef,
                       isNovelMode: widget.novelmode,
                     ));
@@ -229,23 +229,11 @@ class _StoryusernameentercomponentWidgetState
                           storyRef: widget.storydoc?.reference,
                           userRef: currentUserReference,
                           userInChatName: _model.textController.text,
-                          selectedAiModel: 'gpt-4o',
+                          selectedAiModel: 'claude-3-haiku-20240307',
                           creatorRef: widget.storydoc?.creatorRef,
                           isNovelMode: widget.novelmode,
                         ),
                         storychatsRecordReference);
-
-                    await StorymessagesRecord.createDoc(
-                            _model.newChatDoc!.reference)
-                        .set(createStorymessagesRecordData(
-                      text: widget.storydoc?.prologuetext,
-                      type: 'narration',
-                      timestamp: getCurrentTimestamp,
-                      speakerName: 'ai',
-                      chatRef: _model.newChatDoc?.reference,
-                      storyImageUrl: widget.storydoc?.prologueimage,
-                      role: 'assistant',
-                    ));
 
                     context.pushNamed(
                       StorychatpageWidget.routeName,
