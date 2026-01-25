@@ -305,58 +305,55 @@ class _ImagecreatebottomsheetWidgetState
                 ],
               ),
               if (widget.isUploadMode == false)
-                Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Align(
-                      alignment: AlignmentDirectional(-1.0, 0.0),
-                      child: Text(
-                        'Hello World',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontWeight,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontStyle,
-                              ),
-                              letterSpacing: 0.0,
-                              fontWeight: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontWeight,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Align(
+                        alignment: AlignmentDirectional(-1.0, 0.0),
+                        child: Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 0.0, 0.0, 10.0),
+                          child: Text(
+                            '스타일',
+                            style: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  font: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                                  fontSize: 16.0,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FontWeight.w600,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                          ),
+                        ),
                       ),
-                    ),
-                    Align(
-                      alignment: AlignmentDirectional(-1.0, 0.0),
-                      child: FlutterFlowChoiceChips(
-                        options: [
-                          ChipData('웹툰/애니'),
-                          ChipData('실사/영화'),
-                          ChipData('수채화/동화'),
-                          ChipData('선화/스케치'),
-                          ChipData('유화/아트')
-                        ],
-                        onChanged: (val) => safeSetState(() =>
-                            _model.styleChoiceChipsValue = val?.firstOrNull),
-                        selectedChipStyle: ChipStyle(
-                          backgroundColor: FlutterFlowTheme.of(context).accent3,
-                          textStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                                    color: FlutterFlowTheme.of(context).info,
-                                    letterSpacing: 0.0,
+                      Align(
+                        alignment: AlignmentDirectional(-1.0, 0.0),
+                        child: FlutterFlowChoiceChips(
+                          options: [
+                            ChipData('애니'),
+                            ChipData('웹툰'),
+                            ChipData('세미리얼'),
+                            ChipData('실사')
+                          ],
+                          onChanged: (val) => safeSetState(() =>
+                              _model.styleChoiceChipsValue = val?.firstOrNull),
+                          selectedChipStyle: ChipStyle(
+                            backgroundColor:
+                                FlutterFlowTheme.of(context).accent3,
+                            textStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  font: GoogleFonts.inter(
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .fontWeight,
@@ -364,19 +361,8 @@ class _ImagecreatebottomsheetWidgetState
                                         .bodyMedium
                                         .fontStyle,
                                   ),
-                          iconColor: FlutterFlowTheme.of(context).info,
-                          iconSize: 16.0,
-                          elevation: 0.0,
-                          borderColor: FlutterFlowTheme.of(context).alternate,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        unselectedChipStyle: ChipStyle(
-                          backgroundColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
-                          textStyle: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .override(
-                                font: GoogleFonts.inter(
+                                  color: FlutterFlowTheme.of(context).info,
+                                  letterSpacing: 0.0,
                                   fontWeight: FlutterFlowTheme.of(context)
                                       .bodyMedium
                                       .fontWeight,
@@ -384,33 +370,56 @@ class _ImagecreatebottomsheetWidgetState
                                       .bodyMedium
                                       .fontStyle,
                                 ),
-                                color:
-                                    FlutterFlowTheme.of(context).secondaryText,
-                                letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontWeight,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontStyle,
-                              ),
-                          iconColor: FlutterFlowTheme.of(context).secondaryText,
-                          iconSize: 16.0,
-                          elevation: 0.0,
-                          borderRadius: BorderRadius.circular(8.0),
+                            iconColor: FlutterFlowTheme.of(context).info,
+                            iconSize: 16.0,
+                            elevation: 0.0,
+                            borderRadius: BorderRadius.circular(5.0),
+                          ),
+                          unselectedChipStyle: ChipStyle(
+                            backgroundColor: FlutterFlowTheme.of(context)
+                                .secondaryBackground,
+                            textStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  font: GoogleFonts.inter(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryText,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                            iconColor:
+                                FlutterFlowTheme.of(context).secondaryText,
+                            iconSize: 16.0,
+                            elevation: 0.0,
+                            borderColor: FlutterFlowTheme.of(context).alternate,
+                            borderRadius: BorderRadius.circular(5.0),
+                          ),
+                          chipSpacing: 15.0,
+                          rowSpacing: 8.0,
+                          multiselect: false,
+                          initialized: _model.styleChoiceChipsValue != null,
+                          alignment: WrapAlignment.start,
+                          controller: _model.styleChoiceChipsValueController ??=
+                              FormFieldController<List<String>>(
+                            ['애니'],
+                          ),
+                          wrapped: true,
                         ),
-                        chipSpacing: 8.0,
-                        rowSpacing: 8.0,
-                        multiselect: false,
-                        alignment: WrapAlignment.start,
-                        controller: _model.styleChoiceChipsValueController ??=
-                            FormFieldController<List<String>>(
-                          [],
-                        ),
-                        wrapped: true,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               if (widget.imageMode == 'background')
                 Column(
@@ -514,7 +523,7 @@ class _ImagecreatebottomsheetWidgetState
                                                     .fontStyle,
                                           ),
                                       hintText:
-                                          '특정한 장소 또는 배경을 입력해주세요. \nex. 학교, 숲',
+                                          '특정한 장소 또는 배경을 입력해주세요. ex. 학교, 숲',
                                       hintStyle: FlutterFlowTheme.of(context)
                                           .labelMedium
                                           .override(
@@ -661,7 +670,6 @@ class _ImagecreatebottomsheetWidgetState
                                       _model
                                           .backgroundpromptTextController.text,
                                       widget.receivedworldview,
-                                      '',
                                     );
                                     _shouldSetState = true;
                                     safeSetState(() {
@@ -842,8 +850,7 @@ class _ImagecreatebottomsheetWidgetState
                                                     .labelMedium
                                                     .fontStyle,
                                           ),
-                                      hintText:
-                                          '특정한 상황을 묘사해주세요.\nex. 물건을 던질 때,  총에 맞고 쓰러질 때',
+                                      hintText: '특정한 상황을 묘사해주세요. ex. 달리기, ',
                                       hintStyle: FlutterFlowTheme.of(context)
                                           .labelMedium
                                           .override(
@@ -989,7 +996,6 @@ class _ImagecreatebottomsheetWidgetState
                                       'situation_trigger',
                                       _model.situationpromptTextController.text,
                                       widget.receivedBasePrompt,
-                                      _model.styleChoiceChipsValue!,
                                     );
                                     _shouldSetState = true;
                                     safeSetState(() {
@@ -1133,43 +1139,45 @@ class _ImagecreatebottomsheetWidgetState
                             child: FlutterFlowChoiceChips(
                               options: [
                                 ChipData('무감정'),
+                                ChipData('기쁨'),
                                 ChipData('슬픔'),
                                 ChipData('화남'),
                                 ChipData('놀람'),
-                                ChipData('두려움'),
+                                ChipData('공포'),
                                 ChipData('혐오'),
-                                ChipData('행복'),
-                                ChipData('부끄러움'),
+                                ChipData('사랑'),
                                 ChipData('설렘'),
                                 ChipData('안도'),
-                                ChipData('고통'),
+                                ChipData('감동'),
+                                ChipData('자신감'),
                                 ChipData('장난'),
                                 ChipData('만족'),
                                 ChipData('감사'),
                                 ChipData('짜증'),
+                                ChipData('질투'),
                                 ChipData('실망'),
                                 ChipData('우울'),
-                                ChipData('자신감'),
-                                ChipData('사랑'),
+                                ChipData('고통'),
+                                ChipData('부끄러움'),
                                 ChipData('당황'),
-                                ChipData('지루함'),
+                                ChipData('경멸'),
                                 ChipData('불안'),
                                 ChipData('피곤'),
-                                ChipData('공포'),
+                                ChipData('지루함'),
                                 ChipData('멍함'),
                                 ChipData('호기심'),
                                 ChipData('진지'),
-                                ChipData('배고픔'),
+                                ChipData('결의'),
                                 ChipData('미침'),
                                 ChipData('취함'),
-                                ChipData('결의'),
-                                ChipData('아픔')
+                                ChipData('아픔'),
+                                ChipData('배고픔')
                               ],
                               onChanged: (val) => safeSetState(() => _model
                                   .emotionChoiceChipsValue = val?.firstOrNull),
                               selectedChipStyle: ChipStyle(
-                                backgroundColor: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
+                                backgroundColor:
+                                    FlutterFlowTheme.of(context).accent3,
                                 textStyle: FlutterFlowTheme.of(context)
                                     .bodyMedium
                                     .override(
@@ -1194,8 +1202,6 @@ class _ImagecreatebottomsheetWidgetState
                                     FlutterFlowTheme.of(context).primaryText,
                                 iconSize: 16.0,
                                 elevation: 0.0,
-                                borderColor:
-                                    FlutterFlowTheme.of(context).primary,
                                 borderWidth: 1.0,
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
@@ -1234,11 +1240,13 @@ class _ImagecreatebottomsheetWidgetState
                               chipSpacing: 8.0,
                               rowSpacing: 8.0,
                               multiselect: false,
+                              initialized:
+                                  _model.emotionChoiceChipsValue != null,
                               alignment: WrapAlignment.start,
                               controller:
                                   _model.emotionChoiceChipsValueController ??=
                                       FormFieldController<List<String>>(
-                                [],
+                                ['무감정'],
                               ),
                               wrapped: true,
                             ),
@@ -1248,7 +1256,7 @@ class _ImagecreatebottomsheetWidgetState
                     ),
                   ],
                 ),
-              if ((widget.imageMode == 'main') ||
+              if ((widget.imageMode == 'main') &&
                   (widget.isUploadMode == false))
                 Column(
                   mainAxisSize: MainAxisSize.max,
@@ -1341,7 +1349,7 @@ class _ImagecreatebottomsheetWidgetState
                     ),
                   ],
                 ),
-              if ((widget.imageMode != 'emotion') ||
+              if ((widget.imageMode != 'emotion') &&
                   (widget.isUploadMode == false))
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
@@ -1571,7 +1579,6 @@ class _ImagecreatebottomsheetWidgetState
                                         'character',
                                         widget.receivedcharsettings!,
                                         '',
-                                        _model.styleChoiceChipsValue!,
                                       );
                                       _shouldSetState = true;
                                       safeSetState(() {
@@ -1586,8 +1593,7 @@ class _ImagecreatebottomsheetWidgetState
                                         'situation_image',
                                         _model
                                             .situationpromptTextController.text,
-                                        widget.receivedbaseimage,
-                                        _model.styleChoiceChipsValue!,
+                                        widget.receivedBasePrompt,
                                       );
                                       _shouldSetState = true;
                                       safeSetState(() {
@@ -1603,7 +1609,6 @@ class _ImagecreatebottomsheetWidgetState
                                         _model.backgroundpromptTextController
                                             .text,
                                         widget.receivedworldview,
-                                        _model.styleChoiceChipsValue!,
                                       );
                                       _shouldSetState = true;
                                       safeSetState(() {
@@ -1618,7 +1623,6 @@ class _ImagecreatebottomsheetWidgetState
                                         _model.backgroundpromptTextController
                                             .text,
                                         _model.selectedCharImage?.basePrompt,
-                                        _model.styleChoiceChipsValue!,
                                       );
                                       _shouldSetState = true;
                                       safeSetState(() {
@@ -1711,228 +1715,157 @@ class _ImagecreatebottomsheetWidgetState
                   mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    FFButtonWidget(
-                      onPressed: () async {
-                        var _shouldSetState = false;
-                        _model.isImageLoading = true;
-                        safeSetState(() {});
-                        _model.englishPrompt = await actions.translateToEnglish(
-                          _model.imagecreatepromptTextController.text,
-                        );
-                        _shouldSetState = true;
-                        if (widget.imageMode == 'character') {
-                          _model.characterImageResult =
-                              await actions.callGenerateImageCloud(
-                            'character',
-                            _model.englishPrompt!,
-                            '',
-                            0,
-                            '',
+                    if (widget.isUploadMode == false)
+                      FFButtonWidget(
+                        onPressed: () async {
+                          var _shouldSetState = false;
+                          _model.isImageLoading = true;
+                          safeSetState(() {});
+                          _model.englishPrompt =
+                              await actions.translateToEnglish(
+                            _model.imagecreatepromptTextController.text,
                           );
                           _shouldSetState = true;
-                          _model.generatedImageUrl = getJsonField(
-                            _model.characterImageResult,
-                            r'''$.imageUrl''',
-                          ).toString();
-                          _model.generatedSeed = getJsonField(
-                            _model.characterImageResult,
-                            r'''$.seed''',
-                          );
-                          safeSetState(() {});
-                        } else if (widget.imageMode == 'emotion') {
-                          _model.emotionimageResult =
-                              await actions.callGenerateImageCloud(
-                            'emotion',
-                            _model.emotionChoiceChipsValue!,
-                            '',
-                            widget.receivedSeed,
-                            widget.receivedBasePrompt,
-                          );
-                          _shouldSetState = true;
-                          _model.generatedImageUrl = getJsonField(
-                            _model.emotionimageResult,
-                            r'''$.imageUrl''',
-                          ).toString();
-                          safeSetState(() {});
-                        } else if (widget.imageMode == 'situation') {
-                          _model.situationImageResult =
-                              await actions.callGenerateImageCloud(
-                            'situation',
-                            _model.englishPrompt!,
-                            '',
-                            widget.receivedSeed,
-                            widget.receivedBasePrompt,
-                          );
-                          _shouldSetState = true;
-                          _model.generatedImageUrl = getJsonField(
-                            _model.situationImageResult,
-                            r'''$.imageUrl''',
-                          ).toString();
-                          safeSetState(() {});
-                        } else if (widget.imageMode == 'background') {
-                          _model.backgroundimageResult =
-                              await actions.callGenerateImageCloud(
-                            'background',
-                            _model.englishPrompt!,
-                            '',
-                            0,
-                            '',
-                          );
-                          _shouldSetState = true;
-                          _model.generatedImageUrl = getJsonField(
-                            _model.backgroundimageResult,
-                            r'''$.imageUrl''',
-                          ).toString();
-                          safeSetState(() {});
-                        } else if (widget.imageMode == 'main') {
-                          _model.mainimageResult =
-                              await actions.callGenerateImageCloud(
-                            'main_image',
-                            _model.englishPrompt!,
-                            '',
-                            0,
-                            _model.selectedCharImage?.basePrompt,
-                          );
-                          _shouldSetState = true;
-                          _model.generatedImageUrl = getJsonField(
-                            _model.mainimageResult,
-                            r'''$.imageUrl''',
-                          ).toString();
-                          safeSetState(() {});
-                        } else {
-                          if (_shouldSetState) safeSetState(() {});
-                          return;
-                        }
-
-                        if (_model.generatedImageUrl != null &&
-                            _model.generatedImageUrl != '') {
-                          _model.isImageLoading = false;
-                          safeSetState(() {});
-                        } else {
-                          _model.isImageLoading = false;
-                          safeSetState(() {});
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '이미지 생성에 실패했습니다,.',
-                                style: TextStyle(
-                                  color:
-                                      FlutterFlowTheme.of(context).primaryText,
-                                ),
-                              ),
-                              duration: Duration(milliseconds: 4000),
-                              backgroundColor:
-                                  FlutterFlowTheme.of(context).accent3,
-                            ),
-                          );
-                        }
-
-                        if (_shouldSetState) safeSetState(() {});
-                      },
-                      text: 'AI생성',
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 50.0,
-                        padding: EdgeInsetsDirectional.fromSTEB(
-                            16.0, 0.0, 16.0, 0.0),
-                        iconPadding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                        color: Color(0xFFFFD1BA),
-                        textStyle:
-                            FlutterFlowTheme.of(context).titleSmall.override(
-                                  font: GoogleFonts.interTight(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontStyle,
-                                  ),
-                                  color: Colors.white,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .titleSmall
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .titleSmall
-                                      .fontStyle,
-                                ),
-                        elevation: 0.0,
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      showLoadingIndicator: false,
-                    ),
-                    FFButtonWidget(
-                      onPressed: () async {
-                        final selectedMedia =
-                            await selectMediaWithSourceBottomSheet(
-                          context: context,
-                          allowPhoto: true,
-                        );
-                        if (selectedMedia != null &&
-                            selectedMedia.every((m) =>
-                                validateFileFormat(m.storagePath, context))) {
-                          safeSetState(
-                              () => _model.isDataUploading_downloadUrl = true);
-                          var selectedUploadedFiles = <FFUploadedFile>[];
-
-                          var downloadUrls = <String>[];
-                          try {
-                            selectedUploadedFiles = selectedMedia
-                                .map((m) => FFUploadedFile(
-                                      name: m.storagePath.split('/').last,
-                                      bytes: m.bytes,
-                                      height: m.dimensions?.height,
-                                      width: m.dimensions?.width,
-                                      blurHash: m.blurHash,
-                                      originalFilename: m.originalFilename,
-                                    ))
-                                .toList();
-
-                            downloadUrls = (await Future.wait(
-                              selectedMedia.map(
-                                (m) async =>
-                                    await uploadData(m.storagePath, m.bytes),
-                              ),
-                            ))
-                                .where((u) => u != null)
-                                .map((u) => u!)
-                                .toList();
-                          } finally {
-                            _model.isDataUploading_downloadUrl = false;
-                          }
-                          if (selectedUploadedFiles.length ==
-                                  selectedMedia.length &&
-                              downloadUrls.length == selectedMedia.length) {
-                            safeSetState(() {
-                              _model.uploadedLocalFile_downloadUrl =
-                                  selectedUploadedFiles.first;
-                              _model.uploadedFileUrl_downloadUrl =
-                                  downloadUrls.first;
-                            });
-                          } else {
+                          if (widget.imageMode == 'character') {
+                            _model.characterImageResult =
+                                await actions.callGenerateImageCloud(
+                              'character',
+                              _model.englishPrompt!,
+                              '',
+                              '',
+                              0,
+                              '',
+                              _model.styleChoiceChipsValue!,
+                            );
+                            _shouldSetState = true;
+                            _model.generatedImageUrl = getJsonField(
+                              _model.characterImageResult,
+                              r'''$.imageUrl''',
+                            ).toString();
+                            _model.generatedSeed = getJsonField(
+                              _model.characterImageResult,
+                              r'''$.seed''',
+                            );
                             safeSetState(() {});
+                          } else if (widget.imageMode == 'emotion') {
+                            _model.emotionimageResult =
+                                await actions.callGenerateImageCloud(
+                              'emotion',
+                              _model.emotionChoiceChipsValue!,
+                              widget.receivedbaseimage,
+                              '',
+                              0,
+                              widget.receivedBasePrompt,
+                              _model.styleChoiceChipsValue!,
+                            );
+                            _shouldSetState = true;
+                            _model.generatedImageUrl = getJsonField(
+                              _model.emotionimageResult,
+                              r'''$.imageUrl''',
+                            ).toString();
+                            safeSetState(() {});
+                          } else if (widget.imageMode == 'situation') {
+                            _model.situationImageResult =
+                                await actions.callGenerateImageCloud(
+                              'situation',
+                              _model.englishPrompt!,
+                              widget.receivedbaseimage,
+                              '',
+                              0,
+                              widget.receivedBasePrompt,
+                              _model.styleChoiceChipsValue!,
+                            );
+                            _shouldSetState = true;
+                            _model.generatedImageUrl = getJsonField(
+                              _model.situationImageResult,
+                              r'''$.imageUrl''',
+                            ).toString();
+                            safeSetState(() {});
+                          } else if (widget.imageMode == 'background') {
+                            _model.backgroundimageResult =
+                                await actions.callGenerateImageCloud(
+                              'background',
+                              _model.englishPrompt!,
+                              '',
+                              '',
+                              0,
+                              '',
+                              _model.styleChoiceChipsValue!,
+                            );
+                            _shouldSetState = true;
+                            _model.generatedImageUrl = getJsonField(
+                              _model.backgroundimageResult,
+                              r'''$.imageUrl''',
+                            ).toString();
+                            safeSetState(() {});
+                          } else if (widget.imageMode == 'main') {
+                            _model.mainimageResult =
+                                await actions.callGenerateImageCloud(
+                              'main',
+                              _model.englishPrompt!,
+                              _model.selectedCharImage?.profileimage,
+                              '',
+                              0,
+                              _model.selectedCharImage?.basePrompt,
+                              _model.styleChoiceChipsValue!,
+                            );
+                            _shouldSetState = true;
+                            _model.generatedImageUrl = getJsonField(
+                              _model.mainimageResult,
+                              r'''$.imageUrl''',
+                            ).toString();
+                            safeSetState(() {});
+                          } else {
+                            if (_shouldSetState) safeSetState(() {});
                             return;
                           }
-                        }
 
-                        _model.generatedImageUrl =
-                            _model.uploadedFileUrl_downloadUrl;
-                        _model.isImageLoading = false;
-                        safeSetState(() {});
-                      },
-                      text: '업로드',
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 50.0,
-                        padding: EdgeInsetsDirectional.fromSTEB(
-                            16.0, 0.0, 16.0, 0.0),
-                        iconPadding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                        color: Color(0xFFFFD1BA),
-                        textStyle:
-                            FlutterFlowTheme.of(context).titleSmall.override(
-                                  font: GoogleFonts.interTight(
+                          if (_model.generatedImageUrl != null &&
+                              _model.generatedImageUrl != '') {
+                            _model.isImageLoading = false;
+                            safeSetState(() {});
+                          } else {
+                            _model.isImageLoading = false;
+                            safeSetState(() {});
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '이미지 생성에 실패했습니다,.',
+                                  style: TextStyle(
+                                    color: FlutterFlowTheme.of(context)
+                                        .primaryText,
+                                  ),
+                                ),
+                                duration: Duration(milliseconds: 4000),
+                                backgroundColor:
+                                    FlutterFlowTheme.of(context).accent3,
+                              ),
+                            );
+                          }
+
+                          if (_shouldSetState) safeSetState(() {});
+                        },
+                        text: 'AI생성',
+                        options: FFButtonOptions(
+                          width: double.infinity,
+                          height: 50.0,
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              16.0, 0.0, 16.0, 0.0),
+                          iconPadding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 0.0, 0.0, 0.0),
+                          color: Color(0xFFFFD1BA),
+                          textStyle:
+                              FlutterFlowTheme.of(context).titleSmall.override(
+                                    font: GoogleFonts.interTight(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontStyle,
+                                    ),
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .titleSmall
                                         .fontWeight,
@@ -1940,20 +1873,104 @@ class _ImagecreatebottomsheetWidgetState
                                         .titleSmall
                                         .fontStyle,
                                   ),
-                                  color: Colors.white,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .titleSmall
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .titleSmall
-                                      .fontStyle,
-                                ),
-                        elevation: 0.0,
-                        borderRadius: BorderRadius.circular(8.0),
+                          elevation: 0.0,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        showLoadingIndicator: false,
                       ),
-                      showLoadingIndicator: false,
-                    ),
+                    if (widget.isUploadMode == true)
+                      FFButtonWidget(
+                        onPressed: () async {
+                          final selectedMedia =
+                              await selectMediaWithSourceBottomSheet(
+                            context: context,
+                            allowPhoto: true,
+                          );
+                          if (selectedMedia != null &&
+                              selectedMedia.every((m) =>
+                                  validateFileFormat(m.storagePath, context))) {
+                            safeSetState(() =>
+                                _model.isDataUploading_downloadUrl = true);
+                            var selectedUploadedFiles = <FFUploadedFile>[];
+
+                            var downloadUrls = <String>[];
+                            try {
+                              selectedUploadedFiles = selectedMedia
+                                  .map((m) => FFUploadedFile(
+                                        name: m.storagePath.split('/').last,
+                                        bytes: m.bytes,
+                                        height: m.dimensions?.height,
+                                        width: m.dimensions?.width,
+                                        blurHash: m.blurHash,
+                                        originalFilename: m.originalFilename,
+                                      ))
+                                  .toList();
+
+                              downloadUrls = (await Future.wait(
+                                selectedMedia.map(
+                                  (m) async =>
+                                      await uploadData(m.storagePath, m.bytes),
+                                ),
+                              ))
+                                  .where((u) => u != null)
+                                  .map((u) => u!)
+                                  .toList();
+                            } finally {
+                              _model.isDataUploading_downloadUrl = false;
+                            }
+                            if (selectedUploadedFiles.length ==
+                                    selectedMedia.length &&
+                                downloadUrls.length == selectedMedia.length) {
+                              safeSetState(() {
+                                _model.uploadedLocalFile_downloadUrl =
+                                    selectedUploadedFiles.first;
+                                _model.uploadedFileUrl_downloadUrl =
+                                    downloadUrls.first;
+                              });
+                            } else {
+                              safeSetState(() {});
+                              return;
+                            }
+                          }
+
+                          _model.generatedImageUrl =
+                              _model.uploadedFileUrl_downloadUrl;
+                          _model.isImageLoading = false;
+                          safeSetState(() {});
+                        },
+                        text: '업로드',
+                        options: FFButtonOptions(
+                          width: double.infinity,
+                          height: 50.0,
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              16.0, 0.0, 16.0, 0.0),
+                          iconPadding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 0.0, 0.0, 0.0),
+                          color: Color(0xFFFFD1BA),
+                          textStyle:
+                              FlutterFlowTheme.of(context).titleSmall.override(
+                                    font: GoogleFonts.interTight(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontStyle,
+                                    ),
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
+                                  ),
+                          elevation: 0.0,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        showLoadingIndicator: false,
+                      ),
                   ],
                 ),
               ),

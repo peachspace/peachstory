@@ -379,7 +379,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                             });
                             _model.name = await actions.generateSingleTextField(
                               '캐릭터 이름',
-                              '${widget.storyContext}\\n[캐릭터 설정]: ${_model.charSettingTextController.text}',
+                              '${widget.storyContext}',
                               widget.genre!,
                             );
                             safeSetState(() {
@@ -1253,10 +1253,10 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                           ? false
                                           : true,
                                       warningMessage: '먼저 프로필 이미지를 생성해주세요.',
-                                      receivedSeed: FFAppState()
+                                      receivedBaseimage: FFAppState()
                                           .Characters
                                           .elementAtOrNull(widget.index!)
-                                          ?.seed,
+                                          ?.profileimage,
                                     ),
                                   );
                                 },

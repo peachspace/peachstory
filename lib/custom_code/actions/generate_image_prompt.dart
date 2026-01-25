@@ -9,22 +9,26 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import '/custom_code/actions/index.dart';
-import '/flutter_flow/custom_functions.dart';
-
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> generateImagePrompt(
   String mode,
   String contextInput,
   String? baseContext,
-  String style,
+  // [수정1] style 파라미터 삭제 (사용하지 않음)
 ) async {
   String systemPrompt = "";
-  String finalInput = contextInput.trim().isEmpty ? "Random" : contextInput;
+
+  // [수정3] 트리거 모드인데 입력이 없으면 불필요한 호출 방지
+  if (mode.endsWith("_trigger") && contextInput.trim().isEmpty) {
+    return "";
+  }
+
+  String finalInput =
+      contextInput.trim().isEmpty ? "Create a creative scene" : contextInput;
 
   // =========================================================
-  // 1. [Trigger Mode] 조건문/단어 추출 (기존 로직 유지 - 한국어 처리)
+  // 1. [Trigger Mode] 조건문/단어 추출 (한국어)
   // =========================================================
   if (mode.endsWith("_trigger")) {
     if (mode == "background_trigger") {
@@ -48,14 +52,11 @@ RULES:
     }
   }
   // =========================================================
-  // 2. [Image Mode] 이미지 생성용 프롬프트 (영어 변환 필수!)
+  // 2. [Image Mode] 이미지 프롬프트 생성 (영어)
   // =========================================================
   else {
-    // [중요] 서버(Cloud Functions)가 스타일과 화질 태그를 담당하므로,
-    // 여기서는 "시각적 묘사(Visual Description)"를 영어로 번역하는 데 집중합니다.
-
     String baseRules = """
-You are an expert AI Art Prompt Engineer for Stable Diffusion.
+You are an expert AI Art Prompt Engineer.
 YOUR TASK: Convert the user's input into a comma-separated list of English visual tags.
 RULES:
 1. Output ONLY English words.
@@ -66,28 +67,40 @@ RULES:
 6. Incorporate the 'Base Context' (Character appearance) if provided.
 """;
 
-    if (mode == "background_image") {
+    // 모드별 세부 지침
+    if (mode.contains("background")) {
       systemPrompt = """
 $baseRules
 7. Focus on Scenery, Architecture, Time of day, Weather.
 8. Ensure NO characters are described (Scenery only).
 Example Output: empty classroom, sunlight through window, wooden desks, blackboard, afternoon
 """;
-    } else if (mode == "situation_image") {
+    } else if (mode.contains("situation")) {
       systemPrompt = """
 $baseRules
 7. Focus on Action, Dynamic Pose, Interaction, Camera Angle.
 8. Describe the Character's features from 'Base Context'.
 Example Output: 1girl, running fast, sweating, desperate expression, forest path, dynamic angle
 """;
-    } else if (mode == "main_image") {
+    } else if (mode == "character") {
       systemPrompt = """
 $baseRules
-7. Focus on a High-Quality Portrait Composition.
-8. Describe the Character's features in detail from 'Base Context'.
-Example Output: 1boy, black hair, blue eyes, wearing suit, looking at viewer, city night background, rim lighting
+7. Focus on 'Character Design Sheet' style.
+8. Background should be simple or plain (white or solid color) to highlight the character.
+9. Describe the character's facial features, hairstyle, and clothing in detail.
+10. Pose should be standard standing or portrait pose.
+Example Output: 1boy, black hair, blue eyes, wearing school uniform, simple white background, front view, character design
 """;
-    } else if (mode == "emotion") {
+    } else if (mode.contains("main")) {
+      systemPrompt = """
+$baseRules
+7. Focus on 'High-Quality Webnovel Cover Illustration'.
+8. COMBINE the 'Character Appearance' with the 'World View' (Base Context).
+9. Create a dramatic atmosphere, lighting, and background that fits the World View.
+10. The character should be placed in a scene from the World View.
+Example Output: 1boy, holding a glowing sword, standing on a ruined castle, dark fantasy atmosphere, red moon background, cinematic lighting, epic composition
+""";
+    } else if (mode.contains("emotion")) {
       systemPrompt = """
 $baseRules
 7. Focus ONLY on Facial Expression and Emotion.
@@ -95,20 +108,18 @@ $baseRules
 Example Output: crying, tears, sad eyes, mouth open
 """;
     } else {
-      // Default (Character)
+      // Fallback
       systemPrompt = """
 $baseRules
-7. Focus on Character Design and Appearance.
-Example Output: 1girl, pink hair, school uniform, white background, simple pose
+7. Focus on Character Design.
 """;
     }
   }
 
-  // 사용자 프롬프트 구성
   String userPrompt = """
 [Mode: $mode]
-[User Input (Korean)]: $finalInput
-[Base Context (Character Info)]: ${baseContext ?? "None"}
+[User Input]: $finalInput
+[Base Context]: ${baseContext ?? "None"}
 
 Request: Generate the English tags list.
 """;
@@ -117,15 +128,24 @@ Request: Generate the English tags list.
     final HttpsCallable callable =
         FirebaseFunctions.instance.httpsCallable('callAiProxy');
     final result = await callable.call(<String, dynamic>{
-      'modelName': 'solar-mini', // 빠르고 저렴한 모델 추천
+      'modelName': 'solar-mini',
       'systemPrompt': systemPrompt,
       'messages': [
         {'role': 'user', 'content': userPrompt}
       ],
     });
 
-    return result.data['fullText'] ?? '';
+    String rawOutput = result.data['fullText'] ?? '';
+
+    // [수정2] 후처리 강화: 마침표(.)와 괄호()도 허용
+    if (!mode.endsWith("_trigger")) {
+      // 영어, 숫자, 쉼표, 공백, 하이픈, 마침표, 괄호 외 제거
+      rawOutput = rawOutput.replaceAll(RegExp(r'[^a-zA-Z0-9, \-\.\(\)]'), '');
+    }
+
+    return rawOutput.trim();
   } catch (e) {
-    return "Error: $e";
+    print("Error in generateImagePrompt: $e");
+    return "";
   }
 }

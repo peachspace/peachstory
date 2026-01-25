@@ -56,7 +56,6 @@ const EMOTION_MAP = {
   취함: "drunk, flushed face, dizzy eyes, tipsy",
   아픔: "sick, pale, feverish, coughing, weak",
   배고픔: "drooling, looking at food, hungry",
-  중립: "neutral expression, calm, indifferent",
 };
 
 function getExtensionFromMime(contentType) {

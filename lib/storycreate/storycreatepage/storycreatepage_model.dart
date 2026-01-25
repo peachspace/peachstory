@@ -70,12 +70,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   // State field(s) for genre widget.
   String? genreValue;
   FormFieldController<String>? genreValueController;
-  // State field(s) for storyName widget.
-  FocusNode? storyNameFocusNode;
-  TextEditingController? storyNameTextController;
-  String? Function(BuildContext, String?)? storyNameTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in storynameaicreatebutton widget.
-  String? generatedtitle;
   // State field(s) for worldSettings widget.
   FocusNode? worldSettingsFocusNode;
   TextEditingController? worldSettingsTextController;
@@ -96,6 +90,12 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? Function(BuildContext, String?)? prologuetextTextControllerValidator;
   // Stores action output result for [Custom Action - generateSingleTextField] action in prologueaicreatebutton widget.
   String? generatedprologue;
+  // State field(s) for storyName widget.
+  FocusNode? storyNameFocusNode;
+  TextEditingController? storyNameTextController;
+  String? Function(BuildContext, String?)? storyNameTextControllerValidator;
+  // Stores action output result for [Custom Action - generateSingleTextField] action in storynameaicreatebutton widget.
+  String? generatedtitle;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in addmainimagebutton widget.
   GenResultStructStruct? generatedmainimage;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in editmainimagebutton widget.
@@ -130,9 +130,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   @override
   void dispose() {
     tabBarController?.dispose();
-    storyNameFocusNode?.dispose();
-    storyNameTextController?.dispose();
-
     worldSettingsFocusNode?.dispose();
     worldSettingsTextController?.dispose();
 
@@ -141,6 +138,9 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
     prologuetextFocusNode?.dispose();
     prologuetextTextController?.dispose();
+
+    storyNameFocusNode?.dispose();
+    storyNameTextController?.dispose();
 
     introduceFocusNode?.dispose();
     introduceTextController?.dispose();
