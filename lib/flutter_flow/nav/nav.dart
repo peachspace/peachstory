@@ -108,46 +108,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => MypageWidget(),
         ),
         FFRoute(
-          name: CharatercreateWidget.routeName,
-          path: CharatercreateWidget.routePath,
-          requireAuth: true,
-          asyncParams: {
-            'characterDoc': getDoc(['character'], CharacterRecord.fromSnapshot),
-          },
-          builder: (context, params) => CharatercreateWidget(
-            characterDoc: params.getParam(
-              'characterDoc',
-              ParamType.Document,
-            ),
-          ),
-        ),
-        FFRoute(
-          name: CharactermainWidget.routeName,
-          path: CharactermainWidget.routePath,
-          requireAuth: true,
-          builder: (context, params) => CharactermainWidget(
-            characterRef: params.getParam(
-              'characterRef',
-              ParamType.DocumentReference,
-              isList: false,
-              collectionNamePath: ['character'],
-            ),
-          ),
-        ),
-        FFRoute(
-          name: CharactercommentlistWidget.routeName,
-          path: CharactercommentlistWidget.routePath,
-          requireAuth: true,
-          builder: (context, params) => CharactercommentlistWidget(
-            characterRef: params.getParam(
-              'characterRef',
-              ParamType.DocumentReference,
-              isList: false,
-              collectionNamePath: ['character'],
-            ),
-          ),
-        ),
-        FFRoute(
           name: StorycreatepageWidget.routeName,
           path: StorycreatepageWidget.routePath,
           requireAuth: true,
@@ -248,6 +208,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: SearchpageWidget.routeName,
           path: SearchpageWidget.routePath,
           builder: (context, params) => SearchpageWidget(),
+        ),
+        FFRoute(
+          name: UsernotepageWidget.routeName,
+          path: UsernotepageWidget.routePath,
+          builder: (context, params) => UsernotepageWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

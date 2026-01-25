@@ -38,7 +38,8 @@ Future<String?> callAiProxy(
   // 복잡한 규칙 조립 로직은 모두 제거했습니다. buildStoryPrompt를 믿고 그대로 보냅니다.
   try {
     final HttpsCallableResult result = await callable.call(<String, dynamic>{
-      'modelName': modelName ?? 'gpt-4o', // 모델명이 없으면 기본값 (필요시 수정)
+      'modelName':
+          modelName ?? 'Gemini 2.5 Flash-Lite', // 모델명이 없으면 기본값 (필요시 수정)
       'systemPrompt': systemPrompt, // 완성된 프롬프트 전달
       'messages': finalMessages, // 과거+현재 대화 전달
     });

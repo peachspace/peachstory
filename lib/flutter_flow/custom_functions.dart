@@ -49,119 +49,123 @@ String buildStoryPrompt(
   String? summary,
   bool isNovelMode,
 ) {
-  // 1. 캐릭터 설명 생성
+  // 1. [고정] 캐릭터 설명 및 감정 태그 리스트 생성
   final characterDescriptions = StringBuffer();
+
   for (final char in characters) {
+    String availableEmotions =
+        char.emotionimages.map((e) => '"${e.emotion}"').join(', ');
+
+    if (availableEmotions.isEmpty) availableEmotions = "None";
+
     characterDescriptions.writeln('<character>');
     characterDescriptions.writeln('  <name>${char.name}</name>');
     characterDescriptions
         .writeln('  <personality>${char.personality}</personality>');
+    characterDescriptions
+        .writeln('  <asset_emotions>[${availableEmotions}]</asset_emotions>');
     characterDescriptions.writeln('</character>');
   }
 
-  // 2. 시각적 연출 규칙
+  // 2. [고정] 배경 리스트 생성
+  final backgroundListString =
+      backgrounds.map((bg) => '"${bg.placeName}"').join(', ');
+
+  // 3. [고정] 상황 리스트 생성
   final conditionBuffer = StringBuffer();
-  for (final bg in backgrounds) {
-    conditionBuffer.writeln('- [Background]: "${bg.placeName}"');
-  }
   for (final char in characters) {
     for (final sit in char.situationImages) {
-      conditionBuffer.writeln('- [${char.name} Action]: "${sit.condition}"');
+      conditionBuffer.writeln('- [Specific Event]: "${sit.condition}"');
     }
   }
 
+  // 4. [고정] 시각 감독 규칙 (Visual Rules) - 사용자님 의도 100% 반영
   final String visualRules = '''
 ### 🎬 VISUAL DIRECTOR RULES
-You MUST trigger images when the story matches specific conditions.
-Output exactly: `{"type": "show_image", "condition": "Condition Text"}`.
-Check the **Condition List** below:
-<condition_list>
+You act as a visual director matching the story to available assets.
+
+**1. STORYTELLING (FREEDOM)**
+- Write the story content FREELY based on the context. 
+- Do NOT limit the locations or emotions to the list below. 
+- Characters can feel any emotion and go to any place (e.g., Space, Volcano).
+
+**2. IMAGE MAPPING (STRICT MATCHING)**
+- ONLY when you output the JSON for images (`show_image` or `action`), check the **Assets List** provided.
+
+**[Background Assets]**
+- My Assets: [${backgroundListString}]
+- Logic:
+  - Story matches an Asset? -> Output `{"type": "show_image", "condition": "AssetName"}`.
+  - Story is *very similar* to an Asset? (e.g. 'University' vs 'School') -> Output `{"type": "show_image", "condition": "School"}`.
+  - **Story is totally different? (e.g. 'Mars') -> DO NOT output `show_image`. Just write text.**
+
+**[Character Emotion Assets]**
+- Check each character's `<asset_emotions>` list above.
+- Logic:
+  - Story: "She felt ecstatic." -> Asset has "Happy"? -> Output `action: "Happy"`.
+  - Story: "She felt murderous rage." -> Asset only has "Happy", "Sad"? -> No match. Output `action: "무감정"` (Default).
+
+**[Situation Assets]**
+- Match these specific events if they happen:
 ${conditionBuffer.toString()}
-</condition_list>
 ''';
 
-  // 3. 감정 연기 규칙
-  const String emotionRules = '''
-### 🎭 EMOTION ACTING RULES
-When a character speaks, infer their emotion and include it in the `action` attribute.
-Keywords: "무감정", "기쁨", "슬픔", "화남", "놀람", "두려움", "행복", "사랑", "설렘", "부끄러움", "짜증", "실망", "우울", "진지".
-Example: {"type": "dialogue", "speaker": "Hero", "action": "분노", "content": "Get out!"}
+  // 5. [고정] 모드 가이드라인
+  String modeGuidelines;
+  if (isNovelMode) {
+    modeGuidelines = '''
+### 🖋️ MODE: WEB NOVEL AUTHOR
+1. **Protagonist:** You have full control. User ("${userInChatName}") is an observer.
+2. **Format:** Separate direct speech into `dialogue` objects.
 ''';
+  } else {
+    modeGuidelines = '''
+### 🗣️ MODE: INTERACTIVE ROLEPLAY
+1. **Interaction:** Wait for user input.
+2. **Never Impersonate:** Never speak for the user.
+''';
+  }
 
-  // 4. 유저 노트
+  // 6. [변동] 유저 노트 (Dynamic Context)
   final userNoteSection = (userNote != null && userNote.isNotEmpty)
       ? '<user_note>\n${userNote}\n</user_note>'
       : '';
 
-  // 5. 요약 (Summary)
+  // 7. [변동] 요약 (Dynamic Context)
   final summarySection = (summary != null && summary.isNotEmpty)
       ? '''
-### 📜 PREVIOUS STORY SUMMARY (MEMORY)
-The story so far:
+### 📜 PREVIOUS STORY SUMMARY
 <memory>
 ${summary}
 </memory>
 '''
       : '';
 
-  // 6. 프롤로그 섹션 삭제됨 (이제 역사 속에 포함됨)
-
-  // 7. 모드별 지침
-  String modeGuidelines;
-  if (isNovelMode) {
-    modeGuidelines = '''
-### 🖋️ MODE: WEB NOVEL AUTHOR (PASSIVE / TAP NOVEL)
-You are the sole author of a high-quality web novel.
-1.  **Protagonist:** You have full control. The user ("${userInChatName}") is an observer.
-2.  **Length:** 500~800 characters per response.
-3.  **NO Actions in Dialogue:** Do NOT use parenthetical actions inside dialogue. Describe actions in **Narration**.
-4.  **★ STRICT FORMATTING RULE:** Separate direct speech into `dialogue` objects.
-''';
-  } else {
-    modeGuidelines = '''
-### 🗣️ MODE: INTERACTIVE ROLEPLAY (FREE MODE)
-You are interacting with the user ("${userInChatName}").
-1.  **Interaction:** Wait for user input.
-2.  **NO User Impersonation:** Never speak for the user.
-3.  **NO Actions in Dialogue:** Describe actions in **Narration**.
-''';
-  }
-
-  // 8. 최종 프롬프트 조립
+  // ★ 8. 최종 조립 (순서: 고정 -> 변동)
+  // 이렇게 해야 Gemini가 앞부분을 "기억(Cache)"해서 비용을 깎아줍니다.
   return '''
-### ABSOLUTE ROLE
-You are an AI storyteller using the JSON output format.
+### SYSTEM INSTRUCTION (STATIC CONTEXT)
+You are an AI storyteller using JSON format.
 
 ${modeGuidelines}
 
-${emotionRules}
-
 ${visualRules}
 
-### WRITING STYLE
-- **Narration:** Detailed, immersive, and descriptive.
-- **Dialogue:** Clean speech ONLY. No parentheses.
-
-### OUTPUT FORMAT (CRITICAL)
-**You must output a valid JSON list of objects.**
-[
-  {"type": "narration", "content": "Descriptive text..."},
-  {"type": "dialogue", "speaker": "Name", "action": "Emotion", "content": "Speech text only"},
-  {"type": "show_image", "condition": "Condition"}
-]
-
-### STORY BIBLE
-${summarySection}
+### WORLD BIBLE (STATIC CONTEXT)
 <title>${storyTitle}</title>
 <setting>${storySetting}</setting>
 <user_role>${userRole}</user_role>
-${userNoteSection}
 
 <characters>
 ${characterDescriptions.toString()}
 </characters>
 
-Now, start or continue the story in JSON format. Do NOT include Markdown code blocks (```json). Just the raw JSON array.
+---
+### CURRENT STATUS (DYNAMIC CONTEXT)
+${summarySection}
+${userNoteSection}
+
+Start story in JSON.
 ''';
 }
 
@@ -258,8 +262,9 @@ String convertCharactersToString(List<CharacterStructStruct> charList) {
   return result.trim();
 }
 
-String stringToImagePath(String imageUrl) {
-  return imageUrl;
+String stringToImagePath(String? imageUrl) {
+// 값이 없으면(null) 빈 문자열('')을 반환하고, 있으면 그 값을 반환합니다.
+  return imageUrl ?? '';
 }
 
 bool isSummaryTurn(int messageCount) {
@@ -385,41 +390,73 @@ List<StoryChatMessageStructStruct> parsePrologueToMessages(
   return messages;
 }
 
-bool checkStoryValidation(
-  String? title,
-  String? worldview,
-  String? prologue,
-  String? userRole,
-  List<CharacterStructStruct> characters,
-  String? mainImage,
-) {
-// 1. 기본 텍스트 필드 및 이미지 검사
-  if (title == null || title.trim().isEmpty) return false;
-  if (worldview == null || worldview.trim().isEmpty) return false;
-  if (prologue == null || prologue.trim().isEmpty) return false;
-  if (userRole == null || userRole.trim().isEmpty) return false;
-  if (mainImage == null || mainImage.trim().isEmpty) return false;
-
-  // 2. 캐릭터 리스트 정밀 검사
-  if (characters.isEmpty) return false; // 최소 1명 필수
-
-  for (var char in characters) {
-    // [수정됨] 실제 필드명(name, personality, introduce, profileimage) 적용
-    if ((char.name == null || char.name.trim().isEmpty) ||
-        (char.introduce == null || char.introduce.trim().isEmpty) ||
-        (char.personality == null || char.personality.trim().isEmpty) ||
-        (char.profileimage == null || char.profileimage.trim().isEmpty)) {
-      return false;
-    }
-  }
-
-  return true; // 모든 관문을 통과함
-}
-
 List<EmotionImageStructStruct> getEmptyEmotionList() {
   return [];
 }
 
 List<SituationalImageStructStruct> getEmptysituationList() {
   return [];
+}
+
+String getSituationTagString(List<CharacterStructStruct> characters) {
+  if (characters == null || characters.isEmpty) {
+    return "없음";
+  }
+
+  // 모든 캐릭터를 돌면서 'situationImages' 안에 있는 'condition(상황태그)'을 수집합니다.
+  List<String> allSituations = [];
+
+  for (var char in characters) {
+    for (var sit in char.situationImages) {
+      if (sit.condition != null && sit.condition.isNotEmpty) {
+        allSituations.add(sit.condition);
+      }
+    }
+  }
+
+  if (allSituations.isEmpty) {
+    return "없음";
+  }
+
+  // 예시 출력: "- 칼뽑기\n- 울음\n- 도망"
+  return allSituations.map((s) => "- $s").join('\n');
+}
+
+String getEmotionTagString(List<CharacterStructStruct> characters) {
+  if (characters == null || characters.isEmpty) {
+    return "없음";
+  }
+
+  // 모든 캐릭터의 emotionImages를 돌면서 'emotion(감정태그)'을 수집
+  // 중복을 제거하기 위해 Set을 사용
+  Set<String> uniqueEmotions = {};
+
+  for (var char in characters) {
+    for (var emo in char.emotionimages) {
+      if (emo.emotion != null && emo.emotion.isNotEmpty) {
+        uniqueEmotions.add(emo.emotion);
+      }
+    }
+  }
+
+  if (uniqueEmotions.isEmpty) {
+    return "없음";
+  }
+
+  // 예시 출력: "- 기쁨\n- 슬픔\n- 분노"
+  return uniqueEmotions.map((e) => "- $e").join('\n');
+}
+
+String getBackgroundTagString(List<BackgroundStructStruct>? backgrounds) {
+// 1. 배경 리스트가 비어있거나 없으면 "없음" 반환
+  if (backgrounds == null || backgrounds.isEmpty) {
+    return "없음";
+  }
+
+  // 2. 배경 리스트를 순회하며 이름(placeName)만 뽑아서 줄바꿈으로 연결
+  // 예시 결과:
+  // - 학교
+  // - 숲
+  // - 집
+  return backgrounds.map((bg) => "- ${bg.placeName}").join('\n');
 }
