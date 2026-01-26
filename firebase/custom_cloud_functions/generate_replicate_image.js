@@ -9,12 +9,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 /** ------------------------------------------------------------------
  * 0. 환경 설정 및 초기화
  * ------------------------------------------------------------------ */
-// 배포 전 환경변수 설정:
-// firebase functions:config:set storage.bucket="your-project.appspot.com" replicate.key="r8_..."
+// [변경] API Key는 함수 내부에서 Secret Manager를 통해 가져옵니다.
+// Bucket은 기존 config나 환경변수 유지
 const CONFIG_BUCKET =
   functions.config().storage?.bucket || process.env.FIREBASE_STORAGE_BUCKET;
-const CONFIG_API_KEY =
-  functions.config().replicate?.key || process.env.REPLICATE_API_KEY;
 
 const USER_CACHE = new Map();
 const MAX_CACHE_SIZE = 5000;
@@ -411,12 +409,23 @@ async function saveToStorage(bucketName, userId, mode, rawAiUrl) {
 }
 
 exports.generateReplicateImage = functions
-  .runWith({ timeoutSeconds: 540, memory: "1GB" })
+  // [중요] Secret Manager를 사용하겠다고 선언
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "1GB",
+    secrets: ["REPLICATE_API_KEY"],
+  })
   .https.onCall(async (data, context) => {
+    // [중요] 함수 내부에서 Secret 값 로드
+    const CONFIG_API_KEY = process.env.REPLICATE_API_KEY;
+
     // 설정 검증
     if (!CONFIG_BUCKET || !CONFIG_API_KEY) {
-      console.error("Missing Environment Config");
-      return { success: false, error: "Server Configuration Error" };
+      console.error("Missing Environment Config or Secret Key");
+      return {
+        success: false,
+        error: "Server Configuration Error (Missing Key/Bucket)",
+      };
     }
 
     if (!context.auth) return { success: false, error: "Auth required." };

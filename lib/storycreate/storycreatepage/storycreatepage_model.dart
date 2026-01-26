@@ -58,6 +58,8 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String? prologuetext;
 
+  String? currentStoryId;
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TabBar widget.

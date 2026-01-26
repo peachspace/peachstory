@@ -9,6 +9,7 @@ import '/storycreate/charactercomponent/charactercomponent_widget.dart';
 import '/storycreate/source_select_sheet/source_select_sheet_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
+import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +50,14 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      _model.currentStoryId = random_data.randomString(
+        0,
+        0,
+        true,
+        false,
+        false,
+      );
+      safeSetState(() {});
       if (widget.storyDoc != null) {
         _model.title = widget.storyDoc?.title;
         _model.worldview = widget.storyDoc?.worldview;
@@ -766,6 +775,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                         '세계관',
                                                         '[제목]: ${_model.storyNameTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                         _model.genre!,
+                                                        _model.currentStoryId,
                                                       );
                                                       safeSetState(() {
                                                         _model.worldSettingsTextController
@@ -1236,6 +1246,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                               .text ==
                                                           '',
                                                   genre: _model.genre!,
+                                                  storyId:
+                                                      _model.currentStoryId,
                                                   onDelete:
                                                       (indexToDelete) async {
                                                     FFAppState()
@@ -1673,6 +1685,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                         '유저 역할',
                                                         '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}',
                                                         _model.genre!,
+                                                        _model.currentStoryId,
                                                       );
                                                       safeSetState(() {
                                                         _model.userRoleInfoTextController
@@ -1989,6 +2002,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                     '프롤로그',
                                                     '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[보유 배경 태그]: ${functions.getBackgroundTagString(_model.backgroundlist.toList())}\\n[보유 감정 태그]: ${functions.getEmotionTagString(FFAppState().Characters.toList())}\\n[보유 상황 태그]: ${functions.getSituationTagString(FFAppState().Characters.toList())}',
                                                     _model.genre!,
+                                                    _model.currentStoryId,
                                                   );
                                                   safeSetState(() {
                                                     _model.prologuetextTextController
@@ -2450,6 +2464,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                         '제목',
                                                         '[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                         _model.genre!,
+                                                        _model.currentStoryId,
                                                       );
                                                       safeSetState(() {
                                                         _model.storyNameTextController
@@ -3252,6 +3267,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                         '스토리 소개',
                                                         '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                         _model.genre!,
+                                                        _model.currentStoryId,
                                                       );
                                                       safeSetState(() {
                                                         _model.introduceTextController
@@ -3596,6 +3612,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                       '상세 정보',
                                                       '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저 역할]: ${_model.userRoleInfoTextController.text}',
                                                       _model.genre!,
+                                                      _model.currentStoryId,
                                                     );
                                                     safeSetState(() {
                                                       _model.introduceTextController

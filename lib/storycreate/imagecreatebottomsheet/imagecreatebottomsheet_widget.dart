@@ -1721,16 +1721,11 @@ class _ImagecreatebottomsheetWidgetState
                           var _shouldSetState = false;
                           _model.isImageLoading = true;
                           safeSetState(() {});
-                          _model.englishPrompt =
-                              await actions.translateToEnglish(
-                            _model.imagecreatepromptTextController.text,
-                          );
-                          _shouldSetState = true;
                           if (widget.imageMode == 'character') {
                             _model.characterImageResult =
                                 await actions.callGenerateImageCloud(
                               'character',
-                              _model.englishPrompt!,
+                              _model.imagecreatepromptTextController.text,
                               '',
                               '',
                               0,
@@ -1768,7 +1763,7 @@ class _ImagecreatebottomsheetWidgetState
                             _model.situationImageResult =
                                 await actions.callGenerateImageCloud(
                               'situation',
-                              _model.englishPrompt!,
+                              _model.imagecreatepromptTextController.text,
                               widget.receivedbaseimage,
                               '',
                               0,
@@ -1785,7 +1780,7 @@ class _ImagecreatebottomsheetWidgetState
                             _model.backgroundimageResult =
                                 await actions.callGenerateImageCloud(
                               'background',
-                              _model.englishPrompt!,
+                              _model.imagecreatepromptTextController.text,
                               '',
                               '',
                               0,
@@ -1802,7 +1797,7 @@ class _ImagecreatebottomsheetWidgetState
                             _model.mainimageResult =
                                 await actions.callGenerateImageCloud(
                               'main',
-                              _model.englishPrompt!,
+                              _model.imagecreatepromptTextController.text,
                               _model.selectedCharImage?.profileimage,
                               '',
                               0,

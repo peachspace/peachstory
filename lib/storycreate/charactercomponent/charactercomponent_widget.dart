@@ -24,6 +24,7 @@ class CharactercomponentWidget extends StatefulWidget {
     required this.storyContext,
     required this.isWorldviewEmpty,
     required this.genre,
+    this.storyId,
   });
 
   final CharacterStructStruct? characterData;
@@ -33,6 +34,7 @@ class CharactercomponentWidget extends StatefulWidget {
   final String? storyContext;
   final bool? isWorldviewEmpty;
   final String? genre;
+  final String? storyId;
 
   @override
   State<CharactercomponentWidget> createState() =>
@@ -381,6 +383,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                               '캐릭터 이름',
                               '${widget.storyContext}',
                               widget.genre!,
+                              widget.storyId,
                             );
                             safeSetState(() {
                               _model.charNameTextController?.text =
@@ -661,6 +664,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                   '캐릭터 설정',
                                   '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}',
                                   widget.genre!,
+                                  widget.storyId,
                                 );
                                 _shouldSetState = true;
                                 safeSetState(() {
@@ -922,6 +926,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                 '캐릭터 소개',
                                 '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}\\n[캐릭터 설정]: ${_model.charSettingTextController.text}',
                                 widget.genre!,
+                                widget.storyId,
                               );
                               safeSetState(() {
                                 _model.charintroduceTextController?.text =
