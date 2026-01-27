@@ -6,18 +6,34 @@ if (!admin.apps.length) admin.initializeApp();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** ------------------------------------------------------------------
- * 0. 환경 설정 및 초기화
- * ------------------------------------------------------------------ */
-// [변경] API Key는 함수 내부에서 Secret Manager를 통해 가져옵니다.
-// Bucket은 기존 config나 환경변수 유지
-const CONFIG_BUCKET =
-  functions.config().storage?.bucket || process.env.FIREBASE_STORAGE_BUCKET;
+// [중요] 사용자님의 버킷 주소
+const MANUAL_BUCKET_FALLBACK = "ssss-ehfczw.appspot.com";
 
-const USER_CACHE = new Map();
-const MAX_CACHE_SIZE = 5000;
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const firebaseConfig = (() => {
+  try {
+    return process.env.FIREBASE_CONFIG
+      ? JSON.parse(process.env.FIREBASE_CONFIG)
+      : {};
+  } catch {
+    return {};
+  }
+})();
 
+const AUTO_BUCKET =
+  functions.config().storage?.bucket ||
+  firebaseConfig.storageBucket ||
+  process.env.FIREBASE_STORAGE_BUCKET ||
+  (process.env.GCLOUD_PROJECT
+    ? `${process.env.GCLOUD_PROJECT}.appspot.com`
+    : undefined);
+
+const CONFIG_BUCKET = AUTO_BUCKET || MANUAL_BUCKET_FALLBACK;
+
+const MODEL_VERSION_CACHE = new Map();
+const MODEL_VERSION_TTL_MS = 10 * 60 * 1000;
+const MODEL_VERSION_INFLIGHT = new Map();
+
+// ... (감정 맵 유지) ...
 const EMOTION_MAP = {
   무감정:
     "neutral expression, calm face, looking straight, closed mouth, serene",
@@ -64,62 +80,37 @@ function getExtensionFromMime(contentType) {
   return ".png";
 }
 
-async function getUserPremiumStatus(userId) {
-  const now = Date.now();
-  const cached = USER_CACHE.get(userId);
-
-  if (cached) {
-    if (now - cached.timestamp < CACHE_TTL_MS) {
-      USER_CACHE.delete(userId);
-      USER_CACHE.set(userId, cached);
-      return cached.isPremium;
-    }
-    USER_CACHE.delete(userId);
-  }
-
-  try {
-    const userDoc = await admin
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .get();
-    const isPremium = userDoc.exists && userDoc.data().isPremium === true;
-
-    if (USER_CACHE.size >= MAX_CACHE_SIZE) {
-      const firstKey = USER_CACHE.keys().next().value;
-      USER_CACHE.delete(firstKey);
-    }
-    USER_CACHE.set(userId, { isPremium, timestamp: now });
-    return isPremium;
-  } catch (e) {
-    console.error(`[DB Error] User:${userId}`, e);
-    return false;
-  }
+function normalizeBucketName(bucket) {
+  if (!bucket) return "";
+  const b = String(bucket).trim();
+  return b.includes(".") ? b : `${b}.appspot.com`;
 }
 
-// [보안] 버킷 자동 보정 및 URL 검증
-function isValidInputUrl(urlStr, allowedBucket) {
+function extractBucketNameFromFirebaseUrl(url) {
+  try {
+    if (url.hostname === "firebasestorage.googleapis.com") {
+      const match = url.pathname.match(/^\/v0\/b\/([^/]+)\/o\//);
+      return match ? match[1] : "";
+    }
+    if (url.hostname === "storage.googleapis.com") {
+      const match = url.pathname.match(/^\/([^/]+)\//);
+      return match ? match[1] : "";
+    }
+    if (url.hostname.endsWith(".storage.googleapis.com")) {
+      return url.hostname.replace(".storage.googleapis.com", "");
+    }
+  } catch (_) {}
+  return "";
+}
+
+function isValidInputUrl(urlStr, allowedBucketRaw) {
   try {
     const url = new URL(urlStr);
     if (url.protocol !== "https:") return false;
-
-    // 버킷명 정규화 (설정에 'project-id'만 있어도 '.appspot.com' 붙여서 비교)
-    let targetBucket = allowedBucket;
-    if (targetBucket && !targetBucket.includes(".")) {
-      targetBucket += ".appspot.com";
-    }
-
-    let bucketName = "";
-    if (url.hostname === "firebasestorage.googleapis.com") {
-      const match = url.pathname.match(/^\/v0\/b\/([^/]+)\/o\//);
-      if (match) bucketName = match[1];
-    } else if (url.hostname === "storage.googleapis.com") {
-      const match = url.pathname.match(/^\/([^/]+)\//);
-      if (match) bucketName = match[1];
-    } else {
-      return false;
-    }
-    return bucketName === targetBucket;
+    const allowedBucket = normalizeBucketName(allowedBucketRaw);
+    const bucketFromUrl = extractBucketNameFromFirebaseUrl(url);
+    if (!bucketFromUrl) return false;
+    return bucketFromUrl === allowedBucket;
   } catch (_) {
     return false;
   }
@@ -146,79 +137,66 @@ function safeSeed(seedLike) {
 }
 
 /** ------------------------------------------------------------------
- * 1. 모델 설정
+ * 1. 모델 레지스트리 (V16.0: cjwbw 원복 + 검증된 해시)
  * ------------------------------------------------------------------ */
-const STYLE_CONFIG = {
-  애니: {
-    version: "3f3246eb760773d22e03290623f993309e3774620023ee468498894474773c39",
-    steps: 28,
-    guidance: 7.0,
-    supportsRef: true,
-    imgField: "image",
-    strField: "prompt_strength",
-    prefix:
-      "masterpiece, best quality, anime style, cel shading, clean lineart, detailed eyes",
-    premiumPrefix: "masterpiece, best quality, anime style, clean lineart",
+const MODEL_REGISTRY = {
+  // [수정 A] cjwbw로 원복하고, 확실히 작동하는 버전 해시 적용
+  ANIMAGINE_XL: {
+    owner: "cjwbw",
+    name: "animagine-xl-3.1",
+    version: "6afe2e6b27dad2d6f480b59195c221884b6acc589ff4d05ff0e5fc058690fbb9",
+    schema: "SDXL_ANIMAGINE",
   },
-  웹툰: {
-    version: "3f3246eb760773d22e03290623f993309e3774620023ee468498894474773c39",
-    steps: 28,
-    guidance: 7.0,
-    supportsRef: true,
-    imgField: "image",
-    strField: "prompt_strength",
-    prefix:
-      "masterpiece, best quality, webtoon style, manhwa, bold outlines, flat color, vivid colors, single panel, one scene, no split frames",
-    premiumPrefix:
-      "masterpiece, best quality, webtoon style, bold outlines, flat color",
+  REALVIS_XL: {
+    owner: "adirik",
+    name: "realvisxl-v4.0",
+    version: "85a58cc74b90c1b6c7c7e08c82c32c02d7462a98b1fd69e7fbf99f948c1d5267",
+    schema: "SDXL_STANDARD",
   },
-  세미리얼: {
-    version: "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
-    steps: 30,
-    guidance: 7.0,
-    supportsRef: true,
-    imgField: "image",
-    strField: "prompt_strength",
-    prefix:
-      "masterpiece, best quality, semi-realistic illustration, 3d render style, soft lighting, detailed texture",
-    premiumPrefix: "masterpiece, best quality, semi-realistic, soft lighting",
-  },
-  실사: {
-    version: "33279060bbbb8858700eb2146350a98d96ef334fcf817f37eb05915e1534aa1c",
-    steps: 25,
-    guidance: 6.0,
-    supportsRef: true,
-    imgField: "image",
-    strField: "prompt_strength",
-    prefix:
-      "photorealistic, raw photo, 8k, cinematic lighting, realistic skin texture, dslr, film grain",
-    premiumPrefix: "photorealistic, raw photo, cinematic lighting",
-  },
-};
-
-const PREMIUM_MODELS = {
   INSTANT_ID: {
-    version: "c1e14995eb835c9180f836173079b5d21b0b57e7535b46e3981882b53f608988",
-    faceInput: "image",
-    poseInput: "pose_image",
-    idStrength: "ip_adapter_scale",
-    poseStrength: "controlnet_conditioning_scale",
-    stepsField: "num_inference_steps",
-    guidanceField: "guidance_scale",
+    owner: "zsxkib",
+    name: "instant-id",
+    version: "2e4785a4d80dadf580077b2244c8d7c05d8e3faac04a04c02d8e099dd2876789",
+    schema: "INSTANT_ID",
   },
   IP_ADAPTER: {
-    version: "24a139a031e406f3438e1467439506691c28c616892697843b0d24326555239a",
-    faceInput: "image",
-    idStrength: "scale",
-    stepsField: "num_inference_steps",
-    guidanceField: "guidance_scale",
+    owner: "lucataco",
+    name: "ip-adapter-sdxl-face",
+    version: "226c6bf67a75a129b0f978e518fed33e1fb13956e15761c1ac53c9d2f898c9af",
+    schema: "IP_ADAPTER",
   },
 };
 
-const NEG_BASE =
-  "lowres, worst quality, low quality, blurry, watermark, error, bad anatomy, bad hands, missing fingers, extra digit, cropped";
-const NEG_STANDARD = `${NEG_BASE}, text, multiple views, comic panels`;
-const NEG_WEBTOON = `${NEG_BASE}, multiple views, speech bubble, caption, dialog box, typeset, text, panel borders, split view`;
+const STYLE_MAPPING = {
+  애니: {
+    baseModel: "ANIMAGINE_XL",
+    identityModel: "IP_ADAPTER",
+    prefix:
+      "masterpiece, best quality, high quality anime illustration, light novel illustration, soft shading, clean lineart, smooth gradients, glossy eyes, detailed hair, delicate highlights",
+    neg: "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, username, blurry, character sheet, reference sheet, turnaround, multiple views, collage, panel, split view, multiple characters, 2girls, 2people, crowd, chibi",
+  },
+  웹툰: {
+    baseModel: "ANIMAGINE_XL",
+    identityModel: "IP_ADAPTER",
+    prefix:
+      "masterpiece, best quality, webtoon style, manhwa, bold outlines, flat color, vivid colors",
+    neg: "lowres, bad anatomy, bad hands, speech bubble, caption, text, dialog box, typeset, panel borders, split view, multiple views, multiple characters, crowd",
+  },
+  세미리얼: {
+    baseModel: "REALVIS_XL",
+    identityModel: "INSTANT_ID",
+    prefix:
+      "masterpiece, best quality, semi-realistic illustration, 3d render style, soft lighting, detailed texture",
+    neg: "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, cartoon, anime",
+  },
+  실사: {
+    baseModel: "REALVIS_XL",
+    identityModel: "INSTANT_ID",
+    prefix:
+      "photorealistic, raw photo, 8k, cinematic lighting, realistic skin texture, dslr, film grain",
+    neg: "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, cartoon, anime, illustration, painting",
+  },
+};
 
 function normalizeStyle(raw) {
   const s = String(raw || "애니").trim();
@@ -239,44 +217,191 @@ function normalizeMode(raw) {
   return "character";
 }
 
-function getPrompt(
-  styleConfig,
-  mode,
-  basePrompt,
-  promptInput,
-  isPremium,
-  hasRef,
-) {
-  const prefix =
-    isPremium && hasRef ? styleConfig.premiumPrefix : styleConfig.prefix;
-  const identityLock = basePrompt ? `same character, ${basePrompt}` : "";
+function buildPrompt(mode, styleObj, basePrompt, scenePrompt, isRefMode) {
+  const prefix = styleObj.prefix;
+  const identityLock =
+    isRefMode && basePrompt ? `same character, ${basePrompt}` : basePrompt;
+  const single = "solo, 1girl, single character, centered composition";
 
-  let finalInput = promptInput;
+  let finalScene = scenePrompt;
   if (mode === "emotion") {
-    const rawKey = promptInput.trim().split(" ")[0];
+    const rawKey = scenePrompt.trim().split(" ")[0];
     const cleanKey = rawKey.replace(/[^\w\s\u3131-\uD79D]/g, "");
-
     const mapped = EMOTION_MAP[cleanKey] || EMOTION_MAP[rawKey];
-    if (mapped) finalInput = mapped;
+    if (mapped) finalScene = mapped;
+    finalScene = `(${finalScene}:1.4)`;
   }
 
   if (mode === "character")
-    return `solo, portrait, upper body, focus on face, ${styleConfig.prefix}, ${identityLock}, ${finalInput}`;
+    return `${single}, close-up portrait, head and shoulders, simple background, ${prefix}, ${identityLock}, neutral expression`;
   if (mode === "emotion")
-    return `solo, portrait, focus on face, ${prefix}, ${identityLock}, ${finalInput}`;
+    return `${single}, close-up portrait, focus on face, ${prefix}, ${identityLock}, ${finalScene}`;
   if (mode === "situation")
-    return `solo, full body, dynamic pose, ${prefix}, ${identityLock}, ${finalInput}`;
+    return `${single}, full body, dynamic action pose, ${prefix}, ${identityLock}, (${finalScene}:1.3)`;
+  if (mode === "main")
+    return `${single}, cover art, cinematic composition, ${prefix}, ${identityLock}, ${finalScene}, dramatic lighting, detailed background`;
   if (mode === "background")
-    return `scenery, no humans, ${styleConfig.prefix}, ${finalInput}`;
-  return `solo, portrait, cinematic lighting, ${prefix}, ${identityLock}, ${finalInput}`;
+    return `scenery, no humans, ${prefix}, ${finalScene}`;
+
+  return `${single}, ${prefix}, ${identityLock}, ${finalScene}`;
 }
 
-/** ------------------------------------------------------------------
- * 3. 외부 통신 (안정성 극대화)
- * ------------------------------------------------------------------ */
-// [개선] Create 요청 재시도 (429/5xx 대응)
+function cacheKey(owner, name) {
+  return `${owner}/${name}`;
+}
+
+async function fetchLatestVersionIdFromReplicate(apiKey, owner, name) {
+  const url = `https://api.replicate.com/v1/models/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`;
+  let retries = 2;
+
+  while (true) {
+    try {
+      const resp = await axios.get(url, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        timeout: 10000,
+        validateStatus: (s) => s >= 200 && s < 500,
+      });
+
+      if (resp.status === 200) {
+        const latest = resp.data?.latest_version;
+        const versionId = latest?.id || resp.data?.latest_version_id;
+        if (!versionId)
+          throw new Error(`Missing latest_version.id for ${owner}/${name}`);
+        return versionId;
+      }
+
+      // 429/5xx 에러 시 재시도 (대기 시간 증가)
+      if ((resp.status === 429 || resp.status >= 500) && retries-- > 0) {
+        await sleep(2000 * (3 - retries));
+        continue;
+      }
+      throw new Error(
+        `Replicate GET error: ${resp.status} ${JSON.stringify(resp.data)}`,
+      );
+    } catch (e) {
+      if (retries-- > 0 && !e.response) {
+        await sleep(1000);
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
+async function getModelVersionCached(apiKey, modelInfo) {
+  if (!modelInfo?.owner || !modelInfo?.name) return modelInfo.version;
+  const key = cacheKey(modelInfo.owner, modelInfo.name);
+  const now = Date.now();
+
+  const cached = MODEL_VERSION_CACHE.get(key);
+  if (cached && now - cached.ts < MODEL_VERSION_TTL_MS && cached.version)
+    return cached.version;
+  const inflight = MODEL_VERSION_INFLIGHT.get(key);
+  if (inflight) return inflight;
+
+  const p = (async () => {
+    try {
+      const latestId = await fetchLatestVersionIdFromReplicate(
+        apiKey,
+        modelInfo.owner,
+        modelInfo.name,
+      );
+      MODEL_VERSION_CACHE.set(key, { version: latestId, ts: Date.now() });
+      return latestId;
+    } catch (err) {
+      console.warn(`[VERSION_FETCH_FAIL] Using fallback: ${err.message}`);
+      if (modelInfo.version) return modelInfo.version;
+      throw err;
+    } finally {
+      MODEL_VERSION_INFLIGHT.delete(key);
+    }
+  })();
+  MODEL_VERSION_INFLIGHT.set(key, p);
+  return p;
+}
+
+function isInvalidVersion422(err) {
+  const status = err?.response?.status;
+  const title = String(err?.response?.data?.title || "").toLowerCase();
+  const detail = String(err?.response?.data?.detail || "").toLowerCase();
+  return (
+    status === 422 &&
+    (title.includes("invalid version") ||
+      title.includes("not permitted") ||
+      detail.includes("version does not exist") ||
+      detail.includes("invalid version") ||
+      detail.includes("not permitted"))
+  );
+}
+
+function invalidateModelCaches(owner, name) {
+  const key = cacheKey(owner, name);
+  MODEL_VERSION_CACHE.delete(key);
+}
+
+function createReplicatePayload(
+  modelKey,
+  prompt,
+  neg,
+  width,
+  height,
+  seed,
+  refImage,
+  poseImage,
+  mode,
+) {
+  const modelInfo = MODEL_REGISTRY[modelKey];
+  if (!modelInfo) throw new Error(`Unknown Model Key: ${modelKey}`);
+  const input = {};
+
+  if (modelInfo.schema === "SDXL_ANIMAGINE") {
+    input.prompt = prompt;
+    input.negative_prompt = neg;
+    input.width = width;
+    input.height = height;
+    input.guidance_scale = 7.0;
+    input.num_inference_steps = 30;
+    input.seed = seed;
+  } else if (modelInfo.schema === "SDXL_STANDARD") {
+    input.prompt = prompt;
+    input.negative_prompt = neg;
+    input.width = width;
+    input.height = height;
+    input.guidance_scale = 5.0;
+    input.num_inference_steps = 30;
+    input.seed = seed;
+  } else if (modelInfo.schema === "INSTANT_ID") {
+    input.prompt = prompt;
+    input.negative_prompt = neg;
+    input.image = refImage;
+    if (poseImage) {
+      input.pose_image = poseImage;
+      input.controlnet_conditioning_scale = 0.8;
+    }
+    if (mode === "emotion") input.ip_adapter_scale = 0.5;
+    else if (mode === "situation") input.ip_adapter_scale = 0.6;
+    else input.ip_adapter_scale = 0.8;
+    input.guidance_scale = 5.0;
+    input.num_inference_steps = 30;
+    input.seed = seed;
+  } else if (modelInfo.schema === "IP_ADAPTER") {
+    input.prompt = prompt;
+    input.negative_prompt = neg;
+    input.image = refImage;
+    if (mode === "emotion") input.scale = 0.45;
+    else if (mode === "situation") input.scale = 0.55;
+    else input.scale = 0.7;
+    if (poseImage) {
+      input.control_image = poseImage;
+      input.control_weight = 0.75;
+    }
+    input.seed = seed;
+  }
+  return { version: null, input: input };
+}
+
 async function callReplicate(apiKey, version, input) {
-  let retries = 2; // 최대 2회 재시도 (총 3회)
+  let retries = 3;
   while (true) {
     try {
       const response = await axios.post(
@@ -289,18 +414,26 @@ async function callReplicate(apiKey, version, input) {
       );
       return response.data;
     } catch (e) {
-      // 429(Too Many Requests) 또는 5xx 에러면 잠시 대기 후 재시도
-      if (
-        retries > 0 &&
-        e.response &&
-        (e.response.status === 429 || e.response.status >= 500)
-      ) {
-        console.warn(`[CREATE RETRY] Status ${e.response.status}, retrying...`);
-        await sleep(1500); // 1.5초 대기
+      const status = e?.response?.status;
+
+      // 429 에러 발생 시 대기
+      if (retries > 0 && status === 429) {
+        const ra = Number(e?.response?.data?.retry_after) || 8;
+        const waitMs = ra * 1000 + 1000;
+        console.warn(
+          `[REPLICATE 429] Limit reached. Waiting ${waitMs / 1000}s...`,
+        );
+        await sleep(waitMs);
         retries--;
         continue;
       }
-      throw e; // 그 외 에러는 즉시 throw
+
+      if (retries > 0 && status && status >= 500) {
+        await sleep(1500);
+        retries--;
+        continue;
+      }
+      throw e;
     }
   }
 }
@@ -310,7 +443,6 @@ async function pollReplicate(apiKey, getUrl) {
   const startTime = Date.now();
   const DEADLINE = 450 * 1000;
   let retryCount = 0;
-
   while (Date.now() - startTime < DEADLINE) {
     try {
       prediction = (
@@ -319,12 +451,8 @@ async function pollReplicate(apiKey, getUrl) {
           timeout: 10000,
         })
       ).data;
-
-      // 성공/진행 중 응답 시 카운트 리셋
       if (prediction.status) retryCount = 0;
-
       if (prediction.status === "succeeded") return prediction;
-
       if (
         prediction.status !== "starting" &&
         prediction.status !== "processing"
@@ -340,27 +468,20 @@ async function pollReplicate(apiKey, getUrl) {
       if (pollErr.isTerminal) throw pollErr;
       if (pollErr.response) {
         const s = pollErr.response.status;
-        // [수정] 400번대(400~499)는 대부분 Terminal로 처리 (단 429는 제외)
         if (s >= 400 && s < 500 && s !== 429) {
           const e = new Error(`Polling Fatal Error: ${s}`);
           e.isTerminal = true;
           throw e;
         }
       }
-
       const baseDelay = pollErr.response?.status === 429 ? 5000 : 2000;
       const delay =
         Math.min(baseDelay * Math.pow(1.5, retryCount), 15000) +
         Math.random() * 500;
-
-      console.warn(
-        `[POLL RETRY #${retryCount + 1}] Waiting ${Math.round(delay)}ms. Error: ${pollErr.message}`,
-      );
       await sleep(delay);
       retryCount++;
       continue;
     }
-
     await sleep(2000);
   }
   throw new Error("Replicate poll timeout (deadline exceeded)");
@@ -374,7 +495,6 @@ async function saveToStorage(bucketName, userId, mode, rawAiUrl) {
     } catch (_) {}
     throw new Error(`Security Block: Unauthorized output host`);
   }
-
   const imgResp = await axios.get(rawAiUrl, {
     responseType: "arraybuffer",
     maxContentLength: 20 * 1024 * 1024,
@@ -382,25 +502,16 @@ async function saveToStorage(bucketName, userId, mode, rawAiUrl) {
     timeout: 20000,
     validateStatus: (status) => status >= 200 && status < 300,
   });
-
   const contentType = imgResp.headers["content-type"];
-  if (!contentType || !contentType.startsWith("image/")) {
+  if (!contentType || !contentType.startsWith("image/"))
     throw new Error(`Security Block: Invalid content-type (${contentType})`);
-  }
-
   const ext = getExtensionFromMime(contentType);
   const fileName = `${mode}_${Date.now()}${ext}`;
-
-  // bucketName은 이미 검증된 값이거나 정규화된 값
   const file = admin
     .storage()
     .bucket(bucketName)
     .file(`users/${userId}/uploads/${fileName}`);
-
-  await file.save(imgResp.data, {
-    metadata: { contentType: contentType },
-  });
-
+  await file.save(imgResp.data, { metadata: { contentType: contentType } });
   const [permUrl] = await file.getSignedUrl({
     action: "read",
     expires: "03-01-2100",
@@ -409,30 +520,41 @@ async function saveToStorage(bucketName, userId, mode, rawAiUrl) {
 }
 
 exports.generateReplicateImage = functions
-  // [중요] Secret Manager를 사용하겠다고 선언
   .runWith({
     timeoutSeconds: 540,
     memory: "1GB",
     secrets: ["REPLICATE_API_KEY"],
   })
   .https.onCall(async (data, context) => {
-    // [중요] 함수 내부에서 Secret 값 로드
-    const CONFIG_API_KEY = process.env.REPLICATE_API_KEY;
+    // [확인용] V16.0: CJWBW 원복 + 선(先) 조회 로직 (B안) 적용
+    console.log("=== VERSION CHECK: V16.0 (CJWBW RESTORE & PRE-FETCH) ===");
 
-    // 설정 검증
+    const CONFIG_API_KEY =
+      process.env.REPLICATE_API_KEY || functions.config().replicate?.key;
+
     if (!CONFIG_BUCKET || !CONFIG_API_KEY) {
-      console.error("Missing Environment Config or Secret Key");
-      return {
-        success: false,
-        error: "Server Configuration Error (Missing Key/Bucket)",
-      };
+      return { success: false, error: "Server Config Error." };
+    }
+
+    try {
+      const acct = await axios.get("https://api.replicate.com/v1/account", {
+        headers: { Authorization: `Bearer ${CONFIG_API_KEY}` },
+        timeout: 5000,
+      });
+      console.log(
+        "[REPLICATE_ACCOUNT] Token Owner:",
+        acct.data?.username,
+        "Type:",
+        acct.data?.type,
+      );
+    } catch (e) {
+      console.warn("[REPLICATE_ACCOUNT] Check Failed:", e.message);
     }
 
     if (!context.auth) return { success: false, error: "Auth required." };
     const userId = context.auth.uid;
 
     try {
-      const isPremium = await getUserPremiumStatus(userId);
       const mode = normalizeMode(data.mode);
       const style = normalizeStyle(data.style);
 
@@ -440,177 +562,127 @@ exports.generateReplicateImage = functions
       const basePrompt = String(data.basePrompt || "").trim();
       const referenceImageUrl = String(data.referenceImageUrl || "").trim();
       const poseImageUrl = String(data.poseImageUrl || "").trim();
-
       const seed = safeSeed(data.seed);
 
-      // 버킷 정규화 (설정에 .appspot.com 없으면 붙여서 사용)
-      let targetBucket = CONFIG_BUCKET;
-      if (!targetBucket.includes(".")) {
-        targetBucket += ".appspot.com";
-      }
-
+      const targetBucket = normalizeBucketName(CONFIG_BUCKET);
       if (
         referenceImageUrl &&
         !isValidInputUrl(referenceImageUrl, targetBucket)
-      ) {
-        return { success: false, error: "Invalid ref URL (Bucket Mismatch)" };
-      }
-      if (poseImageUrl && !isValidInputUrl(poseImageUrl, targetBucket)) {
-        return { success: false, error: "Invalid pose URL (Bucket Mismatch)" };
-      }
+      )
+        return { success: false, error: "Invalid ref URL" };
+      if (poseImageUrl && !isValidInputUrl(poseImageUrl, targetBucket))
+        return { success: false, error: "Invalid pose URL" };
 
       console.log(
-        `[REQ] User=${userId}, Premium=${isPremium}, Style=${style}, Mode=${mode}, Seed=${seed}`,
+        `[REQ] User=${userId}, Style=${style}, Mode=${mode}, Seed=${seed}`,
       );
 
-      const config = STYLE_CONFIG[style] || STYLE_CONFIG["애니"];
-      const finalPrompt = getPrompt(
-        config,
+      const styleObj = STYLE_MAPPING[style] || STYLE_MAPPING["애니"];
+      const finalPrompt = buildPrompt(
         mode,
+        styleObj,
         basePrompt,
         promptInput,
-        isPremium,
         !!referenceImageUrl,
       );
 
-      let versionToUse = config.version;
-      let usedPipeline = "Standard";
-      let inputData = {};
+      let usedModelKey = styleObj.baseModel;
+      let usedPipeline = "Base";
 
-      // 4. 파이프라인 분기
-
-      // [CASE 0] 배경
-      if (mode === "background") {
-        usedPipeline = "Standard_Background";
-        inputData = {
-          prompt: finalPrompt,
-          negative_prompt: `${style === "웹툰" ? NEG_WEBTOON : NEG_STANDARD}, people, character, human, girl, boy`,
-          width: 1024,
-          height: 768,
-          num_inference_steps: config.steps,
-          guidance_scale: config.guidance,
-          seed: seed,
-        };
-      }
-      // [CASE 1] 프리미엄 & 참조 이미지
-      else if (mode !== "character" && referenceImageUrl && isPremium) {
-        // [1-A] 실사 -> InstantID
-        if (style === "실사") {
-          usedPipeline = "Premium_InstantID";
-          versionToUse = PREMIUM_MODELS.INSTANT_ID.version;
-          const p = PREMIUM_MODELS.INSTANT_ID;
-
-          inputData = {
-            prompt: finalPrompt,
-            negative_prompt: NEG_STANDARD,
-            [p.faceInput]: referenceImageUrl,
-            width: 896,
-            height: 1152,
-            seed: seed,
-            [p.stepsField]: 30,
-            [p.guidanceField]: 5,
-            [p.idStrength]: mode === "situation" ? 0.75 : 0.85,
-            [p.poseStrength]: 0.8,
-          };
-          if (mode === "situation" && poseImageUrl) {
-            inputData[p.poseInput] = poseImageUrl;
-            inputData[p.poseStrength] = 1.0;
-          }
-        }
-        // [1-B] 애니/웹툰 -> IP-Adapter
-        else {
-          usedPipeline = "Premium_IP_Adapter";
-          versionToUse = PREMIUM_MODELS.IP_ADAPTER.version;
-          const p = PREMIUM_MODELS.IP_ADAPTER;
-
-          inputData = {
-            prompt: finalPrompt,
-            negative_prompt: style === "웹툰" ? NEG_WEBTOON : NEG_STANDARD,
-            [p.faceInput]: referenceImageUrl,
-            width: 896,
-            height: 1152,
-            seed: seed,
-            [p.stepsField]: 30,
-            [p.guidanceField]: 7.5,
-          };
-
-          let idScale = 0.75;
-          if (style === "웹툰") idScale = mode === "situation" ? 0.7 : 0.6;
-          else idScale = mode === "situation" ? 0.85 : 0.75;
-          inputData[p.idStrength] = idScale;
-        }
-      }
-      // [CASE 2] 일반 / 무료
-      else {
-        usedPipeline = "Standard";
-        inputData = {
-          prompt: finalPrompt,
-          negative_prompt: style === "웹툰" ? NEG_WEBTOON : NEG_STANDARD,
-          width: 896,
-          height: 1152,
-          num_inference_steps: config.steps,
-          guidance_scale: config.guidance,
-          seed: seed,
-        };
-
-        if (
-          mode !== "character" &&
-          mode !== "background" &&
-          referenceImageUrl &&
-          config.supportsRef
-        ) {
-          inputData[config.imgField] = referenceImageUrl;
-          let str = 0.55;
-          if (mode === "emotion") str = 0.4;
-          else if (mode === "situation") str = style === "웹툰" ? 0.6 : 0.65;
-          inputData[config.strField] = str;
-        }
+      if (mode !== "background" && referenceImageUrl) {
+        usedModelKey = styleObj.identityModel;
+        usedPipeline = "Identity";
       }
 
-      console.log(`[EXEC] Pipeline: ${usedPipeline}, Style: ${style}`);
+      console.log(
+        `[EXEC] Pipeline: ${usedPipeline}, Model: ${usedModelKey}, Style: ${style}`,
+      );
 
-      // 5. 실행 및 폴백
+      let payloadObj = createReplicatePayload(
+        usedModelKey,
+        finalPrompt,
+        styleObj.neg,
+        mode === "main" || mode === "background" ? 1024 : 896,
+        mode === "main" || mode === "background" ? 768 : 1152,
+        seed,
+        referenceImageUrl,
+        poseImageUrl,
+        mode,
+      );
+
+      // [핵심 변경 B안] 생성 요청 전에 '최신 버전'을 먼저 확보하여 422 원천 차단
+      // 잘못된 버전으로 찌르지 않으므로 -> 422 안 남 -> 재시도 안 함 -> 429 안 남
+      const modelInfo = MODEL_REGISTRY[usedModelKey];
+      const versionToUse = await getModelVersionCached(
+        CONFIG_API_KEY,
+        modelInfo,
+      );
+      payloadObj.version = versionToUse;
+
       let prediction;
       try {
         const created = await callReplicate(
           CONFIG_API_KEY,
-          versionToUse,
-          inputData,
+          payloadObj.version,
+          payloadObj.input,
         );
         prediction = await pollReplicate(CONFIG_API_KEY, created.urls.get);
       } catch (reqErr) {
-        if (usedPipeline.startsWith("Premium") && !reqErr.isTerminal) {
-          const errMsg = reqErr.response?.data?.error || reqErr.message;
+        // 만약 그래도 422나면 최후의 수단으로 재시도 (빈도는 매우 낮을 것임)
+        if (isInvalidVersion422(reqErr) && modelInfo.owner && modelInfo.name) {
           console.warn(
-            `[FALLBACK] ${usedPipeline} failed (${errMsg}) -> Standard`,
+            `[AUTO-HEAL] 422 Detected. Waiting 8s for rate limit reset...`,
           );
+          await sleep(8000);
 
-          const fallbackConfig = STYLE_CONFIG[style] || STYLE_CONFIG["애니"];
-          versionToUse = fallbackConfig.version;
+          console.warn(`[AUTO-HEAL] Fetching fresh version...`);
+          invalidateModelCaches(modelInfo.owner, modelInfo.name);
+          const freshVersion = await getModelVersionCached(
+            CONFIG_API_KEY,
+            modelInfo,
+          );
+          payloadObj.version = freshVersion;
 
-          inputData = {
-            prompt: finalPrompt,
-            negative_prompt: style === "웹툰" ? NEG_WEBTOON : NEG_STANDARD,
-            width: 896,
-            height: 1152,
-            num_inference_steps: fallbackConfig.steps,
-            guidance_scale: fallbackConfig.guidance,
-            seed: seed,
-          };
+          const createdRetry = await callReplicate(
+            CONFIG_API_KEY,
+            payloadObj.version,
+            payloadObj.input,
+          );
+          prediction = await pollReplicate(
+            CONFIG_API_KEY,
+            createdRetry.urls.get,
+          );
+        } else if (usedPipeline === "Identity" && !reqErr.isTerminal) {
+          console.warn(
+            `[FALLBACK] Identity Model failed -> Switch to Base Model`,
+          );
+          await sleep(8000);
 
-          if (
-            mode !== "character" &&
-            referenceImageUrl &&
-            fallbackConfig.supportsRef
-          ) {
-            inputData[fallbackConfig.imgField] = referenceImageUrl;
-            inputData[fallbackConfig.strField] = 0.55;
-          }
+          usedModelKey = styleObj.baseModel;
+          const baseInfo = MODEL_REGISTRY[usedModelKey];
+
+          // Base Model Payload 재생성
+          payloadObj = createReplicatePayload(
+            usedModelKey,
+            finalPrompt,
+            styleObj.neg,
+            896,
+            1152,
+            seed,
+            null,
+            null,
+            mode,
+          );
+          // Base 모델도 선 조회
+          payloadObj.version = await getModelVersionCached(
+            CONFIG_API_KEY,
+            baseInfo,
+          );
 
           const created2 = await callReplicate(
             CONFIG_API_KEY,
-            versionToUse,
-            inputData,
+            payloadObj.version,
+            payloadObj.input,
           );
           prediction = await pollReplicate(CONFIG_API_KEY, created2.urls.get);
           usedPipeline += "_Fallback";
@@ -624,7 +696,6 @@ exports.generateReplicateImage = functions
         : prediction.output;
 
       try {
-        // [수정] targetBucket (정규화된 버킷명) 사용
         const permUrl = await saveToStorage(
           targetBucket,
           userId,
@@ -635,17 +706,18 @@ exports.generateReplicateImage = functions
           success: true,
           imageUrl: permUrl,
           seed: seed,
+          model: usedModelKey,
           pipeline: usedPipeline,
         };
       } catch (e) {
         console.error("Storage Save Failed:", e.message);
-        if (e.message.includes("Security Block")) {
+        if (e.message.includes("Security Block"))
           return { success: false, error: "Image blocked by security policy." };
-        }
         return {
           success: true,
           imageUrl: rawAiUrl,
           seed: seed,
+          model: usedModelKey,
           pipeline: usedPipeline,
         };
       }

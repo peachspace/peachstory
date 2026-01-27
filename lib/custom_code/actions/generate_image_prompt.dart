@@ -11,15 +11,48 @@ import 'package:flutter/material.dart';
 
 import 'package:cloud_functions/cloud_functions.dart';
 
+// [핵심] 태그 정리 함수 (중복 제거, 개수 제한, 길이 제한)
+String sanitizeTags(
+  String raw, {
+  int maxTags = 25,
+  int maxChars = 500,
+}) {
+  final parts =
+      raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  final seen = <String>{};
+  final cleaned = <String>[];
+
+  for (final p in parts) {
+    final key = p.toLowerCase();
+    // 너무 긴 토큰(문장형) 제거
+    if (p.length > 60) continue;
+    // 중복 제거
+    if (seen.contains(key)) continue;
+
+    seen.add(key);
+    cleaned.add(p);
+
+    if (cleaned.length >= maxTags) break;
+  }
+
+  var out = cleaned.join(', ');
+
+  if (out.length > maxChars) {
+    out = out.substring(0, maxChars);
+    final lastComma = out.lastIndexOf(',');
+    if (lastComma > 0) out = out.substring(0, lastComma);
+  }
+
+  return out.trim();
+}
+
 Future<String> generateImagePrompt(
   String mode,
   String contextInput,
   String? baseContext,
-  // [수정1] style 파라미터 삭제 (사용하지 않음)
 ) async {
   String systemPrompt = "";
 
-  // [수정3] 트리거 모드인데 입력이 없으면 불필요한 호출 방지
   if (mode.endsWith("_trigger") && contextInput.trim().isEmpty) {
     return "";
   }
@@ -32,22 +65,25 @@ Future<String> generateImagePrompt(
   // =========================================================
   if (mode.endsWith("_trigger")) {
     if (mode == "background_trigger") {
+      // [수정] 여러 장소가 입력되더라도 '가장 중요한 1곳'만 명사로 추출하도록 강제
       systemPrompt = """
 You are a story narrator helper.
-YOUR TASK: Extract ONLY the core 'Place Name' (Noun) from the user input.
-RULES:
-1. Output ONLY the place name in Korean.
-2. NO sentences, NO conditions.
-3. Example: "학교에 갔을 때" -> "학교"
+YOUR TASK: Extract ONLY ONE core 'Place Name' (Noun) from the user input.
+CRITICAL RULES:
+1. Output **ONLY ONE** place name in Korean. (Do NOT list multiple places)
+2. If multiple places are mentioned, select the most important ONE.
+3. NO sentences, NO conditions.
+4. Example: "학교랑 병원이랑 공원" -> "공원"
 """;
     } else if (mode == "situation_trigger") {
       systemPrompt = """
 You are a story narrator helper.
-YOUR TASK: Extract ONLY the core 'Action Keyword' (Noun or short Verb).
-RULES:
-1. Output ONLY the action keyword in Korean.
+YOUR TASK: Extract ONLY ONE core 'Action Keyword' (Noun or short Verb).
+CRITICAL RULES:
+1. Output **ONLY ONE** action keyword in Korean.
 2. Keep it simple (1-2 words).
-3. Example: "칼을 뽑아들었을 때" -> "칼뽑기"
+3. If multiple actions are mentioned, select the main ONE.
+4. Example: "칼을 뽑아들고 소리쳤다" -> "칼뽑기"
 """;
     }
   }
@@ -61,57 +97,59 @@ YOUR TASK: Convert the user's input into a comma-separated list of English visua
 RULES:
 1. Output ONLY English words.
 2. Translate Korean concepts into descriptive English tags.
-3. Focus on visible elements (clothing, hair, lighting, pose, background).
-4. DO NOT include quality tags like "best quality", "masterpiece" (The system adds them).
-5. DO NOT include style tags like "anime style", "webtoon" (The system adds them).
+3. Focus on visible elements.
+4. DO NOT include quality tags like "best quality", "masterpiece".
+5. DO NOT include style tags like "anime style", "webtoon".
 6. Incorporate the 'Base Context' (Character appearance) if provided.
 """;
 
-    // 모드별 세부 지침
+    // [수정] 배경 모드에서 '단일 장소' 및 '인물 제외' 강력하게 지시
     if (mode.contains("background")) {
       systemPrompt = """
 $baseRules
-7. Focus on Scenery, Architecture, Time of day, Weather.
-8. Ensure NO characters are described (Scenery only).
-Example Output: empty classroom, sunlight through window, wooden desks, blackboard, afternoon
+7. **CRITICAL: Choose ONE coherent background scene only.**
+8. Do NOT mix multiple locations. Pick the most prominent one.
+9. Output 12 to 20 tags max.
+10. Ensure NO characters, NO people, NO silhouettes.
+Example Output: modern cafe interior, sunlight through glass window, wooden table, cozy atmosphere, coffee cup, indoor plants
 """;
     } else if (mode.contains("situation")) {
       systemPrompt = """
 $baseRules
-7. Focus on Action, Dynamic Pose, Interaction, Camera Angle.
-8. Describe the Character's features from 'Base Context'.
-Example Output: 1girl, running fast, sweating, desperate expression, forest path, dynamic angle
+7. Output ONLY action/pose + small scene cues.
+8. **CRITICAL: Single subject only.**
+9. DO NOT include: character sheet, multiple views, collage.
+10. Describe the action dynamically. Output 15-20 tags max.
+Example Output: throwing a ball, arm extended, dynamic motion, action lines, sweating, athletic pose, focused expression
 """;
     } else if (mode == "character") {
       systemPrompt = """
 $baseRules
-7. Focus on 'Character Design Sheet' style.
-8. Background should be simple or plain (white or solid color) to highlight the character.
-9. Describe the character's facial features, hairstyle, and clothing in detail.
-10. Pose should be standard standing or portrait pose.
-Example Output: 1boy, black hair, blue eyes, wearing school uniform, simple white background, front view, character design
+7. Output ONLY immutable character identity tags (appearance).
+8. **CRITICAL: DO NOT include: facial expression, emotion, pose, background, "character design sheet", "front view".**
+9. Use single character keywords. Output 10-15 tags max.
+Example Output: 1woman, 20s, long black hair, blue eyes, white blouse, silver necklace, neutral expression
 """;
     } else if (mode.contains("main")) {
       systemPrompt = """
 $baseRules
-7. Focus on 'High-Quality Webnovel Cover Illustration'.
-8. COMBINE the 'Character Appearance' with the 'World View' (Base Context).
-9. Create a dramatic atmosphere, lighting, and background that fits the World View.
-10. The character should be placed in a scene from the World View.
-Example Output: 1boy, holding a glowing sword, standing on a ruined castle, dark fantasy atmosphere, red moon background, cinematic lighting, epic composition
+7. Focus on 'Cover Illustration' composition.
+8. **Single character centered.**
+9. Output 20-30 tags max.
+Example Output: 1boy, holding a glowing sword, standing on ruins, dark fantasy atmosphere, red moon, cinematic lighting, dynamic angle
 """;
     } else if (mode.contains("emotion")) {
       systemPrompt = """
 $baseRules
-7. Focus ONLY on Facial Expression and Emotion.
-8. Keep it simple.
-Example Output: crying, tears, sad eyes, mouth open
+7. Output ONLY facial expression and emotion tags.
+8. **Single subject only.**
+9. Output 5-10 tags max.
+Example Output: joyful smile, beaming, sparkling eyes, blushing, mouth open
 """;
     } else {
-      // Fallback
       systemPrompt = """
 $baseRules
-7. Focus on Character Design.
+7. Focus on Character Design. Output 15 tags max.
 """;
     }
   }
@@ -137,10 +175,17 @@ Request: Generate the English tags list.
 
     String rawOutput = result.data['fullText'] ?? '';
 
-    // [수정2] 후처리 강화: 마침표(.)와 괄호()도 허용
+    // [후처리] 특수문자 제거 및 태그 정리 (sanitizeTags 적용)
     if (!mode.endsWith("_trigger")) {
-      // 영어, 숫자, 쉼표, 공백, 하이픈, 마침표, 괄호 외 제거
       rawOutput = rawOutput.replaceAll(RegExp(r'[^a-zA-Z0-9, \-\.\(\)]'), '');
+
+      // 모드별 제한 적용
+      int limit = 20;
+      if (mode == "emotion")
+        limit = 10;
+      else if (mode == "character") limit = 15;
+
+      rawOutput = sanitizeTags(rawOutput, maxTags: limit, maxChars: 400);
     }
 
     return rawOutput.trim();

@@ -18,5 +18,3 @@ export '/my/heartlistpage/heartlistpage_widget.dart' show HeartlistpageWidget;
 export '/my/creatorrequestpage/creatorrequestpage_widget.dart'
     show CreatorrequestpageWidget;
 export '/home/searchpage/searchpage_widget.dart' show SearchpageWidget;
-export '/storychat/usernotepage/usernotepage_widget.dart'
-    show UsernotepageWidget;

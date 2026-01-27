@@ -523,7 +523,7 @@ class _ImagecreatebottomsheetWidgetState
                                                     .fontStyle,
                                           ),
                                       hintText:
-                                          '특정한 장소 또는 배경을 입력해주세요. ex. 학교, 숲',
+                                          '특정한 장소 또는 배경을 입력해주세요(ex. 학교, 숲).',
                                       hintStyle: FlutterFlowTheme.of(context)
                                           .labelMedium
                                           .override(
@@ -788,6 +788,8 @@ class _ImagecreatebottomsheetWidgetState
                                     .bodyMedium
                                     .fontStyle,
                               ),
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                              fontSize: 13.0,
                               letterSpacing: 0.0,
                               fontWeight: FlutterFlowTheme.of(context)
                                   .bodyMedium
@@ -850,7 +852,7 @@ class _ImagecreatebottomsheetWidgetState
                                                     .labelMedium
                                                     .fontStyle,
                                           ),
-                                      hintText: '특정한 상황을 묘사해주세요. ex. 달리기, ',
+                                      hintText: '특정한 상황을 묘사해주세요(ex. 달리기, 칼뽑기).',
                                       hintStyle: FlutterFlowTheme.of(context)
                                           .labelMedium
                                           .override(
@@ -1263,27 +1265,47 @@ class _ImagecreatebottomsheetWidgetState
                   children: [
                     Align(
                       alignment: AlignmentDirectional(-1.0, 0.0),
-                      child: Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 20.0),
-                        child: Text(
-                          '캐릭터 선택',
-                          style:
-                              FlutterFlowTheme.of(context).bodyMedium.override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FontWeight.w600,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                                    fontSize: 16.0,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FontWeight.w600,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                        ),
+                      child: Text(
+                        '캐릭터 선택',
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              fontSize: 16.0,
+                              letterSpacing: 0.0,
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                      ),
+                    ),
+                    Align(
+                      alignment: AlignmentDirectional(-1.0, 0.0),
+                      child: Text(
+                        '선택한 캐릭터가 포함된 이미지가 생성됩니다.',
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontWeight,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                              fontSize: 13.0,
+                              letterSpacing: 0.0,
+                              fontWeight: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontWeight,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
                       ),
                     ),
                     Container(
@@ -1291,59 +1313,64 @@ class _ImagecreatebottomsheetWidgetState
                       decoration: BoxDecoration(),
                       child: Align(
                         alignment: AlignmentDirectional(-1.0, 0.0),
-                        child: Builder(
-                          builder: (context) {
-                            final selectedcharacter =
-                                widget.charList?.toList() ?? [];
+                        child: Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 10.0, 0.0, 0.0),
+                          child: Builder(
+                            builder: (context) {
+                              final selectedcharacter =
+                                  widget.charList?.toList() ?? [];
 
-                            return ListView.separated(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              scrollDirection: Axis.horizontal,
-                              itemCount: selectedcharacter.length,
-                              separatorBuilder: (_, __) =>
-                                  SizedBox(width: 10.0),
-                              itemBuilder: (context, selectedcharacterIndex) {
-                                final selectedcharacterItem =
-                                    selectedcharacter[selectedcharacterIndex];
-                                return InkWell(
-                                  splashColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: () async {
-                                    _model.selectedCharImage =
-                                        selectedcharacterItem;
-                                    safeSetState(() {});
-                                  },
-                                  child: Container(
-                                    width: 100.0,
-                                    height: 100.0,
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        fit: BoxFit.cover,
-                                        image: Image.network(
-                                          functions.stringToImagePath(
-                                              selectedcharacterItem
-                                                  .profileimage),
-                                        ).image,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      border: Border.all(
-                                        color: _model.selectedCharImage ==
+                              return ListView.separated(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: selectedcharacter.length,
+                                separatorBuilder: (_, __) =>
+                                    SizedBox(width: 10.0),
+                                itemBuilder: (context, selectedcharacterIndex) {
+                                  final selectedcharacterItem =
+                                      selectedcharacter[selectedcharacterIndex];
+                                  return InkWell(
+                                    splashColor: Colors.transparent,
+                                    focusColor: Colors.transparent,
+                                    hoverColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    onTap: () async {
+                                      _model.selectedCharImage =
+                                          selectedcharacterItem;
+                                      safeSetState(() {});
+                                    },
+                                    child: Container(
+                                      width: 100.0,
+                                      height: 100.0,
+                                      decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                          fit: BoxFit.cover,
+                                          image: Image.network(
+                                            functions.stringToImagePath(
                                                 selectedcharacterItem
-                                            ? FlutterFlowTheme.of(context)
-                                                .primary
-                                            : FlutterFlowTheme.of(context)
-                                                .alternate,
-                                        width: 1.0,
+                                                    .profileimage),
+                                          ).image,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                        border: Border.all(
+                                          color: _model.selectedCharImage ==
+                                                  selectedcharacterItem
+                                              ? FlutterFlowTheme.of(context)
+                                                  .primary
+                                              : FlutterFlowTheme.of(context)
+                                                  .alternate,
+                                          width: 1.0,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
+                                  );
+                                },
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -1352,7 +1379,7 @@ class _ImagecreatebottomsheetWidgetState
               if ((widget.imageMode != 'emotion') &&
                   (widget.isUploadMode == false))
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
+                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
                     children: [

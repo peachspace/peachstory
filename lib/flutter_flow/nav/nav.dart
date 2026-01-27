@@ -208,11 +208,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: SearchpageWidget.routeName,
           path: SearchpageWidget.routePath,
           builder: (context, params) => SearchpageWidget(),
-        ),
-        FFRoute(
-          name: UsernotepageWidget.routeName,
-          path: UsernotepageWidget.routePath,
-          builder: (context, params) => UsernotepageWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
