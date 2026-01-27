@@ -137,10 +137,9 @@ function safeSeed(seedLike) {
 }
 
 /** ------------------------------------------------------------------
- * 1. 모델 레지스트리 (V16.0: cjwbw 원복 + 검증된 해시)
+ * 1. 모델 레지스트리
  * ------------------------------------------------------------------ */
 const MODEL_REGISTRY = {
-  // [수정 A] cjwbw로 원복하고, 확실히 작동하는 버전 해시 적용
   ANIMAGINE_XL: {
     owner: "cjwbw",
     name: "animagine-xl-3.1",
@@ -217,33 +216,134 @@ function normalizeMode(raw) {
   return "character";
 }
 
+/** ------------------------------------------------------------------
+ * [FIX-1] basePrompt에서 성별 토큰 추출 (없으면 중립)
+ * ------------------------------------------------------------------ */
+function pickGenderToken(basePrompt) {
+  const bp = String(basePrompt || "").toLowerCase();
+  // 가장 확실한 토큰 우선
+  if (bp.includes("1boy")) return "1boy";
+  if (bp.includes("1girl")) return "1girl";
+
+  // 약한 추정(원하면 제거 가능)
+  if (bp.includes("male") || bp.includes("man") || bp.includes("boy"))
+    return "1boy";
+  if (bp.includes("female") || bp.includes("woman") || bp.includes("girl"))
+    return "1girl";
+
+  return "";
+}
+
+/** ------------------------------------------------------------------
+ * [FIX-2] 레퍼런스 없으면 emotion/situation/main/background에서 basePrompt 배제
+ * - character: basePrompt 사용 OK (정체성 태그)
+ * - ref mode: identity 모델이므로 basePrompt 사용 OK (단, emotion/situation/main에선 약하게)
+ * ------------------------------------------------------------------ */
+function buildIdentityLock(mode, basePrompt, isRefMode) {
+  const bp = String(basePrompt || "").trim();
+  if (!bp) return "";
+
+  if (mode === "background") return ""; // 배경은 절대 캐릭터 고정 태그 넣지 않음
+
+  if (isRefMode) {
+    // 레퍼런스로 동일 인물 고정
+    // emotion/situation/main 에서는 basePrompt가 너무 강하면 장면이 죽을 수 있어 약하게 적용
+    if (mode === "emotion" || mode === "situation" || mode === "main") {
+      return `same character, (${bp}:0.85)`;
+    }
+    // 그 외는 그대로
+    return `same character, ${bp}`;
+  }
+
+  // 레퍼런스 없을 때:
+  // character(프로필 생성)만 basePrompt 허용. 나머지에서는 배제.
+  if (mode === "character") return bp;
+
+  return "";
+}
+
+/** ------------------------------------------------------------------
+ * [FIX-3] 프롬프트 생성
+ * - single: 1girl 강제 제거 대신, 성별 토큰 있으면 넣고 없으면 중립
+ * - emotion: 가중치 1.4 -> 1.2
+ * ------------------------------------------------------------------ */
 function buildPrompt(mode, styleObj, basePrompt, scenePrompt, isRefMode) {
   const prefix = styleObj.prefix;
-  const identityLock =
-    isRefMode && basePrompt ? `same character, ${basePrompt}` : basePrompt;
-  const single = "solo, 1girl, single character, centered composition";
 
-  let finalScene = scenePrompt;
+  const identityLock = buildIdentityLock(mode, basePrompt, isRefMode);
+
+  const gender = pickGenderToken(basePrompt);
+  const single = gender
+    ? `solo, ${gender}, single character, centered composition`
+    : "solo, single character, centered composition";
+
+  let finalScene = String(scenePrompt || "").trim();
+
   if (mode === "emotion") {
-    const rawKey = scenePrompt.trim().split(" ")[0];
+    const rawKey = finalScene.trim().split(" ")[0];
     const cleanKey = rawKey.replace(/[^\w\s\u3131-\uD79D]/g, "");
     const mapped = EMOTION_MAP[cleanKey] || EMOTION_MAP[rawKey];
     if (mapped) finalScene = mapped;
-    finalScene = `(${finalScene}:1.4)`;
+
+    // ✅ 1.4 -> 1.2 (안정)
+    finalScene = `(${finalScene}:1.2)`;
   }
 
-  if (mode === "character")
-    return `${single}, close-up portrait, head and shoulders, simple background, ${prefix}, ${identityLock}, neutral expression`;
-  if (mode === "emotion")
-    return `${single}, close-up portrait, focus on face, ${prefix}, ${identityLock}, ${finalScene}`;
-  if (mode === "situation")
-    return `${single}, full body, dynamic action pose, ${prefix}, ${identityLock}, (${finalScene}:1.3)`;
-  if (mode === "main")
-    return `${single}, cover art, cinematic composition, ${prefix}, ${identityLock}, ${finalScene}, dramatic lighting, detailed background`;
-  if (mode === "background")
-    return `scenery, no humans, ${prefix}, ${finalScene}`;
+  // parts 방식으로 콤마 깔끔 처리(빈 문자열 자동 제거)
+  const parts = [];
 
-  return `${single}, ${prefix}, ${identityLock}, ${finalScene}`;
+  if (mode === "background") {
+    // 배경은 캐릭터/identityLock 완전 배제
+    parts.push("scenery, no humans");
+    parts.push(prefix);
+    if (finalScene) parts.push(finalScene);
+    return parts.filter(Boolean).join(", ");
+  }
+
+  if (mode === "character") {
+    parts.push(single);
+    parts.push("close-up portrait, head and shoulders, simple background");
+    parts.push(prefix);
+    if (identityLock) parts.push(identityLock);
+    parts.push("neutral expression");
+    return parts.filter(Boolean).join(", ");
+  }
+
+  if (mode === "emotion") {
+    parts.push(single);
+    parts.push("close-up portrait, focus on face");
+    parts.push(prefix);
+    if (identityLock) parts.push(identityLock);
+    if (finalScene) parts.push(finalScene);
+    return parts.filter(Boolean).join(", ");
+  }
+
+  if (mode === "situation") {
+    parts.push(single);
+    parts.push("full body, dynamic action pose");
+    parts.push(prefix);
+    if (identityLock) parts.push(identityLock);
+    // action 가중치도 너무 세지 않게 약간만
+    if (finalScene) parts.push(`(${finalScene}:1.2)`);
+    return parts.filter(Boolean).join(", ");
+  }
+
+  if (mode === "main") {
+    parts.push(single);
+    parts.push("cover art, cinematic composition");
+    parts.push(prefix);
+    if (identityLock) parts.push(identityLock);
+    if (finalScene) parts.push(finalScene);
+    parts.push("dramatic lighting, detailed background");
+    return parts.filter(Boolean).join(", ");
+  }
+
+  // default
+  parts.push(single);
+  parts.push(prefix);
+  if (identityLock) parts.push(identityLock);
+  if (finalScene) parts.push(finalScene);
+  return parts.filter(Boolean).join(", ");
 }
 
 function cacheKey(owner, name) {
@@ -251,7 +351,9 @@ function cacheKey(owner, name) {
 }
 
 async function fetchLatestVersionIdFromReplicate(apiKey, owner, name) {
-  const url = `https://api.replicate.com/v1/models/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`;
+  const url = `https://api.replicate.com/v1/models/${encodeURIComponent(
+    owner,
+  )}/${encodeURIComponent(name)}`;
   let retries = 2;
 
   while (true) {
@@ -270,7 +372,6 @@ async function fetchLatestVersionIdFromReplicate(apiKey, owner, name) {
         return versionId;
       }
 
-      // 429/5xx 에러 시 재시도 (대기 시간 증가)
       if ((resp.status === 429 || resp.status >= 500) && retries-- > 0) {
         await sleep(2000 * (3 - retries));
         continue;
@@ -296,6 +397,7 @@ async function getModelVersionCached(apiKey, modelInfo) {
   const cached = MODEL_VERSION_CACHE.get(key);
   if (cached && now - cached.ts < MODEL_VERSION_TTL_MS && cached.version)
     return cached.version;
+
   const inflight = MODEL_VERSION_INFLIGHT.get(key);
   if (inflight) return inflight;
 
@@ -316,6 +418,7 @@ async function getModelVersionCached(apiKey, modelInfo) {
       MODEL_VERSION_INFLIGHT.delete(key);
     }
   })();
+
   MODEL_VERSION_INFLIGHT.set(key, p);
   return p;
 }
@@ -339,6 +442,9 @@ function invalidateModelCaches(owner, name) {
   MODEL_VERSION_CACHE.delete(key);
 }
 
+/** ------------------------------------------------------------------
+ * [FIX-4] emotion identity scale 상향
+ * ------------------------------------------------------------------ */
 function createReplicatePayload(
   modelKey,
   prompt,
@@ -374,13 +480,17 @@ function createReplicatePayload(
     input.prompt = prompt;
     input.negative_prompt = neg;
     input.image = refImage;
+
     if (poseImage) {
       input.pose_image = poseImage;
       input.controlnet_conditioning_scale = 0.8;
     }
-    if (mode === "emotion") input.ip_adapter_scale = 0.5;
-    else if (mode === "situation") input.ip_adapter_scale = 0.6;
+
+    // ✅ emotion: 0.50 -> 0.70
+    if (mode === "emotion") input.ip_adapter_scale = 0.7;
+    else if (mode === "situation") input.ip_adapter_scale = 0.62;
     else input.ip_adapter_scale = 0.8;
+
     input.guidance_scale = 5.0;
     input.num_inference_steps = 30;
     input.seed = seed;
@@ -388,16 +498,20 @@ function createReplicatePayload(
     input.prompt = prompt;
     input.negative_prompt = neg;
     input.image = refImage;
-    if (mode === "emotion") input.scale = 0.45;
-    else if (mode === "situation") input.scale = 0.55;
+
+    // ✅ emotion: 0.45 -> 0.65
+    if (mode === "emotion") input.scale = 0.65;
+    else if (mode === "situation") input.scale = 0.58;
     else input.scale = 0.7;
+
     if (poseImage) {
       input.control_image = poseImage;
       input.control_weight = 0.75;
     }
     input.seed = seed;
   }
-  return { version: null, input: input };
+
+  return { version: null, input };
 }
 
 async function callReplicate(apiKey, version, input) {
@@ -416,7 +530,6 @@ async function callReplicate(apiKey, version, input) {
     } catch (e) {
       const status = e?.response?.status;
 
-      // 429 에러 발생 시 대기
       if (retries > 0 && status === 429) {
         const ra = Number(e?.response?.data?.retry_after) || 8;
         const waitMs = ra * 1000 + 1000;
@@ -443,6 +556,7 @@ async function pollReplicate(apiKey, getUrl) {
   const startTime = Date.now();
   const DEADLINE = 450 * 1000;
   let retryCount = 0;
+
   while (Date.now() - startTime < DEADLINE) {
     try {
       prediction = (
@@ -451,8 +565,10 @@ async function pollReplicate(apiKey, getUrl) {
           timeout: 10000,
         })
       ).data;
+
       if (prediction.status) retryCount = 0;
       if (prediction.status === "succeeded") return prediction;
+
       if (
         prediction.status !== "starting" &&
         prediction.status !== "processing"
@@ -466,6 +582,7 @@ async function pollReplicate(apiKey, getUrl) {
       }
     } catch (pollErr) {
       if (pollErr.isTerminal) throw pollErr;
+
       if (pollErr.response) {
         const s = pollErr.response.status;
         if (s >= 400 && s < 500 && s !== 429) {
@@ -474,6 +591,7 @@ async function pollReplicate(apiKey, getUrl) {
           throw e;
         }
       }
+
       const baseDelay = pollErr.response?.status === 429 ? 5000 : 2000;
       const delay =
         Math.min(baseDelay * Math.pow(1.5, retryCount), 15000) +
@@ -482,8 +600,10 @@ async function pollReplicate(apiKey, getUrl) {
       retryCount++;
       continue;
     }
+
     await sleep(2000);
   }
+
   throw new Error("Replicate poll timeout (deadline exceeded)");
 }
 
@@ -495,6 +615,7 @@ async function saveToStorage(bucketName, userId, mode, rawAiUrl) {
     } catch (_) {}
     throw new Error(`Security Block: Unauthorized output host`);
   }
+
   const imgResp = await axios.get(rawAiUrl, {
     responseType: "arraybuffer",
     maxContentLength: 20 * 1024 * 1024,
@@ -502,16 +623,19 @@ async function saveToStorage(bucketName, userId, mode, rawAiUrl) {
     timeout: 20000,
     validateStatus: (status) => status >= 200 && status < 300,
   });
+
   const contentType = imgResp.headers["content-type"];
   if (!contentType || !contentType.startsWith("image/"))
     throw new Error(`Security Block: Invalid content-type (${contentType})`);
+
   const ext = getExtensionFromMime(contentType);
   const fileName = `${mode}_${Date.now()}${ext}`;
   const file = admin
     .storage()
     .bucket(bucketName)
     .file(`users/${userId}/uploads/${fileName}`);
-  await file.save(imgResp.data, { metadata: { contentType: contentType } });
+
+  await file.save(imgResp.data, { metadata: { contentType } });
   const [permUrl] = await file.getSignedUrl({
     action: "read",
     expires: "03-01-2100",
@@ -526,7 +650,6 @@ exports.generateReplicateImage = functions
     secrets: ["REPLICATE_API_KEY"],
   })
   .https.onCall(async (data, context) => {
-    // [확인용] V16.0: CJWBW 원복 + 선(先) 조회 로직 (B안) 적용
     console.log("=== VERSION CHECK: V16.0 (CJWBW RESTORE & PRE-FETCH) ===");
 
     const CONFIG_API_KEY =
@@ -536,19 +659,22 @@ exports.generateReplicateImage = functions
       return { success: false, error: "Server Config Error." };
     }
 
-    try {
-      const acct = await axios.get("https://api.replicate.com/v1/account", {
-        headers: { Authorization: `Bearer ${CONFIG_API_KEY}` },
-        timeout: 5000,
-      });
-      console.log(
-        "[REPLICATE_ACCOUNT] Token Owner:",
-        acct.data?.username,
-        "Type:",
-        acct.data?.type,
-      );
-    } catch (e) {
-      console.warn("[REPLICATE_ACCOUNT] Check Failed:", e.message);
+    // (선택) 프로덕션에서는 제거 권장. 유지하되 가드만 걸어둠
+    if (process.env.NODE_ENV !== "production") {
+      try {
+        const acct = await axios.get("https://api.replicate.com/v1/account", {
+          headers: { Authorization: `Bearer ${CONFIG_API_KEY}` },
+          timeout: 5000,
+        });
+        console.log(
+          "[REPLICATE_ACCOUNT] Token Owner:",
+          acct.data?.username,
+          "Type:",
+          acct.data?.type,
+        );
+      } catch (e) {
+        console.warn("[REPLICATE_ACCOUNT] Check Failed:", e.message);
+      }
     }
 
     if (!context.auth) return { success: false, error: "Auth required." };
@@ -578,17 +704,23 @@ exports.generateReplicateImage = functions
       );
 
       const styleObj = STYLE_MAPPING[style] || STYLE_MAPPING["애니"];
+
+      // ✅ isRefMode = referenceImageUrl 존재 여부
+      const isRefMode = !!referenceImageUrl;
+
+      // ✅ basePrompt는 buildIdentityLock()에서 모드별/레퍼런스 여부별로 자동 배제됨
       const finalPrompt = buildPrompt(
         mode,
         styleObj,
         basePrompt,
         promptInput,
-        !!referenceImageUrl,
+        isRefMode,
       );
 
       let usedModelKey = styleObj.baseModel;
       let usedPipeline = "Base";
 
+      // ✅ 레퍼런스가 있으면(background 제외) identity 모델 사용
       if (mode !== "background" && referenceImageUrl) {
         usedModelKey = styleObj.identityModel;
         usedPipeline = "Identity";
@@ -610,8 +742,6 @@ exports.generateReplicateImage = functions
         mode,
       );
 
-      // [핵심 변경 B안] 생성 요청 전에 '최신 버전'을 먼저 확보하여 422 원천 차단
-      // 잘못된 버전으로 찌르지 않으므로 -> 422 안 남 -> 재시도 안 함 -> 429 안 남
       const modelInfo = MODEL_REGISTRY[usedModelKey];
       const versionToUse = await getModelVersionCached(
         CONFIG_API_KEY,
@@ -628,7 +758,6 @@ exports.generateReplicateImage = functions
         );
         prediction = await pollReplicate(CONFIG_API_KEY, created.urls.get);
       } catch (reqErr) {
-        // 만약 그래도 422나면 최후의 수단으로 재시도 (빈도는 매우 낮을 것임)
         if (isInvalidVersion422(reqErr) && modelInfo.owner && modelInfo.name) {
           console.warn(
             `[AUTO-HEAL] 422 Detected. Waiting 8s for rate limit reset...`,
@@ -661,7 +790,6 @@ exports.generateReplicateImage = functions
           usedModelKey = styleObj.baseModel;
           const baseInfo = MODEL_REGISTRY[usedModelKey];
 
-          // Base Model Payload 재생성
           payloadObj = createReplicatePayload(
             usedModelKey,
             finalPrompt,
@@ -673,7 +801,7 @@ exports.generateReplicateImage = functions
             null,
             mode,
           );
-          // Base 모델도 선 조회
+
           payloadObj.version = await getModelVersionCached(
             CONFIG_API_KEY,
             baseInfo,

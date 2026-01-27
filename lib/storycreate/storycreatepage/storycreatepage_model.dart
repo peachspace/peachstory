@@ -31,16 +31,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String? genre = '';
 
-  bool isGeneratingtitle = false;
-
-  bool isGeneratingworldview = false;
-
-  bool isGeneratingprologue = false;
-
-  bool isGeneratinguserrole = false;
-
-  bool isGeneratingintroduce = false;
-
   String selectedDetailMode = 'text';
 
   List<BackgroundStructStruct> backgroundlist = [];
@@ -59,6 +49,10 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? prologuetext;
 
   String? currentStoryId;
+
+  bool isgenerating = false;
+
+  String? generatingTarget;
 
   ///  State fields for stateful widgets in this page.
 

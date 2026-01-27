@@ -21,6 +21,9 @@ class FFAppState extends ChangeNotifier {
     _safeInit(() {
       _aimodel = prefs.getString('ff_aimodel') ?? _aimodel;
     });
+    _safeInit(() {
+      _draftId = prefs.getString('ff_draftId') ?? _draftId;
+    });
   }
 
   void update(VoidCallback callback) {
@@ -64,6 +67,25 @@ class FFAppState extends ChangeNotifier {
   set aimodel(String value) {
     _aimodel = value;
     prefs.setString('ff_aimodel', value);
+  }
+
+  bool _isGenerating = false;
+  bool get isGenerating => _isGenerating;
+  set isGenerating(bool value) {
+    _isGenerating = value;
+  }
+
+  String _generatingTarget = '';
+  String get generatingTarget => _generatingTarget;
+  set generatingTarget(String value) {
+    _generatingTarget = value;
+  }
+
+  String _draftId = '';
+  String get draftId => _draftId;
+  set draftId(String value) {
+    _draftId = value;
+    prefs.setString('ff_draftId', value);
   }
 }
 

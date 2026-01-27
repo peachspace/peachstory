@@ -460,3 +460,12 @@ String getBackgroundTagString(List<BackgroundStructStruct>? backgrounds) {
   // - 집
   return backgrounds.map((bg) => "- ${bg.placeName}").join('\n');
 }
+
+String joinPlaceNames(List<BackgroundStructStruct>? list) {
+  if (list == null || list.isEmpty) return '';
+  return list
+      .map((e) => (e.placeName ?? '').trim())
+      .where((e) => e.isNotEmpty)
+      .toSet()
+      .join('|');
+}

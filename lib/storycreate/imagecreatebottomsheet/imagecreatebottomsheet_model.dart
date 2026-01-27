@@ -24,6 +24,8 @@ class ImagecreatebottomsheetModel
 
   String? generatedBasePrompt;
 
+  String? generatingTarget;
+
   ///  State fields for stateful widgets in this component.
 
   // State field(s) for styleChoiceChips widget.
