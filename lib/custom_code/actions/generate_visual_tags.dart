@@ -77,6 +77,11 @@ $baseRules
 7) Focus on action/pose + small scene cues.
 8) Single subject only.
 9) Output 15~20 tags.
+10) Include EXACTLY ONE framing tag among:
+- close-up
+- upper body, waist up
+- full body
+Choose the best framing for the action.
 """;
   } else if (mode == "character") {
     systemPrompt = """

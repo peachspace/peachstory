@@ -1701,7 +1701,7 @@ class _ImagecreatebottomsheetWidgetState
                                             _model.situationpromptTextController
                                                 .text,
                                             _model.situationtag,
-                                            'upper body, waist up, medium shot',
+                                            '',
                                           );
                                           _shouldSetState = true;
                                           safeSetState(() {
