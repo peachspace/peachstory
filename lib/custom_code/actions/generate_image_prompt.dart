@@ -260,7 +260,7 @@ Return ONLY the comma-separated English tags.
     rawOutput = rawOutput.replaceAll(RegExp(r'[^a-zA-Z0-9, \-\.\(\)]'), '');
 
     int limit = 20;
-    if (mode == "emotion") {
+    if (mode.contains("emotion")) {
       limit = 10;
     } else if (mode == "character") {
       limit = 15;

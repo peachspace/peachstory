@@ -1648,11 +1648,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                                   ''
                                           ? false
                                           : true,
-                                      warningMessage: '먼저 프로필 이미지를 생성해주세요.',
-                                      receivedSeed: FFAppState()
-                                          .Characters
-                                          .elementAtOrNull(widget.index!)
-                                          ?.seed,
+                                      receivedBaseimage: '',
                                     ),
                                   );
                                 },

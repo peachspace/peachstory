@@ -39,15 +39,15 @@ class ImagecreatebottomsheetModel
   TextEditingController? backgroundpromptTextController;
   String? Function(BuildContext, String?)?
       backgroundpromptTextControllerValidator;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in backgroundaipromptbutton widget.
-  String? backgroundPrompt;
+  // Stores action output result for [Custom Action - generateTriggerKeyword] action in backgroundtagpromptbutton widget.
+  String? backgroundtagprompt;
   // State field(s) for situationprompt widget.
   FocusNode? situationpromptFocusNode;
   TextEditingController? situationpromptTextController;
   String? Function(BuildContext, String?)?
       situationpromptTextControllerValidator;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in situationaipromptbutton widget.
-  String? situationPrompt;
+  // Stores action output result for [Custom Action - generateTriggerKeyword] action in situationtagpromptbutton widget.
+  String? situationtagPrompt;
   // State field(s) for emotionChoiceChips widget.
   FormFieldController<List<String>>? emotionChoiceChipsValueController;
   String? get emotionChoiceChipsValue =>
@@ -59,16 +59,22 @@ class ImagecreatebottomsheetModel
   TextEditingController? imagecreatepromptTextController;
   String? Function(BuildContext, String?)?
       imagecreatepromptTextControllerValidator;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
-  String? suggestedcharacterPrompt;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
-  String? suggestedsituationPrompt;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
-  String? suggestedbackgroundPrompt;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
-  String? suggestedmainPrompt;
-  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
-  String? suggestedemotionPrompt;
+  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  String? profiletag;
+  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  String? situationtag;
+  // Stores action output result for [Custom Action - composeScenePrompt] action in aiimagecreatepromptbutton widget.
+  String? situationimageprompt;
+  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  String? backgroundtag;
+  // Stores action output result for [Custom Action - composeScenePrompt] action in aiimagecreatepromptbutton widget.
+  String? backgroundimageprompt;
+  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  String? maintag;
+  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  String? emotiontag;
+  // Stores action output result for [Custom Action - composeScenePrompt] action in aiimagecreatepromptbutton widget.
+  String? emotionimagePrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   dynamic characterImageResult;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.

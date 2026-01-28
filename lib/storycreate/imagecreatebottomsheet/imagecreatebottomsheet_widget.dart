@@ -649,16 +649,14 @@ class _ImagecreatebottomsheetWidgetState
                                     _model.isGenerating = true;
                                     _model.generatingTarget = 'background';
                                     safeSetState(() {});
-                                    _model.backgroundPrompt =
-                                        await actions.generateImagePrompt(
-                                      'background_trigger',
-                                      _model
-                                          .backgroundpromptTextController.text,
-                                      widget.receivedBasePrompt,
+                                    _model.backgroundtagprompt =
+                                        await actions.generateTriggerKeyword(
+                                      'background',
+                                      widget.receivedworldview!,
                                     );
                                     safeSetState(() {
                                       _model.backgroundpromptTextController
-                                          ?.text = _model.backgroundPrompt!;
+                                          ?.text = _model.backgroundtagprompt!;
                                     });
                                     _model.isGenerating = false;
                                     _model.generatingTarget = null;
@@ -1009,15 +1007,14 @@ class _ImagecreatebottomsheetWidgetState
                                     _model.isGenerating = true;
                                     _model.generatingTarget = 'situation';
                                     safeSetState(() {});
-                                    _model.situationPrompt =
-                                        await actions.generateImagePrompt(
-                                      'situation_trigger',
-                                      _model.situationpromptTextController.text,
-                                      widget.receivedworldview,
+                                    _model.situationtagPrompt =
+                                        await actions.generateTriggerKeyword(
+                                      'situation',
+                                      '',
                                     );
                                     safeSetState(() {
                                       _model.situationpromptTextController
-                                          ?.text = _model.situationPrompt!;
+                                          ?.text = _model.situationtagPrompt!;
                                     });
                                     _model.isGenerating = false;
                                     _model.generatingTarget = null;
@@ -1676,80 +1673,103 @@ class _ImagecreatebottomsheetWidgetState
                                         _model.generatingTarget = 'prompt';
                                         safeSetState(() {});
                                         if (widget.imageMode == 'character') {
-                                          _model.suggestedcharacterPrompt =
-                                              await actions.generateImagePrompt(
+                                          _model.profiletag =
+                                              await actions.generateVisualTags(
                                             'character',
                                             widget.receivedcharsettings!,
                                             '',
                                           );
                                           _shouldSetState = true;
                                           safeSetState(() {
-                                            _model.imagecreatepromptTextController
-                                                    ?.text =
-                                                _model
-                                                    .suggestedcharacterPrompt!;
+                                            _model
+                                                .imagecreatepromptTextController
+                                                ?.text = _model.profiletag!;
                                           });
                                         } else if (widget.imageMode ==
                                             'situation') {
-                                          _model.suggestedsituationPrompt =
-                                              await actions.generateImagePrompt(
-                                            'situation_image',
+                                          _model.situationtag =
+                                              await actions.generateVisualTags(
+                                            'situation',
                                             _model.situationpromptTextController
                                                 .text,
-                                            widget.receivedcharsettings,
+                                            widget.receivedBasePrompt,
+                                          );
+                                          _shouldSetState = true;
+                                          _model.situationimageprompt =
+                                              await actions.composeScenePrompt(
+                                            'situation',
+                                            _model.situationpromptTextController
+                                                .text,
+                                            _model.situationtag,
+                                            'upper body, waist up, medium shot',
                                           );
                                           _shouldSetState = true;
                                           safeSetState(() {
                                             _model.imagecreatepromptTextController
                                                     ?.text =
-                                                _model
-                                                    .suggestedsituationPrompt!;
+                                                _model.situationimageprompt!;
                                           });
                                         } else if (widget.imageMode ==
                                             'background') {
-                                          _model.suggestedbackgroundPrompt =
-                                              await actions.generateImagePrompt(
-                                            'background_image',
+                                          _model.backgroundtag =
+                                              await actions.generateVisualTags(
+                                            'background',
                                             _model
                                                 .backgroundpromptTextController
                                                 .text,
-                                            widget.receivedworldview,
+                                            '',
+                                          );
+                                          _shouldSetState = true;
+                                          _model.backgroundimageprompt =
+                                              await actions.composeScenePrompt(
+                                            'background',
+                                            _model
+                                                .backgroundpromptTextController
+                                                .text,
+                                            _model.backgroundtag,
+                                            '',
                                           );
                                           _shouldSetState = true;
                                           safeSetState(() {
                                             _model.imagecreatepromptTextController
                                                     ?.text =
-                                                _model
-                                                    .suggestedbackgroundPrompt!;
+                                                _model.backgroundimageprompt!;
                                           });
                                         } else if (widget.imageMode ==
                                             'main') {
-                                          _model.suggestedmainPrompt =
-                                              await actions.generateImagePrompt(
-                                            'main_image',
-                                            _model
-                                                .selectedCharImage!.basePrompt,
+                                          _model.maintag =
+                                              await actions.generateVisualTags(
+                                            'main',
+                                            '',
                                             '',
                                           );
                                           _shouldSetState = true;
                                           safeSetState(() {
-                                            _model.imagecreatepromptTextController
-                                                    ?.text =
-                                                _model.suggestedmainPrompt!;
+                                            _model
+                                                .imagecreatepromptTextController
+                                                ?.text = _model.maintag!;
                                           });
                                         } else if (widget.imageMode ==
                                             'emotion') {
-                                          _model.suggestedemotionPrompt =
-                                              await actions.generateImagePrompt(
-                                            'emotion_image',
-                                            '',
-                                            '',
+                                          _model.emotiontag =
+                                              await actions.generateVisualTags(
+                                            'emotion',
+                                            _model.emotionChoiceChipsValue!,
+                                            widget.receivedBasePrompt,
+                                          );
+                                          _shouldSetState = true;
+                                          _model.emotionimagePrompt =
+                                              await actions.composeScenePrompt(
+                                            'emotion',
+                                            _model.emotionChoiceChipsValue,
+                                            _model.emotiontag,
+                                            'upper body, waist up, medium shot',
                                           );
                                           _shouldSetState = true;
                                           safeSetState(() {
                                             _model.imagecreatepromptTextController
                                                     ?.text =
-                                                _model.suggestedemotionPrompt!;
+                                                _model.emotionimagePrompt!;
                                           });
                                         } else {
                                           if (_shouldSetState)
@@ -1901,11 +1921,14 @@ class _ImagecreatebottomsheetWidgetState
                             _model.characterImageResult =
                                 await actions.callGenerateImageCloud(
                               'character',
+                              '',
+                              '',
+                              '',
+                              valueOrDefault<int>(
+                                widget.receivedSeed,
+                                0,
+                              ),
                               _model.imagecreatepromptTextController.text,
-                              '',
-                              '',
-                              0,
-                              '',
                               _model.styleChoiceChipsValue!,
                             );
                             _shouldSetState = true;
@@ -1922,10 +1945,10 @@ class _ImagecreatebottomsheetWidgetState
                             _model.emotionimageResult =
                                 await actions.callGenerateImageCloud(
                               'emotion',
-                              'upper body, waist up, medium shot, ${_model.emotionChoiceChipsValue}',
+                              _model.imagecreatepromptTextController.text,
                               widget.receivedbaseimage,
                               '',
-                              0,
+                              widget.receivedSeed,
                               widget.receivedBasePrompt,
                               _model.styleChoiceChipsValue!,
                             );
@@ -1939,10 +1962,10 @@ class _ImagecreatebottomsheetWidgetState
                             _model.situationImageResult =
                                 await actions.callGenerateImageCloud(
                               'situation',
-                              'upper body, waist up, medium shot, ${_model.imagecreatepromptTextController.text}',
+                              _model.imagecreatepromptTextController.text,
                               widget.receivedbaseimage,
                               '',
-                              0,
+                              widget.receivedSeed,
                               widget.receivedBasePrompt,
                               _model.styleChoiceChipsValue!,
                             );

@@ -12,3 +12,6 @@ export 'translate_to_english.dart' show translateToEnglish;
 export 'get_recent_history_as_json.dart' show getRecentHistoryAsJson;
 export 'get_previous_chat_history.dart' show getPreviousChatHistory;
 export 'process_and_save_chat_turn.dart' show processAndSaveChatTurn;
+export 'generate_trigger_keyword.dart' show generateTriggerKeyword;
+export 'generate_visual_tags.dart' show generateVisualTags;
+export 'compose_scene_prompt.dart' show composeScenePrompt;
