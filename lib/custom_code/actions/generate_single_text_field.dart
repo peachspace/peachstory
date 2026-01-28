@@ -165,11 +165,15 @@ Future<String> generateSingleTextField(
   }
 
   // ✅ 프롤로그용 클리너: 따옴표 유지 + 코드펜스 제거 + 앞잡음 제거
+  // ✅ 프롤로그용 클리너: 파서 첫 토큰 [Image: 로 맞추기
   String cleanPrologue(String s) {
     var out = s.trim();
     out = out.replaceAll('```json', '').replaceAll('```', '').trim();
-    final idx = out.indexOf('[SHOW_IMAGE="');
+
+    // [Image: ...] 줄이 첫 줄이 되도록 앞부분 잡음 제거
+    final idx = out.indexOf('[Image:');
     if (idx > 0) out = out.substring(idx).trim();
+
     return out;
   }
 
@@ -896,7 +900,7 @@ $noAlternatives
 - 10~18자 권장.
 """;
   } else if (key == "world") {
-    selectedModel = 'solar-pro';
+    selectedModel = 'solar-mini';
     specificInstruction = """
 [장르] $safeGenre
 [현재 맥락 데이터]
@@ -935,7 +939,7 @@ $noAlternatives
 - 장르/세계관 톤에 어울리는 이름(현실/판타지 맞춤).
 """;
   } else if (key == "char_set") {
-    selectedModel = 'solar-pro';
+    selectedModel = 'solar-mini';
     specificInstruction = """
 [장르] $safeGenre
 [현재 맥락 데이터]
@@ -1046,7 +1050,7 @@ $noAlternatives
 """;
   } else if (key == "detail_info") {
     // ✅ 추가: 상세정보(detailinfotext)
-    selectedModel = 'solar-pro';
+    selectedModel = 'solar-mini';
     specificInstruction = """
 [장르] $safeGenre
 [현재 맥락 데이터]
@@ -1078,7 +1082,7 @@ $noAlternatives
 사용자가 알면 좋은 팁:
 """;
   } else if (key == "prologue") {
-    selectedModel = 'solar-pro';
+    selectedModel = 'solar-pro2';
     specificInstruction = """
 [장르] $safeGenre
 [현재 맥락 데이터]
@@ -1093,19 +1097,21 @@ $noAlternatives
 [요청]
 - 프롤로그는 단 1개 버전.
 - 900~1500자. 도입→확대→절벽.
-- 출력은 반드시 아래 파서 호환 포맷만 사용.
-- 태그 밖 안내 문장/주석/설명 줄을 절대 출력하지 마라.
+- 출력은 반드시 아래 "파서 호환 포맷"만 사용.
+- 포맷 밖 안내 문장/주석/설명/태그를 절대 출력하지 마라.
 
-[출력 포맷]
-[SHOW_IMAGE="장소명"]
-[NARRATION]...[/NARRATION]
-[DIALOGUE SPEAKER="이름" ACTION="감정키"]...[/DIALOGUE]
+[파서 호환 포맷]
+1) 첫 줄은 반드시 정확히 아래 1줄만:
+[Image: 장소명]
 
-[추가 규칙]
-- SHOW_IMAGE는 반드시 1개만.
-- ACTION 감정키는 캐릭터 감정 목록과 일치(예: 무감정/기쁨/슬픔/화남/놀람/공포/…).
-- 인물은 반드시 기존 캐릭터만 사용.
-- 마지막은 다음 턴을 부르는 한 줄로 끝내기.
+2) 이후 줄들은 다음 중 하나로만:
+- 내레이션: 그냥 문장 (태그/라벨 금지)
+- 대사: 이름 | 대사   (반드시 '|' 포함)
+
+[규칙]
+- [Image: ...] 줄은 딱 1번만.
+- 장소명은 (있다면) 위 [사용 가능한 장소 목록]에서만 선택.
+- 등장인물 이름은 반드시 기존 캐릭터 이름만 사용.
 """;
   } else {
     selectedModel = 'solar-mini';
@@ -1305,11 +1311,8 @@ $original
     output = await repairOnce(
       original: output,
       mustKeys: [
-        '[SHOW_IMAGE="',
-        "[NARRATION]",
-        "[/NARRATION]",
-        "[DIALOGUE",
-        "[/DIALOGUE]",
+        "[Image:",
+        "|",
       ],
       minChars: 900,
       maxChars: 1500,

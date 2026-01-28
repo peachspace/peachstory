@@ -396,10 +396,10 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                 safeSetState(() {});
                                 _model.name =
                                     await actions.generateSingleTextField(
-                                  'title',
+                                  'char_name',
                                   '${widget.storyContext}',
                                   widget.genre!,
-                                  '',
+                                  FFAppState().draftId,
                                   '',
                                 );
                                 safeSetState(() {
@@ -745,7 +745,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                       'char_set',
                                       '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}',
                                       widget.genre!,
-                                      '',
+                                      FFAppState().draftId,
                                       '',
                                     );
                                     _shouldSetState = true;

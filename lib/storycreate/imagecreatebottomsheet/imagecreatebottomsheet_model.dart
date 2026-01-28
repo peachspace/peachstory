@@ -67,6 +67,8 @@ class ImagecreatebottomsheetModel
   String? suggestedbackgroundPrompt;
   // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
   String? suggestedmainPrompt;
+  // Stores action output result for [Custom Action - generateImagePrompt] action in aiimagecreatepromptbutton widget.
+  String? suggestedemotionPrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   dynamic characterImageResult;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.

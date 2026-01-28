@@ -654,7 +654,7 @@ class _ImagecreatebottomsheetWidgetState
                                       'background_trigger',
                                       _model
                                           .backgroundpromptTextController.text,
-                                      '',
+                                      widget.receivedBasePrompt,
                                     );
                                     safeSetState(() {
                                       _model.backgroundpromptTextController
@@ -1006,48 +1006,24 @@ class _ImagecreatebottomsheetWidgetState
                                   hoverColor: Colors.transparent,
                                   highlightColor: Colors.transparent,
                                   onTap: () async {
-                                    var _shouldSetState = false;
-                                    if (widget.isSourceEmpty == true) {
-                                      await showDialog(
-                                        context: context,
-                                        builder: (alertDialogContext) {
-                                          return AlertDialog(
-                                            content:
-                                                Text(widget.warningMessage!),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                    alertDialogContext),
-                                                child: Text('확인'),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                      if (_shouldSetState) safeSetState(() {});
-                                      return;
-                                    } else {
-                                      _model.isGenerating = true;
-                                      _model.generatingTarget = 'situation';
-                                      safeSetState(() {});
-                                      _model.situationPrompt =
-                                          await actions.generateImagePrompt(
-                                        'situation_trigger',
-                                        _model
-                                            .situationpromptTextController.text,
-                                        '',
-                                      );
-                                      _shouldSetState = true;
-                                      safeSetState(() {
-                                        _model.situationpromptTextController
-                                            ?.text = _model.situationPrompt!;
-                                      });
-                                      _model.isGenerating = false;
-                                      _model.generatingTarget = null;
-                                      safeSetState(() {});
-                                    }
+                                    _model.isGenerating = true;
+                                    _model.generatingTarget = 'situation';
+                                    safeSetState(() {});
+                                    _model.situationPrompt =
+                                        await actions.generateImagePrompt(
+                                      'situation_trigger',
+                                      _model.situationpromptTextController.text,
+                                      widget.receivedworldview,
+                                    );
+                                    safeSetState(() {
+                                      _model.situationpromptTextController
+                                          ?.text = _model.situationPrompt!;
+                                    });
+                                    _model.isGenerating = false;
+                                    _model.generatingTarget = null;
+                                    safeSetState(() {});
 
-                                    if (_shouldSetState) safeSetState(() {});
+                                    safeSetState(() {});
                                   },
                                   child: Container(
                                     width: 70.0,
@@ -1461,8 +1437,7 @@ class _ImagecreatebottomsheetWidgetState
                     ),
                   ],
                 ),
-              if ((widget.imageMode != 'emotion') &&
-                  (widget.isUploadMode == false))
+              if (widget.isUploadMode == false)
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
                   child: Column(
@@ -1721,7 +1696,7 @@ class _ImagecreatebottomsheetWidgetState
                                             'situation_image',
                                             _model.situationpromptTextController
                                                 .text,
-                                            '',
+                                            widget.receivedcharsettings,
                                           );
                                           _shouldSetState = true;
                                           safeSetState(() {
@@ -1738,7 +1713,7 @@ class _ImagecreatebottomsheetWidgetState
                                             _model
                                                 .backgroundpromptTextController
                                                 .text,
-                                            '',
+                                            widget.receivedworldview,
                                           );
                                           _shouldSetState = true;
                                           safeSetState(() {
@@ -1753,8 +1728,7 @@ class _ImagecreatebottomsheetWidgetState
                                               await actions.generateImagePrompt(
                                             'main_image',
                                             _model
-                                                .backgroundpromptTextController
-                                                .text,
+                                                .selectedCharImage!.basePrompt,
                                             '',
                                           );
                                           _shouldSetState = true;
@@ -1762,6 +1736,20 @@ class _ImagecreatebottomsheetWidgetState
                                             _model.imagecreatepromptTextController
                                                     ?.text =
                                                 _model.suggestedmainPrompt!;
+                                          });
+                                        } else if (widget.imageMode ==
+                                            'emotion') {
+                                          _model.suggestedemotionPrompt =
+                                              await actions.generateImagePrompt(
+                                            'emotion_image',
+                                            '',
+                                            '',
+                                          );
+                                          _shouldSetState = true;
+                                          safeSetState(() {
+                                            _model.imagecreatepromptTextController
+                                                    ?.text =
+                                                _model.suggestedemotionPrompt!;
                                           });
                                         } else {
                                           if (_shouldSetState)
@@ -1934,7 +1922,7 @@ class _ImagecreatebottomsheetWidgetState
                             _model.emotionimageResult =
                                 await actions.callGenerateImageCloud(
                               'emotion',
-                              _model.emotionChoiceChipsValue!,
+                              'upper body, waist up, medium shot, ${_model.emotionChoiceChipsValue}',
                               widget.receivedbaseimage,
                               '',
                               0,
@@ -1951,7 +1939,7 @@ class _ImagecreatebottomsheetWidgetState
                             _model.situationImageResult =
                                 await actions.callGenerateImageCloud(
                               'situation',
-                              _model.imagecreatepromptTextController.text,
+                              'upper body, waist up, medium shot, ${_model.imagecreatepromptTextController.text}',
                               widget.receivedbaseimage,
                               '',
                               0,

@@ -487,9 +487,11 @@ function createReplicatePayload(
     }
 
     // ✅ emotion: 0.50 -> 0.70
-    if (mode === "emotion") input.ip_adapter_scale = 0.7;
-    else if (mode === "situation") input.ip_adapter_scale = 0.62;
-    else input.ip_adapter_scale = 0.8;
+    if (mode === "emotion")
+      input.ip_adapter_scale = 0.4; // 0.35~0.45 추천
+    else if (mode === "situation")
+      input.ip_adapter_scale = 0.45; // 0.40~0.55 추천
+    else input.ip_adapter_scale = 0.75;
 
     input.guidance_scale = 5.0;
     input.num_inference_steps = 30;

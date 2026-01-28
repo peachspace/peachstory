@@ -2595,7 +2595,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           _model.generatedtitle =
                                                               await actions
                                                                   .generateSingleTextField(
-                                                            '',
+                                                            'title',
                                                             '[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                             _model.genre!,
                                                             FFAppState()

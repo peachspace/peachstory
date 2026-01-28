@@ -87,6 +87,12 @@ class FFAppState extends ChangeNotifier {
     _draftId = value;
     prefs.setString('ff_draftId', value);
   }
+
+  String _poseImageUrl = '';
+  String get poseImageUrl => _poseImageUrl;
+  set poseImageUrl(String value) {
+    _poseImageUrl = value;
+  }
 }
 
 void _safeInit(Function() initializeField) {

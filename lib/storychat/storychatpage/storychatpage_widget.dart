@@ -1267,11 +1267,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                           );
                                           _model.creatorShare1 = await actions
                                               .calculateCreatorEarningAction(
-                                            valueOrDefault<String>(
-                                              stackStorychatsRecord
-                                                  .selectedAiModel,
-                                              'claude-3-haiku-20240307',
-                                            ),
+                                            stackStorychatsRecord
+                                                .selectedAiModel,
                                           );
                                           if (valueOrDefault(
                                                   currentUserDocument?.points,
