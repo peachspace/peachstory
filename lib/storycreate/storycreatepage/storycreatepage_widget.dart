@@ -924,7 +924,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                       'worldview'))
                                                 Container(
                                                   width: double.infinity,
-                                                  height: 311.0,
+                                                  height: 312.0,
                                                   decoration: BoxDecoration(
                                                     color: FlutterFlowTheme.of(
                                                             context)
@@ -2261,7 +2261,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                 'prologue'))
                                           Container(
                                             width: double.infinity,
-                                            height: 533.0,
+                                            height: 534.0,
                                             decoration: BoxDecoration(
                                               color:
                                                   FlutterFlowTheme.of(context)

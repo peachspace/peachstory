@@ -15,3 +15,4 @@ export 'process_and_save_chat_turn.dart' show processAndSaveChatTurn;
 export 'generate_trigger_keyword.dart' show generateTriggerKeyword;
 export 'generate_visual_tags.dart' show generateVisualTags;
 export 'compose_scene_prompt.dart' show composeScenePrompt;
+export 'prologue_ui_to_tags.dart' show prologueUiToTags;
