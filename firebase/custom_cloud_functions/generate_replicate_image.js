@@ -7,7 +7,7 @@ if (!admin.apps.length) admin.initializeApp();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // [중요] 사용자님의 버킷 주소
-const MANUAL_BUCKET_FALLBACK = "ssss-ehfczw.appspot.com";
+const MANUAL_BUCKET_FALLBACK = "ssss-ehfczw.firebasestorage.app";
 
 const firebaseConfig = (() => {
   try {
@@ -280,13 +280,16 @@ function buildPrompt(mode, styleObj, basePrompt, scenePrompt, isRefMode) {
   let finalScene = String(scenePrompt || "").trim();
 
   if (mode === "emotion") {
-    const rawKey = finalScene.trim().split(" ")[0];
-    const cleanKey = rawKey.replace(/[^\w\s\u3131-\uD79D]/g, "");
-    const mapped = EMOTION_MAP[cleanKey] || EMOTION_MAP[rawKey];
-    if (mapped) finalScene = mapped;
-
-    // ✅ 1.4 -> 1.2 (안정)
-    finalScene = `(${finalScene}:1.2)`;
+    const partsRaw = finalScene.trim().split(/\s+/);
+    const rawKey = partsRaw[0] || "";
+    const cleanKey = rawKey.replace(/[,\[\]\(\)"]/g, "").trim();
+    const mapped =
+      EMOTION_MAP[cleanKey] || EMOTION_MAP[cleanKey.replace(/\s+/g, "")];
+    if (mapped) {
+      const rest = partsRaw.slice(1).join(" ").trim(); // ✅ 나머지 태그 보존
+      finalScene = rest ? `${mapped}, ${rest}` : mapped;
+    }
+    finalScene = `(${finalScene}:1.35)`; // ✅ 감정 가중치 강화
   }
 
   // parts 방식으로 콤마 깔끔 처리(빈 문자열 자동 제거)
@@ -311,11 +314,16 @@ function buildPrompt(mode, styleObj, basePrompt, scenePrompt, isRefMode) {
 
   if (mode === "emotion") {
     parts.push(single);
-    parts.push("close-up portrait, focus on face");
+    const lower = String(scenePrompt || "").toLowerCase();
+    const hasFraming =
+      /(full body|upper body|waist up|medium shot|long shot|wide shot|cowboy shot|three-quarter)/.test(
+        lower,
+      );
+    if (!hasFraming) {
+      parts.push("upper body, waist up, medium shot"); // ✅ 기본값(강제 클로즈업 제거)
+    }
     parts.push(prefix);
-    if (identityLock) parts.push(identityLock);
-    if (finalScene) parts.push(finalScene);
-    return parts.filter(Boolean).join(", ");
+    parts.push(finalScene);
   }
 
   if (mode === "situation") {

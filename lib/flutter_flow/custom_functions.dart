@@ -49,14 +49,17 @@ String buildStoryPrompt(
   String? summary,
   bool isNovelMode,
 ) {
-  // 1. [고정] 캐릭터 설명 및 감정 태그 리스트 생성
   final characterDescriptions = StringBuffer();
 
   for (final char in characters) {
     String availableEmotions =
         char.emotionimages.map((e) => '"${e.emotion}"').join(', ');
+    if (availableEmotions.isEmpty) availableEmotions = 'None';
 
-    if (availableEmotions.isEmpty) availableEmotions = "None";
+    // 상황(조건) 리스트도 같이 보여주면 모델이 SHOW_IMAGE 조건을 더 잘 맞춤
+    final availableSituations =
+        char.situationImages.map((s) => '"${s.condition}"').join(', ');
+    final sitText = availableSituations.isEmpty ? 'None' : availableSituations;
 
     characterDescriptions.writeln('<character>');
     characterDescriptions.writeln('  <name>${char.name}</name>');
@@ -64,108 +67,81 @@ String buildStoryPrompt(
         .writeln('  <personality>${char.personality}</personality>');
     characterDescriptions
         .writeln('  <asset_emotions>[${availableEmotions}]</asset_emotions>');
+    characterDescriptions
+        .writeln('  <asset_situations>[${sitText}]</asset_situations>');
     characterDescriptions.writeln('</character>');
   }
 
-  // 2. [고정] 배경 리스트 생성
   final backgroundListString =
       backgrounds.map((bg) => '"${bg.placeName}"').join(', ');
 
-  // 3. [고정] 상황 리스트 생성
-  final conditionBuffer = StringBuffer();
-  for (final char in characters) {
-    for (final sit in char.situationImages) {
-      conditionBuffer.writeln('- [Specific Event]: "${sit.condition}"');
-    }
-  }
+  final userNoteSection =
+      (userNote.isNotEmpty) ? '<user_note>\n$userNote\n</user_note>' : '';
 
-  // 4. [고정] 시각 감독 규칙 (Visual Rules) - 사용자님 의도 100% 반영
-  final String visualRules = '''
-### 🎬 VISUAL DIRECTOR RULES
-You act as a visual director matching the story to available assets.
-
-**1. STORYTELLING (FREEDOM)**
-- Write the story content FREELY based on the context. 
-- Do NOT limit the locations or emotions to the list below. 
-- Characters can feel any emotion and go to any place (e.g., Space, Volcano).
-
-**2. IMAGE MAPPING (STRICT MATCHING)**
-- ONLY when you output the JSON for images (`show_image` or `action`), check the **Assets List** provided.
-
-**[Background Assets]**
-- My Assets: [${backgroundListString}]
-- Logic:
-  - Story matches an Asset? -> Output `{"type": "show_image", "condition": "AssetName"}`.
-  - Story is *very similar* to an Asset? (e.g. 'University' vs 'School') -> Output `{"type": "show_image", "condition": "School"}`.
-  - **Story is totally different? (e.g. 'Mars') -> DO NOT output `show_image`. Just write text.**
-
-**[Character Emotion Assets]**
-- Check each character's `<asset_emotions>` list above.
-- Logic:
-  - Story: "She felt ecstatic." -> Asset has "Happy"? -> Output `action: "Happy"`.
-  - Story: "She felt murderous rage." -> Asset only has "Happy", "Sad"? -> No match. Output `action: "무감정"` (Default).
-
-**[Situation Assets]**
-- Match these specific events if they happen:
-${conditionBuffer.toString()}
-''';
-
-  // 5. [고정] 모드 가이드라인
-  String modeGuidelines;
-  if (isNovelMode) {
-    modeGuidelines = '''
-### 🖋️ MODE: WEB NOVEL AUTHOR
-1. **Protagonist:** You have full control. User ("${userInChatName}") is an observer.
-2. **Format:** Separate direct speech into `dialogue` objects.
-''';
-  } else {
-    modeGuidelines = '''
-### 🗣️ MODE: INTERACTIVE ROLEPLAY
-1. **Interaction:** Wait for user input.
-2. **Never Impersonate:** Never speak for the user.
-''';
-  }
-
-  // 6. [변동] 유저 노트 (Dynamic Context)
-  final userNoteSection = (userNote != null && userNote.isNotEmpty)
-      ? '<user_note>\n${userNote}\n</user_note>'
-      : '';
-
-  // 7. [변동] 요약 (Dynamic Context)
   final summarySection = (summary != null && summary.isNotEmpty)
-      ? '''
-### 📜 PREVIOUS STORY SUMMARY
-<memory>
-${summary}
-</memory>
-'''
+      ? '<memory>\n$summary\n</memory>'
       : '';
 
-  // ★ 8. 최종 조립 (순서: 고정 -> 변동)
-  // 이렇게 해야 Gemini가 앞부분을 "기억(Cache)"해서 비용을 깎아줍니다.
+  final modeGuidelines = isNovelMode
+      ? '''
+### MODE: WEB NOVEL
+- User("$userInChatName") is an observer. Do NOT write user's lines as if they spoke.
+- Keep going without waiting for user input.
+'''
+      : '''
+### MODE: INTERACTIVE ROLEPLAY
+- Wait for user input.
+- Never speak for the user("$userInChatName").
+- End with a clear prompt/question to the user.
+''';
+
   return '''
-### SYSTEM INSTRUCTION (STATIC CONTEXT)
-You are an AI storyteller using JSON format.
+### SYSTEM (STATIC)
+You are an AI storyteller.
 
-${modeGuidelines}
+$modeGuidelines
 
-${visualRules}
+### OUTPUT FORMAT (STRICT)
+Output ONLY the following tags. No JSON. No markdown. No extra commentary.
 
-### WORLD BIBLE (STATIC CONTEXT)
-<title>${storyTitle}</title>
-<setting>${storySetting}</setting>
-<user_role>${userRole}</user_role>
+1) Background / situation image trigger:
+[SHOW_IMAGE="ConditionOrPlaceName"]
 
-<characters>
-${characterDescriptions.toString()}
-</characters>
+2) Narration:
+[NARRATION]...[/NARRATION]
 
----
-### CURRENT STATUS (DYNAMIC CONTEXT)
-${summarySection}
-${userNoteSection}
+3) Dialogue (ALWAYS for spoken lines):
+[DIALOGUE SPEAKER="NAME" ACTION="EMOTION_KEY_OR_EMPTY"]...[/DIALOGUE]
 
-Start story in JSON.
+RULES:
+- Spoken lines MUST be DIALOGUE tags. Never wrap dialogue in quotes.
+- Do NOT use parentheses like (숨이 멎을 듯한...). No stage directions.
+- If a speaker is not in the main character list, invent a role-based name (e.g. "재판장", "병사1") and still use DIALOGUE.
+- Use SHOW_IMAGE ONLY when it matches an asset condition/place below.
+
+### ASSET LIST (STRICT MATCHING)
+[Background Assets] = [$backgroundListString]
+- If story matches a place exactly (or very similar), output: [SHOW_IMAGE="AssetName"]
+- If totally different, output no SHOW_IMAGE.
+
+[Characters]
+$characterDescriptions
+
+Emotion ACTION:
+- For each character, ACTION must be one of that character's <asset_emotions>.
+- If no match, use ACTION="무감정".
+
+Situation SHOW_IMAGE:
+- If a situation happens and matches any <asset_situations> exactly, output [SHOW_IMAGE="that_condition"].
+
+### WORLD BIBLE
+<title>$storyTitle</title>
+<setting>$storySetting</setting>
+<user_role>$userRole</user_role>
+
+### DYNAMIC CONTEXT
+$summarySection
+$userNoteSection
 ''';
 }
 

@@ -63,24 +63,24 @@ class ImagecreatebottomsheetModel
   String? profiletag;
   // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
   String? situationtag;
-  // Stores action output result for [Custom Action - composeScenePrompt] action in aiimagecreatepromptbutton widget.
-  String? situationimageprompt;
   // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
   String? backgroundtag;
-  // Stores action output result for [Custom Action - composeScenePrompt] action in aiimagecreatepromptbutton widget.
-  String? backgroundimageprompt;
   // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
   String? maintag;
   // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
   String? emotiontag;
-  // Stores action output result for [Custom Action - composeScenePrompt] action in aiimagecreatepromptbutton widget.
-  String? emotionimagePrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   dynamic characterImageResult;
+  // Stores action output result for [Custom Action - composeScenePrompt] action in aicreateimagebutton widget.
+  String? emotionimagePrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   dynamic emotionimageResult;
+  // Stores action output result for [Custom Action - composeScenePrompt] action in aicreateimagebutton widget.
+  String? situationimageprompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   dynamic situationImageResult;
+  // Stores action output result for [Custom Action - composeScenePrompt] action in aicreateimagebutton widget.
+  String? backgroundimageprompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   dynamic backgroundimageResult;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
