@@ -2149,7 +2149,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           await actions
                                                               .generateSingleTextField(
                                                         'prologue',
-                                                        '\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[보유 배경 태그]: ${functions.getBackgroundTagString(_model.backgroundlist.toList())}\\n[보유 감정 태그]: ${functions.getEmotionTagString(FFAppState().Characters.toList())}\\n[보유 상황 태그]: ${functions.getSituationTagString(FFAppState().Characters.toList())}',
+                                                        '\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                         _model.genre!,
                                                         FFAppState().draftId,
                                                         functions.joinPlaceNames(

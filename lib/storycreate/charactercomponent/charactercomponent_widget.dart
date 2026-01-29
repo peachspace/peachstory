@@ -487,7 +487,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                             'char_\${index}_name'))
                       Container(
                         width: double.infinity,
-                        height: 76.0,
+                        height: 77.0,
                         decoration: BoxDecoration(
                           color:
                               FlutterFlowTheme.of(context).secondaryBackground,
@@ -1165,7 +1165,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                               'char_\${index}_intro'))
                         Container(
                           width: double.infinity,
-                          height: 76.0,
+                          height: 77.0,
                           decoration: BoxDecoration(
                             color: FlutterFlowTheme.of(context)
                                 .secondaryBackground,
