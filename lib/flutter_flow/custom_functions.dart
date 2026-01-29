@@ -49,99 +49,90 @@ String buildStoryPrompt(
   String? summary,
   bool isNovelMode,
 ) {
-  final characterDescriptions = StringBuffer();
-
-  for (final char in characters) {
-    String availableEmotions =
-        char.emotionimages.map((e) => '"${e.emotion}"').join(', ');
-    if (availableEmotions.isEmpty) availableEmotions = 'None';
-
-    // 상황(조건) 리스트도 같이 보여주면 모델이 SHOW_IMAGE 조건을 더 잘 맞춤
-    final availableSituations =
-        char.situationImages.map((s) => '"${s.condition}"').join(', ');
-    final sitText = availableSituations.isEmpty ? 'None' : availableSituations;
-
-    characterDescriptions.writeln('<character>');
-    characterDescriptions.writeln('  <name>${char.name}</name>');
-    characterDescriptions
-        .writeln('  <personality>${char.personality}</personality>');
-    characterDescriptions
-        .writeln('  <asset_emotions>[${availableEmotions}]</asset_emotions>');
-    characterDescriptions
-        .writeln('  <asset_situations>[${sitText}]</asset_situations>');
-    characterDescriptions.writeln('</character>');
+  final characterBlock = StringBuffer();
+  for (final c in characters) {
+    final emotions = c.emotionimages
+        .map((e) => e.emotion)
+        .where((e) => e.isNotEmpty)
+        .toList();
+    final emoList =
+        emotions.isEmpty ? 'None' : emotions.map((e) => '"$e"').join(', ');
+    characterBlock.writeln('- Name: ${c.name}');
+    characterBlock.writeln('  Personality: ${c.personality}');
+    characterBlock.writeln('  AvailableEmotionAssets: [$emoList]');
   }
 
-  final backgroundListString =
-      backgrounds.map((bg) => '"${bg.placeName}"').join(', ');
+  final bgList =
+      backgrounds.map((b) => b.placeName).where((s) => s.isNotEmpty).toList();
+  final bgBlock =
+      bgList.isEmpty ? 'None' : bgList.map((s) => '"$s"').join(', ');
 
-  final userNoteSection =
-      (userNote.isNotEmpty) ? '<user_note>\n$userNote\n</user_note>' : '';
+  final situationBlock = StringBuffer();
+  for (final c in characters) {
+    for (final s in c.situationImages) {
+      if ((s.condition).isNotEmpty)
+        situationBlock.writeln('- "${s.condition}"');
+    }
+  }
+  final sitBlock = situationBlock.toString().trim().isEmpty
+      ? 'None'
+      : situationBlock.toString();
 
-  final summarySection = (summary != null && summary.isNotEmpty)
-      ? '<memory>\n$summary\n</memory>'
+  final modeText = isNovelMode
+      ? 'WEB NOVEL (Continue story without waiting user input)'
+      : 'ROLEPLAY (Wait user input, never speak as the user)';
+
+  final noteSection =
+      userNote.isNotEmpty ? '<user_note>$userNote</user_note>' : '';
+  final memorySection = (summary != null && summary.isNotEmpty)
+      ? '<memory>$summary</memory>'
       : '';
 
-  final modeGuidelines = isNovelMode
-      ? '''
-### MODE: WEB NOVEL
-- User("$userInChatName") is an observer. Do NOT write user's lines as if they spoke.
-- Keep going without waiting for user input.
-'''
-      : '''
-### MODE: INTERACTIVE ROLEPLAY
-- Wait for user input.
-- Never speak for the user("$userInChatName").
-- End with a clear prompt/question to the user.
-''';
-
   return '''
-### SYSTEM (STATIC)
 You are an AI storyteller.
 
-$modeGuidelines
+[MODE]
+$modeText
 
-### OUTPUT FORMAT (STRICT)
-Output ONLY the following tags. No JSON. No markdown. No extra commentary.
+[WORLD BIBLE]
+Title: $storyTitle
+Setting: $storySetting
+UserRole: $userRole
+UserNameInChat: $userInChatName
 
-1) Background / situation image trigger:
-[SHOW_IMAGE="ConditionOrPlaceName"]
+[CHARACTERS]
+$characterBlock
 
-2) Narration:
-[NARRATION]...[/NARRATION]
+[ASSET LIST]
+BackgroundAssets: [$bgBlock]
+SituationAssets:
+$sitBlock
 
-3) Dialogue (ALWAYS for spoken lines):
-[DIALOGUE SPEAKER="NAME" ACTION="EMOTION_KEY_OR_EMPTY"]...[/DIALOGUE]
+[CRITICAL OUTPUT FORMAT — ONLY THESE TAGS]
+- For image display (background or situation), output:
+  [SHOW_IMAGE="ASSET_NAME"]
+  *Only use ASSET_NAME if it matches the Asset List. If not matched, do not output SHOW_IMAGE.*
 
-RULES:
-- Spoken lines MUST be DIALOGUE tags. Never wrap dialogue in quotes.
-- Do NOT use parentheses like (숨이 멎을 듯한...). No stage directions.
-- If a speaker is not in the main character list, invent a role-based name (e.g. "재판장", "병사1") and still use DIALOGUE.
-- Use SHOW_IMAGE ONLY when it matches an asset condition/place below.
+- For narration, output:
+  [NARRATION]text[/NARRATION]
 
-### ASSET LIST (STRICT MATCHING)
-[Background Assets] = [$backgroundListString]
-- If story matches a place exactly (or very similar), output: [SHOW_IMAGE="AssetName"]
-- If totally different, output no SHOW_IMAGE.
+- For dialogue, always output:
+  [DIALOGUE SPEAKER="NAME" ACTION="EMOTION"]text[/DIALOGUE]
+  *ACTION is optional. If the speaker emotion is not available in that character's assets, use ACTION="무감정".*
 
-[Characters]
-$characterDescriptions
+[IMPORTANT RULES]
+1) Never output quotes like " ... ".
+2) Never output parenthetical acting like (숨이 멎을 듯한 ...).
+3) Every spoken line must be DIALOGUE tag.
+4) If a speaking character is not in the character list, create a role-based name and still use DIALOGUE:
+   Examples: 재판장, 병사1, 상인, 기사단장
+5) Do not output any explanation or extra text outside the tags.
 
-Emotion ACTION:
-- For each character, ACTION must be one of that character's <asset_emotions>.
-- If no match, use ACTION="무감정".
+[DYNAMIC CONTEXT]
+$memorySection
+$noteSection
 
-Situation SHOW_IMAGE:
-- If a situation happens and matches any <asset_situations> exactly, output [SHOW_IMAGE="that_condition"].
-
-### WORLD BIBLE
-<title>$storyTitle</title>
-<setting>$storySetting</setting>
-<user_role>$userRole</user_role>
-
-### DYNAMIC CONTEXT
-$summarySection
-$userNoteSection
+Now write the next story turn using only the tags.
 ''';
 }
 
@@ -444,4 +435,56 @@ String joinPlaceNames(List<BackgroundStructStruct>? list) {
       .where((e) => e.isNotEmpty)
       .toSet()
       .join('|');
+}
+
+String friendlyPrologueToTagScript(String input) {
+  final lines = input.split('\n');
+  final out = StringBuffer();
+
+  for (var raw in lines) {
+    var line = raw.trim();
+    if (line.isEmpty) continue;
+
+    // 배경이미지 / 상황이미지
+    if (line.startsWith('배경이미지:')) {
+      final place = line.replaceFirst('배경이미지:', '').trim();
+      if (place.isNotEmpty) out.writeln('[SHOW_IMAGE="$place"]');
+      continue;
+    }
+    if (line.startsWith('상황이미지:')) {
+      final cond = line.replaceFirst('상황이미지:', '').trim();
+      if (cond.isNotEmpty) out.writeln('[SHOW_IMAGE="$cond"]');
+      continue;
+    }
+
+    // 내레이션
+    if (line.startsWith('내레이션:')) {
+      final text = line.replaceFirst('내레이션:', '').trim();
+      if (text.isNotEmpty) out.writeln('[NARRATION]$text[/NARRATION]');
+      continue;
+    }
+
+    // 이름(감정): 대사
+    // 예: 시라칸(기쁨): 안녕
+    final m = RegExp(r'^(.+?)\((.+?)\)\s*:\s*(.+)$').firstMatch(line);
+    if (m != null) {
+      final name = m.group(1)!.trim();
+      final emotion = m.group(2)!.trim();
+      final text = m.group(3)!.trim();
+      if (name.isNotEmpty && text.isNotEmpty) {
+        if (emotion.isNotEmpty) {
+          out.writeln(
+              '[DIALOGUE SPEAKER="$name" ACTION="$emotion"]$text[/DIALOGUE]');
+        } else {
+          out.writeln('[DIALOGUE SPEAKER="$name"]$text[/DIALOGUE]');
+        }
+      }
+      continue;
+    }
+
+    // 그 외는 내레이션으로 처리(유저가 그냥 문장만 적어도 됨)
+    out.writeln('[NARRATION]$line[/NARRATION]');
+  }
+
+  return out.toString().trim();
 }

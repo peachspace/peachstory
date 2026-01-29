@@ -66,13 +66,9 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
           .cast<StoryChatMessageStructStruct>();
       safeSetState(() {});
       if (!(_model.chatMessages.isNotEmpty)) {
-        _model.chatMessages = functions
-            .parsePrologueToMessages(
-                _model.loadedStory?.prologuetext,
-                _model.loadedStory!.characters.toList(),
-                _model.loadedStory!.backgrounds.toList())
-            .toList()
-            .cast<StoryChatMessageStructStruct>();
+        _model.chatMessages = [];
+        _model.aiResponseScript = functions
+            .friendlyPrologueToTagScript(_model.loadedStory!.prologuetext);
         safeSetState(() {});
       }
     });
@@ -1339,7 +1335,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                             }
                                             _model.nextCommand = await actions
                                                 .getNextPhaseCommand(
-                                              _model.chatMessages.length,
+                                              stackStorychatsRecord
+                                                  .messageCount,
                                             );
                                             _model.aiFullText1 =
                                                 await actions.callAiProxy(
