@@ -1891,6 +1891,14 @@ class _ImagecreatebottomsheetWidgetState
                           _model.isImageLoading = true;
                           safeSetState(() {});
                           if (widget.imageMode == 'character') {
+                            _model.charimagePrompt =
+                                await actions.composeScenePrompt(
+                              'character',
+                              widget.receivedcharsettings,
+                              '',
+                              '',
+                            );
+                            _shouldSetState = true;
                             _model.characterImageResult =
                                 await actions.callGenerateImageCloud(
                               'character',
@@ -1901,7 +1909,7 @@ class _ImagecreatebottomsheetWidgetState
                                 widget.receivedSeed,
                                 0,
                               ),
-                              _model.imagecreatepromptTextController.text,
+                              _model.charimagePrompt,
                               _model.styleChoiceChipsValue!,
                             );
                             _shouldSetState = true;

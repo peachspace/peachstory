@@ -488,3 +488,7 @@ String friendlyPrologueToTagScript(String input) {
 
   return out.toString().trim();
 }
+
+List<StoryChatMessageStructStruct> getemptyStoryChatMessages() {
+  return <StoryChatMessageStructStruct>[];
+}

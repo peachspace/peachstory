@@ -69,6 +69,8 @@ class ImagecreatebottomsheetModel
   String? maintag;
   // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
   String? emotiontag;
+  // Stores action output result for [Custom Action - composeScenePrompt] action in aicreateimagebutton widget.
+  String? charimagePrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
   dynamic characterImageResult;
   // Stores action output result for [Custom Action - composeScenePrompt] action in aicreateimagebutton widget.

@@ -66,7 +66,10 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
           .cast<StoryChatMessageStructStruct>();
       safeSetState(() {});
       if (!(_model.chatMessages.isNotEmpty)) {
-        _model.chatMessages = [];
+        _model.chatMessages = functions
+            .getemptyStoryChatMessages()
+            .toList()
+            .cast<StoryChatMessageStructStruct>();
         _model.aiResponseScript = functions
             .friendlyPrologueToTagScript(_model.loadedStory!.prologuetext);
         safeSetState(() {});
