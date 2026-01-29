@@ -70,8 +70,10 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
             .getemptyStoryChatMessages()
             .toList()
             .cast<StoryChatMessageStructStruct>();
-        _model.aiResponseScript = functions
-            .friendlyPrologueToTagScript(_model.loadedStory!.prologuetext);
+        _model.aiResponseScript = functions.prologueTextToTagScript(
+            _model.loadedStory!.prologuetext,
+            _model.loadedStory!.characters.toList(),
+            _model.loadedStory!.backgrounds.toList());
         safeSetState(() {});
       }
     });

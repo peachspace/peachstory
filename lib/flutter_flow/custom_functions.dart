@@ -437,58 +437,121 @@ String joinPlaceNames(List<BackgroundStructStruct>? list) {
       .join('|');
 }
 
-String friendlyPrologueToTagScript(String input) {
-  final lines = input.split('\n');
+List<StoryChatMessageStructStruct> getemptyStoryChatMessages() {
+  return <StoryChatMessageStructStruct>[];
+}
+
+String prologueTextToTagScript(
+  String prologueText,
+  List<CharacterStructStruct> characters,
+  List<BackgroundStructStruct> backgrounds,
+) {
+  final cleaned = cleanPrologue(prologueText);
+  return prologueUiToTags(cleaned, characters, backgrounds);
+}
+
+String prologueUiToTags(
+  String input,
+  List<CharacterStructStruct> characters,
+  List<BackgroundStructStruct> backgrounds,
+) {
+  final text = input.replaceAll('\r\n', '\n').trim();
+
+  // 2) 유저친화 포맷 파싱 준비
+  final characterNames = characters
+      .map((c) => (c.name ?? '').trim())
+      .where((s) => s.isNotEmpty)
+      .toSet();
+
+  final bgAssets = backgrounds
+      .map((b) => (b.placeName ?? '').trim())
+      .where((s) => s.isNotEmpty)
+      .toSet();
+
+  // 상황 에셋
+  final situationAssets = <String>{};
+  for (final c in characters) {
+    for (final s in (c.situationImages ?? [])) {
+      final cond = (s.condition ?? '').trim();
+      if (cond.isNotEmpty) situationAssets.add(cond);
+    }
+  }
+
+  // 감정 에셋
+  final emotionsByChar = <String, Set<String>>{};
+  for (final c in characters) {
+    final charName = (c.name ?? '').trim();
+    final emos = (c.emotionimages ?? [])
+        .map((e) => (e.emotion ?? '').trim())
+        .where((e) => e.isNotEmpty)
+        .toSet();
+    emotionsByChar[charName] = emos;
+  }
+
+  final lines =
+      text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+
   final out = StringBuffer();
 
-  for (var raw in lines) {
-    var line = raw.trim();
-    if (line.isEmpty) continue;
-
-    // 배경이미지 / 상황이미지
+  for (final line in lines) {
+    // 배경이미지: 장소명
     if (line.startsWith('배경이미지:')) {
-      final place = line.replaceFirst('배경이미지:', '').trim();
-      if (place.isNotEmpty) out.writeln('[SHOW_IMAGE="$place"]');
-      continue;
-    }
-    if (line.startsWith('상황이미지:')) {
-      final cond = line.replaceFirst('상황이미지:', '').trim();
-      if (cond.isNotEmpty) out.writeln('[SHOW_IMAGE="$cond"]');
-      continue;
-    }
-
-    // 내레이션
-    if (line.startsWith('내레이션:')) {
-      final text = line.replaceFirst('내레이션:', '').trim();
-      if (text.isNotEmpty) out.writeln('[NARRATION]$text[/NARRATION]');
-      continue;
-    }
-
-    // 이름(감정): 대사
-    // 예: 시라칸(기쁨): 안녕
-    final m = RegExp(r'^(.+?)\((.+?)\)\s*:\s*(.+)$').firstMatch(line);
-    if (m != null) {
-      final name = m.group(1)!.trim();
-      final emotion = m.group(2)!.trim();
-      final text = m.group(3)!.trim();
-      if (name.isNotEmpty && text.isNotEmpty) {
-        if (emotion.isNotEmpty) {
-          out.writeln(
-              '[DIALOGUE SPEAKER="$name" ACTION="$emotion"]$text[/DIALOGUE]');
-        } else {
-          out.writeln('[DIALOGUE SPEAKER="$name"]$text[/DIALOGUE]');
-        }
+      final place = line.substring('배경이미지:'.length).trim();
+      if (bgAssets.contains(place)) {
+        out.writeln('[SHOW_IMAGE="$place"]');
       }
       continue;
     }
 
-    // 그 외는 내레이션으로 처리(유저가 그냥 문장만 적어도 됨)
+    // 상황이미지: 상황명
+    if (line.startsWith('상황이미지:')) {
+      final sit = line.substring('상황이미지:'.length).trim();
+      if (situationAssets.contains(sit)) {
+        out.writeln('[SHOW_IMAGE="$sit"]');
+      }
+      continue;
+    }
+
+    // 이름(감정): 대사  또는  이름: 대사
+    final m =
+        RegExp(r'^(.+?)\s*(?:\(\s*(.+?)\s*\))?\s*:\s*(.+)$').firstMatch(line);
+    if (m != null) {
+      final speaker = m.group(1)!.trim();
+      var emo = (m.group(2) ?? '').trim();
+      var speech = m.group(3)!.trim();
+
+      // 따옴표 제거
+      speech = speech.replaceAll('"', '').replaceAll("'", "");
+
+      if (characterNames.contains(speaker)) {
+        final allowedEmos = emotionsByChar[speaker] ?? {};
+        if (emo.isEmpty) emo = '무감정';
+        if (emo != '무감정' && !allowedEmos.contains(emo)) emo = '무감정';
+
+        out.writeln(
+            '[DIALOGUE SPEAKER="$speaker" ACTION="$emo"]$speech[/DIALOGUE]');
+        continue;
+      }
+    }
+
+    // 나머지는 내레이션
     out.writeln('[NARRATION]$line[/NARRATION]');
   }
 
   return out.toString().trim();
 }
 
-List<StoryChatMessageStructStruct> getemptyStoryChatMessages() {
-  return <StoryChatMessageStructStruct>[];
+String cleanPrologue(String s) {
+  var out = s.trim();
+  out = out.replaceAll('```json', '').replaceAll('```', '').trim();
+
+  // "배경이미지:"가 있으면 그 줄부터 잘라내기
+  final idxFriendly = out.indexOf('배경이미지:');
+  if (idxFriendly > 0) out = out.substring(idxFriendly).trim();
+
+  // 구형 포맷도 같이 방어
+  final idxLegacy = out.indexOf('[Image:');
+  if (idxFriendly < 0 && idxLegacy > 0) out = out.substring(idxLegacy).trim();
+
+  return out;
 }
