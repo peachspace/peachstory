@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class SourceSelectSheetModel extends FlutterFlowModel<SourceSelectSheetWidget> {
   ///  State fields for stateful widgets in this component.
 
-  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in aicreateButton widget.
+  // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in imagegenbutton widget.
   GenResultStructStruct? aiResult;
   // Stores action output result for [Bottom Sheet - imagecreatebottomsheet] action in uploadButton widget.
   GenResultStructStruct? uploadResult;
