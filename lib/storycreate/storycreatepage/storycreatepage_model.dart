@@ -78,7 +78,7 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? userRoleInfoFocusNode;
   TextEditingController? userRoleInfoTextController;
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in userroleaicreatebutton widget.
+  // Stores action output result for [Custom Action - generateCharacterField] action in userroleaicreatebutton widget.
   String? generateduserrole;
   // State field(s) for prologuetext widget.
   FocusNode? prologuetextFocusNode;

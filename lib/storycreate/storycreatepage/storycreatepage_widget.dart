@@ -1825,19 +1825,11 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                       });
                                                       _model.generateduserrole =
                                                           await actions
-                                                              .generateSingleTextField(
+                                                              .generateCharacterField(
                                                         'user_role',
-                                                        '\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}',
-                                                        _model.genre!,
-                                                        '',
-                                                        '',
-                                                      );
-                                                      await actions
-                                                          .generateCharacterField(
-                                                        'user_role',
-                                                        '',
-                                                        '',
-                                                        '',
+                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}',
+                                                        _model.genreValue!,
+                                                        FFAppState().draftId,
                                                       );
                                                       safeSetState(() {
                                                         _model.userRoleInfoTextController
