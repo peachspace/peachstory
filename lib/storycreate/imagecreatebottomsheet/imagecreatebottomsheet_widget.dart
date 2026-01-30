@@ -345,8 +345,8 @@ class _ImagecreatebottomsheetWidgetState
                             ChipData('세미리얼'),
                             ChipData('실사')
                           ],
-                          onChanged: (val) => safeSetState(() =>
-                              _model.styleChoiceChipsValue = val?.firstOrNull),
+                          onChanged: (val) => safeSetState(() => _model
+                              .imagestyleChoiceChipsValue = val?.firstOrNull),
                           selectedChipStyle: ChipStyle(
                             backgroundColor:
                                 FlutterFlowTheme.of(context).accent3,
@@ -409,10 +409,12 @@ class _ImagecreatebottomsheetWidgetState
                           chipSpacing: 15.0,
                           rowSpacing: 8.0,
                           multiselect: false,
-                          initialized: _model.styleChoiceChipsValue != null,
+                          initialized:
+                              _model.imagestyleChoiceChipsValue != null,
                           alignment: WrapAlignment.start,
-                          controller: _model.styleChoiceChipsValueController ??=
-                              FormFieldController<List<String>>(
+                          controller:
+                              _model.imagestyleChoiceChipsValueController ??=
+                                  FormFieldController<List<String>>(
                             ['애니'],
                           ),
                           wrapped: true,
@@ -1910,7 +1912,7 @@ class _ImagecreatebottomsheetWidgetState
                                 0,
                               ),
                               _model.charimagePrompt,
-                              _model.styleChoiceChipsValue!,
+                              _model.imagestyleChoiceChipsValue!,
                             );
                             _shouldSetState = true;
                             _model.generatedImageUrl = getJsonField(
@@ -1939,7 +1941,7 @@ class _ImagecreatebottomsheetWidgetState
                               '',
                               widget.receivedSeed,
                               widget.receivedBasePrompt,
-                              _model.styleChoiceChipsValue!,
+                              _model.imagestyleChoiceChipsValue!,
                             );
                             _shouldSetState = true;
                             _model.generatedImageUrl = getJsonField(
@@ -1964,7 +1966,7 @@ class _ImagecreatebottomsheetWidgetState
                               '',
                               widget.receivedSeed,
                               widget.receivedBasePrompt,
-                              _model.styleChoiceChipsValue!,
+                              _model.imagestyleChoiceChipsValue!,
                             );
                             _shouldSetState = true;
                             _model.generatedImageUrl = getJsonField(
@@ -1989,7 +1991,7 @@ class _ImagecreatebottomsheetWidgetState
                               '',
                               0,
                               '',
-                              _model.styleChoiceChipsValue!,
+                              _model.imagestyleChoiceChipsValue!,
                             );
                             _shouldSetState = true;
                             _model.generatedImageUrl = getJsonField(
@@ -2006,7 +2008,7 @@ class _ImagecreatebottomsheetWidgetState
                               '',
                               0,
                               _model.selectedCharImage?.basePrompt,
-                              _model.styleChoiceChipsValue!,
+                              _model.imagestyleChoiceChipsValue!,
                             );
                             _shouldSetState = true;
                             _model.generatedImageUrl = getJsonField(

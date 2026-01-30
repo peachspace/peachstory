@@ -51,25 +51,25 @@ class CharactercomponentModel
   FocusNode? charNameFocusNode;
   TextEditingController? charNameTextController;
   String? Function(BuildContext, String?)? charNameTextControllerValidator;
-  // Stores action output result for [Custom Action - generateCharacterField] action in charnameaicreate widget.
+  // Stores action output result for [Custom Action - generateCharacterField] action in charnamegenbutton widget.
   String? name;
   // State field(s) for charSetting widget.
   FocusNode? charSettingFocusNode;
   TextEditingController? charSettingTextController;
   String? Function(BuildContext, String?)? charSettingTextControllerValidator;
-  // Stores action output result for [Custom Action - generateCharacterField] action in charsettingaicreate widget.
+  // Stores action output result for [Custom Action - generateCharacterField] action in charsettinggenbutton widget.
   String? personality;
   // State field(s) for charintroduce widget.
   FocusNode? charintroduceFocusNode;
   TextEditingController? charintroduceTextController;
   String? Function(BuildContext, String?)? charintroduceTextControllerValidator;
-  // Stores action output result for [Custom Action - generateCharacterField] action in charintroaicreate widget.
+  // Stores action output result for [Custom Action - generateCharacterField] action in charintrogenbutton widget.
   String? introduce;
-  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in charaicreate widget.
+  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in profilegenbutton widget.
   GenResultStructStruct? generatedcharacterImage;
-  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in emotionaddutton widget.
+  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in emotionaddbutton widget.
   GenResultStructStruct? generatedemotionimage;
-  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in situationaddutton widget.
+  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in situationaddbutton widget.
   GenResultStructStruct? generatedsituationimage;
 
   @override

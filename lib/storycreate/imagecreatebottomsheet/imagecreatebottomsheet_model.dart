@@ -28,25 +28,25 @@ class ImagecreatebottomsheetModel
 
   ///  State fields for stateful widgets in this component.
 
-  // State field(s) for styleChoiceChips widget.
-  FormFieldController<List<String>>? styleChoiceChipsValueController;
-  String? get styleChoiceChipsValue =>
-      styleChoiceChipsValueController?.value?.firstOrNull;
-  set styleChoiceChipsValue(String? val) =>
-      styleChoiceChipsValueController?.value = val != null ? [val] : [];
+  // State field(s) for imagestyleChoiceChips widget.
+  FormFieldController<List<String>>? imagestyleChoiceChipsValueController;
+  String? get imagestyleChoiceChipsValue =>
+      imagestyleChoiceChipsValueController?.value?.firstOrNull;
+  set imagestyleChoiceChipsValue(String? val) =>
+      imagestyleChoiceChipsValueController?.value = val != null ? [val] : [];
   // State field(s) for backgroundprompt widget.
   FocusNode? backgroundpromptFocusNode;
   TextEditingController? backgroundpromptTextController;
   String? Function(BuildContext, String?)?
       backgroundpromptTextControllerValidator;
-  // Stores action output result for [Custom Action - generateTriggerKeyword] action in backgroundtagpromptbutton widget.
+  // Stores action output result for [Custom Action - generateTriggerKeyword] action in backgroundtaggenbutton widget.
   String? backgroundtagprompt;
   // State field(s) for situationprompt widget.
   FocusNode? situationpromptFocusNode;
   TextEditingController? situationpromptTextController;
   String? Function(BuildContext, String?)?
       situationpromptTextControllerValidator;
-  // Stores action output result for [Custom Action - generateTriggerKeyword] action in situationtagpromptbutton widget.
+  // Stores action output result for [Custom Action - generateTriggerKeyword] action in situationtaggenbutton widget.
   String? situationtagPrompt;
   // State field(s) for emotionChoiceChips widget.
   FormFieldController<List<String>>? emotionChoiceChipsValueController;
@@ -59,33 +59,33 @@ class ImagecreatebottomsheetModel
   TextEditingController? imagecreatepromptTextController;
   String? Function(BuildContext, String?)?
       imagecreatepromptTextControllerValidator;
-  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  // Stores action output result for [Custom Action - generateVisualTags] action in imagepromptgenbutton widget.
   String? profiletag;
-  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  // Stores action output result for [Custom Action - generateVisualTags] action in imagepromptgenbutton widget.
   String? situationtag;
-  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  // Stores action output result for [Custom Action - generateVisualTags] action in imagepromptgenbutton widget.
   String? backgroundtag;
-  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  // Stores action output result for [Custom Action - generateVisualTags] action in imagepromptgenbutton widget.
   String? maintag;
-  // Stores action output result for [Custom Action - generateVisualTags] action in aiimagecreatepromptbutton widget.
+  // Stores action output result for [Custom Action - generateVisualTags] action in imagepromptgenbutton widget.
   String? emotiontag;
-  // Stores action output result for [Custom Action - composeScenePrompt] action in aicreateimagebutton widget.
+  // Stores action output result for [Custom Action - composeScenePrompt] action in imagegenbutton widget.
   String? charimagePrompt;
-  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in imagegenbutton widget.
   dynamic characterImageResult;
-  // Stores action output result for [Custom Action - composeScenePrompt] action in aicreateimagebutton widget.
+  // Stores action output result for [Custom Action - composeScenePrompt] action in imagegenbutton widget.
   String? emotionimagePrompt;
-  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in imagegenbutton widget.
   dynamic emotionimageResult;
-  // Stores action output result for [Custom Action - composeScenePrompt] action in aicreateimagebutton widget.
+  // Stores action output result for [Custom Action - composeScenePrompt] action in imagegenbutton widget.
   String? situationimageprompt;
-  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in imagegenbutton widget.
   dynamic situationImageResult;
-  // Stores action output result for [Custom Action - composeScenePrompt] action in aicreateimagebutton widget.
+  // Stores action output result for [Custom Action - composeScenePrompt] action in imagegenbutton widget.
   String? backgroundimageprompt;
-  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in imagegenbutton widget.
   dynamic backgroundimageResult;
-  // Stores action output result for [Custom Action - callGenerateImageCloud] action in aicreateimagebutton widget.
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in imagegenbutton widget.
   dynamic mainimageResult;
   bool isDataUploading_downloadUrl = false;
   FFUploadedFile uploadedLocalFile_downloadUrl =
