@@ -814,12 +814,11 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                           _model.generatedworldview =
                                                               await actions
-                                                                  .generateSingleTextField(
-                                                            'world',
-                                                            '세계관을 생성하라.',
-                                                            _model.genre!,
-                                                            '',
-                                                            '',
+                                                                  .generateWorldField(
+                                                            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                            _model.genreValue!,
+                                                            FFAppState()
+                                                                .draftId,
                                                           );
                                                           safeSetState(() {
                                                             _model.worldSettingsTextController
@@ -1348,7 +1347,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                   characterData:
                                                       characterItemsItem,
                                                   storyContext:
-                                                      '\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                      '[제목]${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                   isWorldviewEmpty: _model.worldSettingsTextController
                                                               .text ==
                                                           '',
@@ -1833,6 +1832,13 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                         '',
                                                         '',
                                                       );
+                                                      await actions
+                                                          .generateCharacterField(
+                                                        'user_role',
+                                                        '',
+                                                        '',
+                                                        '',
+                                                      );
                                                       safeSetState(() {
                                                         _model.userRoleInfoTextController
                                                                 ?.text =
@@ -2147,15 +2153,10 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                       safeSetState(() {});
                                                       _model.generatedprologue =
                                                           await actions
-                                                              .generateSingleTextField(
-                                                        'prologue',
-                                                        '\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
-                                                        _model.genre!,
+                                                              .generatePrologueField(
+                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                        _model.genreValue!,
                                                         FFAppState().draftId,
-                                                        functions.joinPlaceNames(
-                                                            _model
-                                                                .backgroundlist
-                                                                .toList()),
                                                       );
                                                       safeSetState(() {
                                                         _model.prologuetextTextController
@@ -2671,13 +2672,12 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                           _model.generatedtitle =
                                                               await actions
-                                                                  .generateSingleTextField(
+                                                                  .generateMetaField(
                                                             'title',
-                                                            '[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
-                                                            _model.genre!,
+                                                            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                            _model.genreValue!,
                                                             FFAppState()
                                                                 .draftId,
-                                                            '',
                                                           );
                                                           safeSetState(() {
                                                             _model.storyNameTextController
@@ -3537,13 +3537,12 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                           _model.generatedintroduce =
                                                               await actions
-                                                                  .generateSingleTextField(
+                                                                  .generateMetaField(
                                                             'story_intro',
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
-                                                            _model.genre!,
+                                                            _model.genreValue!,
                                                             FFAppState()
                                                                 .draftId,
-                                                            '',
                                                           );
                                                           safeSetState(() {
                                                             _model.introduceTextController
@@ -4008,13 +4007,12 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                           _model.generateddetail =
                                                               await actions
-                                                                  .generateSingleTextField(
+                                                                  .generateMetaField(
                                                             'detail_info',
-                                                            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저 역할]: ${_model.userRoleInfoTextController.text}',
-                                                            _model.genre!,
+                                                            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
+                                                            _model.genreValue!,
                                                             FFAppState()
                                                                 .draftId,
-                                                            '',
                                                           );
                                                           safeSetState(() {
                                                             _model.detailinfotextTextController

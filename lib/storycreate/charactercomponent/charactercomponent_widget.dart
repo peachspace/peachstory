@@ -395,12 +395,11 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                     'char_\${index}_name';
                                 safeSetState(() {});
                                 _model.name =
-                                    await actions.generateSingleTextField(
+                                    await actions.generateCharacterField(
                                   'char_name',
-                                  '${widget.storyContext}',
+                                  '${widget.storyContext}/n[캐릭터 설정]:${_model.charSettingTextController.text}',
                                   widget.genre!,
                                   FFAppState().draftId,
-                                  '',
                                 );
                                 safeSetState(() {
                                   _model.charNameTextController?.text =
@@ -741,12 +740,11 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                         'char_\${index}_setting';
                                     safeSetState(() {});
                                     _model.personality =
-                                        await actions.generateSingleTextField(
+                                        await actions.generateCharacterField(
                                       'char_set',
-                                      '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}',
+                                      '${widget.storyContext}/n[캐릭터이름]: ${_model.charNameTextController.text}',
                                       widget.genre!,
                                       FFAppState().draftId,
-                                      '',
                                     );
                                     _shouldSetState = true;
                                     safeSetState(() {
@@ -1070,12 +1068,11 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                       'char_\${index}_intro';
                                   safeSetState(() {});
                                   _model.introduce =
-                                      await actions.generateSingleTextField(
+                                      await actions.generateCharacterField(
                                     'char_intro',
                                     '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}\\n[캐릭터 설정]: ${_model.charSettingTextController.text}',
                                     widget.genre!,
                                     FFAppState().draftId,
-                                    '',
                                   );
                                   safeSetState(() {
                                     _model.charintroduceTextController?.text =

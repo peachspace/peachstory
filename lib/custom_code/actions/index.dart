@@ -15,3 +15,7 @@ export 'process_and_save_chat_turn.dart' show processAndSaveChatTurn;
 export 'generate_trigger_keyword.dart' show generateTriggerKeyword;
 export 'generate_visual_tags.dart' show generateVisualTags;
 export 'compose_scene_prompt.dart' show composeScenePrompt;
+export 'generate_world_field.dart' show generateWorldField;
+export 'generate_character_field.dart' show generateCharacterField;
+export 'generate_prologue_field.dart' show generatePrologueField;
+export 'generate_meta_field.dart' show generateMetaField;

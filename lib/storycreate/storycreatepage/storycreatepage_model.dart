@@ -70,7 +70,7 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? worldSettingsFocusNode;
   TextEditingController? worldSettingsTextController;
   String? Function(BuildContext, String?)? worldSettingsTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in worldviewaicreatebutton widget.
+  // Stores action output result for [Custom Action - generateWorldField] action in worldviewaicreatebutton widget.
   String? generatedworldview;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in backgroundaddbutton widget.
   GenResultStructStruct? generatedbackgroundimage;
@@ -84,13 +84,13 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? prologuetextFocusNode;
   TextEditingController? prologuetextTextController;
   String? Function(BuildContext, String?)? prologuetextTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in prologueaicreatebutton widget.
+  // Stores action output result for [Custom Action - generatePrologueField] action in prologueaicreatebutton widget.
   String? generatedprologue;
   // State field(s) for storyName widget.
   FocusNode? storyNameFocusNode;
   TextEditingController? storyNameTextController;
   String? Function(BuildContext, String?)? storyNameTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in storynameaicreatebutton widget.
+  // Stores action output result for [Custom Action - generateMetaField] action in storynameaicreatebutton widget.
   String? generatedtitle;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in addmainimagebutton widget.
   GenResultStructStruct? generatedmainimage;
@@ -100,14 +100,14 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? introduceFocusNode;
   TextEditingController? introduceTextController;
   String? Function(BuildContext, String?)? introduceTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in storyintroaicreatebutton widget.
+  // Stores action output result for [Custom Action - generateMetaField] action in storyintroaicreatebutton widget.
   String? generatedintroduce;
   // State field(s) for detailinfotext widget.
   FocusNode? detailinfotextFocusNode;
   TextEditingController? detailinfotextTextController;
   String? Function(BuildContext, String?)?
       detailinfotextTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in detailtextaicreatebutton widget.
+  // Stores action output result for [Custom Action - generateMetaField] action in detailtextaicreatebutton widget.
   String? generateddetail;
   // State field(s) for authorComment widget.
   FocusNode? authorCommentFocusNode;

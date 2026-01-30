@@ -51,19 +51,19 @@ class CharactercomponentModel
   FocusNode? charNameFocusNode;
   TextEditingController? charNameTextController;
   String? Function(BuildContext, String?)? charNameTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in charnameaicreate widget.
+  // Stores action output result for [Custom Action - generateCharacterField] action in charnameaicreate widget.
   String? name;
   // State field(s) for charSetting widget.
   FocusNode? charSettingFocusNode;
   TextEditingController? charSettingTextController;
   String? Function(BuildContext, String?)? charSettingTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in charsettingaicreate widget.
+  // Stores action output result for [Custom Action - generateCharacterField] action in charsettingaicreate widget.
   String? personality;
   // State field(s) for charintroduce widget.
   FocusNode? charintroduceFocusNode;
   TextEditingController? charintroduceTextController;
   String? Function(BuildContext, String?)? charintroduceTextControllerValidator;
-  // Stores action output result for [Custom Action - generateSingleTextField] action in charintroaicreate widget.
+  // Stores action output result for [Custom Action - generateCharacterField] action in charintroaicreate widget.
   String? introduce;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in charaicreate widget.
   GenResultStructStruct? generatedcharacterImage;
