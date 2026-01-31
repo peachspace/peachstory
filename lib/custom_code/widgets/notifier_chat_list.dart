@@ -233,6 +233,26 @@ class _NotifierChatListState extends State<NotifierChatList>
     final type = scene['type'] ?? 'narration';
     _jumpToBottom();
 
+    if (type == 'turn_header') {
+      final headerText = (scene['content'] ?? '').toString();
+
+      final headerMessage = createStoryChatMessageStructStruct(
+        type: 'turn_header',
+        text: headerText,
+        isStreaming: false,
+        speakerName: '',
+        actionText: '',
+        storyImageUrl: '',
+      );
+
+      _messagesNotifier.value = [..._messagesNotifier.value, headerMessage];
+      _jumpToBottom();
+
+      await Future.delayed(const Duration(milliseconds: 60));
+      _processNextScene();
+      return;
+    }
+
     if (type == 'show_image') {
       final condition = scene['condition'] ?? '';
       final imageUrl = _findSituationalImageUrlByCondition(condition);
@@ -429,6 +449,11 @@ class _NotifierChatListState extends State<NotifierChatList>
           itemCount: chatMessages.length,
           itemBuilder: (context, index) {
             final chatItem = chatMessages[index];
+
+            if (chatItem.type == 'turn_header') {
+              return _buildTurnHeader(chatItem);
+            }
+
             if (chatItem.type == 'user') {
               return _buildDialogueMessage(chatItem, isUser: true);
             } else if (chatItem.type == 'thinking' || chatItem.text == '생각 중') {
@@ -520,6 +545,26 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
+  Widget _buildTurnHeader(StoryChatMessageStructStruct message) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18.0, top: 6.0),
+      child: Align(
+        alignment: Alignment.center,
+        child: Text(
+          message.text,
+          textAlign: TextAlign.center,
+          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                fontFamily: 'Inter',
+                color: Colors.grey.shade600,
+                fontSize: 13.0,
+                fontWeight: FontWeight.w700,
+                lineHeight: 1.3,
+              ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildStoryImage(StoryChatMessageStructStruct chatItem) {
     if (chatItem.storyImageUrl == null ||
         chatItem.storyImageUrl.isEmpty ||
@@ -538,40 +583,72 @@ class _NotifierChatListState extends State<NotifierChatList>
   }
 
   Widget _buildAiMessage(StoryChatMessageStructStruct chatItem) {
-    if (chatItem.type == 'narration')
-      return _buildNarration(chatItem);
-    else if (chatItem.type == 'dialogue')
-      return _buildDialogueMessage(chatItem);
-    else if (chatItem.type == 'story_image') return _buildStoryImage(chatItem);
+    if (chatItem.type == 'turn_header') return _buildTurnHeader(chatItem);
+    if (chatItem.type == 'narration') return _buildNarration(chatItem);
+    if (chatItem.type == 'dialogue') return _buildDialogueMessage(chatItem);
+    if (chatItem.type == 'story_image') return _buildStoryImage(chatItem);
     return const SizedBox.shrink();
   }
 
   List<dynamic> _parseScriptIntoScenes(String scriptText) {
     final List<dynamic> scenes = [];
+
+    // TURN_HEADER 태그까지 포함
     final RegExp exp = RegExp(
-        r'(\[SHOW_IMAGE="(.*?)"\])|(\[NARRATION\](.*?)\[/NARRATION\])|(\[DIALOGUE SPEAKER="(.*?)"(?: ACTION="(.*?)")?\](.*?)\[/DIALOGUE\])',
-        dotAll: true,
-        multiLine: true);
+      r'(\[TURN_HEADER\](.*?)\[/TURN_HEADER\])'
+      r'|(\[SHOW_IMAGE="(.*?)"\])'
+      r'|(\[NARRATION\](.*?)\[/NARRATION\])'
+      r'|(\[DIALOGUE SPEAKER="(.*?)"(?: ACTION="(.*?)")?\](.*?)\[/DIALOGUE\])',
+      dotAll: true,
+      multiLine: true,
+    );
+
     final matches = exp.allMatches(scriptText);
+
     if (matches.isNotEmpty) {
       for (final m in matches) {
-        if (m.group(3) != null)
-          scenes
-              .add({"type": "narration", "content": m.group(4)?.trim() ?? ''});
-        else if (m.group(5) != null)
+        // 1) TURN_HEADER
+        if (m.group(1) != null) {
+          scenes.add({
+            "type": "turn_header",
+            "content": (m.group(2) ?? '').trim(),
+          });
+          continue;
+        }
+
+        // 2) NARRATION
+        if (m.group(5) != null) {
+          scenes.add({
+            "type": "narration",
+            "content": (m.group(6) ?? '').trim(),
+          });
+          continue;
+        }
+
+        // 3) DIALOGUE
+        if (m.group(7) != null) {
           scenes.add({
             "type": "dialogue",
-            "speaker": m.group(6)?.trim() ?? '',
-            "action": m.group(7)?.trim(),
-            "content": m.group(8)?.trim() ?? ''
+            "speaker": (m.group(8) ?? '').trim(),
+            "action": (m.group(9) ?? '').trim(),
+            "content": (m.group(10) ?? '').trim(),
           });
-        else if (m.group(1) != null)
-          scenes.add(
-              {"type": "show_image", "condition": m.group(2)?.trim() ?? ''});
+          continue;
+        }
+
+        // 4) SHOW_IMAGE
+        if (m.group(3) != null) {
+          scenes.add({
+            "type": "show_image",
+            "condition": (m.group(4) ?? '').trim(),
+          });
+          continue;
+        }
       }
     } else {
       scenes.add({"type": "narration", "content": scriptText});
     }
+
     return scenes;
   }
 }

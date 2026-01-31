@@ -814,7 +814,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                           _model.generatedworldview =
                                                               await actions
-                                                                  .generateWorldField(
+                                                                  .generateWorldText(
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                             _model.genreValue!,
                                                             FFAppState()
@@ -2664,7 +2664,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                           _model.generatedtitle =
                                                               await actions
-                                                                  .generateMetaField(
+                                                                  .generateMetaFields(
                                                             'title',
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                             _model.genreValue!,
@@ -3529,7 +3529,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                           _model.generatedintroduce =
                                                               await actions
-                                                                  .generateMetaField(
+                                                                  .generateMetaFields(
                                                             'story_intro',
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                             _model.genreValue!,
@@ -3999,7 +3999,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                           _model.generateddetail =
                                                               await actions
-                                                                  .generateMetaField(
+                                                                  .generateMetaFields(
                                                             'detail_info',
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
                                                             _model.genreValue!,

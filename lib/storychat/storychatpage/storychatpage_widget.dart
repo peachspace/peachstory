@@ -66,14 +66,20 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
           .cast<StoryChatMessageStructStruct>();
       safeSetState(() {});
       if (!(_model.chatMessages.isNotEmpty)) {
+        _model.pageloadformat = await actions.formatStoryTurnHeaderAndBg(
+          functions.prologueTextToTagScript(
+              _model.loadedStory!.prologuetext,
+              FFAppState().Characters.toList(),
+              _model.loadedStory!.backgrounds.toList()),
+          widget.userInChatName,
+          true,
+          _model.loadedStory?.backgrounds.toList(),
+        );
         _model.chatMessages = functions
             .getemptyStoryChatMessages()
             .toList()
             .cast<StoryChatMessageStructStruct>();
-        _model.aiResponseScript = functions.prologueTextToTagScript(
-            _model.loadedStory!.prologuetext,
-            _model.loadedStory!.characters.toList(),
-            _model.loadedStory!.backgrounds.toList());
+        _model.aiResponseScript = _model.pageloadformat!;
         safeSetState(() {});
       }
     });
@@ -740,7 +746,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                   height: double.infinity,
                                   newResponseScript: _model.aiResponseScript,
                                   userInChatName: widget.userInChatName,
-                                  isNovelMode: false,
+                                  isNovelMode: widget.isNovelMode,
                                   initialMessages: _model.chatMessages,
                                   preDefinedCharacters:
                                       storychatpageStoriesRecord.characters,
@@ -1402,8 +1408,18 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                 ),
                                               );
                                             } else {
+                                              _model.continueformat =
+                                                  await actions
+                                                      .formatStoryTurnHeaderAndBg(
+                                                _model.aiFullText1!,
+                                                widget.userInChatName,
+                                                true,
+                                                storychatpageStoriesRecord
+                                                    .backgrounds
+                                                    .toList(),
+                                              );
                                               _model.aiResponseScript =
-                                                  _model.aiFullText1!;
+                                                  _model.continueformat!;
                                               safeSetState(() {});
                                             }
                                           } else {

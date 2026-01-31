@@ -14,10 +14,11 @@ class StoryusernameentercomponentModel
 
   ///  State fields for stateful widgets in this component.
 
-  // State field(s) for TextField widget.
-  FocusNode? textFieldFocusNode;
-  TextEditingController? textController;
-  String? Function(BuildContext, String?)? textControllerValidator;
+  // State field(s) for usernameTextField widget.
+  FocusNode? usernameTextFieldFocusNode;
+  TextEditingController? usernameTextFieldTextController;
+  String? Function(BuildContext, String?)?
+      usernameTextFieldTextControllerValidator;
   // Stores action output result for [Backend Call - Create Document] action in nameinstoryButton widget.
   StorychatsRecord? newChatDoc;
 
@@ -26,7 +27,7 @@ class StoryusernameentercomponentModel
 
   @override
   void dispose() {
-    textFieldFocusNode?.dispose();
-    textController?.dispose();
+    usernameTextFieldFocusNode?.dispose();
+    usernameTextFieldTextController?.dispose();
   }
 }

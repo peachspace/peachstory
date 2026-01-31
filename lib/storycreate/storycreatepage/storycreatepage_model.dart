@@ -70,7 +70,7 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? worldSettingsFocusNode;
   TextEditingController? worldSettingsTextController;
   String? Function(BuildContext, String?)? worldSettingsTextControllerValidator;
-  // Stores action output result for [Custom Action - generateWorldField] action in worldviewgenbutton widget.
+  // Stores action output result for [Custom Action - generateWorldText] action in worldviewgenbutton widget.
   String? generatedworldview;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in backgroundaddbutton widget.
   GenResultStructStruct? generatedbackgroundimage;
@@ -90,7 +90,7 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? storyNameFocusNode;
   TextEditingController? storyNameTextController;
   String? Function(BuildContext, String?)? storyNameTextControllerValidator;
-  // Stores action output result for [Custom Action - generateMetaField] action in titlegenbutton widget.
+  // Stores action output result for [Custom Action - generateMetaFields] action in titlegenbutton widget.
   String? generatedtitle;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in addmainimagebutton widget.
   GenResultStructStruct? generatedmainimage;
@@ -100,14 +100,14 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? introduceFocusNode;
   TextEditingController? introduceTextController;
   String? Function(BuildContext, String?)? introduceTextControllerValidator;
-  // Stores action output result for [Custom Action - generateMetaField] action in storyintrogenbutton widget.
+  // Stores action output result for [Custom Action - generateMetaFields] action in storyintrogenbutton widget.
   String? generatedintroduce;
   // State field(s) for detailinfotext widget.
   FocusNode? detailinfotextFocusNode;
   TextEditingController? detailinfotextTextController;
   String? Function(BuildContext, String?)?
       detailinfotextTextControllerValidator;
-  // Stores action output result for [Custom Action - generateMetaField] action in storydetalilgenbutton widget.
+  // Stores action output result for [Custom Action - generateMetaFields] action in storydetalilgenbutton widget.
   String? generateddetail;
   // State field(s) for authorComment widget.
   FocusNode? authorCommentFocusNode;

@@ -40,8 +40,8 @@ class _StoryusernameentercomponentWidgetState
     super.initState();
     _model = createModel(context, () => StoryusernameentercomponentModel());
 
-    _model.textController ??= TextEditingController();
-    _model.textFieldFocusNode ??= FocusNode();
+    _model.usernameTextFieldTextController ??= TextEditingController();
+    _model.usernameTextFieldFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -96,8 +96,8 @@ class _StoryusernameentercomponentWidgetState
                     child: Container(
                       width: 180.0,
                       child: TextFormField(
-                        controller: _model.textController,
-                        focusNode: _model.textFieldFocusNode,
+                        controller: _model.usernameTextFieldTextController,
+                        focusNode: _model.usernameTextFieldFocusNode,
                         autofocus: false,
                         obscureText: false,
                         decoration: InputDecoration(
@@ -196,8 +196,9 @@ class _StoryusernameentercomponentWidgetState
                                 maxLength}) =>
                             null,
                         cursorColor: FlutterFlowTheme.of(context).primaryText,
-                        validator:
-                            _model.textControllerValidator.asValidator(context),
+                        validator: _model
+                            .usernameTextFieldTextControllerValidator
+                            .asValidator(context),
                       ),
                     ),
                   ),
@@ -213,13 +214,18 @@ class _StoryusernameentercomponentWidgetState
                   ),
                   showLoadingIndicator: true,
                   onPressed: () async {
+                    FFAppState().storyUserName =
+                        _model.usernameTextFieldTextController.text;
+                    safeSetState(() {});
+
                     var storychatsRecordReference =
                         StorychatsRecord.collection.doc();
                     await storychatsRecordReference
                         .set(createStorychatsRecordData(
                       storyRef: widget.storydoc?.reference,
                       userRef: currentUserReference,
-                      userInChatName: _model.textController.text,
+                      userInChatName:
+                          _model.usernameTextFieldTextController.text,
                       selectedAiModel: 'gemini-2.5-pro',
                       creatorRef: widget.storydoc?.creatorRef,
                       isNovelMode: widget.novelmode,
@@ -228,7 +234,8 @@ class _StoryusernameentercomponentWidgetState
                         createStorychatsRecordData(
                           storyRef: widget.storydoc?.reference,
                           userRef: currentUserReference,
-                          userInChatName: _model.textController.text,
+                          userInChatName:
+                              _model.usernameTextFieldTextController.text,
                           selectedAiModel: 'gemini-2.5-pro',
                           creatorRef: widget.storydoc?.creatorRef,
                           isNovelMode: widget.novelmode,
@@ -243,7 +250,7 @@ class _StoryusernameentercomponentWidgetState
                           ParamType.DocumentReference,
                         ),
                         'userInChatName': serializeParam(
-                          _model.textController.text,
+                          _model.usernameTextFieldTextController.text,
                           ParamType.String,
                         ),
                         'storychatRef': serializeParam(

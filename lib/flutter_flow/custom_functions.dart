@@ -82,6 +82,32 @@ String buildStoryPrompt(
       ? 'WEB NOVEL (Continue story without waiting user input)'
       : 'ROLEPLAY (Wait user input, never speak as the user)';
 
+  final modeRule = isNovelMode
+      ? '''
+[MODE RULES - NOVELMODE]
+- The "user" role message you receive is NOT the character {user}'s dialogue.
+  It can be a system directive like: [SYSTEM: Next Scene ...]
+- Do NOT output any dialogue line as the user. Never use:
+  [DIALOGUE SPEAKER="{user}" ...]
+- {user} may be mentioned as a person inside narration/dialogue (3rd person).
+- The system will add the turn header. Never output [TURN_HEADER] yourself.
+- LOCATION PACING:
+  Keep the same location for multiple turns.
+  Only change location when a major scene shift happens.
+  If location changes, output exactly ONE background [SHOW_IMAGE="PLACE"] at the start of the turn.
+'''
+      : '''
+[MODE RULES - FREEMODE]
+- The real user sends messages separately. Never speak as the user.
+- Never output:
+  [DIALOGUE SPEAKER="{user}" ...]
+- The system will add the turn header. Never output [TURN_HEADER] yourself.
+- LOCATION PACING:
+  Keep the same location for multiple turns.
+  Only change location when a major scene shift happens.
+  If location changes, output exactly ONE background [SHOW_IMAGE="PLACE"] at the start of the turn.
+''';
+
   final noteSection =
       userNote.isNotEmpty ? '<user_note>$userNote</user_note>' : '';
   final memorySection = (summary != null && summary.isNotEmpty)
@@ -93,6 +119,8 @@ You are an AI storyteller.
 
 [MODE]
 $modeText
+$modeRule
+
 
 [WORLD BIBLE]
 Title: $storyTitle
@@ -457,7 +485,6 @@ String prologueUiToTags(
 ) {
   final text = input.replaceAll('\r\n', '\n').trim();
 
-  // 2) 유저친화 포맷 파싱 준비
   final characterNames = characters
       .map((c) => (c.name ?? '').trim())
       .where((s) => s.isNotEmpty)
@@ -468,74 +495,226 @@ String prologueUiToTags(
       .where((s) => s.isNotEmpty)
       .toSet();
 
-  // 상황 에셋
   final situationAssets = <String>{};
   for (final c in characters) {
-    for (final s in (c.situationImages ?? [])) {
+    final sits = c.situationImages;
+    if (sits == null) continue;
+    for (final s in sits) {
       final cond = (s.condition ?? '').trim();
       if (cond.isNotEmpty) situationAssets.add(cond);
     }
   }
 
-  // 감정 에셋
   final emotionsByChar = <String, Set<String>>{};
   for (final c in characters) {
     final charName = (c.name ?? '').trim();
-    final emos = (c.emotionimages ?? [])
-        .map((e) => (e.emotion ?? '').trim())
-        .where((e) => e.isNotEmpty)
-        .toSet();
+    final emos = <String>{};
+    final emoImgs = c.emotionimages;
+    if (emoImgs != null) {
+      for (final e in emoImgs) {
+        final emo = (e.emotion ?? '').trim();
+        if (emo.isNotEmpty) emos.add(emo);
+      }
+    }
     emotionsByChar[charName] = emos;
   }
 
+  final globalAllowedEmotions = <String>{
+    '무감정',
+    '기쁨',
+    '슬픔',
+    '화남',
+    '놀람',
+    '공포',
+    '혐오',
+    '사랑',
+    '설렘',
+    '안도',
+    '감동',
+    '자신감',
+    '장난',
+    '만족',
+    '감사',
+    '짜증',
+    '질투',
+    '실망',
+    '우울',
+    '고통',
+    '부끄러움',
+    '당황',
+    '경멸',
+    '불안',
+    '피곤',
+    '지루함',
+    '멍함',
+    '호기심',
+    '진지',
+    '결의',
+    '미침',
+    '취함',
+    '아픔',
+    '배고픔'
+  };
+
+  bool isStopSectionLine(String line) {
+    final t = line.trim();
+    return RegExp(r'^\s*\[?\s*(태그|라벨|시스템\s*규칙|시스템규칙|목차|섹션|설명|클라이맥스)\s*\]?\s*$')
+            .hasMatch(t) ||
+        RegExp(r'^\s*\[?\s*(태그|라벨|시스템\s*규칙|시스템규칙|목차|섹션|설명|클라이맥스)\s*\]?\s*[:\-]')
+            .hasMatch(t);
+  }
+
+  // ✅ "방법 1": 헤더 줄은 여기서 무시한다 (TURN_HEADER는 포맷터가 붙임)
+  final headerRe = RegExp(
+    r'^\[\s*\d{4}년\s*\d{2}월\s*\d{2}일\s*\d{2}시\s*\d{2}분\s*\|\s*.+\s*\]\s*$',
+  );
+
+  String normalizeLine(String line) {
+    var l = line.trim();
+    if (l.isEmpty) return '';
+
+    // ✅ 헤더면 스킵(무시)
+    if (headerRe.hasMatch(l)) return '';
+
+    if (isStopSectionLine(l)) return '__STOP__';
+
+    // [배경이미지] xxx  -> 배경이미지: xxx
+    if (l.startsWith('[') && l.contains(']')) {
+      final close = l.indexOf(']');
+      final head = l.substring(1, close).trim();
+      var tail = l.substring(close + 1).trim();
+
+      if (head == '태그' || head == '라벨' || head.replaceAll(' ', '') == '시스템규칙') {
+        return '__STOP__';
+      }
+
+      if (head == '배경이미지') {
+        final v = tail.replaceFirst(RegExp(r'^[\s:]+'), '').trim();
+        return '배경이미지: $v';
+      }
+      if (head == '상황이미지') {
+        final v = tail.replaceFirst(RegExp(r'^[\s:]+'), '').trim();
+        return '상황이미지: $v';
+      }
+
+      // [이름(감정)]: 대사 -> 이름(감정): 대사
+      if (tail.startsWith(':')) {
+        tail = tail.substring(1).trim();
+        return '$head: $tail';
+      }
+
+      // [장면 헤더] 는 내레이션으로
+      if (tail.isEmpty) return '내레이션: $head';
+      return '내레이션: $head $tail';
+    }
+
+    if (isStopSectionLine(l)) return '__STOP__';
+    return l;
+  }
+
+  String normalizeEmotion(String raw, Set<String> allowed) {
+    var e = raw.trim();
+    if (e.isEmpty) return '무감정';
+    if (allowed.contains(e)) return e;
+
+    final lower = e.replaceAll(' ', '');
+    String pick(String target) => allowed.contains(target) ? target : '무감정';
+
+    if (lower.contains('냉정') ||
+        lower.contains('차갑') ||
+        lower.contains('무표정') ||
+        lower.contains('객관')) {
+      return pick('진지');
+    }
+    if (lower.contains('떨') || lower.contains('긴장')) return pick('불안');
+    if (lower.contains('날카') || lower.contains('뾰족') || lower.contains('짜증'))
+      return pick('짜증');
+    if (lower.contains('분노') || lower.contains('화')) return pick('화남');
+    if (lower.contains('단호') || lower.contains('결심')) return pick('결의');
+    if (lower.contains('웃') || lower.contains('기쁨') || lower.contains('미소'))
+      return pick('기쁨');
+    if (lower.contains('슬프') || lower.contains('울')) return pick('슬픔');
+    if (lower.contains('설레')) return pick('설렘');
+    if (lower.contains('놀라')) return pick('놀람');
+
+    return '무감정';
+  }
+
   final lines =
-      text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+      text.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
 
   final out = StringBuffer();
+  String? lastBg;
+  String? lastSit;
 
-  for (final line in lines) {
-    // 배경이미지: 장소명
+  for (final raw in lines) {
+    final line = normalizeLine(raw);
+    if (line.isEmpty) continue;
+    if (line == '__STOP__') break;
+
     if (line.startsWith('배경이미지:')) {
       final place = line.substring('배경이미지:'.length).trim();
+      if (place.isEmpty) continue;
+      if (place == lastBg) continue;
+      lastBg = place;
+
       if (bgAssets.contains(place)) {
         out.writeln('[SHOW_IMAGE="$place"]');
+      } else {
+        // 이미지 없어도 스토리는 계속이므로 조용히 넘기거나(원하면) 텍스트로 남길 수 있음
+        // out.writeln('[NARRATION]장소: $place[/NARRATION]');
       }
       continue;
     }
 
-    // 상황이미지: 상황명
     if (line.startsWith('상황이미지:')) {
       final sit = line.substring('상황이미지:'.length).trim();
+      if (sit.isEmpty) continue;
+      if (sit == lastSit) continue;
+      lastSit = sit;
+
       if (situationAssets.contains(sit)) {
         out.writeln('[SHOW_IMAGE="$sit"]');
       }
       continue;
     }
 
-    // 이름(감정): 대사  또는  이름: 대사
+    if (line.startsWith('내레이션:')) {
+      var narration = line.substring('내레이션:'.length).trim();
+      narration = narration.replaceAll('"', '').replaceAll("'", "");
+      if (narration.isNotEmpty) {
+        out.writeln('[NARRATION]$narration[/NARRATION]');
+      }
+      continue;
+    }
+
     final m =
         RegExp(r'^(.+?)\s*(?:\(\s*(.+?)\s*\))?\s*:\s*(.+)$').firstMatch(line);
     if (m != null) {
       final speaker = m.group(1)!.trim();
-      var emo = (m.group(2) ?? '').trim();
+      var emoRaw = (m.group(2) ?? '').trim();
       var speech = m.group(3)!.trim();
 
-      // 따옴표 제거
       speech = speech.replaceAll('"', '').replaceAll("'", "");
+      if (speaker.isEmpty || speech.isEmpty) continue;
 
-      if (characterNames.contains(speaker)) {
-        final allowedEmos = emotionsByChar[speaker] ?? {};
-        if (emo.isEmpty) emo = '무감정';
-        if (emo != '무감정' && !allowedEmos.contains(emo)) emo = '무감정';
-
-        out.writeln(
-            '[DIALOGUE SPEAKER="$speaker" ACTION="$emo"]$speech[/DIALOGUE]');
-        continue;
+      // 단역은 감정 괄호를 무시
+      if (!characterNames.contains(speaker)) {
+        emoRaw = '';
       }
+
+      final perCharAllowed = emotionsByChar[speaker] ?? <String>{};
+      final allowed =
+          perCharAllowed.isNotEmpty ? perCharAllowed : globalAllowedEmotions;
+      final emo = normalizeEmotion(emoRaw, allowed);
+
+      out.writeln(
+          '[DIALOGUE SPEAKER="$speaker" ACTION="$emo"]$speech[/DIALOGUE]');
+      continue;
     }
 
-    // 나머지는 내레이션
-    out.writeln('[NARRATION]$line[/NARRATION]');
+    final cleaned = line.replaceAll('"', '').replaceAll("'", "");
+    out.writeln('[NARRATION]$cleaned[/NARRATION]');
   }
 
   return out.toString().trim();

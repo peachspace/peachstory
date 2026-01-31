@@ -82,6 +82,8 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   StoriesRecord? loadedStory;
   // Stores action output result for [Custom Action - getRecentHistoryAsJson] action in storychatpage widget.
   List<dynamic>? messagesAsJson;
+  // Stores action output result for [Custom Action - formatStoryTurnHeaderAndBg] action in storychatpage widget.
+  String? pageloadformat;
   // Stores action output result for [Custom Action - processAndSaveChatTurn] action in NotifierChatList widget.
   List<StoryChatMessageStructStruct>? newMessages;
   // Stores action output result for [Custom Action - getPreviousChatHistory] action in NotifierChatList widget.
@@ -113,6 +115,8 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   String? aiFullText1;
   // Stores action output result for [Custom Action - removeThinkingMessage] action in continuebutton widget.
   List<StoryChatMessageStructStruct>? cleanList1;
+  // Stores action output result for [Custom Action - formatStoryTurnHeaderAndBg] action in continuebutton widget.
+  String? continueformat;
 
   @override
   void initState(BuildContext context) {}

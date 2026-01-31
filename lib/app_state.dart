@@ -93,6 +93,36 @@ class FFAppState extends ChangeNotifier {
   set poseImageUrl(String value) {
     _poseImageUrl = value;
   }
+
+  String _storyCurrentTime = '';
+  String get storyCurrentTime => _storyCurrentTime;
+  set storyCurrentTime(String value) {
+    _storyCurrentTime = value;
+  }
+
+  String _storyCurrentPlace = '';
+  String get storyCurrentPlace => _storyCurrentPlace;
+  set storyCurrentPlace(String value) {
+    _storyCurrentPlace = value;
+  }
+
+  String _storyLastBgPlace = '';
+  String get storyLastBgPlace => _storyLastBgPlace;
+  set storyLastBgPlace(String value) {
+    _storyLastBgPlace = value;
+  }
+
+  String _storyUserName = '';
+  String get storyUserName => _storyUserName;
+  set storyUserName(String value) {
+    _storyUserName = value;
+  }
+
+  String _storyMode = '';
+  String get storyMode => _storyMode;
+  set storyMode(String value) {
+    _storyMode = value;
+  }
 }
 
 void _safeInit(Function() initializeField) {
