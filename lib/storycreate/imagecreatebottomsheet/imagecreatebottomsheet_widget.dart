@@ -742,7 +742,7 @@ class _ImagecreatebottomsheetWidgetState
                             (_model.generatingTarget == 'background'))
                           Container(
                             width: double.infinity,
-                            height: 76.0,
+                            height: 77.0,
                             decoration: BoxDecoration(
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
@@ -1100,7 +1100,7 @@ class _ImagecreatebottomsheetWidgetState
                             (_model.generatingTarget == 'situation'))
                           Container(
                             width: double.infinity,
-                            height: 74.0,
+                            height: 77.0,
                             decoration: BoxDecoration(
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,

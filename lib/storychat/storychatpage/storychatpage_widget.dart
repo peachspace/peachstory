@@ -69,11 +69,13 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
         _model.pageloadformat = await actions.formatStoryTurnHeaderAndBg(
           functions.prologueTextToTagScript(
               _model.loadedStory!.prologuetext,
-              FFAppState().Characters.toList(),
+              _model.loadedStory!.characters.toList(),
               _model.loadedStory!.backgrounds.toList()),
+          _model.chatMessages.toList(),
+          _model.loadedStory?.backgrounds.toList(),
+          _model.loadedStory?.characters.toList(),
           widget.userInChatName,
           true,
-          _model.loadedStory?.backgrounds.toList(),
         );
         _model.chatMessages = functions
             .getemptyStoryChatMessages()
@@ -1412,11 +1414,15 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                   await actions
                                                       .formatStoryTurnHeaderAndBg(
                                                 _model.aiFullText1!,
-                                                widget.userInChatName,
-                                                true,
+                                                _model.cleanList1?.toList(),
                                                 storychatpageStoriesRecord
                                                     .backgrounds
                                                     .toList(),
+                                                storychatpageStoriesRecord
+                                                    .characters
+                                                    .toList(),
+                                                widget.userInChatName,
+                                                false,
                                               );
                                               _model.aiResponseScript =
                                                   _model.continueformat!;
