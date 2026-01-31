@@ -100,16 +100,16 @@ class FFAppState extends ChangeNotifier {
     _storyCurrentTime = value;
   }
 
-  String _storyCurrentPlace = '';
+  String _storyCurrentPlace = '\" \"';
   String get storyCurrentPlace => _storyCurrentPlace;
   set storyCurrentPlace(String value) {
     _storyCurrentPlace = value;
   }
 
-  String _storyLastBgPlace = '';
-  String get storyLastBgPlace => _storyLastBgPlace;
-  set storyLastBgPlace(String value) {
-    _storyLastBgPlace = value;
+  String _storyLastBgShownPlace = '\" \"';
+  String get storyLastBgShownPlace => _storyLastBgShownPlace;
+  set storyLastBgShownPlace(String value) {
+    _storyLastBgShownPlace = value;
   }
 
   String _storyUserName = '';
