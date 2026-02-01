@@ -397,10 +397,10 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                             ),
                                           ),
                                           FlutterFlowDropDown<String>(
-                                            controller:
-                                                _model.genreValueController ??=
-                                                    FormFieldController<String>(
-                                              _model.genreValue ??=
+                                            controller: _model
+                                                    .genredropdownValueController ??=
+                                                FormFieldController<String>(
+                                              _model.genredropdownValue ??=
                                                   _model.genre,
                                             ),
                                             options: [
@@ -419,9 +419,10 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                               '힐링/일상'
                                             ],
                                             onChanged: (val) async {
-                                              safeSetState(() =>
-                                                  _model.genreValue = val);
-                                              _model.genre = _model.genreValue;
+                                              safeSetState(() => _model
+                                                  .genredropdownValue = val);
+                                              _model.genre =
+                                                  _model.genredropdownValue;
                                               safeSetState(() {});
                                             },
                                             width: double.infinity,
@@ -832,7 +833,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                               await actions
                                                                   .generateWorldText(
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placeTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요사건]: ${_model.eventTextController.text}',
-                                                            _model.genreValue!,
+                                                            _model
+                                                                .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
                                                             'worldview',
@@ -1346,7 +1348,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                               await actions
                                                                   .generateWorldText(
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placeTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
-                                                            _model.genreValue!,
+                                                            _model
+                                                                .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
                                                             'place',
@@ -2442,7 +2445,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                   .generateCharacterField(
                                                             'user_role',
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}',
-                                                            _model.genreValue!,
+                                                            _model
+                                                                .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
                                                           );
@@ -2955,7 +2959,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                             await actions
                                                                 .generateEventField(
                                                           '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placeTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요사건]: ${_model.eventTextController.text}',
-                                                          _model.genreValue!,
+                                                          _model
+                                                              .genredropdownValue!,
                                                           FFAppState().draftId,
                                                         );
                                                         safeSetState(() {
@@ -3563,7 +3568,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           await actions
                                                               .generatePrologueField(
                                                         '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placeTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
-                                                        _model.genreValue!,
+                                                        _model
+                                                            .genredropdownValue!,
                                                         FFAppState().draftId,
                                                         FFAppState()
                                                             .Characters
@@ -4086,7 +4092,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                   .generateMetaFields(
                                                             'title',
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
-                                                            _model.genreValue!,
+                                                            _model
+                                                                .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
                                                           );
@@ -4951,7 +4958,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                   .generateMetaFields(
                                                             'story_intro',
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
-                                                            _model.genreValue!,
+                                                            _model
+                                                                .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
                                                           );
@@ -5421,7 +5429,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                   .generateMetaFields(
                                                             'detail_info',
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}',
-                                                            _model.genreValue!,
+                                                            _model
+                                                                .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
                                                           );
@@ -6204,7 +6213,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                               _model.worldSettingsTextController.text;
                           _model.introduce =
                               _model.introduceTextController.text;
-                          _model.genre = _model.genreValue;
+                          _model.genre = _model.genredropdownValue;
                           _model.userrole =
                               _model.userRoleInfoTextController.text;
                           _model.prologuetext =

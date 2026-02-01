@@ -67,9 +67,9 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   int get tabBarPreviousIndex =>
       tabBarController != null ? tabBarController!.previousIndex : 0;
 
-  // State field(s) for genre widget.
-  String? genreValue;
-  FormFieldController<String>? genreValueController;
+  // State field(s) for genredropdown widget.
+  String? genredropdownValue;
+  FormFieldController<String>? genredropdownValueController;
   // State field(s) for worldSettings widget.
   FocusNode? worldSettingsFocusNode;
   TextEditingController? worldSettingsTextController;
