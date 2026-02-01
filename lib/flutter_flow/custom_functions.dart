@@ -48,36 +48,57 @@ String buildStoryPrompt(
   String userInChatName,
   String? summary,
   bool isNovelMode,
+  String majorPlacesText,
+  String majorEventsText,
 ) {
+  // ---------- 0) 안전 정리 ----------
+  final safePlacesText =
+      majorPlacesText.trim().isEmpty ? 'None' : majorPlacesText.trim();
+  final safeEventsText =
+      majorEventsText.trim().isEmpty ? 'None' : majorEventsText.trim();
+
+  // ---------- 1) 캐릭터 블록 ----------
   final characterBlock = StringBuffer();
   for (final c in characters) {
     final emotions = c.emotionimages
-        .map((e) => e.emotion)
+        .map((e) => (e.emotion).trim())
         .where((e) => e.isNotEmpty)
+        .toSet()
         .toList();
-    final emoList =
-        emotions.isEmpty ? 'None' : emotions.map((e) => '"$e"').join(', ');
+
+    if (!emotions.contains('무감정')) emotions.insert(0, '무감정');
+
     characterBlock.writeln('- Name: ${c.name}');
     characterBlock.writeln('  Personality: ${c.personality}');
-    characterBlock.writeln('  AvailableEmotionAssets: [$emoList]');
+    characterBlock.writeln(
+      '  AvailableEmotionAssets: ${emotions.isEmpty ? 'None' : emotions.join(', ')}',
+    );
   }
 
-  final bgList =
-      backgrounds.map((b) => b.placeName).where((s) => s.isNotEmpty).toList();
-  final bgBlock =
-      bgList.isEmpty ? 'None' : bgList.map((s) => '"$s"').join(', ');
+  // ---------- 2) 배경 자산 ----------
+  final bgList = backgrounds
+      .map((b) => (b.placeName).trim())
+      .where((s) => s.isNotEmpty)
+      .toSet()
+      .toList();
+  final bgBlock = bgList.isEmpty ? 'None' : bgList.join(', ');
 
+  // ---------- 3) 상황 자산 ----------
   final situationBlock = StringBuffer();
+  final sitSet = <String>{};
   for (final c in characters) {
     for (final s in c.situationImages) {
-      if ((s.condition).isNotEmpty)
-        situationBlock.writeln('- "${s.condition}"');
+      final cond = (s.condition).trim();
+      if (cond.isNotEmpty && sitSet.add(cond)) {
+        situationBlock.writeln('- $cond');
+      }
     }
   }
   final sitBlock = situationBlock.toString().trim().isEmpty
       ? 'None'
-      : situationBlock.toString();
+      : situationBlock.toString().trim();
 
+  // ---------- 4) 모드 규칙 ----------
   final modeText = isNovelMode
       ? 'WEB NOVEL (Continue story without waiting user input)'
       : 'ROLEPLAY (Wait user input, never speak as the user)';
@@ -91,18 +112,9 @@ String buildStoryPrompt(
   [DIALOGUE SPEAKER="{user}" ...]
 - {user} may be mentioned as a person inside narration/dialogue (3rd person).
 - The system will add the turn header. Never output [TURN_HEADER] yourself.
-
-- TURN PLACE SIGNAL (MANDATORY):
-  At the very start of EVERY turn, output exactly ONE line:
-  [NARRATION]__PLACE__:<place name>[/NARRATION]
-  This place name can be any text (not limited to assets).
-  Do NOT add any other text to that line.
-
 - LOCATION PACING:
   Keep the same location for multiple turns.
   Only change location when a major scene shift happens.
-  If location changes AND the new place exists in BackgroundAssets,
-  output exactly ONE background [SHOW_IMAGE="PLACE"] right after the __PLACE__ line.
 '''
       : '''
 [MODE RULES - FREEMODE]
@@ -110,26 +122,19 @@ String buildStoryPrompt(
 - Never output:
   [DIALOGUE SPEAKER="{user}" ...]
 - The system will add the turn header. Never output [TURN_HEADER] yourself.
-
-- TURN PLACE SIGNAL (MANDATORY):
-  At the very start of EVERY turn, output exactly ONE line:
-  [NARRATION]__PLACE__:<place name>[/NARRATION]
-  This place name can be any text (not limited to assets).
-  Do NOT add any other text to that line.
-
 - LOCATION PACING:
   Keep the same location for multiple turns.
   Only change location when a major scene shift happens.
-  If location changes AND the new place exists in BackgroundAssets,
-  output exactly ONE background [SHOW_IMAGE="PLACE"] right after the __PLACE__ line.
 ''';
 
+  // ---------- 5) 동적 컨텍스트 ----------
   final noteSection =
       userNote.isNotEmpty ? '<user_note>$userNote</user_note>' : '';
   final memorySection = (summary != null && summary.isNotEmpty)
       ? '<memory>$summary</memory>'
       : '';
 
+  // ---------- 6) 최종 프롬프트 ----------
   return '''
 You are an AI storyteller.
 
@@ -143,38 +148,56 @@ Setting: $storySetting
 UserRole: $userRole
 UserNameInChat: $userInChatName
 
+[MAJOR PLACES]
+$safePlacesText
+
+[MAJOR EVENTS]
+$safeEventsText
+
 [CHARACTERS]
 $characterBlock
 
 [ASSET LIST]
-BackgroundAssets: [$bgBlock]
+BackgroundAssets: $bgBlock
 SituationAssets:
 $sitBlock
 
+[STORY CONSISTENCY RULES]
+- Use MAJOR EVENTS as the backbone of progression.
+- Keep causal flow (earlier events should lead to later events).
+- When changing locations, prefer names from MAJOR PLACES.
+- If a place is not in BackgroundAssets, you can still use it as __PLACE__,
+  but do NOT output SHOW_IMAGE for it.
+
 [CRITICAL OUTPUT FORMAT — ONLY THESE TAGS]
-- TURN PLACE SIGNAL (REQUIRED FIRST LINE OF EVERY TURN):
-  [NARRATION]__PLACE__:<place name>[/NARRATION]
-  *This line is for the system header. Do not add other text on that line.*
+- Mandatory place signal (MUST be the FIRST line of every response):
+  [NARRATION]__PLACE__<place_name>[/NARRATION]
+  Rules:
+  1) <place_name> is the current location name in plain text.
+  2) Do not include any other words in that line.
+  3) Even if there is no background image asset, you MUST still output __PLACE__.
 
-- For image display (background or situation), output:
+- For image display (background or situation), output only:
   [SHOW_IMAGE="ASSET_NAME"]
-  *Only use ASSET_NAME if it matches the Asset List. If not matched, do not output SHOW_IMAGE.*
+  IMPORTANT:
+  1) Only use ASSET_NAME if it EXACTLY matches the Asset List.
+  2) If the location changes AND the new place exists in BackgroundAssets,
+     output exactly ONE background [SHOW_IMAGE="PLACE"] near the top of the turn.
+  3) If the location changes but the place is NOT in BackgroundAssets,
+     do NOT output SHOW_IMAGE. Only update the __PLACE__ line.
 
-- For narration, output:
+- For narration:
   [NARRATION]text[/NARRATION]
 
-- For dialogue, always output:
+- For dialogue:
   [DIALOGUE SPEAKER="NAME" ACTION="EMOTION"]text[/DIALOGUE]
-  *ACTION is optional. If the speaker emotion is not available in that character's assets, use ACTION="무감정".*
+  ACTION is optional, but if emotion is unknown, use ACTION="무감정".
 
-[IMPORTANT RULES]
-1) Never output quotes like " ... ".
-2) Never output parenthetical acting like (숨이 멎을 듯한 ...).
-3) Every spoken line must be DIALOGUE tag.
-4) If a speaking character is not in the character list, create a role-based name and still use DIALOGUE:
-   Examples: 재판장, 병사1, 상인, 기사단장
-5) Do not output any explanation or extra text outside the tags.
-6) Never output [TURN_HEADER]. The system adds it.
+[HARD BANS]
+1) Never output quotes: " or '
+2) Never output parenthetical acting: ( ... )
+3) Never output any extra text outside the tags.
+4) Never output [TURN_HEADER].
 
 [DYNAMIC CONTEXT]
 $memorySection
@@ -520,8 +543,7 @@ String prologueUiToTags(
   // 상황 condition 목록 (모든 캐릭터의 situationImages에서)
   final situationAssets = <String>{};
   for (final c in characters) {
-    final sits = c.situationImages;
-    for (final s in sits) {
+    for (final s in c.situationImages) {
       final cond = (s.condition ?? '').trim();
       if (cond.isNotEmpty) situationAssets.add(cond);
     }
@@ -532,15 +554,14 @@ String prologueUiToTags(
   for (final c in characters) {
     final charName = (c.name ?? '').trim();
     final emos = <String>{};
-    final emoImgs = c.emotionimages;
-    for (final e in emoImgs) {
+    for (final e in c.emotionimages) {
       final emo = (e.emotion ?? '').trim();
       if (emo.isNotEmpty) emos.add(emo);
     }
     if (charName.isNotEmpty) emotionsByChar[charName] = emos;
   }
 
-  // 전역 감정 리스트(캐릭터에 감정 자산이 없을 때 fallback)
+  // 전역 감정 리스트
   final globalAllowedEmotions = <String>{
     '무감정',
     '기쁨',
@@ -578,12 +599,11 @@ String prologueUiToTags(
     '배고픔'
   };
 
-  // TURN_HEADER 같은 라인( [ 2026년 ... | 공원 ] )은 프롤로그 변환에서 무시
+  // TURN_HEADER 같은 라인은 무시
   final headerRe = RegExp(
       r'^\[\s*\d{4}년\s*\d{2}월\s*\d{2}일\s*\d{2}시\s*\d{2}분\s*\|\s*.+\s*\]\s*$');
 
   String stripParensInContent(String s) {
-    // 대사/내레이션 내부의 ( ... ) 제거
     return s
         .replaceAll(RegExp(r'\([^)]*\)'), '')
         .replaceAll(RegExp(r'\s{2,}'), ' ')
@@ -596,7 +616,6 @@ String prologueUiToTags(
     if (allowed.contains(e)) return e;
 
     final lower = e.replaceAll(' ', '');
-
     String pick(String target) => allowed.contains(target) ? target : '무감정';
 
     if (lower.contains('냉정') || lower.contains('차갑') || lower.contains('무표정'))
@@ -616,112 +635,153 @@ String prologueUiToTags(
   final lines =
       text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
 
-  final out = StringBuffer();
+  // ✅ 결과는 리스트로 쌓아야 "장소 라인"을 맨 앞으로 강제하기 쉬움
+  final outLines = <String>[];
 
-  bool keptOneBg = false; // ✅ 프롤로그는 배경 1개만 허용
-  final keptSituations = <String>[]; // ✅ 프롤로그는 상황 0~2개만 허용
+  bool keptOneBg = false; // 프롤로그 배경 1개만
+  final keptSituations = <String>[]; // 프롤로그 상황 0~2개만
 
-  for (final raw in lines) {
-    if (headerRe.hasMatch(raw)) {
-      // ✅ 프롤로그 변환에서 헤더 라인은 무시(중복 방지)
-      continue;
-    }
+  bool hasPlace = false;
+  String? placeName; // 장소: 에서 뽑은 장소
 
-    // 배경이미지: 장소명  -> (자산에 있을 때만) SHOW_IMAGE
-    if (raw.startsWith('배경이미지:')) {
-      if (keptOneBg) continue; // ✅ 배경 1번만
-      final place = raw.substring('배경이미지:'.length).trim();
-      if (place.isEmpty) continue;
+  for (final raw0 in lines) {
+    if (headerRe.hasMatch(raw0)) continue;
 
-      // ✅ BackgroundStruct.placeName에 있을 때만 SHOW_IMAGE
-      if (bgAssets.contains(place)) {
-        out.writeln('[SHOW_IMAGE="$place"]');
-        keptOneBg = true;
+    // 따옴표 제거 + 괄호연출 제거(문장/대사 공통)
+    final raw =
+        stripParensInContent(raw0.replaceAll('"', '').replaceAll("'", ""));
+
+    // ✅ 1) 장소: 장소명  -> __PLACE__ + (배경자산 있으면) 배경 SHOW_IMAGE 자동 1개
+    if (raw.startsWith('장소:') || raw.startsWith('장소 :')) {
+      final p = raw.split(':').sublist(1).join(':').trim();
+      if (p.isEmpty) continue;
+
+      // 중복 장소 라인 방지: 첫 번째만 채택
+      if (!hasPlace) {
+        hasPlace = true;
+        placeName = p;
+
+        // __PLACE__ 라인은 반드시 있어야 함
+        outLines.add('[NARRATION]__PLACE__$p[/NARRATION]');
+
+        // 배경 자산이 있으면 배경 SHOW_IMAGE 1개 자동 삽입
+        if (!keptOneBg && bgAssets.contains(p)) {
+          outLines.add('[SHOW_IMAGE="$p"]');
+          keptOneBg = true;
+        }
       }
       continue;
     }
 
-    // 상황이미지: 상황명 -> (자산에 있을 때만) SHOW_IMAGE, 최대 2개
-    if (raw.startsWith('상황이미지:')) {
-      final sit = raw.substring('상황이미지:'.length).trim();
+    // ✅ 2) 상황: 상황태그  -> (자산에 있을 때만) SHOW_IMAGE만 출력 (텍스트 출력 금지)
+    if (raw.startsWith('상황:') || raw.startsWith('상황 :')) {
+      final sit = raw.split(':').sublist(1).join(':').trim();
       if (sit.isEmpty) continue;
 
+      // 중복/개수 제한
       if (keptSituations.contains(sit)) continue;
       if (keptSituations.length >= 2) continue;
 
+      // ✅ 상황 자산이 있을 때만 이미지 태그 추가
       if (situationAssets.contains(sit)) {
-        out.writeln('[SHOW_IMAGE="$sit"]');
+        outLines.add('[SHOW_IMAGE="$sit"]');
         keptSituations.add(sit);
       }
+
+      // ✅ 상황 텍스트는 절대 출력하지 않는다
       continue;
     }
 
-    // 내레이션: 문장
-    if (raw.startsWith('내레이션:')) {
-      var narration = raw.substring('내레이션:'.length).trim();
-      narration = narration.replaceAll('"', '').replaceAll("'", "");
-      narration = stripParensInContent(narration); // ✅ 괄호연출 제거
-      if (narration.isNotEmpty) {
-        out.writeln('[NARRATION]$narration[/NARRATION]');
-      }
-      continue;
-    }
-
-    // 이름(감정): 대사  또는 이름: 대사
+    // ✅ 6) 이름(감정): 대사  또는 이름: 대사
     final m =
         RegExp(r'^(.+?)\s*(?:\(\s*(.+?)\s*\))?\s*:\s*(.+)$').firstMatch(raw);
+
     if (m != null) {
       final speaker = m.group(1)!.trim();
-      var emoRaw = (m.group(2) ?? '').trim();
+      final emoRaw = (m.group(2) ?? '').trim();
       var speech = m.group(3)!.trim();
-
-      speech = speech.replaceAll('"', '').replaceAll("'", "");
-      speech = stripParensInContent(speech); // ✅ (손톱을...) 같은 괄호연출 제거
+      speech = stripParensInContent(speech);
 
       if (speaker.isEmpty || speech.isEmpty) continue;
 
-      // ✅ {user}가 프롤로그에서 말하면 안 됨: 제거
+      // {user}가 프롤로그에서 말하면 안 됨
       if (speaker == '{user}') continue;
 
-      // ✅ 캐릭터 목록 밖이면 감정 무시 + ACTION 자체를 빼버림(=감정 없는 단역)
+      // 캐릭터 목록 밖이면 감정 없이
       if (!characterNames.contains(speaker)) {
-        out.writeln('[DIALOGUE SPEAKER="$speaker"]$speech[/DIALOGUE]');
+        outLines.add('[DIALOGUE SPEAKER="$speaker"]$speech[/DIALOGUE]');
         continue;
       }
 
-      // 캐릭터별 감정 자산 우선, 없으면 전역 리스트
       final perCharAllowed = emotionsByChar[speaker] ?? <String>{};
       final allowed =
           perCharAllowed.isNotEmpty ? perCharAllowed : globalAllowedEmotions;
       final emo = normalizeEmotion(emoRaw, allowed);
 
-      out.writeln(
-          '[DIALOGUE SPEAKER="$speaker" ACTION="$emo"]$speech[/DIALOGUE]');
+      outLines
+          .add('[DIALOGUE SPEAKER="$speaker" ACTION="$emo"]$speech[/DIALOGUE]');
       continue;
     }
 
-    // 그 외 라인은 내레이션으로 흡수
-    var cleaned = raw.replaceAll('"', '').replaceAll("'", "");
-    cleaned = stripParensInContent(cleaned);
-    if (cleaned.isNotEmpty) {
-      out.writeln('[NARRATION]$cleaned[/NARRATION]');
+    // ✅ 7) 그 외는 전부 "내레이션 문장"으로 처리 (라벨 없는 문장)
+    if (raw.isNotEmpty) {
+      outLines.add('[NARRATION]$raw[/NARRATION]');
     }
   }
 
-  return out.toString().trim();
+  // ✅ 장소 라인이 없으면 안전장치로 맨 앞에 넣기
+  if (!hasPlace) {
+    final fallbackPlace = bgAssets.isNotEmpty ? bgAssets.first : '어딘가';
+    outLines.insert(0, '[NARRATION]__PLACE__$fallbackPlace[/NARRATION]');
+    if (!keptOneBg && bgAssets.contains(fallbackPlace)) {
+      outLines.insert(1, '[SHOW_IMAGE="$fallbackPlace"]');
+    }
+  }
+
+  return outLines.join('\n').trim();
 }
 
 String cleanPrologue(String s) {
   var out = s.trim();
   out = out.replaceAll('```json', '').replaceAll('```', '').trim();
 
-  // "배경이미지:"가 있으면 그 줄부터 잘라내기
-  final idxFriendly = out.indexOf('배경이미지:');
-  if (idxFriendly > 0) out = out.substring(idxFriendly).trim();
-
-  // 구형 포맷도 같이 방어
-  final idxLegacy = out.indexOf('[Image:');
-  if (idxFriendly < 0 && idxLegacy > 0) out = out.substring(idxLegacy).trim();
+  // ✅ 새 포맷: "장소:"가 있으면 그 줄부터 잘라내기
+  final idxPlace = out.indexOf('장소:');
+  if (idxPlace > 0) out = out.substring(idxPlace).trim();
 
   return out;
+}
+
+String parseMajorPlacesTextToJson(String raw) {
+  final text = raw.replaceAll('\r\n', '\n').trim();
+  if (text.isEmpty) return '[]';
+
+  final out = <Map<String, String>>[];
+  final seen = <String>{};
+
+  for (final lineRaw in text.split('\n')) {
+    final line = lineRaw.trim();
+    if (line.isEmpty) continue;
+
+    String name = '';
+    String desc = '';
+
+    // "장소명: 설명" 우선
+    final idx = line.indexOf(':');
+    if (idx >= 0) {
+      name = line.substring(0, idx).trim();
+      desc = line.substring(idx + 1).trim();
+    } else {
+      // ":"가 없으면 전체를 장소명으로 취급
+      name = line.trim();
+      desc = '';
+    }
+
+    if (name.isEmpty) continue;
+    if (!seen.add(name)) continue;
+
+    out.add({'name': name, 'desc': desc});
+  }
+
+  return jsonEncode(out);
 }

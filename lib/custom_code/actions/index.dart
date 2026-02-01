@@ -19,3 +19,4 @@ export 'generate_character_field.dart' show generateCharacterField;
 export 'generate_prologue_field.dart' show generatePrologueField;
 export 'generate_meta_fields.dart' show generateMetaFields;
 export 'format_story_turn_header_and_bg.dart' show formatStoryTurnHeaderAndBg;
+export 'generate_event_field.dart' show generateEventField;

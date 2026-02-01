@@ -1127,7 +1127,11 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                                       stackStorychatsRecord
                                                                           .summary,
                                                                       widget
-                                                                          .isNovelMode!),
+                                                                          .isNovelMode!,
+                                                                      storychatpageStoriesRecord
+                                                                          .place,
+                                                                      storychatpageStoriesRecord
+                                                                          .event),
                                                                   _model
                                                                       .formattedHistory
                                                                       ?.toList(),
@@ -1372,7 +1376,11 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                       .userNote,
                                                   widget.userInChatName!,
                                                   stackStorychatsRecord.summary,
-                                                  widget.isNovelMode!),
+                                                  widget.isNovelMode!,
+                                                  storychatpageStoriesRecord
+                                                      .place,
+                                                  storychatpageStoriesRecord
+                                                      .event),
                                               _model.formattedHistory1
                                                   ?.toList(),
                                               _model.nextCommand,

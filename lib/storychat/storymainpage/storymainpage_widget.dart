@@ -605,14 +605,6 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                         ),
                                   ),
                                 ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: Image.network(
-                                    storymainpageStoriesRecord.detailimage,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
                               ],
                             ),
                             Divider(

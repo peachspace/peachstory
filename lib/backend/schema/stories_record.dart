@@ -117,11 +117,6 @@ class StoriesRecord extends FirestoreRecord {
   String get detailmode => _detailmode ?? '';
   bool hasDetailmode() => _detailmode != null;
 
-  // "detailimage" field.
-  String? _detailimage;
-  String get detailimage => _detailimage ?? '';
-  bool hasDetailimage() => _detailimage != null;
-
   // "backgrounds" field.
   List<BackgroundStructStruct>? _backgrounds;
   List<BackgroundStructStruct> get backgrounds => _backgrounds ?? const [];
@@ -131,6 +126,16 @@ class StoriesRecord extends FirestoreRecord {
   String? _prologuetext;
   String get prologuetext => _prologuetext ?? '';
   bool hasProloguetext() => _prologuetext != null;
+
+  // "place" field.
+  String? _place;
+  String get place => _place ?? '';
+  bool hasPlace() => _place != null;
+
+  // "event" field.
+  String? _event;
+  String get event => _event ?? '';
+  bool hasEvent() => _event != null;
 
   void _initializeFields() {
     _title = snapshotData['title'] as String?;
@@ -156,12 +161,13 @@ class StoriesRecord extends FirestoreRecord {
     _authorIsCreator = snapshotData['authorIsCreator'] as bool?;
     _createdTimestamp = snapshotData['created_timestamp'] as DateTime?;
     _detailmode = snapshotData['detailmode'] as String?;
-    _detailimage = snapshotData['detailimage'] as String?;
     _backgrounds = getStructList(
       snapshotData['backgrounds'],
       BackgroundStructStruct.fromMap,
     );
     _prologuetext = snapshotData['prologuetext'] as String?;
+    _place = snapshotData['place'] as String?;
+    _event = snapshotData['event'] as String?;
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -239,13 +245,14 @@ class StoriesRecord extends FirestoreRecord {
             false,
           ),
           'detailmode': snapshot.data['detailmode'],
-          'detailimage': snapshot.data['detailimage'],
           'backgrounds': safeGet(
             () => (snapshot.data['backgrounds'] as Iterable)
                 .map((d) => BackgroundStructStruct.fromAlgoliaData(d).toMap())
                 .toList(),
           ),
           'prologuetext': snapshot.data['prologuetext'],
+          'place': snapshot.data['place'],
+          'event': snapshot.data['event'],
         },
         StoriesRecord.collection.doc(snapshot.objectID),
       );
@@ -300,8 +307,9 @@ Map<String, dynamic> createStoriesRecordData({
   bool? authorIsCreator,
   DateTime? createdTimestamp,
   String? detailmode,
-  String? detailimage,
   String? prologuetext,
+  String? place,
+  String? event,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -323,8 +331,9 @@ Map<String, dynamic> createStoriesRecordData({
       'authorIsCreator': authorIsCreator,
       'created_timestamp': createdTimestamp,
       'detailmode': detailmode,
-      'detailimage': detailimage,
       'prologuetext': prologuetext,
+      'place': place,
+      'event': event,
     }.withoutNulls,
   );
 
@@ -357,9 +366,10 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.authorIsCreator == e2?.authorIsCreator &&
         e1?.createdTimestamp == e2?.createdTimestamp &&
         e1?.detailmode == e2?.detailmode &&
-        e1?.detailimage == e2?.detailimage &&
         listEquality.equals(e1?.backgrounds, e2?.backgrounds) &&
-        e1?.prologuetext == e2?.prologuetext;
+        e1?.prologuetext == e2?.prologuetext &&
+        e1?.place == e2?.place &&
+        e1?.event == e2?.event;
   }
 
   @override
@@ -384,9 +394,10 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.authorIsCreator,
         e?.createdTimestamp,
         e?.detailmode,
-        e?.detailimage,
         e?.backgrounds,
-        e?.prologuetext
+        e?.prologuetext,
+        e?.place,
+        e?.event
       ]);
 
   @override

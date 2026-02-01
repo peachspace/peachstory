@@ -15,7 +15,7 @@ Future<String> formatStoryTurnHeaderAndBg(
   String scriptTags,
   List<StoryChatMessageStructStruct>? existingMessages,
   List<BackgroundStructStruct>? backgrounds,
-  List<CharacterStructStruct>? characters, // ✅ 상황 자산 하드필터용
+  List<CharacterStructStruct>? characters,
   String? userName,
   bool isPrologue,
 ) async {
@@ -28,7 +28,7 @@ Future<String> formatStoryTurnHeaderAndBg(
     raw = raw.replaceAll('{user}', u);
   }
 
-  // 2) TURN_HEADER 제거 (중복 방지)
+  // 2) TURN_HEADER 중복 0%: 있으면 제거
   raw = raw
       .replaceAll(
         RegExp(r'\[TURN_HEADER\].*?\[/TURN_HEADER\]\s*', dotAll: true),
@@ -36,7 +36,7 @@ Future<String> formatStoryTurnHeaderAndBg(
       )
       .trim();
 
-  // 3) 배경 자산(placeName) + url->placeName 맵
+  // 3) 배경 자산 목록 + URL->placeName 맵
   final bgNames = <String>{};
   final bgUrlToName = <String, String>{};
   if (backgrounds != null) {
@@ -48,7 +48,7 @@ Future<String> formatStoryTurnHeaderAndBg(
     }
   }
 
-  // 4) 상황 자산(condition) 목록 만들기
+  // 4) 상황 자산 목록
   final situationNames = <String>{};
   if (characters != null) {
     for (final c in characters) {
@@ -59,43 +59,23 @@ Future<String> formatStoryTurnHeaderAndBg(
     }
   }
 
-  // 5) 기존 메시지에서 "마지막 장소" 추정 (우선순위: turn_header > story_image(background url))
-  String? lastPlace;
-
-  // 5-1) turn_header 타입이 있으면 그 헤더에서 장소 파싱
+  // 5) 기존 메시지에서 마지막 배경 장소 추정
+  String? lastBgPlace;
   if (!isPrologue && existingMessages != null && existingMessages.isNotEmpty) {
     for (final msg in existingMessages.reversed) {
-      if (msg.type == 'turn_header') {
-        final t = (msg.text).trim(); // 예: [ 2026년 ... | 공원 ]
-        final m = RegExp(r'^\[\s*.+?\|\s*(.+?)\s*\]$').firstMatch(t);
-        if (m != null) {
-          final p = (m.group(1) ?? '').trim();
-          if (p.isNotEmpty) {
-            lastPlace = p;
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  // 5-2) 없으면 story_image url로 배경 매핑
-  if (lastPlace == null &&
-      !isPrologue &&
-      existingMessages != null &&
-      existingMessages.isNotEmpty) {
-    for (final msg in existingMessages.reversed) {
-      if (msg.type == 'story_image' && (msg.storyImageUrl).trim().isNotEmpty) {
-        final mapped = bgUrlToName[(msg.storyImageUrl).trim()];
+      if (msg.type == 'story_image') {
+        final url = (msg.storyImageUrl).trim();
+        if (url.isEmpty) continue;
+        final mapped = bgUrlToName[url];
         if (mapped != null && mapped.isNotEmpty) {
-          lastPlace = mapped;
+          lastBgPlace = mapped;
           break;
         }
       }
     }
   }
 
-  // 6) 토큰 추출 (SHOW_IMAGE / NARRATION / DIALOGUE)
+  // 6) 토큰 추출
   final tokenRe = RegExp(
     r'(\[SHOW_IMAGE=".*?"\])'
     r'|(\[NARRATION\].*?\[/NARRATION\])'
@@ -110,109 +90,123 @@ Future<String> formatStoryTurnHeaderAndBg(
       .where((t) => t.isNotEmpty)
       .toList();
 
-  if (tokens.isEmpty) return raw;
+  if (tokens.isEmpty) {
+    final now = DateTime.now();
+    final dt = DateFormat('yyyy년 MM월 dd일 HH시 mm분', 'ko_KR').format(now);
+    final headerText = '[ $dt | ${lastBgPlace ?? '어딘가'} ]';
+    return '[TURN_HEADER]$headerText[/TURN_HEADER]\n[NARRATION]$raw[/NARRATION]';
+  }
 
-  // 7) __PLACE__ 파싱 (헤더 장소 100% 잡기)
-  //    [NARRATION]__PLACE__:공원[/NARRATION]
-  String? placeSignal;
-  final placeRe =
-      RegExp(r'^\[NARRATION\]\s*__PLACE__\s*:\s*(.+?)\s*\[/NARRATION\]$');
-
-  // placeSignal 토큰은 본문에서 제거할 거라서 filteredTokens로 옮길 때 제외
-  // (placeSignal은 헤더에만 쓰이게)
-  // 8) SHOW_IMAGE 하드필터 + 배경 1개 규칙 적용
   final imgRe = RegExp(r'^\[SHOW_IMAGE="(.*?)"\]$');
+  final narRe = RegExp(r'^\[NARRATION\](.*?)\[/NARRATION\]$', dotAll: true);
 
-  // 먼저 placeSignal 잡기
+  // 7) __PLACE__ 파싱 + 해당 라인 제거
+  String? thisPlace;
+  final cleanedTokens = <String>[];
+
   for (final t in tokens) {
-    final m = placeRe.firstMatch(t);
-    if (m != null) {
-      final p = (m.group(1) ?? '').trim();
-      if (p.isNotEmpty) {
-        placeSignal = p;
-        break;
+    final nm = narRe.firstMatch(t);
+    if (nm != null) {
+      final content = (nm.group(1) ?? '').trim();
+      if (content.startsWith('__PLACE__')) {
+        var p = content.substring('__PLACE__'.length).trim();
+        if (p.startsWith('=') || p.startsWith(':')) p = p.substring(1).trim();
+        if (p.isNotEmpty) thisPlace = p;
+        continue; // __PLACE__ 라인은 화면에 표시하지 않음
       }
+    }
+    cleanedTokens.add(t);
+  }
+
+  // 8) AI가 요청한 bg 후보 (SHOW_IMAGE 중 bgNames에 있는 첫 번째)
+  String? requestedBg;
+  for (final t in cleanedTokens) {
+    final m = imgRe.firstMatch(t);
+    if (m == null) continue;
+    final cond = (m.group(1) ?? '').trim();
+    if (bgNames.contains(cond)) {
+      requestedBg = cond;
+      break;
     }
   }
 
-  // thisPlace: placeSignal 우선, 없으면 첫 배경 SHOW_IMAGE, 없으면 lastPlace
-  String? thisPlace = (placeSignal ?? '').trim().isEmpty ? null : placeSignal;
+  // 9) 헤더 장소 100%: __PLACE__ > (requestedBg) > lastBgPlace > 어딘가
+  //    단, __PLACE__가 있으면 그게 최우선
+  final placeForHeader =
+      (thisPlace ?? requestedBg ?? lastBgPlace ?? '어딘가').trim();
+  final safePlace = placeForHeader.isEmpty ? '어딘가' : placeForHeader;
 
-  if (thisPlace == null) {
-    for (final t in tokens) {
-      final m = imgRe.firstMatch(t);
-      if (m == null) continue;
-      final cond = (m.group(1) ?? '').trim();
-      if (cond.isNotEmpty && bgNames.contains(cond)) {
-        thisPlace = cond;
-        break;
-      }
-    }
+  // ✅ 핵심: 배경 후보는 "헤더 장소(safePlace)와 동일"할 때만 인정
+  // - __PLACE__가 있으면: 배경은 safePlace가 자산에 있을 때만
+  // - __PLACE__가 없으면: requestedBg를 배경으로 쓸 수 있음
+  String? bgCandidate;
+  if (thisPlace != null && thisPlace!.isNotEmpty) {
+    bgCandidate = bgNames.contains(safePlace) ? safePlace : null;
+  } else {
+    bgCandidate = (requestedBg != null && bgNames.contains(requestedBg!))
+        ? requestedBg
+        : null;
   }
 
-  thisPlace ??= lastPlace;
+  // 10) 배경 허용: 장소 바뀔 때만 1개 (프롤로그는 1개 허용)
+  final shouldShowBg = (() {
+    if (bgCandidate == null || bgCandidate!.isEmpty) return false;
+    if (isPrologue) return true;
+    if (lastBgPlace == null || lastBgPlace!.isEmpty) return true;
+    return bgCandidate != lastBgPlace;
+  })();
 
-  final safePlace =
-      (thisPlace ?? '').trim().isEmpty ? '어딘가' : thisPlace!.trim();
+  final bgToShow = shouldShowBg ? bgCandidate : null;
 
-  // 배경은 장소가 바뀔 때만 허용
-  // - 프롤로그는 첫 턴이므로 허용
-  // - 그 외에는 lastPlace와 다를 때만
-  final allowBackgroundThisTurn =
-      isPrologue || (lastPlace == null ? true : safePlace != lastPlace);
-
+  // 11) SHOW_IMAGE 하드 필터
+  // - 배경은 bgToShow만 1개 허용
+  // - 상황은 자산에 있을 때만 허용 (최대 2개 + 중복 제거)
   final filtered = <String>[];
-  bool keptBackground = false;
-  final keptSituations = <String>{}; // 같은 상황 반복 SHOW_IMAGE 방지(선택)
+  bool keptBg = false;
 
-  for (final t in tokens) {
-    // __PLACE__ 라인은 본문에서 제거
-    if (placeRe.hasMatch(t)) {
+  int keptSitCount = 0;
+  final keptSitSet = <String>{};
+
+  for (final t in cleanedTokens) {
+    final m = imgRe.firstMatch(t);
+    if (m != null) {
+      final cond = (m.group(1) ?? '').trim();
+      final isBg = bgNames.contains(cond);
+      final isSit = situationNames.contains(cond);
+
+      if (!isBg && !isSit) continue;
+
+      if (isBg) {
+        if (bgToShow == null) continue;
+        if (cond != bgToShow) continue;
+        if (keptBg) continue;
+        keptBg = true;
+        filtered.add(t);
+        continue;
+      }
+
+      // 상황
+      if (keptSitSet.contains(cond)) continue;
+      if (keptSitCount >= 2) continue;
+      keptSitSet.add(cond);
+      keptSitCount++;
+      filtered.add(t);
       continue;
     }
 
-    final mImg = imgRe.firstMatch(t);
-    if (mImg != null) {
-      final cond = (mImg.group(1) ?? '').trim();
-
-      // ✅ 하드 필터: 자산 목록에 없으면 SHOW_IMAGE 제거
-      final isBackground = cond.isNotEmpty && bgNames.contains(cond);
-      final isSituation = cond.isNotEmpty && situationNames.contains(cond);
-
-      // 둘 다 아니면 삭제
-      if (!isBackground && !isSituation) {
-        continue;
-      }
-
-      // 배경이면: (1) 이번 턴 허용 여부 (2) 1개만 (3) 헤더 장소와 불일치면 삭제
-      if (isBackground) {
-        if (!allowBackgroundThisTurn) continue;
-        if (keptBackground) continue;
-
-        // 헤더 장소가 placeSignal로 정해졌는데, 배경 SHOW_IMAGE가 다른 장소면 버림
-        if ((placeSignal ?? '').trim().isNotEmpty && cond != safePlace) {
-          continue;
-        }
-
-        keptBackground = true;
-        filtered.add(t);
-        continue;
-      }
-
-      // 상황이면: 중복 상황은 1개만 남김(너무 연속 호출 방지)
-      if (isSituation) {
-        if (keptSituations.contains(cond)) continue;
-        keptSituations.add(cond);
-        filtered.add(t);
-        continue;
-      }
-    }
-
-    // 나머지 토큰은 그대로
     filtered.add(t);
   }
 
-  // 9) 시스템 시간 헤더 생성
+  // 12) 배경 자동 삽입: bgToShow가 있는데 태그가 없으면 맨 위에 넣기
+  if (bgToShow != null && bgToShow.isNotEmpty) {
+    final tag = '[SHOW_IMAGE="$bgToShow"]';
+    final exists = filtered.any((x) => x.trim() == tag);
+    if (!exists) {
+      filtered.insert(0, tag);
+    }
+  }
+
+  // 13) 시스템 시간 헤더 생성
   final now = DateTime.now();
   final dt = DateFormat('yyyy년 MM월 dd일 HH시 mm분', 'ko_KR').format(now);
   final headerText = '[ $dt | $safePlace ]';

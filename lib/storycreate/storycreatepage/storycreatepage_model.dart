@@ -54,6 +54,10 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String? generatingTarget;
 
+  String? place;
+
+  String? event;
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TabBar widget.
@@ -72,6 +76,12 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? Function(BuildContext, String?)? worldSettingsTextControllerValidator;
   // Stores action output result for [Custom Action - generateWorldText] action in worldviewgenbutton widget.
   String? generatedworldview;
+  // State field(s) for place widget.
+  FocusNode? placeFocusNode;
+  TextEditingController? placeTextController;
+  String? Function(BuildContext, String?)? placeTextControllerValidator;
+  // Stores action output result for [Custom Action - generateWorldText] action in placegenbutton widget.
+  String? generatedplace;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in backgroundaddbutton widget.
   GenResultStructStruct? generatedbackgroundimage;
   // State field(s) for UserRoleInfo widget.
@@ -80,6 +90,14 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
   // Stores action output result for [Custom Action - generateCharacterField] action in userrolegenbutton widget.
   String? generateduserrole;
+  // State field(s) for event widget.
+  FocusNode? eventFocusNode;
+  TextEditingController? eventTextController;
+  String? Function(BuildContext, String?)? eventTextControllerValidator;
+  // Stores action output result for [Custom Action - generateEventField] action in eventgenbutton widget.
+  String? generatedevent;
+  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in eventaddbutton widget.
+  GenResultStructStruct? generatedeventimage;
   // State field(s) for prologuetext widget.
   FocusNode? prologuetextFocusNode;
   TextEditingController? prologuetextTextController;
@@ -129,8 +147,14 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
     worldSettingsFocusNode?.dispose();
     worldSettingsTextController?.dispose();
 
+    placeFocusNode?.dispose();
+    placeTextController?.dispose();
+
     userRoleInfoFocusNode?.dispose();
     userRoleInfoTextController?.dispose();
+
+    eventFocusNode?.dispose();
+    eventTextController?.dispose();
 
     prologuetextFocusNode?.dispose();
     prologuetextTextController?.dispose();
