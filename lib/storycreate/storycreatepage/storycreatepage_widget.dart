@@ -113,8 +113,9 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
         TextEditingController(text: _model.worldview);
     _model.worldSettingsFocusNode ??= FocusNode();
 
-    _model.placeTextController ??= TextEditingController(text: _model.place);
-    _model.placeFocusNode ??= FocusNode();
+    _model.placetextfieldTextController ??=
+        TextEditingController(text: _model.place);
+    _model.placetextfieldFocusNode ??= FocusNode();
 
     _model.userRoleInfoTextController ??=
         TextEditingController(text: _model.userrole);
@@ -832,7 +833,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           _model.generatedworldview =
                                                               await actions
                                                                   .generateWorldText(
-                                                            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placeTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요사건]: ${_model.eventTextController.text}',
+                                                            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요사건]: ${_model.eventTextController.text}',
                                                             _model
                                                                 .genredropdownValue!,
                                                             FFAppState()
@@ -1137,20 +1138,20 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                               double.infinity,
                                                           child: TextFormField(
                                                             controller: _model
-                                                                .placeTextController,
+                                                                .placetextfieldTextController,
                                                             focusNode: _model
-                                                                .placeFocusNode,
+                                                                .placetextfieldFocusNode,
                                                             onChanged: (_) =>
                                                                 EasyDebounce
                                                                     .debounce(
-                                                              '_model.placeTextController',
+                                                              '_model.placetextfieldTextController',
                                                               Duration(
                                                                   milliseconds:
                                                                       2000),
                                                               () async {
                                                                 _model.place =
                                                                     _model
-                                                                        .placeTextController
+                                                                        .placetextfieldTextController
                                                                         .text;
                                                                 safeSetState(
                                                                     () {});
@@ -1314,7 +1315,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                         context)
                                                                     .primaryText,
                                                             validator: _model
-                                                                .placeTextControllerValidator
+                                                                .placetextfieldTextControllerValidator
                                                                 .asValidator(
                                                                     context),
                                                           ),
@@ -1347,7 +1348,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           _model.generatedplace =
                                                               await actions
                                                                   .generateWorldText(
-                                                            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placeTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
+                                                            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
                                                             _model
                                                                 .genredropdownValue!,
                                                             FFAppState()
@@ -1355,7 +1356,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                             'place',
                                                           );
                                                           safeSetState(() {
-                                                            _model.placeTextController
+                                                            _model.placetextfieldTextController
                                                                     ?.text =
                                                                 _model
                                                                     .generatedplace!;
@@ -1943,7 +1944,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                   characterData:
                                                       characterItemsItem,
                                                   storyContext:
-                                                      '[제목]${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placeTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
+                                                      '[제목]${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
                                                   isWorldviewEmpty: _model.worldSettingsTextController
                                                               .text ==
                                                           '',
@@ -2958,7 +2959,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                         _model.generatedevent =
                                                             await actions
                                                                 .generateEventField(
-                                                          '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placeTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요사건]: ${_model.eventTextController.text}',
+                                                          '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요사건]: ${_model.eventTextController.text}',
                                                           _model
                                                               .genredropdownValue!,
                                                           FFAppState().draftId,
@@ -3567,7 +3568,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                       _model.generatedprologue =
                                                           await actions
                                                               .generatePrologueField(
-                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placeTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
+                                                        '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
                                                         _model
                                                             .genredropdownValue!,
                                                         FFAppState().draftId,

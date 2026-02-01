@@ -76,10 +76,11 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? Function(BuildContext, String?)? worldSettingsTextControllerValidator;
   // Stores action output result for [Custom Action - generateWorldText] action in worldviewgenbutton widget.
   String? generatedworldview;
-  // State field(s) for place widget.
-  FocusNode? placeFocusNode;
-  TextEditingController? placeTextController;
-  String? Function(BuildContext, String?)? placeTextControllerValidator;
+  // State field(s) for placetextfield widget.
+  FocusNode? placetextfieldFocusNode;
+  TextEditingController? placetextfieldTextController;
+  String? Function(BuildContext, String?)?
+      placetextfieldTextControllerValidator;
   // Stores action output result for [Custom Action - generateWorldText] action in placegenbutton widget.
   String? generatedplace;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in backgroundaddbutton widget.
@@ -147,8 +148,8 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
     worldSettingsFocusNode?.dispose();
     worldSettingsTextController?.dispose();
 
-    placeFocusNode?.dispose();
-    placeTextController?.dispose();
+    placetextfieldFocusNode?.dispose();
+    placetextfieldTextController?.dispose();
 
     userRoleInfoFocusNode?.dispose();
     userRoleInfoTextController?.dispose();
