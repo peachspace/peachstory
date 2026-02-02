@@ -58,6 +58,16 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String? event;
 
+  List<EventstructStruct> eventlist = [];
+  void addToEventlist(EventstructStruct item) => eventlist.add(item);
+  void removeFromEventlist(EventstructStruct item) => eventlist.remove(item);
+  void removeAtIndexFromEventlist(int index) => eventlist.removeAt(index);
+  void insertAtIndexInEventlist(int index, EventstructStruct item) =>
+      eventlist.insert(index, item);
+  void updateEventlistAtIndex(
+          int index, Function(EventstructStruct) updateFn) =>
+      eventlist[index] = updateFn(eventlist[index]);
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TabBar widget.

@@ -305,10 +305,24 @@ function buildPrompt(mode, styleObj, basePrompt, scenePrompt, isRefMode) {
 
   if (mode === "character") {
     parts.push(single);
-    parts.push("close-up portrait, head and shoulders, simple background");
+
+    // ✅ 얼굴 확대(클로즈업) 강제 제거 → 상반신(허리 위) 구도 고정
+    parts.push(
+      "upper body, waist up, medium shot, include shoulders and torso",
+    );
+    parts.push("centered composition, some headroom");
+    parts.push("simple background");
+
     parts.push(prefix);
-    if (identityLock) parts.push(identityLock);
+
+    // identityLock(=same character + basePrompt)이 있으면 조금 강조
+    if (identityLock) parts.push(`(${identityLock}:1.10)`);
+
     parts.push("neutral expression");
+
+    // ✅ 안전장치(너무 얼굴 크게 잡히는 걸 방지)
+    parts.push("not a close-up, subject not too large in frame");
+
     return parts.filter(Boolean).join(", ");
   }
 

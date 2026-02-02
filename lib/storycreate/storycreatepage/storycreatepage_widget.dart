@@ -3206,6 +3206,12 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                   false,
                                                               warningMessage:
                                                                   '먼저 세계관을 입력해주세요.',
+                                                              receivedevent: _model
+                                                                  .eventTextController
+                                                                  .text,
+                                                              charList:
+                                                                  FFAppState()
+                                                                      .Characters,
                                                             ),
                                                           ),
                                                         );
@@ -3215,14 +3221,14 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                 .generatedeventimage =
                                                             value));
 
-                                                    _model.addToBackgroundlist(
-                                                        BackgroundStructStruct(
-                                                      imageUrl: _model
-                                                          .generatedeventimage
-                                                          ?.imageurl,
-                                                      placeName: _model
+                                                    _model.addToEventlist(
+                                                        EventstructStruct(
+                                                      event: _model
                                                           .generatedeventimage
                                                           ?.text,
+                                                      imageurl: _model
+                                                          .generatedeventimage
+                                                          ?.imageurl,
                                                     ));
                                                     safeSetState(() {});
 

@@ -1458,6 +1458,10 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                           .Characters
                                           .elementAtOrNull(widget.index!)
                                           ?.profileimage,
+                                      receivedSeed: FFAppState()
+                                          .Characters
+                                          .elementAtOrNull(widget.index!)
+                                          ?.seed,
                                     ),
                                   );
                                 },
@@ -1646,6 +1650,10 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                           ? false
                                           : true,
                                       receivedBaseimage: '',
+                                      receivedSeed: FFAppState()
+                                          .Characters
+                                          .elementAtOrNull(widget.index!)
+                                          ?.seed,
                                     ),
                                   );
                                 },

@@ -48,6 +48,12 @@ class ImagecreatebottomsheetModel
       situationpromptTextControllerValidator;
   // Stores action output result for [Custom Action - generateTriggerKeyword] action in situationtaggenbutton widget.
   String? situationtagPrompt;
+  // State field(s) for eventprompt widget.
+  FocusNode? eventpromptFocusNode;
+  TextEditingController? eventpromptTextController;
+  String? Function(BuildContext, String?)? eventpromptTextControllerValidator;
+  // Stores action output result for [Custom Action - generateTriggerKeyword] action in eventtaggenbutton widget.
+  String? eventtagPrompt;
   // State field(s) for emotionChoiceChips widget.
   FormFieldController<List<String>>? emotionChoiceChipsValueController;
   String? get emotionChoiceChipsValue =>
@@ -69,8 +75,6 @@ class ImagecreatebottomsheetModel
   String? maintag;
   // Stores action output result for [Custom Action - generateVisualTags] action in imagepromptgenbutton widget.
   String? emotiontag;
-  // Stores action output result for [Custom Action - composeScenePrompt] action in imagegenbutton widget.
-  String? charimagePrompt;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in imagegenbutton widget.
   dynamic characterImageResult;
   // Stores action output result for [Custom Action - composeScenePrompt] action in imagegenbutton widget.
@@ -102,6 +106,9 @@ class ImagecreatebottomsheetModel
 
     situationpromptFocusNode?.dispose();
     situationpromptTextController?.dispose();
+
+    eventpromptFocusNode?.dispose();
+    eventpromptTextController?.dispose();
 
     imagecreatepromptFocusNode?.dispose();
     imagecreatepromptTextController?.dispose();
