@@ -75,6 +75,8 @@ class ImagecreatebottomsheetModel
   String? maintag;
   // Stores action output result for [Custom Action - generateVisualTags] action in imagepromptgenbutton widget.
   String? emotiontag;
+  // Stores action output result for [Custom Action - generateVisualTags] action in imagepromptgenbutton widget.
+  String? eventtag;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in imagegenbutton widget.
   dynamic characterImageResult;
   // Stores action output result for [Custom Action - composeScenePrompt] action in imagegenbutton widget.
@@ -91,6 +93,8 @@ class ImagecreatebottomsheetModel
   dynamic backgroundimageResult;
   // Stores action output result for [Custom Action - callGenerateImageCloud] action in imagegenbutton widget.
   dynamic mainimageResult;
+  // Stores action output result for [Custom Action - callGenerateImageCloud] action in imagegenbutton widget.
+  dynamic eventimageResult;
   bool isDataUploading_downloadUrl = false;
   FFUploadedFile uploadedLocalFile_downloadUrl =
       FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');

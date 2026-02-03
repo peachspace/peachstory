@@ -3301,9 +3301,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                               ),
                                               Builder(
                                                 builder: (context) {
-                                                  final backgroundItem = _model
-                                                      .backgroundlist
-                                                      .toList();
+                                                  final backgroundItem =
+                                                      _model.eventlist.toList();
 
                                                   return Row(
                                                     mainAxisSize:
@@ -3337,8 +3336,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                     valueOrDefault<
                                                                         String>(
                                                               backgroundItemItem
-                                                                  .imageUrl,
-                                                              '\"\"',
+                                                                  .imageurl,
+                                                              '\" \"',
                                                             )),
                                                             width: 70.0,
                                                             height: 70.0,

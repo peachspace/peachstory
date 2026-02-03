@@ -213,6 +213,7 @@ function normalizeMode(raw) {
   if (m.includes("emotion")) return "emotion";
   if (m.includes("situation")) return "situation";
   if (m.includes("background")) return "background";
+  if (m.includes("event")) return "event";
   return "character";
 }
 
@@ -754,12 +755,18 @@ exports.generateReplicateImage = functions
         `[EXEC] Pipeline: ${usedPipeline}, Model: ${usedModelKey}, Style: ${style}`,
       );
 
+      const isWide = mode === "main" || mode === "background";
+      const isProfileSquare = mode === "character";
+
+      const width = isWide ? 1024 : isProfileSquare ? 1024 : 896;
+      const height = isWide ? 768 : isProfileSquare ? 1024 : 1152;
+
       let payloadObj = createReplicatePayload(
         usedModelKey,
         finalPrompt,
         styleObj.neg,
-        mode === "main" || mode === "background" ? 1024 : 896,
-        mode === "main" || mode === "background" ? 768 : 1152,
+        width,
+        height,
         seed,
         referenceImageUrl,
         poseImageUrl,

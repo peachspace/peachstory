@@ -6,7 +6,6 @@ export 'calculate_creator_earning_action.dart'
 export 'get_next_phase_command.dart' show getNextPhaseCommand;
 export 'remove_thinking_message.dart' show removeThinkingMessage;
 export 'call_generate_image_cloud.dart' show callGenerateImageCloud;
-export 'generate_image_prompt.dart' show generateImagePrompt;
 export 'translate_to_english.dart' show translateToEnglish;
 export 'get_recent_history_as_json.dart' show getRecentHistoryAsJson;
 export 'get_previous_chat_history.dart' show getPreviousChatHistory;

@@ -137,6 +137,11 @@ class StoriesRecord extends FirestoreRecord {
   String get event => _event ?? '';
   bool hasEvent() => _event != null;
 
+  // "events" field.
+  List<EventstructStruct>? _events;
+  List<EventstructStruct> get events => _events ?? const [];
+  bool hasEvents() => _events != null;
+
   void _initializeFields() {
     _title = snapshotData['title'] as String?;
     _worldview = snapshotData['worldview'] as String?;
@@ -168,6 +173,10 @@ class StoriesRecord extends FirestoreRecord {
     _prologuetext = snapshotData['prologuetext'] as String?;
     _place = snapshotData['place'] as String?;
     _event = snapshotData['event'] as String?;
+    _events = getStructList(
+      snapshotData['events'],
+      EventstructStruct.fromMap,
+    );
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -253,6 +262,11 @@ class StoriesRecord extends FirestoreRecord {
           'prologuetext': snapshot.data['prologuetext'],
           'place': snapshot.data['place'],
           'event': snapshot.data['event'],
+          'events': safeGet(
+            () => (snapshot.data['events'] as Iterable)
+                .map((d) => EventstructStruct.fromAlgoliaData(d).toMap())
+                .toList(),
+          ),
         },
         StoriesRecord.collection.doc(snapshot.objectID),
       );
@@ -369,7 +383,8 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         listEquality.equals(e1?.backgrounds, e2?.backgrounds) &&
         e1?.prologuetext == e2?.prologuetext &&
         e1?.place == e2?.place &&
-        e1?.event == e2?.event;
+        e1?.event == e2?.event &&
+        listEquality.equals(e1?.events, e2?.events);
   }
 
   @override
@@ -397,7 +412,8 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.backgrounds,
         e?.prologuetext,
         e?.place,
-        e?.event
+        e?.event,
+        e?.events
       ]);
 
   @override
