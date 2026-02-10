@@ -16,14 +16,47 @@ final RegExp _forbiddenStyleRe = RegExp(
   caseSensitive: false,
 );
 
-String _sanitizeTags(String raw, {int maxTags = 20, int maxChars = 400}) {
+// ✅ ID/외모 태그가 다른 모드에 섞여 나오는 것 방지용(2차 방어)
+final RegExp _identityLeakRe = RegExp(
+  r'(\b(hair|eyes|skin|face|jaw|nose|lips|eyebrows|eyelids|freckles|beauty mark)\b)',
+  caseSensitive: false,
+);
+
+// ✅ character 모드: 괄호/가중치/문장 제거를 더 강하게
+String _postFilterByMode(String s, String mode) {
+  var out = s;
+
+  // 공통: 스타일/퀄리티 제거
+  out = out.replaceAll(_forbiddenStyleRe, ' ');
+  out = out.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+  if (mode != "character") {
+    // ✅ emotion/situation/main/background 등에서는
+    // “외모/정체성(눈/머리/피부/얼굴형…)” 관련 태그가 새로 생성되지 않게 2차 차단
+    out = out.replaceAll(_identityLeakRe, ' ');
+    out = out.replaceAll(RegExp(r'\s+'), ' ').trim();
+  } else {
+    // ✅ character에서는 "NO parentheses, NO weights"를 더 강제
+    out = out.replaceAll(RegExp(r'[\(\)]'), ' ');
+    out = out.replaceAll(RegExp(r':\s*\d+(\.\d+)?'), ' '); // :1.2 같은 가중치 제거
+    out = out.replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  return out;
+}
+
+String _sanitizeTags(
+  String raw, {
+  required String mode,
+  int maxTags = 20,
+  int maxChars = 400,
+}) {
   var s = raw.trim();
   s = s.replaceAll('\n', ',').replaceAll(';', ',');
   s = s.replaceAll(RegExp(r'\s+'), ' ').trim();
 
-  // 스타일/퀄리티 토큰 제거(앱 2차 방어)
-  s = s.replaceAll(_forbiddenStyleRe, ' ');
-  s = s.replaceAll(RegExp(r'\s+'), ' ').trim();
+  // 2차 방어(모드별 후처리)
+  s = _postFilterByMode(s, mode);
 
   // 콤마 분리
   final parts =
@@ -43,7 +76,14 @@ String _sanitizeTags(String raw, {int maxTags = 20, int maxChars = 400}) {
     joined = joined.substring(0, maxChars).trim();
     joined = joined.replaceAll(RegExp(r'[, ]+$'), '');
   }
-  if (joined.isEmpty) return 'simple background, clean composition';
+
+  if (joined.isEmpty) {
+    // mode별 fallback
+    if (mode == "emotion") return "neutral expression";
+    if (mode == "background") return "simple background, clean composition";
+    return "simple composition";
+  }
+
   return joined;
 }
 
@@ -54,9 +94,14 @@ Future<String> generateVisualTags(
   String? baseContext,
 ) async {
   final input = contextInput.trim().isEmpty
-      ? "Create a creative scene"
+      ? (mode == "character"
+          ? "Describe ONLY face & hair identity."
+          : "Create a creative scene")
       : contextInput.trim();
 
+  // ✅ baseRules: 기본적으로 Base Context(외모) 반영 규칙을 제거
+  //    -> 외모는 “character에서만 생성/저장”하고,
+  //       다른 모드에서는 서버가 basePrompt를 강제 주입하는 구조로 역할 분리
   const baseRules = """
 You are an expert AI Art Prompt Engineer.
 TASK: Convert the user input into a comma-separated list of English visual tags.
@@ -66,23 +111,25 @@ RULES:
 3) Focus on visible elements.
 4) DO NOT include quality tags (best quality, masterpiece).
 5) DO NOT include style tags (anime style, webtoon).
-6) Incorporate the 'Base Context' (character appearance) if provided.
 """;
 
   late final String systemPrompt;
+
   if (mode == "background") {
     systemPrompt = """
 $baseRules
-7) Choose ONE coherent background scene only (no mixed locations).
-8) No characters, no people, no silhouettes.
+6) Choose ONE coherent background scene only (no mixed locations).
+7) No characters, no people, no silhouettes.
+8) STRICTLY FORBIDDEN: any character identity tags (hair/eyes/skin/face), clothing/outfit.
 9) Output 12~20 tags.
 """;
   } else if (mode == "situation") {
     systemPrompt = """
 $baseRules
-7) Focus on action/pose + small scene cues.
-8) Single subject only.
-9) Output 15~20 tags.
+6) Focus on action/pose + small scene cues.
+7) Single subject only.
+8) STRICTLY FORBIDDEN: any character identity tags (hair/eyes/skin/face). Do NOT describe appearance.
+9) Output 12~18 tags.
 10) Include EXACTLY ONE framing tag among:
 - close-up
 - upper body, waist up
@@ -92,9 +139,9 @@ Choose the best framing for the action.
   } else if (mode == "character") {
     systemPrompt = """
 $baseRules
-7) Output ONLY immutable facial identity & hair identity tags.
-8) STRICTLY FORBIDDEN: clothing/outfit, accessories, background/location, lighting, camera/framing, pose/action, emotion/expression, age words, style/quality words.
-9) Output 10~14 tags only.
+6) Output ONLY immutable facial identity & hair identity tags.
+7) STRICTLY FORBIDDEN: clothing/outfit, accessories, background/location, lighting, camera/framing, pose/action, emotion/expression, age words, style/quality words.
+8) Output 10~14 tags only.
 
 MANDATORY (must include):
 A) Hair color + hair length + hair style (e.g., "black long hair", "wavy hair", "bangs")
@@ -112,28 +159,42 @@ OUTPUT FORMAT:
   } else if (mode == "main") {
     systemPrompt = """
 $baseRules
-7) Focus on cover illustration composition.
-8) Single character centered.
-9) Output 20~30 tags.
+6) Focus on cover illustration composition.
+7) Single character centered.
+8) STRICTLY FORBIDDEN: any character identity tags (hair/eyes/skin/face). Do NOT describe appearance.
+9) Output 18~26 tags.
 """;
   } else if (mode == "emotion") {
     systemPrompt = """
 $baseRules
-7) Output ONLY facial expression and emotion tags.
-8) Single subject only.
+6) Output ONLY facial expression and emotion tags.
+7) Single subject only.
+8) STRICTLY FORBIDDEN: any character identity tags (hair/eyes/skin/face). Do NOT describe appearance.
 9) Output 5~10 tags.
 """;
   } else {
     systemPrompt = """
 $baseRules
-7) Output 15 tags max.
+6) Output 12 tags max.
 """;
   }
 
-  final userPrompt = """
+  // ✅ userPrompt: character만 Base Context를 넣을지 말지 선택
+  // - 원칙상 character는 “유저 입력으로 외모만 받는다”면 baseContext 자체가 필요 없고,
+  //   혹시 이전 값이 있으면 ‘보정’ 정도로만 쓰고 싶을 때만 포함
+  final includeBaseContext =
+      (mode == "character" && (baseContext ?? "").trim().isNotEmpty);
+
+  final userPrompt = includeBaseContext
+      ? """
 [Mode: ${mode}_tags]
 [User Input]: $input
-[Base Context]: ${baseContext ?? "None"}
+[Optional Base Context (identity)]: ${baseContext!.trim()}
+Return ONLY the comma-separated English tags.
+"""
+      : """
+[Mode: ${mode}_tags]
+[User Input]: $input
 Return ONLY the comma-separated English tags.
 """;
 
@@ -154,15 +215,16 @@ Return ONLY the comma-separated English tags.
     final data = Map<String, dynamic>.from(result.data as Map);
     var raw = (data['fullText'] ?? '').toString();
 
-    // 허용 문자만(너 기존 유지)
-    raw = raw.replaceAll(RegExp(r'[^a-zA-Z0-9, \-\.\(\)]'), '');
+    // 허용 문자만(기존 유지) — character는 괄호도 금지라 후처리에서 제거됨
+    raw = raw.replaceAll(RegExp(r'[^a-zA-Z0-9, \-\.\(\):]'), '');
 
     int limit = 20;
     if (mode == "emotion") limit = 10;
-    if (mode == "character") limit = 15;
-    if (mode == "main") limit = 30;
+    if (mode == "character") limit = 14;
+    if (mode == "main") limit = 26;
+    if (mode == "situation") limit = 18;
 
-    return _sanitizeTags(raw, maxTags: limit, maxChars: 400).trim();
+    return _sanitizeTags(raw, mode: mode, maxTags: limit, maxChars: 400).trim();
   } catch (_) {
     return "";
   }
