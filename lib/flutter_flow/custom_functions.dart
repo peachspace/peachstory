@@ -336,8 +336,9 @@ String convertCharactersToString(List<CharacterStructStruct> charList) {
 }
 
 String stringToImagePath(String? imageUrl) {
-// 값이 없으면(null) 빈 문자열('')을 반환하고, 있으면 그 값을 반환합니다.
-  return imageUrl ?? '';
+  final s = (imageUrl ?? '').trim();
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+  return '';
 }
 
 bool isSummaryTurn(int messageCount) {

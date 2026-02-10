@@ -42,11 +42,12 @@ Future<dynamic> callGenerateImageCloud(
     });
 
     final rawData = results.data;
-
+    print('📌 [Image Gen] rawData: $rawData');
     // 결과값 검증 및 반환
     if (rawData is Map) {
       // 서버에서 명시적 에러를 보낸 경우
       if (rawData['success'] == false) {
+        print('❌ [Image Gen] server error: ${rawData['error']}');
         return {
           'success': false,
           'error': rawData['error'] ?? 'Unknown server error'
