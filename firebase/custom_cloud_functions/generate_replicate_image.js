@@ -146,7 +146,7 @@ const MODEL_REGISTRY = {
   PEACH_COMFY_ANIME: {
     owner: "peachspace",
     name: "peach-comfy-anime",
-    version: "",
+    version: "205534767bb5412bfeccb2e8f2af1042ef2a5473e17eec9bf59248acc2beef2c",
     schema: "PEACH_COMFY_ANIME",
   },
 };
