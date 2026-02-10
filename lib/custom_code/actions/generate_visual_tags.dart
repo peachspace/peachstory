@@ -9,14 +9,20 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import '/custom_code/actions/index.dart';
-import '/flutter_flow/custom_functions.dart';
-
 import 'package:cloud_functions/cloud_functions.dart' as cf;
+
+final RegExp _forbiddenStyleRe = RegExp(
+  r'(\bmasterpiece\b|\bbest quality\b|\bhigh quality\b|\banime\b|\bwebtoon\b|\bmanhwa\b|\blineart\b|\bcel shading\b|\bflat color\b|\b8k\b|\b4k\b|\bphotorealistic\b|\brealistic\b|\bcinematic\b|\brender\b|\bstyle\b|\bquality\b)',
+  caseSensitive: false,
+);
 
 String _sanitizeTags(String raw, {int maxTags = 20, int maxChars = 400}) {
   var s = raw.trim();
   s = s.replaceAll('\n', ',').replaceAll(';', ',');
+  s = s.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+  // 스타일/퀄리티 토큰 제거(앱 2차 방어)
+  s = s.replaceAll(_forbiddenStyleRe, ' ');
   s = s.replaceAll(RegExp(r'\s+'), ' ').trim();
 
   // 콤마 분리
@@ -135,12 +141,13 @@ Return ONLY the comma-separated English tags.
     final data = Map<String, dynamic>.from(result.data as Map);
     var raw = (data['fullText'] ?? '').toString();
 
-    // 허용 문자만
+    // 허용 문자만(너 기존 유지)
     raw = raw.replaceAll(RegExp(r'[^a-zA-Z0-9, \-\.\(\)]'), '');
 
     int limit = 20;
     if (mode == "emotion") limit = 10;
     if (mode == "character") limit = 15;
+    if (mode == "main") limit = 30;
 
     return _sanitizeTags(raw, maxTags: limit, maxChars: 400).trim();
   } catch (_) {

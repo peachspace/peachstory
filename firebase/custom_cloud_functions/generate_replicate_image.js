@@ -11,6 +11,35 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // =====================================================
 const MINIMAL_PAYLOAD = false; // 필요할 때 true로 바꿔서 테스트
 
+// ===============================
+// ✅ (1) 스타일/퀄리티 토큰 고정용: 유저 입력에서 제거할 키워드
+// ===============================
+const FORBIDDEN_STYLE_RE =
+  /(\bmasterpiece\b|\bbest quality\b|\bhigh quality\b|\banime\b|\bwebtoon\b|\bmanhwa\b|\blineart\b|\bcel shading\b|\bflat color\b|\b8k\b|\b4k\b|\bphotorealistic\b|\brealistic\b|\bcinematic\b|\brender\b|\bstyle\b|\bquality\b)/gi;
+
+// ===============================
+// ✅ (2) 서버에서만 고정할 생성 파라미터(클라 값 무시)
+// - 너 workflow(ComfyUI)가 받는 키로만 유지해야 함
+// ===============================
+const GEN_PARAMS = {
+  steps: 7,
+  cfg: 2.6,
+  // sampler가 workflow input으로 존재한다면 여기에 고정 (없으면 아예 보내지 말 것)
+  // sampler: "euler_a",
+};
+
+// ===============================
+// ✅ (3) IP-Adapter 모드별 상한(clamp)
+// ===============================
+const IP_CAP = {
+  character: { base: 0.7, max: 0.75 },
+  emotion: { base: 0.85, max: 0.9 },
+  situation: { base: 0.9, max: 0.95 },
+  main: { base: 0.9, max: 0.95 },
+  event: { base: 0.85, max: 0.9 },
+  background: { base: 0.0, max: 0.0 }, // 배경은 reference 영향 거의 필요 없음(원하면 조정)
+};
+
 // [중요] 사용자님의 버킷 주소 (기존 유지)
 const MANUAL_BUCKET_FALLBACK = "ssss-ehfczw.firebasestorage.app";
 
@@ -151,7 +180,6 @@ const MODEL_REGISTRY = {
   PEACH_COMFY_ANIME: {
     owner: "peachspace",
     name: "peach-comfy-anime",
-    // ✅ 이미 핀으로 박은 값 유지
     version: "205534767bb5412bfeccb2e8f2af1042ef2a5473e17eec9bf59248acc2beef2c",
     schema: "PEACH_COMFY_ANIME",
   },
@@ -190,6 +218,15 @@ function normalizeMode(raw) {
   return "character";
 }
 
+// ✅ 유저 입력에서 스타일/퀄리티 토큰 제거(서버 강제)
+function stripStyleTokens(text) {
+  if (!text) return "";
+  return String(text)
+    .replace(FORBIDDEN_STYLE_RE, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function pickGenderToken(basePrompt) {
   const bp = String(basePrompt || "").toLowerCase();
   if (bp.includes("1boy")) return "1boy";
@@ -201,18 +238,31 @@ function pickGenderToken(basePrompt) {
   return "";
 }
 
+// ✅ 해법 A(불변 속성 태그) 강제 가중치: 모드별 weight
+function identityWeightByMode(mode) {
+  if (mode === "emotion") return 1.2;
+  if (mode === "situation") return 1.1;
+  if (mode === "main") return 1.1;
+  if (mode === "event") return 1.1;
+  if (mode === "character") return 1.15;
+  return 1.05;
+}
+
 function buildIdentityTags(mode, basePrompt) {
   const bp = String(basePrompt || "").trim();
   if (!bp) return "";
   if (mode === "background") return "";
-  if (mode === "emotion" || mode === "situation" || mode === "main") {
-    return `(${bp}:0.85)`;
-  }
-  return bp;
+  const w = identityWeightByMode(mode);
+  // ✅ 불변 속성 태그는 항상 강하게 고정
+  return `(${bp}:${w.toFixed(2)})`;
 }
 
-function buildPrompt(mode, styleObj, basePrompt, scenePrompt) {
+function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
   const prefix = styleObj.prefix;
+
+  // ✅✅✅ (1) 유저 입력에서 스타일 토큰 제거 (서버 강제)
+  const basePrompt = stripStyleTokens(basePromptRaw);
+  let scenePrompt = stripStyleTokens(scenePromptRaw);
 
   const gender = pickGenderToken(basePrompt);
   const single = gender
@@ -253,7 +303,7 @@ function buildPrompt(mode, styleObj, basePrompt, scenePrompt) {
     parts.push("centered composition, some headroom");
     parts.push("simple background");
     parts.push(prefix);
-    if (identityTags) parts.push(`(${identityTags}:1.10)`);
+    if (identityTags) parts.push(identityTags);
     parts.push("neutral expression");
     parts.push("not a close-up, subject not too large in frame");
     return parts.filter(Boolean).join(", ");
@@ -261,9 +311,9 @@ function buildPrompt(mode, styleObj, basePrompt, scenePrompt) {
 
   if (mode === "emotion") {
     parts.push(single);
-    const lower = String(scenePrompt || "").toLowerCase();
+    const lower = String(scenePromptRaw || "").toLowerCase();
     const hasFraming =
-      /(full body|upper body|waist up|medium shot|long shot|wide shot|cowboy shot|three-quarter)/.test(
+      /(full body|upper body|waist up|medium shot|long shot|wide shot|cowboy shot|three-quarter|close-up)/.test(
         lower,
       );
     if (!hasFraming) parts.push("upper body, waist up, medium shot");
@@ -389,8 +439,34 @@ function invalidateModelCaches(owner, name) {
   MODEL_VERSION_CACHE.delete(key);
 }
 
+// ✅ 모드별 해상도/비율 고정 (서버 강제)
+function fixedSizeByMode(mode) {
+  const isWide = mode === "main" || mode === "background";
+  const isProfileSquare = mode === "character";
+  const width = isWide ? 1024 : isProfileSquare ? 1024 : 896;
+  const height = isWide ? 768 : isProfileSquare ? 1024 : 1152;
+  return { width, height };
+}
+
+// ✅ IP-Adapter 스케일 clamp (서버 강제)
+function clampIp(mode, maybeUserIp) {
+  const cap = IP_CAP[mode] || IP_CAP.character;
+  let v = cap.base;
+
+  if (maybeUserIp !== undefined && maybeUserIp !== null) {
+    const n = Number(maybeUserIp);
+    if (!Number.isNaN(n) && n > 0) v = n;
+  }
+
+  if (v > cap.max) v = cap.max;
+  if (v < 0) v = 0;
+  return v;
+}
+
 /** ---------------------------------------------------------
  * ✅ payload 생성 ("" 금지: 값 없으면 key 제거)
+ * + (2) steps/cfg/sampler 서버 고정
+ * + (3) ip_adapter_scale 모드별 상한
  * --------------------------------------------------------- */
 function createPeachComfyPayload({
   prompt,
@@ -401,34 +477,35 @@ function createPeachComfyPayload({
   referenceImageUrl,
   poseImageUrl,
   mode,
+  userIpScale,
 }) {
-  let ip = 0.75;
-  if (mode === "emotion") ip = 0.85;
-  else if (mode === "situation") ip = 0.9;
-  else if (mode === "character") ip = 0.7;
-  else if (mode === "event") ip = 0.85;
-  else if (mode === "main") ip = 0.9;
-
   const input = {
     prompt,
     negative_prompt: negative,
     width,
     height,
     seed,
-    ip_adapter_scale: ip,
-    steps: 7,
-    cfg: 2.6,
+
+    // ✅✅✅ (2) 서버에서만 고정
+    steps: GEN_PARAMS.steps,
+    cfg: GEN_PARAMS.cfg,
+
     mode: mode,
   };
+
+  // ✅ sampler가 workflow input으로 존재할 때만 사용
+  if (GEN_PARAMS.sampler) input.sampler = GEN_PARAMS.sampler;
+
+  // ✅✅✅ (3) reference 있을 때만 ip_adapter_scale 포함
+  if (referenceImageUrl) {
+    input.ip_adapter_scale = clampIp(mode, userIpScale);
+  }
 
   // ✅✅✅ 핵심: 빈 문자열 넣지 말고, 있을 때만 key 추가
   if (referenceImageUrl) input.reference_image = referenceImageUrl;
   if (poseImageUrl) input.pose_image = poseImageUrl;
 
-  return {
-    version: null,
-    input,
-  };
+  return { version: null, input };
 }
 
 /** ---------------------------------------------------------
@@ -449,14 +526,12 @@ async function callReplicate(apiKey, version, input) {
             "Cancel-After": "10m",
           },
           timeout: 45000,
-          // ✅✅✅ 4xx도 응답 body(resp.data) 확보
           validateStatus: (s) => s >= 200 && s < 500,
         },
       );
 
       if (resp.status >= 200 && resp.status < 300) return resp.data;
 
-      // ✅✅✅ 422 detail이 그대로 에러 메시지에 들어가게
       throw new Error(
         `Replicate POST failed: ${resp.status} ${JSON.stringify(resp.data)}`,
       );
@@ -476,7 +551,6 @@ async function callReplicate(apiKey, version, input) {
         continue;
       }
 
-      // 위에서 우리가 throw한 Error(Replicate POST failed...)도 여기로 옴
       throw e;
     }
   }
@@ -588,8 +662,11 @@ exports.generateReplicateImage = functions
       const mode = normalizeMode(data.mode);
       const style = normalizeStyle(data.style);
 
+      // ✅✅✅ (1) 스타일 토큰 제거는 buildPrompt 내부에서 다시 하지만,
+      // 여기서도 1차 trim 정도만 수행
       const promptInput = String(data.prompt || "").trim();
       const basePrompt = String(data.basePrompt || "").trim();
+
       const referenceImageUrl = String(data.referenceImageUrl || "").trim();
       const poseImageUrl = String(data.poseImageUrl || "").trim();
       const seed = safeSeed(data.seed);
@@ -616,12 +693,10 @@ exports.generateReplicateImage = functions
 
       const finalPrompt = buildPrompt(mode, styleObj, basePrompt, promptInput);
 
-      const isWide = mode === "main" || mode === "background";
-      const isProfileSquare = mode === "character";
-      const width = isWide ? 1024 : isProfileSquare ? 1024 : 896;
-      const height = isWide ? 768 : isProfileSquare ? 1024 : 1152;
+      // ✅✅✅ (2) 해상도/비율 고정은 여기서만 결정
+      const { width, height } = fixedSizeByMode(mode);
 
-      // ✅✅✅ 2) payload 최소화 모드
+      // ✅✅✅ 2) payload 최소화 모드(스키마 확인용)
       let payloadObj;
       if (MINIMAL_PAYLOAD) {
         payloadObj = {
@@ -641,6 +716,7 @@ exports.generateReplicateImage = functions
           referenceImageUrl,
           poseImageUrl,
           mode,
+          userIpScale: data.ipAdapterScale, // (있어도 clamp됨)
         });
       }
 
@@ -711,7 +787,6 @@ exports.generateReplicateImage = functions
         };
       }
     } catch (error) {
-      // ✅✅✅ 422 detail까지 찍히게 만든 callReplicate 덕분에 여기 로그가 중요해짐
       console.error(
         "Replicate Error:",
         error?.message,
