@@ -6,6 +6,11 @@ if (!admin.apps.length) admin.initializeApp();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// =====================================================
+// ✅ 스키마 불일치 확인용 스위치 (true면 prompt/negative_prompt만 보냄)
+// =====================================================
+const MINIMAL_PAYLOAD = false; // 필요할 때 true로 바꿔서 테스트
+
 // [중요] 사용자님의 버킷 주소 (기존 유지)
 const MANUAL_BUCKET_FALLBACK = "ssss-ehfczw.firebasestorage.app";
 
@@ -140,12 +145,13 @@ function safeSeed(seedLike) {
 }
 
 /** ---------------------------------------------------------
- * 너 전용 ComfyUI 모델 레지스트리
+ * ✅ ComfyUI 모델 레지스트리 (핀 version 사용)
  * --------------------------------------------------------- */
 const MODEL_REGISTRY = {
   PEACH_COMFY_ANIME: {
     owner: "peachspace",
     name: "peach-comfy-anime",
+    // ✅ 이미 핀으로 박은 값 유지
     version: "205534767bb5412bfeccb2e8f2af1042ef2a5473e17eec9bf59248acc2beef2c",
     schema: "PEACH_COMFY_ANIME",
   },
@@ -384,7 +390,7 @@ function invalidateModelCaches(owner, name) {
 }
 
 /** ---------------------------------------------------------
- * (루트2) 너 전용 comfy 모델 payload 생성
+ * ✅ payload 생성 ("" 금지: 값 없으면 key 제거)
  * --------------------------------------------------------- */
 function createPeachComfyPayload({
   prompt,
@@ -396,7 +402,6 @@ function createPeachComfyPayload({
   poseImageUrl,
   mode,
 }) {
-  // ✅✅✅ 요청하신 ip 값으로 교체
   let ip = 0.75;
   if (mode === "emotion") ip = 0.85;
   else if (mode === "situation") ip = 0.9;
@@ -404,29 +409,37 @@ function createPeachComfyPayload({
   else if (mode === "event") ip = 0.85;
   else if (mode === "main") ip = 0.9;
 
+  const input = {
+    prompt,
+    negative_prompt: negative,
+    width,
+    height,
+    seed,
+    ip_adapter_scale: ip,
+    steps: 7,
+    cfg: 2.6,
+    mode: mode,
+  };
+
+  // ✅✅✅ 핵심: 빈 문자열 넣지 말고, 있을 때만 key 추가
+  if (referenceImageUrl) input.reference_image = referenceImageUrl;
+  if (poseImageUrl) input.pose_image = poseImageUrl;
+
   return {
     version: null,
-    input: {
-      prompt,
-      negative_prompt: negative,
-      width,
-      height,
-      seed,
-      reference_image: referenceImageUrl || "",
-      pose_image: poseImageUrl || "",
-      ip_adapter_scale: ip,
-      steps: 7,
-      cfg: 2.6,
-      mode: mode,
-    },
+    input,
   };
 }
 
+/** ---------------------------------------------------------
+ * ✅ callReplicate: 4xx도 resp.data 받게 + detail 포함 throw
+ * --------------------------------------------------------- */
 async function callReplicate(apiKey, version, input) {
   let retries = 3;
+
   while (true) {
     try {
-      const response = await axios.post(
+      const resp = await axios.post(
         "https://api.replicate.com/v1/predictions",
         { version, input },
         {
@@ -436,9 +449,17 @@ async function callReplicate(apiKey, version, input) {
             "Cancel-After": "10m",
           },
           timeout: 45000,
+          // ✅✅✅ 4xx도 응답 body(resp.data) 확보
+          validateStatus: (s) => s >= 200 && s < 500,
         },
       );
-      return response.data;
+
+      if (resp.status >= 200 && resp.status < 300) return resp.data;
+
+      // ✅✅✅ 422 detail이 그대로 에러 메시지에 들어가게
+      throw new Error(
+        `Replicate POST failed: ${resp.status} ${JSON.stringify(resp.data)}`,
+      );
     } catch (e) {
       const status = e?.response?.status;
 
@@ -454,6 +475,8 @@ async function callReplicate(apiKey, version, input) {
         retries--;
         continue;
       }
+
+      // 위에서 우리가 throw한 Error(Replicate POST failed...)도 여기로 옴
       throw e;
     }
   }
@@ -571,7 +594,7 @@ exports.generateReplicateImage = functions
       const poseImageUrl = String(data.poseImageUrl || "").trim();
       const seed = safeSeed(data.seed);
 
-      // ✅✅✅ 요청하신 레퍼런스 필수 체크 (character만 예외)
+      // 레퍼런스 필수 체크 (character만 예외)
       if (mode !== "character" && !referenceImageUrl) {
         return { success: false, error: "referenceImageUrl required." };
       }
@@ -598,16 +621,28 @@ exports.generateReplicateImage = functions
       const width = isWide ? 1024 : isProfileSquare ? 1024 : 896;
       const height = isWide ? 768 : isProfileSquare ? 1024 : 1152;
 
-      const payloadObj = createPeachComfyPayload({
-        prompt: finalPrompt,
-        negative: styleObj.neg,
-        width,
-        height,
-        seed,
-        referenceImageUrl,
-        poseImageUrl,
-        mode,
-      });
+      // ✅✅✅ 2) payload 최소화 모드
+      let payloadObj;
+      if (MINIMAL_PAYLOAD) {
+        payloadObj = {
+          version: null,
+          input: {
+            prompt: finalPrompt,
+            negative_prompt: styleObj.neg,
+          },
+        };
+      } else {
+        payloadObj = createPeachComfyPayload({
+          prompt: finalPrompt,
+          negative: styleObj.neg,
+          width,
+          height,
+          seed,
+          referenceImageUrl,
+          poseImageUrl,
+          mode,
+        });
+      }
 
       const modelInfo = MODEL_REGISTRY[modelKey];
       if (!modelInfo) throw new Error(`Unknown Model Key: ${modelKey}`);
@@ -676,9 +711,10 @@ exports.generateReplicateImage = functions
         };
       }
     } catch (error) {
+      // ✅✅✅ 422 detail까지 찍히게 만든 callReplicate 덕분에 여기 로그가 중요해짐
       console.error(
         "Replicate Error:",
-        error?.message, // ✅ 이게 핵심
+        error?.message,
         error?.response?.status,
         JSON.stringify(error?.response?.data || {}),
       );
