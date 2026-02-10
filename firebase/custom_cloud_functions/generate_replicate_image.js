@@ -678,9 +678,10 @@ exports.generateReplicateImage = functions
     } catch (error) {
       console.error(
         "Replicate Error:",
-        error.response?.status,
-        JSON.stringify(error.response?.data || {}),
+        error?.message, // ✅ 이게 핵심
+        error?.response?.status,
+        JSON.stringify(error?.response?.data || {}),
       );
-      return { success: false, error: error.message };
+      return { success: false, error: error?.message || String(error) };
     }
   });
