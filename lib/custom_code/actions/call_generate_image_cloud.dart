@@ -40,6 +40,8 @@ Future<dynamic> callGenerateImageCloud(
       'poseImageUrl': poseImageUrl, // [추가]
       'seed': seed,
     });
+    print('📌 [Image Gen] callable finished');
+    print('📌 [Image Gen] rawData: ${results.data}');
 
     final rawData = results.data;
     print('📌 [Image Gen] rawData: $rawData');
@@ -59,7 +61,8 @@ Future<dynamic> callGenerateImageCloud(
 
     return {'success': false, 'error': 'Invalid response format from server'};
   } catch (e) {
-    // 네트워크 에러, 타임아웃 등 예외 처리
+    print('❌ [Image Gen] exception: $e');
+
     return {'success': false, 'error': e.toString()};
   }
 }
