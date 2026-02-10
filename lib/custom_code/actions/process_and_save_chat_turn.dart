@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'index.dart'; // Imports other custom actions
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<List<StoryChatMessageStructStruct>> processAndSaveChatTurn(
@@ -18,43 +17,81 @@ Future<List<StoryChatMessageStructStruct>> processAndSaveChatTurn(
   DocumentReference storyDocRef,
   List<BackgroundStructStruct>? backgrounds,
   List<CharacterStructStruct>? characters,
+  List<EventstructStruct>? events, // ✅ 추가
 ) async {
-  // 1. 결과 반환용 리스트 (화면 표시용)
+  // 1) 화면 표시용
   List<StoryChatMessageStructStruct> localMessages = [];
 
-  // 2. Firestore 배치 생성 (한번에 저장하기 위함)
+  // 2) 배치
   final batch = FirebaseFirestore.instance.batch();
   final CollectionReference messagesRef =
       storyDocRef.collection('storymessages');
 
+  // ✅ 이벤트 빠른 검색용 맵(태그 -> url)
+  final eventMap = <String, String>{};
+  if (events != null) {
+    for (final ev in events) {
+      final d = ev as dynamic;
+      final tag = (d.event ?? '').toString().trim();
+      final url = ((d.imageurl ?? d.imageUrl) ?? '').toString().trim();
+      if (tag.isNotEmpty && url.isNotEmpty) {
+        // 중복이면 최초 1개만 유지
+        eventMap.putIfAbsent(tag, () => url);
+      }
+    }
+  }
+
   for (var scene in scenes) {
-    if (scene is Map) {
-      // --- 데이터 추출 ---
-      String type = scene['type']?.toString() ?? 'narration';
-      String content = scene['content']?.toString() ?? '';
-      String speaker = scene['speaker']?.toString() ?? '';
-      String action = scene['action']?.toString() ?? '';
-      String condition = scene['condition']?.toString() ?? '';
-      String imageUrl = '';
+    if (scene is! Map) continue;
 
-      // --- 이미지 URL 찾기 로직 ---
-      if (type == 'show_image' || type == 'story_image') {
-        type = 'story_image';
+    // --- 데이터 추출 ---
+    String type = scene['type']?.toString() ?? 'narration';
+    String content = scene['content']?.toString() ?? '';
+    String speaker = scene['speaker']?.toString() ?? '';
+    String action = scene['action']?.toString() ?? '';
+    String condition = scene['condition']?.toString() ?? '';
 
-        // 1. 배경에서 찾기
-        if (backgrounds != null) {
+    // 어떤 파서들은 imageUrl을 직접 넣기도 함
+    String directImageUrl =
+        scene['imageUrl']?.toString() ?? scene['url']?.toString() ?? '';
+    directImageUrl = directImageUrl.trim();
+
+    String imageUrl = '';
+
+    // --- 이미지 URL 찾기 로직 ---
+    if (type == 'show_image' || type == 'story_image') {
+      type = 'story_image';
+
+      final tag = condition.trim();
+
+      // ✅ 0) scene에 imageUrl이 직접 있으면 그걸 최우선
+      if (directImageUrl.isNotEmpty) {
+        imageUrl = directImageUrl;
+      } else {
+        // ✅ 1) 이벤트에서 찾기 (EventAssets)
+        // event tag가 있으면 events에서 url로 매핑
+        if (imageUrl.isEmpty && tag.isNotEmpty) {
+          final evUrl = eventMap[tag];
+          if (evUrl != null && evUrl.isNotEmpty) {
+            imageUrl = evUrl;
+          }
+        }
+
+        // ✅ 2) 배경에서 찾기 (BackgroundAssets)
+        if (imageUrl.isEmpty && backgrounds != null && tag.isNotEmpty) {
           for (var bg in backgrounds) {
-            if (bg.placeName == condition) {
+            if (bg.placeName == tag) {
               imageUrl = bg.imageUrl;
               break;
             }
           }
         }
-        // 2. 배경에 없으면 캐릭터에서 찾기
-        if (imageUrl.isEmpty && characters != null) {
+
+        // ✅ 3) 상황에서 찾기 (SituationAssets)
+        if (imageUrl.isEmpty && characters != null && tag.isNotEmpty) {
           for (var char in characters) {
             for (var sit in char.situationImages) {
-              if (sit.condition == condition) {
+              if (sit.condition == tag) {
                 imageUrl = sit.imageUrl;
                 break;
               }
@@ -63,35 +100,31 @@ Future<List<StoryChatMessageStructStruct>> processAndSaveChatTurn(
           }
         }
       }
-
-      // --- A. Firestore 저장용 데이터 준비 ---
-      final newDocRef = messagesRef.doc(); // 새 문서 ID 생성
-      final messageData = createStorymessagesRecordData(
-        text: content,
-        type: type,
-        speakerName: speaker,
-        actionText: action,
-        storyImageUrl: imageUrl,
-        timestamp: DateTime.now(), // [수정됨] 현재 시간 사용
-        // role: 'ai',  <-- [삭제됨] 이 부분이 에러 원인이었으므로 제거했습니다.
-      );
-      batch.set(newDocRef, messageData);
-
-      // --- B. 화면 표시용 Struct 생성 ---
-      localMessages.add(createStoryChatMessageStructStruct(
-        text: content,
-        type: type,
-        speakerName: speaker,
-        actionText: action,
-        storyImageUrl: imageUrl,
-        timestamp: DateTime.now(), // 현재 시간
-      ));
     }
+
+    // --- A) Firestore 저장용 데이터 ---
+    final newDocRef = messagesRef.doc();
+    final messageData = createStorymessagesRecordData(
+      text: content,
+      type: type,
+      speakerName: speaker,
+      actionText: action,
+      storyImageUrl: imageUrl,
+      timestamp: DateTime.now(),
+    );
+    batch.set(newDocRef, messageData);
+
+    // --- B) 화면 표시용 Struct ---
+    localMessages.add(createStoryChatMessageStructStruct(
+      text: content,
+      type: type,
+      speakerName: speaker,
+      actionText: action,
+      storyImageUrl: imageUrl,
+      timestamp: DateTime.now(),
+    ));
   }
 
-  // 3. DB에 일괄 저장 실행 (await)
   await batch.commit();
-
-  // 4. 화면용 리스트 반환
   return localMessages;
 }

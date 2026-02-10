@@ -763,6 +763,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                           .toList(),
                                       storychatpageStoriesRecord.characters
                                           .toList(),
+                                      storychatpageStoriesRecord.events
+                                          .toList(),
                                     );
                                     _model.chatMessages = functions
                                         .mergeChatLists(
@@ -1131,7 +1133,10 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                                       storychatpageStoriesRecord
                                                                           .place,
                                                                       storychatpageStoriesRecord
-                                                                          .event),
+                                                                          .event,
+                                                                      storychatpageStoriesRecord
+                                                                          .events
+                                                                          .toList()),
                                                                   _model
                                                                       .formattedHistory
                                                                       ?.toList(),
@@ -1380,7 +1385,10 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                   storychatpageStoriesRecord
                                                       .place,
                                                   storychatpageStoriesRecord
-                                                      .event),
+                                                      .event,
+                                                  storychatpageStoriesRecord
+                                                      .events
+                                                      .toList()),
                                               _model.formattedHistory1
                                                   ?.toList(),
                                               _model.nextCommand,

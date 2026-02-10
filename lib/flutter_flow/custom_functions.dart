@@ -50,6 +50,7 @@ String buildStoryPrompt(
   bool isNovelMode,
   String majorPlacesText,
   String majorEventsText,
+  List<EventstructStruct>? events,
 ) {
   // ---------- 0) 안전 정리 ----------
   final safePlacesText =
@@ -86,6 +87,7 @@ String buildStoryPrompt(
   // ---------- 3) 상황 자산 ----------
   final situationBlock = StringBuffer();
   final sitSet = <String>{};
+
   for (final c in characters) {
     for (final s in c.situationImages) {
       final cond = (s.condition).trim();
@@ -94,11 +96,33 @@ String buildStoryPrompt(
       }
     }
   }
+
   final sitBlock = situationBlock.toString().trim().isEmpty
       ? 'None'
       : situationBlock.toString().trim();
 
-  // ---------- 4) 모드 규칙 ----------
+  // ---------- 4) 이벤트 자산 ----------
+  // events: [{event:tag, imageurl:url}, ...]
+  // 프롬프트에는 "태그"만 노출하고, 실제 URL 매핑은 processAndSaveChatTurn에서 함.
+  final evSet = <String>{};
+  final evLines = <String>[];
+
+  final evList = events ?? [];
+  for (final ev in evList) {
+    final d = ev as dynamic;
+
+    final tag = (d.event ?? '').toString().trim();
+    final url = ((d.imageurl ?? d.imageUrl) ?? '').toString().trim();
+
+    if (tag.isEmpty) continue;
+    if (url.isEmpty) continue;
+
+    if (evSet.add(tag)) evLines.add('- $tag');
+  }
+
+  final eventAssetBlock = evLines.isEmpty ? 'None' : evLines.join('\n');
+
+  // ---------- 5) 모드 규칙 ----------
   final modeText = isNovelMode
       ? 'WEB NOVEL (Continue story without waiting user input)'
       : 'ROLEPLAY (Wait user input, never speak as the user)';
@@ -108,33 +132,28 @@ String buildStoryPrompt(
 [MODE RULES - NOVELMODE]
 - The "user" role message you receive is NOT the character {user}'s dialogue.
   It can be a system directive like: [SYSTEM: Next Scene ...]
-- Do NOT output any dialogue line as the user. Never use:
-  [DIALOGUE SPEAKER="{user}" ...]
+- Do NOT output any dialogue line as the user.
+  Never use: [DIALOGUE SPEAKER="{user}" ...]
 - {user} may be mentioned as a person inside narration/dialogue (3rd person).
 - The system will add the turn header. Never output [TURN_HEADER] yourself.
-- LOCATION PACING:
-  Keep the same location for multiple turns.
+- LOCATION PACING: Keep the same location for multiple turns.
   Only change location when a major scene shift happens.
 '''
       : '''
 [MODE RULES - FREEMODE]
 - The real user sends messages separately. Never speak as the user.
-- Never output:
-  [DIALOGUE SPEAKER="{user}" ...]
+- Never output: [DIALOGUE SPEAKER="{user}" ...]
 - The system will add the turn header. Never output [TURN_HEADER] yourself.
-- LOCATION PACING:
-  Keep the same location for multiple turns.
+- LOCATION PACING: Keep the same location for multiple turns.
   Only change location when a major scene shift happens.
 ''';
 
-  // ---------- 5) 동적 컨텍스트 ----------
-  final noteSection =
-      userNote.isNotEmpty ? '<user_note>$userNote</user_note>' : '';
-  final memorySection = (summary != null && summary.isNotEmpty)
-      ? '<memory>$summary</memory>'
-      : '';
+  // ---------- 6) 동적 컨텍스트 ----------
+  final noteSection = userNote.trim().isNotEmpty ? userNote.trim() : '';
+  final memorySection =
+      (summary != null && summary.trim().isNotEmpty) ? summary.trim() : '';
 
-  // ---------- 6) 최종 프롬프트 ----------
+  // ---------- 7) 최종 프롬프트 ----------
   return '''
 You are an AI storyteller.
 
@@ -161,6 +180,8 @@ $characterBlock
 BackgroundAssets: $bgBlock
 SituationAssets:
 $sitBlock
+EventAssets:
+$eventAssetBlock
 
 [STORY CONSISTENCY RULES]
 - Use MAJOR EVENTS as the backbone of progression.
@@ -168,23 +189,35 @@ $sitBlock
 - When changing locations, prefer names from MAJOR PLACES.
 - If a place is not in BackgroundAssets, you can still use it as __PLACE__,
   but do NOT output SHOW_IMAGE for it.
+- EventAssets are "very important moments". Use them only at the exact moment.
 
 [CRITICAL OUTPUT FORMAT — ONLY THESE TAGS]
 - Mandatory place signal (MUST be the FIRST line of every response):
-  [NARRATION]__PLACE__<place_name>[/NARRATION]
+  [NARRATION]__PLACE__[/NARRATION]
   Rules:
-  1) <place_name> is the current location name in plain text.
+  1) __PLACE__ is the current location name in plain text.
   2) Do not include any other words in that line.
   3) Even if there is no background image asset, you MUST still output __PLACE__.
 
-- For image display (background or situation), output only:
+- For image display (background, situation, event), output only:
   [SHOW_IMAGE="ASSET_NAME"]
+
   IMPORTANT:
-  1) Only use ASSET_NAME if it EXACTLY matches the Asset List.
-  2) If the location changes AND the new place exists in BackgroundAssets,
-     output exactly ONE background [SHOW_IMAGE="PLACE"] near the top of the turn.
-  3) If the location changes but the place is NOT in BackgroundAssets,
-     do NOT output SHOW_IMAGE. Only update the __PLACE__ line.
+  1) Only use ASSET_NAME if it EXACTLY matches the Asset List
+     (BackgroundAssets OR SituationAssets OR EventAssets).
+  2) Background rule:
+     - If the location changes AND the new place exists in BackgroundAssets,
+       output exactly ONE background [SHOW_IMAGE="PLACE"] near the top of the turn.
+     - If the location changes but the place is NOT in BackgroundAssets,
+       do NOT output SHOW_IMAGE. Only update the __PLACE__ line.
+  3) Situation rule:
+     - If an action/condition moment clearly matches a SituationAsset,
+       output [SHOW_IMAGE="SITUATION_TAG"] once near the top.
+  4) Event rule (MOST IMPORTANT MOMENTS):
+     - Only when the current story moment IS the event described by an EventAsset tag,
+       output [SHOW_IMAGE="EVENT_TAG"] once near the top.
+     - Do NOT output Event SHOW_IMAGE early.
+     - Do NOT invent new tags.
 
 - For narration:
   [NARRATION]text[/NARRATION]
@@ -194,9 +227,11 @@ $sitBlock
   ACTION is optional, but if emotion is unknown, use ACTION="무감정".
 
 [HARD BANS]
-1) Never output quotes: " or '
-2) Never output parenthetical acting: ( ... )
-3) Never output any extra text outside the tags.
+1) Do NOT output any plain text outside the tags.
+2) Do NOT use quotes in narration/dialogue content.
+   Quotes are ONLY allowed inside tag attributes exactly as shown:
+   [SHOW_IMAGE="..."] and [DIALOGUE SPEAKER="..." ACTION="..."]
+3) Do NOT use parenthetical acting: ( ... )
 4) Never output [TURN_HEADER].
 
 [DYNAMIC CONTEXT]
