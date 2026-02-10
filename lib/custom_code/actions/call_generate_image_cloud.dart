@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'index.dart'; // Imports other custom actions
+
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<dynamic> callGenerateImageCloud(
@@ -26,9 +28,7 @@ Future<dynamic> callGenerateImageCloud(
     // [중요] 타임아웃 540초 (9분) 설정 - 고화질 생성 대기용
     final options = HttpsCallableOptions(timeout: const Duration(seconds: 540));
 
-    // 서버 리전이 기본(us-central1)이 아니라면 region: 'asia-northeast3' 등을 지정해야 함
-    // 여기서는 기본값 사용
-    final callable = FirebaseFunctions.instance
+    final callable = FirebaseFunctions.instanceFor(region: 'us-central1')
         .httpsCallable('generateReplicateImage', options: options);
 
     final results = await callable.call(<String, dynamic>{

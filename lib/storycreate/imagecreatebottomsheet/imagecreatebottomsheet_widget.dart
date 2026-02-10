@@ -799,7 +799,7 @@ class _ImagecreatebottomsheetWidgetState
                     Align(
                       alignment: AlignmentDirectional(-1.0, 0.0),
                       child: Text(
-                        '상황 태그',
+                        '행동 태그',
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
                               font: GoogleFonts.inter(
                                 fontWeight: FontWeight.w600,

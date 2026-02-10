@@ -144,11 +144,8 @@ function safeSeed(seedLike) {
  * --------------------------------------------------------- */
 const MODEL_REGISTRY = {
   PEACH_COMFY_ANIME: {
-    // ✅✅✅ 여기 2개만 너 계정/모델명으로 바꿔줘
-    // 예: replicate.com/peachspace/peach-comfy-anime
     owner: "peachspace",
     name: "peach-comfy-anime",
-    // 고정 버전 쓰고 싶으면 여기에 넣기(선택). 비워도 됨(최신버전 자동 조회)
     version: "",
     schema: "PEACH_COMFY_ANIME",
   },
@@ -289,7 +286,6 @@ function buildPrompt(mode, styleObj, basePrompt, scenePrompt) {
     return parts.filter(Boolean).join(", ");
   }
 
-  // event 포함 default
   parts.push(single);
   parts.push(prefix);
   if (identityTags) parts.push(identityTags);
@@ -389,7 +385,6 @@ function invalidateModelCaches(owner, name) {
 
 /** ---------------------------------------------------------
  * (루트2) 너 전용 comfy 모델 payload 생성
- * - 이 input 키들은 predict.py의 predict() Input 이름과 동일해야 함
  * --------------------------------------------------------- */
 function createPeachComfyPayload({
   prompt,
@@ -401,11 +396,13 @@ function createPeachComfyPayload({
   poseImageUrl,
   mode,
 }) {
-  let ip = 0.7;
-  if (mode === "emotion") ip = 0.55;
-  else if (mode === "situation") ip = 0.6;
-  else if (mode === "character") ip = 0.65;
-  else if (mode === "event") ip = 0.6;
+  // ✅✅✅ 요청하신 ip 값으로 교체
+  let ip = 0.75;
+  if (mode === "emotion") ip = 0.85;
+  else if (mode === "situation") ip = 0.9;
+  else if (mode === "character") ip = 0.7;
+  else if (mode === "event") ip = 0.85;
+  else if (mode === "main") ip = 0.9;
 
   return {
     version: null,
@@ -429,7 +426,6 @@ async function callReplicate(apiKey, version, input) {
   let retries = 3;
   while (true) {
     try {
-      // Prefer 헤더로 최대 60초까지 기다림(Replicate 문서) :contentReference[oaicite:0]{index=0}
       const response = await axios.post(
         "https://api.replicate.com/v1/predictions",
         { version, input },
@@ -437,7 +433,6 @@ async function callReplicate(apiKey, version, input) {
           headers: {
             Authorization: `Bearer ${apiKey}`,
             Prefer: "wait=30",
-            // 너무 오래 걸리면 자동 취소도 가능(선택) :contentReference[oaicite:1]{index=1}
             "Cancel-After": "10m",
           },
           timeout: 45000,
@@ -575,6 +570,11 @@ exports.generateReplicateImage = functions
       const referenceImageUrl = String(data.referenceImageUrl || "").trim();
       const poseImageUrl = String(data.poseImageUrl || "").trim();
       const seed = safeSeed(data.seed);
+
+      // ✅✅✅ 요청하신 레퍼런스 필수 체크 (character만 예외)
+      if (mode !== "character" && !referenceImageUrl) {
+        return { success: false, error: "referenceImageUrl required." };
+      }
 
       const targetBucket = normalizeBucketName(CONFIG_BUCKET);
 
