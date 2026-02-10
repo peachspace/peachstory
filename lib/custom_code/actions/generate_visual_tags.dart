@@ -92,9 +92,22 @@ Choose the best framing for the action.
   } else if (mode == "character") {
     systemPrompt = """
 $baseRules
-7) Output ONLY immutable character identity tags (appearance).
-8) DO NOT include facial expression, emotion, pose, background.
-9) Output 10~15 tags.
+7) Output ONLY immutable facial identity & hair identity tags.
+8) STRICTLY FORBIDDEN: clothing/outfit, accessories, background/location, lighting, camera/framing, pose/action, emotion/expression, age words, style/quality words.
+9) Output 10~14 tags only.
+
+MANDATORY (must include):
+A) Hair color + hair length + hair style (e.g., "black long hair", "wavy hair", "bangs")
+B) Eye color (+ optional eye shape) (e.g., "brown eyes", "droopy eyes")
+C) Skin tone (e.g., "fair skin")
+D) Face shape / structure descriptors (choose 2~4):
+   - "oval face" | "round face" | "sharp jawline" | "small nose" | "full lips" | "thin lips" | "high nose bridge" | "small mouth"
+E) 1 signature facial detail (choose 1):
+   - "beauty mark under eye" | "freckles" | "thick eyebrows" | "thin eyebrows" | "double eyelids"
+
+OUTPUT FORMAT:
+- comma-separated English tags only
+- NO parentheses, NO weights, NO sentences
 """;
   } else if (mode == "main") {
     systemPrompt = """

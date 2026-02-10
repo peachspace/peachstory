@@ -7,37 +7,46 @@ if (!admin.apps.length) admin.initializeApp();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // =====================================================
-// ✅ 스키마 불일치 확인용 스위치 (true면 prompt/negative_prompt만 보냄)
+// ✅ 스키마 확인용: true면 최소(prompt/negative_prompt)만 전송
 // =====================================================
-const MINIMAL_PAYLOAD = false; // 필요할 때 true로 바꿔서 테스트
+const MINIMAL_PAYLOAD = false;
+
+// =====================================================
+// ✅ 파이프라인 토글
+//  - "A_BASE"   : 기존 모델(SDXL)로 A해법 수행 (기본)
+//  - "B_CUSTOM" : (나중에) 너의 Comfy 모델을 쓰는 B해법용
+// =====================================================
+const IMAGE_PIPELINE = process.env.IMAGE_PIPELINE || "A_BASE"; // 기본 A_BASE
 
 // ===============================
-// ✅ (1) 스타일/퀄리티 토큰 고정용: 유저 입력에서 제거할 키워드
+// ✅ (1) 스타일/퀄리티 토큰 고정용: 유저 입력에서 제거할 키워드 (서버 강제)
 // ===============================
 const FORBIDDEN_STYLE_RE =
   /(\bmasterpiece\b|\bbest quality\b|\bhigh quality\b|\banime\b|\bwebtoon\b|\bmanhwa\b|\blineart\b|\bcel shading\b|\bflat color\b|\b8k\b|\b4k\b|\bphotorealistic\b|\brealistic\b|\bcinematic\b|\brender\b|\bstyle\b|\bquality\b)/gi;
 
 // ===============================
-// ✅ (2) 서버에서만 고정할 생성 파라미터(클라 값 무시)
-// - 너 workflow(ComfyUI)가 받는 키로만 유지해야 함
+// ✅ (2) 서버에서만 고정할 생성 파라미터 (클라 값 무시)
+// - SDXL schema 기준: num_inference_steps, guidance_scale, scheduler
 // ===============================
-const GEN_PARAMS = {
-  steps: 7,
-  cfg: 2.6,
-  // sampler가 workflow input으로 존재한다면 여기에 고정 (없으면 아예 보내지 말 것)
-  // sampler: "euler_a",
+const GEN_PARAMS_SDXL = {
+  num_inference_steps: 30, // 고정
+  guidance_scale: 7.5, // 고정
+  scheduler: "K_EULER", // 고정 (SDXL 기본값과 동일)   [oai_citation:1‡Replicate](https://replicate.com/stability-ai/sdxl/versions/7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc/api?utm_source=chatgpt.com)
+  apply_watermark: true, // 필요시 false 가능 (정책/운영 고려)
 };
 
 // ===============================
-// ✅ (3) IP-Adapter 모드별 상한(clamp)
+// ✅ (3) "IP-Adapter 스케일" 대신 SDXL img2img의 prompt_strength를 모드별 상한(clamp)
+// - prompt_strength: 1.0 = 레퍼런스 거의 파괴, 0.x = 레퍼런스 보존
+// - 동일성(아이덴티티) 유지가 목표면 일반적으로 "너무 높이면" 얼굴이 변함
 // ===============================
-const IP_CAP = {
-  character: { base: 0.7, max: 0.75 },
-  emotion: { base: 0.85, max: 0.9 },
-  situation: { base: 0.9, max: 0.95 },
-  main: { base: 0.9, max: 0.95 },
-  event: { base: 0.85, max: 0.9 },
-  background: { base: 0.0, max: 0.0 }, // 배경은 reference 영향 거의 필요 없음(원하면 조정)
+const PROMPT_STRENGTH_CAP = {
+  emotion: { base: 0.55, max: 0.65 }, // 표정 바꾸되 동일성 유지 최우선
+  situation: { base: 0.65, max: 0.75 }, // 전신/동작은 조금 더 자유
+  main: { base: 0.7, max: 0.8 }, // 커버는 연출 자유 조금 허용
+  event: { base: 0.65, max: 0.75 },
+  character: { base: null, max: null }, // txt2img
+  background: { base: null, max: null }, // txt2img
 };
 
 // [중요] 사용자님의 버킷 주소 (기존 유지)
@@ -63,7 +72,7 @@ const AUTO_BUCKET =
 
 const CONFIG_BUCKET = AUTO_BUCKET || MANUAL_BUCKET_FALLBACK;
 
-// Replicate version 캐시
+// Replicate version 캐시(필요시만)
 const MODEL_VERSION_CACHE = new Map();
 const MODEL_VERSION_TTL_MS = 10 * 60 * 1000;
 const MODEL_VERSION_INFLIGHT = new Map();
@@ -173,32 +182,14 @@ function safeSeed(seedLike) {
   return n;
 }
 
-/** ---------------------------------------------------------
- * ✅ ComfyUI 모델 레지스트리 (핀 version 사용)
- * --------------------------------------------------------- */
-const MODEL_REGISTRY = {
-  PEACH_COMFY_ANIME: {
-    owner: "peachspace",
-    name: "peach-comfy-anime",
-    version: "205534767bb5412bfeccb2e8f2af1042ef2a5473e17eec9bf59248acc2beef2c",
-    schema: "PEACH_COMFY_ANIME",
-  },
-};
-
-const STYLE_MAPPING = {
-  애니: {
-    modelKey: "PEACH_COMFY_ANIME",
-    prefix:
-      "masterpiece, best quality, high quality anime illustration, light novel illustration, soft shading, clean lineart, smooth gradients, glossy eyes, detailed hair, delicate highlights",
-    neg: "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, username, blurry, character sheet, reference sheet, turnaround, multiple views, collage, panel, split view, multiple characters, 2girls, 2people, crowd, chibi",
-  },
-  웹툰: {
-    modelKey: "PEACH_COMFY_ANIME",
-    prefix:
-      "masterpiece, best quality, webtoon style, manhwa, bold outlines, flat color, vivid colors",
-    neg: "lowres, bad anatomy, bad hands, speech bubble, caption, text, dialog box, typeset, panel borders, split view, multiple views, multiple characters, crowd",
-  },
-};
+// ✅ 유저 입력에서 스타일/퀄리티 토큰 제거(서버 강제)
+function stripStyleTokens(text) {
+  if (!text) return "";
+  return String(text)
+    .replace(FORBIDDEN_STYLE_RE, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function normalizeStyle(raw) {
   const s = String(raw || "애니").trim();
@@ -216,15 +207,6 @@ function normalizeMode(raw) {
   if (m.includes("background")) return "background";
   if (m.includes("event")) return "event";
   return "character";
-}
-
-// ✅ 유저 입력에서 스타일/퀄리티 토큰 제거(서버 강제)
-function stripStyleTokens(text) {
-  if (!text) return "";
-  return String(text)
-    .replace(FORBIDDEN_STYLE_RE, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 function pickGenderToken(basePrompt) {
@@ -253,14 +235,72 @@ function buildIdentityTags(mode, basePrompt) {
   if (!bp) return "";
   if (mode === "background") return "";
   const w = identityWeightByMode(mode);
-  // ✅ 불변 속성 태그는 항상 강하게 고정
   return `(${bp}:${w.toFixed(2)})`;
 }
 
-function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
-  const prefix = styleObj.prefix;
+// ✅ 모드별 해상도/비율 고정 (서버 강제)
+function fixedSizeByMode(mode) {
+  const isWide = mode === "main" || mode === "background";
+  const isProfileSquare = mode === "character";
+  const width = isWide ? 1024 : isProfileSquare ? 1024 : 896;
+  const height = isWide ? 768 : isProfileSquare ? 1024 : 1152;
+  return { width, height };
+}
 
-  // ✅✅✅ (1) 유저 입력에서 스타일 토큰 제거 (서버 강제)
+// ✅ SDXL img2img prompt_strength clamp (서버 강제)
+function clampPromptStrength(mode, maybeUserStrength) {
+  const cap = PROMPT_STRENGTH_CAP[mode] || PROMPT_STRENGTH_CAP.situation;
+  if (cap.base == null) return undefined;
+
+  let v = cap.base;
+  if (maybeUserStrength !== undefined && maybeUserStrength !== null) {
+    const n = Number(maybeUserStrength);
+    if (!Number.isNaN(n) && n > 0) v = n;
+  }
+  if (v > cap.max) v = cap.max;
+  if (v < 0.05) v = 0.05;
+  return v;
+}
+
+/** ---------------------------------------------------------
+ * ✅ 스타일 프리셋(앱에서 바꾸지 못하게 “서버에서만” 사용)
+ * - A해법(기존모델)에서도 스타일 흔들림 방지에 필요
+ * --------------------------------------------------------- */
+const STYLE_MAPPING = {
+  애니: {
+    prefix:
+      "masterpiece, best quality, high quality anime illustration, light novel illustration, soft shading, clean lineart, smooth gradients, glossy eyes, detailed hair, delicate highlights",
+    neg: "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, username, blurry, character sheet, reference sheet, turnaround, multiple views, collage, panel, split view, multiple characters, 2girls, 2people, crowd, chibi",
+  },
+  웹툰: {
+    prefix:
+      "masterpiece, best quality, webtoon style, manhwa, bold outlines, flat color, vivid colors",
+    neg: "lowres, bad anatomy, bad hands, speech bubble, caption, text, dialog box, typeset, panel borders, split view, multiple views, multiple characters, crowd",
+  },
+};
+
+/** ---------------------------------------------------------
+ * ✅ Replicate 모델 레지스트리
+ * - A_BASE: stability-ai/sdxl (공식 API 스키마)  [oai_citation:2‡Replicate](https://replicate.com/stability-ai/sdxl/versions/7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc/api?utm_source=chatgpt.com)
+ * - B_CUSTOM: (나중에) 너의 comfy 모델
+ * --------------------------------------------------------- */
+const MODEL_REGISTRY = {
+  A_BASE_SDXL: {
+    owner: "stability-ai",
+    name: "sdxl",
+    version: "7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc",
+    schema: "SDXL",
+  },
+  B_CUSTOM_PEACH_COMFY: {
+    owner: "peachspace",
+    name: "peach-comfy-anime",
+    version: "205534767bb5412bfeccb2e8f2af1042ef2a5473e17eec9bf59248acc2beef2c",
+    schema: "COMFY", // (나중에 켤 용도)
+  },
+};
+
+function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
+  // ✅ 서버에서 스타일토큰 제거(유저 입력에 섞여 들어오면 제거)
   const basePrompt = stripStyleTokens(basePromptRaw);
   let scenePrompt = stripStyleTokens(scenePromptRaw);
 
@@ -271,6 +311,7 @@ function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
 
   let finalScene = String(scenePrompt || "").trim();
 
+  // emotion: 첫 단어 감정키 매핑
   if (mode === "emotion") {
     const partsRaw = finalScene.trim().split(/\s+/);
     const rawKey = partsRaw[0] || "";
@@ -284,13 +325,14 @@ function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
     finalScene = `(${finalScene}:1.35)`;
   }
 
+  // ✅ 해법 A: 불변 속성 태그(가중치) 강제
   const identityTags = buildIdentityTags(mode, basePrompt);
 
   const parts = [];
 
   if (mode === "background") {
     parts.push("scenery, no humans");
-    parts.push(prefix);
+    parts.push(styleObj.prefix);
     if (finalScene) parts.push(finalScene);
     return parts.filter(Boolean).join(", ");
   }
@@ -302,10 +344,11 @@ function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
     );
     parts.push("centered composition, some headroom");
     parts.push("simple background");
-    parts.push(prefix);
+    parts.push(styleObj.prefix);
     if (identityTags) parts.push(identityTags);
     parts.push("neutral expression");
     parts.push("not a close-up, subject not too large in frame");
+    if (finalScene) parts.push(finalScene); // character에서도 입력을 허용하되, 서버 strip 적용됨
     return parts.filter(Boolean).join(", ");
   }
 
@@ -317,7 +360,7 @@ function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
         lower,
       );
     if (!hasFraming) parts.push("upper body, waist up, medium shot");
-    parts.push(prefix);
+    parts.push(styleObj.prefix);
     if (identityTags) parts.push(identityTags);
     if (finalScene) parts.push(finalScene);
     return parts.filter(Boolean).join(", ");
@@ -326,7 +369,7 @@ function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
   if (mode === "situation") {
     parts.push(single);
     parts.push("full body, dynamic action pose");
-    parts.push(prefix);
+    parts.push(styleObj.prefix);
     if (identityTags) parts.push(identityTags);
     if (finalScene) parts.push(`(${finalScene}:1.2)`);
     return parts.filter(Boolean).join(", ");
@@ -335,7 +378,7 @@ function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
   if (mode === "main") {
     parts.push(single);
     parts.push("cover art, cinematic composition");
-    parts.push(prefix);
+    parts.push(styleObj.prefix);
     if (identityTags) parts.push(identityTags);
     if (finalScene) parts.push(finalScene);
     parts.push("dramatic lighting, detailed background");
@@ -343,7 +386,7 @@ function buildPrompt(mode, styleObj, basePromptRaw, scenePromptRaw) {
   }
 
   parts.push(single);
-  parts.push(prefix);
+  parts.push(styleObj.prefix);
   if (identityTags) parts.push(identityTags);
   if (finalScene) parts.push(finalScene);
   return parts.filter(Boolean).join(", ");
@@ -439,45 +482,21 @@ function invalidateModelCaches(owner, name) {
   MODEL_VERSION_CACHE.delete(key);
 }
 
-// ✅ 모드별 해상도/비율 고정 (서버 강제)
-function fixedSizeByMode(mode) {
-  const isWide = mode === "main" || mode === "background";
-  const isProfileSquare = mode === "character";
-  const width = isWide ? 1024 : isProfileSquare ? 1024 : 896;
-  const height = isWide ? 768 : isProfileSquare ? 1024 : 1152;
-  return { width, height };
-}
-
-// ✅ IP-Adapter 스케일 clamp (서버 강제)
-function clampIp(mode, maybeUserIp) {
-  const cap = IP_CAP[mode] || IP_CAP.character;
-  let v = cap.base;
-
-  if (maybeUserIp !== undefined && maybeUserIp !== null) {
-    const n = Number(maybeUserIp);
-    if (!Number.isNaN(n) && n > 0) v = n;
-  }
-
-  if (v > cap.max) v = cap.max;
-  if (v < 0) v = 0;
-  return v;
-}
-
 /** ---------------------------------------------------------
- * ✅ payload 생성 ("" 금지: 값 없으면 key 제거)
- * + (2) steps/cfg/sampler 서버 고정
- * + (3) ip_adapter_scale 모드별 상한
+ * ✅ A_BASE(SDXL) payload 생성
+ * - character/background: txt2img (image 없음)
+ * - emotion/situation/main/event: img2img (image=referenceImageUrl)
+ * - prompt_strength를 모드별 clamp로 "레퍼런스 영향 상한" 구현
  * --------------------------------------------------------- */
-function createPeachComfyPayload({
+function createSdxlPayload({
   prompt,
   negative,
   width,
   height,
   seed,
-  referenceImageUrl,
-  poseImageUrl,
   mode,
-  userIpScale,
+  referenceImageUrl,
+  userPromptStrength,
 }) {
   const input = {
     prompt,
@@ -486,26 +505,31 @@ function createPeachComfyPayload({
     height,
     seed,
 
-    // ✅✅✅ (2) 서버에서만 고정
-    steps: GEN_PARAMS.steps,
-    cfg: GEN_PARAMS.cfg,
-
-    mode: mode,
+    // ✅ 서버 고정 파라미터
+    num_inference_steps: GEN_PARAMS_SDXL.num_inference_steps,
+    guidance_scale: GEN_PARAMS_SDXL.guidance_scale,
+    scheduler: GEN_PARAMS_SDXL.scheduler,
+    apply_watermark: GEN_PARAMS_SDXL.apply_watermark,
   };
 
-  // ✅ sampler가 workflow input으로 존재할 때만 사용
-  if (GEN_PARAMS.sampler) input.sampler = GEN_PARAMS.sampler;
-
-  // ✅✅✅ (3) reference 있을 때만 ip_adapter_scale 포함
+  // img2img일 때만 image + prompt_strength 추가   [oai_citation:3‡Replicate](https://replicate.com/stability-ai/sdxl/versions/7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc/api?utm_source=chatgpt.com)
   if (referenceImageUrl) {
-    input.ip_adapter_scale = clampIp(mode, userIpScale);
+    input.image = referenceImageUrl;
+    const ps = clampPromptStrength(mode, userPromptStrength);
+    if (ps !== undefined) input.prompt_strength = ps;
   }
 
-  // ✅✅✅ 핵심: 빈 문자열 넣지 말고, 있을 때만 key 추가
-  if (referenceImageUrl) input.reference_image = referenceImageUrl;
-  if (poseImageUrl) input.pose_image = poseImageUrl;
-
   return { version: null, input };
+}
+
+/** ---------------------------------------------------------
+ * ✅ (나중에) B_CUSTOM(Comfy)용 payload는 여기서 분기 구현 가능
+ * - 지금은 A해법만 쓰므로, 호출 분기만 남겨둠
+ * --------------------------------------------------------- */
+function createComfyPayloadPlaceholder() {
+  throw new Error(
+    "B_CUSTOM pipeline is disabled in this deployment. Use IMAGE_PIPELINE=A_BASE.",
+  );
 }
 
 /** ---------------------------------------------------------
@@ -652,6 +676,7 @@ exports.generateReplicateImage = functions
   .https.onCall(async (data, context) => {
     const CONFIG_API_KEY =
       process.env.REPLICATE_API_KEY || functions.config().replicate?.key;
+
     if (!CONFIG_BUCKET || !CONFIG_API_KEY)
       return { success: false, error: "Server Config Error." };
     if (!context.auth) return { success: false, error: "Auth required." };
@@ -662,20 +687,20 @@ exports.generateReplicateImage = functions
       const mode = normalizeMode(data.mode);
       const style = normalizeStyle(data.style);
 
-      // ✅✅✅ (1) 스타일 토큰 제거는 buildPrompt 내부에서 다시 하지만,
-      // 여기서도 1차 trim 정도만 수행
-      const promptInput = String(data.prompt || "").trim();
-      const basePrompt = String(data.basePrompt || "").trim();
+      // 유저 입력
+      const promptInputRaw = String(data.prompt || "").trim();
+      const basePromptRaw = String(data.basePrompt || "").trim();
 
       const referenceImageUrl = String(data.referenceImageUrl || "").trim();
-      const poseImageUrl = String(data.poseImageUrl || "").trim();
+      const poseImageUrl = String(data.poseImageUrl || "").trim(); // A_BASE에서는 사용 안 함(검증만)
       const seed = safeSeed(data.seed);
 
-      // 레퍼런스 필수 체크 (character만 예외)
-      if (mode !== "character" && !referenceImageUrl) {
+      // reference 필수(너 로직 유지): character만 예외
+      if (mode !== "character" && mode !== "background" && !referenceImageUrl) {
         return { success: false, error: "referenceImageUrl required." };
       }
 
+      // 버킷 검증
       const targetBucket = normalizeBucketName(CONFIG_BUCKET);
 
       if (
@@ -689,16 +714,30 @@ exports.generateReplicateImage = functions
       }
 
       const styleObj = STYLE_MAPPING[style] || STYLE_MAPPING["애니"];
-      const modelKey = styleObj.modelKey;
 
-      const finalPrompt = buildPrompt(mode, styleObj, basePrompt, promptInput);
+      // ✅ 최종 프롬프트(서버에서 스타일토큰 제거 + 불변속성 가중치 강제)
+      const finalPrompt = buildPrompt(
+        mode,
+        styleObj,
+        basePromptRaw,
+        promptInputRaw,
+      );
 
-      // ✅✅✅ (2) 해상도/비율 고정은 여기서만 결정
+      // ✅ 서버에서만 해상도/비율 고정
       const { width, height } = fixedSizeByMode(mode);
 
-      // ✅✅✅ 2) payload 최소화 모드(스키마 확인용)
+      // ✅ 파이프라인별 모델 선택
+      const modelInfo =
+        IMAGE_PIPELINE === "B_CUSTOM"
+          ? MODEL_REGISTRY.B_CUSTOM_PEACH_COMFY
+          : MODEL_REGISTRY.A_BASE_SDXL;
+
+      if (!modelInfo) throw new Error("Model registry missing.");
+
+      // ✅ payload 구성
       let payloadObj;
       if (MINIMAL_PAYLOAD) {
+        // 최소 스키마 확인용
         payloadObj = {
           version: null,
           input: {
@@ -707,22 +746,31 @@ exports.generateReplicateImage = functions
           },
         };
       } else {
-        payloadObj = createPeachComfyPayload({
-          prompt: finalPrompt,
-          negative: styleObj.neg,
-          width,
-          height,
-          seed,
-          referenceImageUrl,
-          poseImageUrl,
-          mode,
-          userIpScale: data.ipAdapterScale, // (있어도 clamp됨)
-        });
+        if (modelInfo.schema === "SDXL") {
+          // SDXL: img2img는 image + prompt_strength 사용   [oai_citation:4‡Replicate](https://replicate.com/stability-ai/sdxl/versions/7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc/api?utm_source=chatgpt.com)
+          const useImg2Img =
+            mode !== "character" &&
+            mode !== "background" &&
+            !!referenceImageUrl;
+
+          payloadObj = createSdxlPayload({
+            prompt: finalPrompt,
+            negative: styleObj.neg,
+            width,
+            height,
+            seed,
+            mode,
+            referenceImageUrl: useImg2Img ? referenceImageUrl : null,
+            userPromptStrength: data.promptStrength, // 있어도 clamp됨
+          });
+        } else if (modelInfo.schema === "COMFY") {
+          payloadObj = createComfyPayloadPlaceholder(); // 지금은 A해법만
+        } else {
+          throw new Error(`Unknown schema: ${modelInfo.schema}`);
+        }
       }
 
-      const modelInfo = MODEL_REGISTRY[modelKey];
-      if (!modelInfo) throw new Error(`Unknown Model Key: ${modelKey}`);
-
+      // version (핀을 기본으로 쓰되, 필요하면 캐시로 최신도 가능)
       let versionToUse = modelInfo.version;
       if (!versionToUse)
         versionToUse = await getModelVersionCached(CONFIG_API_KEY, modelInfo);
@@ -737,6 +785,7 @@ exports.generateReplicateImage = functions
         );
         prediction = await pollReplicate(CONFIG_API_KEY, created.urls.get);
       } catch (reqErr) {
+        // version 문제면 최신으로 재시도(보험)
         if (isInvalidVersion422(reqErr) && modelInfo.owner && modelInfo.name) {
           invalidateModelCaches(modelInfo.owner, modelInfo.name);
           const freshVersion = await getModelVersionCached(
@@ -775,7 +824,7 @@ exports.generateReplicateImage = functions
           imageUrl: permUrl,
           seed,
           model: `${modelInfo.owner}/${modelInfo.name}`,
-          pipeline: "PEACH_COMFY_ANIME",
+          pipeline: IMAGE_PIPELINE,
         };
       } catch (e) {
         return {
@@ -783,7 +832,7 @@ exports.generateReplicateImage = functions
           imageUrl: rawAiUrl,
           seed,
           model: `${modelInfo.owner}/${modelInfo.name}`,
-          pipeline: "PEACH_COMFY_ANIME_STORAGE_FALLBACK",
+          pipeline: `${IMAGE_PIPELINE}_STORAGE_FALLBACK`,
         };
       }
     } catch (error) {
