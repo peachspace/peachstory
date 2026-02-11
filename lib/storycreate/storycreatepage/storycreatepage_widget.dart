@@ -833,7 +833,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           _model.generatedworldview =
                                                               await actions
                                                                   .generateWorldText(
-                                                            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요사건]: ${_model.eventTextController.text}',
+                                                            '세계관을 생성하라.',
                                                             _model
                                                                 .genredropdownValue!,
                                                             FFAppState()
