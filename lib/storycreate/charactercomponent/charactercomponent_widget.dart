@@ -720,6 +720,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                                     .bodyMedium
                                                     .fontStyle,
                                           ),
+                                      maxLines: null,
                                       maxLength: 1000,
                                       maxLengthEnforcement:
                                           MaxLengthEnforcement.enforced,
