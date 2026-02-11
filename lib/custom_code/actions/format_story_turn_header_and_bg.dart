@@ -130,12 +130,22 @@ Future<String> formatStoryTurnHeaderAndBg(
     }
   }
 
-  // 9) 헤더 장소 100%: __PLACE__ > (requestedBg) > lastBgPlace > 어딘가
-  //    단, __PLACE__가 있으면 그게 최우선
+  // 9) 헤더 장소 100%...
   final placeForHeader =
       (thisPlace ?? requestedBg ?? lastBgPlace ?? '어딘가').trim();
-  final safePlace = placeForHeader.isEmpty ? '어딘가' : placeForHeader;
 
+// ✅ 추가: 헤더 안전 처리
+  String sanitizePlace(String p) {
+    var x = p.trim();
+    x = x.replaceAll(RegExp(r'[<>]'), ''); // <-, -> 제거
+    x = x.replaceAll(RegExp(r'[\[\]]'), ''); // 대괄호 중복 방지
+    x = x.replaceAll(RegExp(r'\s{2,}'), ' ');
+    return x.trim();
+  }
+
+  final safePlaceRaw = placeForHeader.isEmpty ? '어딘가' : placeForHeader;
+  final safePlace =
+      sanitizePlace(safePlaceRaw).isEmpty ? '어딘가' : sanitizePlace(safePlaceRaw);
   // ✅ 핵심: 배경 후보는 "헤더 장소(safePlace)와 동일"할 때만 인정
   // - __PLACE__가 있으면: 배경은 safePlace가 자산에 있을 때만
   // - __PLACE__가 없으면: requestedBg를 배경으로 쓸 수 있음

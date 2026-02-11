@@ -16,15 +16,22 @@ Future<String> generateWorldText(
   String currentStoryContext,
   String genre,
   String? draftId,
-  String targetKey, // 'place' or 'worldview' (or others)
+  String targetKey, // 'place' or 'worldview'
 ) async {
   // -----------------------
   // 0) 유틸
   // -----------------------
-  String cleanBasic(String s) {
+  // ✅ 마크다운/서식만 제거 (따옴표는 JSON 파싱 때문에 여기서 제거하면 안 됨)
+  String cleanBasicKeepQuotes(String s) {
     var out = s.trim();
     out = out.replaceAll('```json', '').replaceAll('```', '');
     out = out.replaceAll('**', '').replaceAll('__', '');
+    return out.trim();
+  }
+
+  // ✅ 최종 UI에 넣기 전에만 따옴표 제거(원하는 스타일이면 유지)
+  String stripQuotes(String s) {
+    var out = s;
     out = out.replaceAll('"', '').replaceAll("'", "");
     return out.trim();
   }
@@ -59,88 +66,129 @@ Future<String> generateWorldText(
   bool looksJsonLike(String text) {
     final t = text.trim();
     if (t.startsWith('{') || t.startsWith('[')) return true;
-    // 흔한 JSON 키들
     if (t.contains('"fields"') ||
         t.contains('"genre"') ||
         t.contains('"key"') ||
-        t.contains('"label"')) {
+        t.contains('"label"') ||
+        t.contains('"value"')) {
       return true;
     }
-    // 중괄호가 많으면 거의 JSON
     final braces = RegExp(r'[\{\}]').allMatches(t).length;
     return braces >= 2;
   }
 
-  // ✅ JSON이 와도 worldSettings 텍스트필드에 넣기 좋은 “텍스트”로 변환
-  // - worldview 모드에서는 "주요 장소" 관련 항목을 아예 제외
-  String jsonToWorldviewText(String rawJson, {required bool isPlaceMode}) {
+  // ✅ JSON이 와도 텍스트로 복구
+  // - place 모드: "주요 장소(5개 이상...)" 형식으로 복구
+  // - worldview 모드: "주요 장소" 관련 항목은 완전히 제외하고 텍스트화
+  String jsonToText(String rawJson, {required bool isPlaceMode}) {
     dynamic obj;
     try {
       obj = jsonDecode(rawJson);
     } catch (_) {
-      // JSON 파싱 실패면 원문 반환(다음 단계 리페어가 처리)
       return rawJson.trim();
     }
 
-    // 1) place 모드면: place만 뽑아서 텍스트화
+    // -----------------------
+    // PLACE MODE
+    // -----------------------
     if (isPlaceMode) {
-      // fields 안에 major_place가 있을 수도 있고, major_place 자체 키가 있을 수도 있음
       final lines = <String>[];
-      lines.add('주요 장소(5개 이상, 각 줄은 \'장소명: 설명\'):');
-      // JSON이 텍스트형 장소 리스트만 주는 케이스 대비
-      // 최대한 복구
+      lines.add("주요 장소(5개 이상, 각 줄은 '장소명: 설명'):");
+
+      // 1) fields에서 주요 장소 찾기
       if (obj is Map) {
-        // fields 배열에서 major_place 찾기
+        // fields 형태
         final fields = obj['fields'];
         if (fields is List) {
+          String? placeValue;
           for (final f in fields) {
-            if (f is Map &&
-                (f['key'] == 'major_place' ||
-                    f['label']?.toString().contains('주요') == true)) {
-              final v = (f['value'] ?? '').toString();
-              // "A, B, C" 형태면 줄로 쪼개기
-              final parts = v
-                  .split(RegExp(r'[,\n]'))
-                  .map((e) => e.trim())
-                  .where((e) => e.isNotEmpty)
-                  .toList();
-              for (final p in parts) {
-                // 설명이 없으면 임시 설명 붙이기(최후 방어)
-                lines.add(p.contains(':') ? p : '$p: (설명 필요)');
+            if (f is Map) {
+              final k = (f['key'] ?? '').toString();
+              final label = (f['label'] ?? '').toString();
+              if (k == 'major_place' ||
+                  k == 'major_place_list' ||
+                  label.contains('주요 장소') ||
+                  label.contains('주요장소')) {
+                placeValue = (f['value'] ?? '').toString();
+                break;
               }
-              break;
             }
+          }
+
+          if (placeValue != null && placeValue.trim().isNotEmpty) {
+            final parts = placeValue
+                .split(RegExp(r'[\n,]'))
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+
+            for (final p in parts) {
+              lines.add(p.contains(':') ? p : '$p: (설명 필요)');
+            }
+            return lines.join('\n').trim();
+          }
+        }
+
+        // 2) 최상위 major_place 같은 키가 있는 경우
+        final direct =
+            obj['major_place'] ?? obj['major_place_list'] ?? obj['location'];
+        if (direct != null) {
+          final v = direct.toString().trim();
+          if (v.isNotEmpty) {
+            final parts = v
+                .split(RegExp(r'[\n,]'))
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+            for (final p in parts) {
+              lines.add(p.contains(':') ? p : '$p: (설명 필요)');
+            }
+            return lines.join('\n').trim();
           }
         }
       }
+
+      // fallback
+      lines.add('장소A: (설명 필요)');
+      lines.add('장소B: (설명 필요)');
+      lines.add('장소C: (설명 필요)');
+      lines.add('장소D: (설명 필요)');
+      lines.add('장소E: (설명 필요)');
       return lines.join('\n').trim();
     }
 
-    // 2) worldview 모드면: “주요 장소” 제거하고 나머지 텍스트화
+    // -----------------------
+    // WORLDVIEW MODE
+    // -----------------------
     final out = <String>[];
+
     if (obj is Map) {
-      // 상단에 한줄/톤/금기 같은 거 있으면 뽑기
       final oneLine = obj['one_line']?.toString().trim();
       final tone = obj['tone']?.toString().trim();
-      final banned = obj['banned'];
-      final tags = obj['tags'];
 
       if (oneLine != null && oneLine.isNotEmpty) out.add('한줄 훅: $oneLine');
       if (tone != null && tone.isNotEmpty) out.add('톤/문체: $tone');
 
-      // fields 처리
+      // fields가 있으면 label:value 형태로 뽑되 주요 장소는 제외
       final fields = obj['fields'];
       if (fields is List) {
         for (final f in fields) {
           if (f is! Map) continue;
+
           final key = (f['key'] ?? '').toString();
           final label = (f['label'] ?? '').toString().trim();
-          final value = (f['value'] ?? '').toString().trim();
+
+          // value가 List면 join 처리
+          final rawVal = f['value'];
+          final value = (rawVal is List)
+              ? rawVal.map((e) => e.toString()).join(', ').trim()
+              : (rawVal ?? '').toString().trim();
 
           if (value.isEmpty) continue;
 
-          // ✅ worldview에서는 주요 장소 관련은 절대 포함하지 않기
+          // ✅ worldview에서는 주요 장소를 절대 포함하지 않기
           final isPlaceField = key == 'major_place' ||
+              key == 'location' ||
               label.contains('주요 장소') ||
               label.contains('주요장소');
           if (isPlaceField) continue;
@@ -150,21 +198,23 @@ Future<String> generateWorldText(
         }
       }
 
-      // 금지요소/태그
+      // 금지/태그는 옵션
+      final banned = obj['banned'];
       if (banned is List && banned.isNotEmpty) {
         out.add('금지요소: ${banned.map((e) => e.toString()).join(', ')}');
       }
+
+      final tags = obj['tags'];
       if (tags is List && tags.isNotEmpty) {
         out.add('태그: ${tags.map((e) => e.toString()).join(', ')}');
       }
     }
 
-    // 최소 안전장치
     if (out.isEmpty) return rawJson.trim();
     return out.join('\n').trim();
   }
 
-  // ✅ place 결과 검증: 라벨 존재 + 5줄 이상(각 줄 ":" 포함)
+  // ✅ place 결과 검증
   bool validatePlaceOutput(String text) {
     if (!text.contains('주요 장소')) return false;
 
@@ -193,6 +243,9 @@ Future<String> generateWorldText(
     return valid.length >= 5;
   }
 
+  // -----------------------
+  // 1) 인풋 정리
+  // -----------------------
   final safeGenre = genre.trim().isEmpty ? '기본' : genre.trim();
   final ctxRaw = currentStoryContext.trim();
   final ctxBlock = ctxRaw.isEmpty ? '(없음)' : '<CTX>\n$ctxRaw\n</CTX>';
@@ -202,7 +255,7 @@ Future<String> generateWorldText(
   final isPlace = (key == 'place');
 
   // -----------------------
-  // 1) 시스템 프롬프트 (✅ JSON 강력 금지)
+  // 2) 시스템 프롬프트 (JSON 강금지)
   // -----------------------
   final systemPrompt = """
 너는 웹소설 기획자다.
@@ -213,12 +266,11 @@ Future<String> generateWorldText(
       .trim();
 
   // -----------------------
-  // 2) 유저 프롬프트 (분기)
+  // 3) 유저 프롬프트 (분기)
   // -----------------------
   late String prompt;
 
   if (isPlace) {
-    // ✅ place 전용: 장소만 출력 (worldviewgenbutton에서는 targetKey를 place로 보내면 안 됨)
     prompt = """
 [장르] $safeGenre
 ${did.isEmpty ? "" : "[세션키] $did"}
@@ -244,7 +296,7 @@ $ctxBlock
 """
         .trim();
   } else {
-    // ✅ worldview 전용: "주요 장소"는 절대 포함 금지
+    // ✅ worldviewgenbutton에서는 targetKey를 'worldview'로 보내야 함 (place로 보내면 장소가 생성됨)
     prompt = """
 [장르] $safeGenre
 ${did.isEmpty ? "" : "[세션키] $did"}
@@ -278,7 +330,7 @@ $ctxBlock
   }
 
   // -----------------------
-  // 3) 호출
+  // 4) 호출
   // -----------------------
   String output;
   try {
@@ -287,14 +339,17 @@ $ctxBlock
     return '생성 오류: $e';
   }
 
-  output = cleanBasic(output);
+  // ✅ 원문 보존(여기서는 따옴표 제거 절대 금지)
+  String raw = output.trim();
 
   // -----------------------
-  // 4) ✅ JSON이 나오면: (1) 자동 텍스트 변환 → (2) 그래도 이상하면 리페어
+  // 5) JSON이면 먼저 "텍스트로 변환/리페어"
   // -----------------------
-  if (looksJsonLike(output)) {
-    final converted = jsonToWorldviewText(output, isPlaceMode: isPlace);
-    // 변환 결과가 여전히 JSON 같으면 리페어 요청
+  if (looksJsonLike(raw)) {
+    // 1) 우선 JSON → 텍스트 변환 시도
+    var converted = jsonToText(raw, isPlaceMode: isPlace);
+
+    // 2) 변환 결과가 여전히 JSON 같으면 리페어로 텍스트 강제
     if (looksJsonLike(converted)) {
       final repairPrompt = """
 [장르] $safeGenre
@@ -322,25 +377,34 @@ ${isPlace ? """
 """}
 
 [기존 출력]
-$output
+$raw
 """
           .trim();
 
       try {
-        output = await callAi('solar-mini', systemPrompt, repairPrompt);
-        output = cleanBasic(output);
+        final repaired = await callAi('solar-mini', systemPrompt, repairPrompt);
+        raw = repaired.trim();
+        converted =
+            looksJsonLike(raw) ? jsonToText(raw, isPlaceMode: isPlace) : raw;
       } catch (_) {
-        // 리페어 실패 시 최소한 converted라도 반환
-        return converted.trim();
+        // 리페어 실패 시 변환본이라도 반환
+        raw = converted;
       }
     } else {
-      // JSON → 텍스트 변환 성공
-      output = converted;
+      raw = converted;
     }
   }
 
   // -----------------------
-  // 5) ✅ place/worldview 검증 & 리페어
+  // 6) 텍스트 정리(마크다운 제거) + (선택) 따옴표 제거
+  // -----------------------
+  output = cleanBasicKeepQuotes(raw);
+
+  // 원한다면 따옴표를 없애고 더 “텍스트필드 친화적”으로
+  output = stripQuotes(output);
+
+  // -----------------------
+  // 7) place/worldview 검증 & 리페어
   // -----------------------
   if (isPlace) {
     if (!validatePlaceOutput(output)) {
@@ -363,8 +427,8 @@ $output
           .trim();
 
       try {
-        output = await callAi('solar-mini', systemPrompt, repairPrompt);
-        output = cleanBasic(output);
+        final repaired = await callAi('solar-mini', systemPrompt, repairPrompt);
+        output = stripQuotes(cleanBasicKeepQuotes(repaired));
       } catch (_) {}
     }
     return output.trim();
@@ -392,6 +456,7 @@ $ctxBlock
 - 아래 출력은 라벨이 누락되었거나 형식이 틀렸다.
 - 아래 "출력 형식" 라벨을 정확히 지켜 완성본만 다시 출력.
 - JSON/중괄호/대괄호/따옴표/마크다운/후보/해설 금지.
+- "주요 장소"는 절대 작성하지 마라.
 
 [출력 형식] (라벨명 변경/추가/삭제 금지)
 핵심 갈등:
@@ -409,23 +474,31 @@ $output
         .trim();
 
     try {
-      output = await callAi('solar-mini', systemPrompt, repairPrompt);
-      output = cleanBasic(output);
+      final repaired = await callAi('solar-mini', systemPrompt, repairPrompt);
+      output = stripQuotes(cleanBasicKeepQuotes(repaired));
     } catch (_) {}
   }
 
-  // ✅ worldview에 "주요 장소" 라벨/내용이 섞여 들어오는 걸 최후 방어로 제거
-  // (프롬프트로 막아도 가끔 끼어듦)
+  // ✅ 최후 방어: worldview에 주요 장소 섞이면 제거
   final lines = output.replaceAll('\r\n', '\n').split('\n');
   final filtered = <String>[];
   for (final l in lines) {
     final t = l.trim();
+
     if (t.startsWith('주요 장소') || t.startsWith('주요장소')) continue;
-    // JSON 조각도 제거
-    if (t.contains('{') || t.contains('}') || t.contains('"fields"')) continue;
+
+    // 혹시 남아있는 JSON 조각도 제거
+    if (t.contains('{') ||
+        t.contains('}') ||
+        t.contains('"fields"') ||
+        t.contains('[') ||
+        t.contains(']')) {
+      continue;
+    }
+
     filtered.add(l);
   }
-  output = filtered.join('\n').trim();
 
+  output = filtered.join('\n').trim();
   return output.trim();
 }

@@ -720,7 +720,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                                     .bodyMedium
                                                     .fontStyle,
                                           ),
-                                      maxLength: 30,
+                                      maxLength: 1000,
                                       maxLengthEnforcement:
                                           MaxLengthEnforcement.enforced,
                                       cursorColor: FlutterFlowTheme.of(context)
