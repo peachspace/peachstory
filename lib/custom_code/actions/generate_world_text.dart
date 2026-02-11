@@ -271,7 +271,7 @@ $ctxBlock
 
     String output;
     try {
-      output = await callAi('solar-pro3', systemPrompt, placePrompt);
+      output = await callAi('solar-pro2', systemPrompt, placePrompt);
     } catch (e) {
       return '생성 오류: $e';
     }
@@ -301,7 +301,7 @@ $output
 """
           .trim();
       try {
-        output = await callAi('solar-mini', systemPrompt, repair);
+        output = await callAi('solar-pro2', systemPrompt, repair);
         output = stripQuotes(cleanBasic(output));
       } catch (_) {}
     }
@@ -434,7 +434,7 @@ $ctxBlock
 
   String labelRaw;
   try {
-    labelRaw = await callAi('solar-pro3', systemPrompt, labelPrompt);
+    labelRaw = await callAi('solar-pro2', systemPrompt, labelPrompt);
   } catch (e) {
     return '생성 오류: $e';
   }
@@ -453,7 +453,7 @@ $ctxBlock
 """
         .trim();
     try {
-      labelRaw = await callAi('solar-pro3', systemPrompt, labelRepair);
+      labelRaw = await callAi('solar-pro2', systemPrompt, labelRepair);
       labelRaw = stripQuotes(cleanBasic(labelRaw));
     } catch (_) {}
   }
@@ -475,7 +475,7 @@ $ctxBlock
 """
         .trim();
     try {
-      labelRaw = await callAi('solar-pro3', systemPrompt, labelRepair2);
+      labelRaw = await callAi('solar-pro2', systemPrompt, labelRepair2);
       labelRaw = stripQuotes(cleanBasic(labelRaw));
       labels = parseLabelOnlyLines(labelRaw);
     } catch (_) {}
@@ -515,7 +515,7 @@ $template
 
   String output;
   try {
-    output = await callAi('solar-pro3', systemPrompt, fillPrompt);
+    output = await callAi('solar-pro2', systemPrompt, fillPrompt);
   } catch (e) {
     return '생성 오류: $e';
   }
@@ -546,7 +546,7 @@ $output
         .trim();
 
     try {
-      output = await callAi('solar-pro3', systemPrompt, repair);
+      output = await callAi('solar-pro2', systemPrompt, repair);
       output = stripQuotes(cleanBasic(output));
     } catch (_) {}
   }

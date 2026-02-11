@@ -124,7 +124,7 @@ Future<String> generateCharacterField(
       .trim();
 
   String userPrompt;
-  const model = 'solar-pro3';
+  const model = 'solar-pro2';
 
   if (key == "char_name") {
     // ✅ 이름 1개만, 한 줄만
@@ -186,7 +186,7 @@ $ctxBlock
 - 캐릭터 외모(appearance)만 작성해라.
 - 성격/서사/직업/관계/말투/대사/목표/비밀 등은 금지.
 - 아래 8개 라벨은 반드시 그대로 사용해라(추가/삭제/변경 금지).
-- 각 항목은 максимально 구체적으로 묘사해라(색/형/비율/질감/인상/디테일).
+- 각 항목은 최대한 구체적으로 묘사해라(색/형/비율/질감/인상/디테일).
 - 따옴표/마크다운/번호/글머리표/JSON 금지.
 
 [출력 형식] (라벨명 변경 금지)
@@ -252,6 +252,8 @@ $ctxBlock
   String output;
   try {
     output = await callAi(model, systemPrompt, userPrompt);
+    print('AI RAW OUTPUT => $output');
+    if (output.trim().isEmpty) return "생성 오류: empty output";
   } catch (e) {
     return "생성 오류: $e";
   }
@@ -400,7 +402,7 @@ $ctxBlock
 [규칙]
 - 각 줄은 "항목명: 내용" 1줄.
 - 외모만. (성격/서사/직업/말투/대사/목표/관계 금지)
-- 각 항목은 максимально 디테일.
+- 각 항목은 최대한 디테일.
 - 따옴표/마크다운/번호/글머리표/JSON 금지.
 
 [기존 출력]
