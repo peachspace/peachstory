@@ -124,7 +124,7 @@ Future<String> generateCharacterField(
       .trim();
 
   String userPrompt;
-  const model = 'solar-mini';
+  const model = 'solar-pro3';
 
   if (key == "char_name") {
     // ✅ 이름 1개만, 한 줄만

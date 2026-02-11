@@ -177,7 +177,7 @@ ${hasConfiguredChars ? """
       .trim();
 
   try {
-    final raw = await callAi('solar-pro2', systemPrompt, userPrompt);
+    final raw = await callAi('gpt-oss-20b', systemPrompt, userPrompt);
     return raw.trim();
   } catch (e) {
     return "생성 오류: $e";
