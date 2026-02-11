@@ -14,7 +14,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 Future<String> generateMetaFields(
   String targetKey,
   String currentStoryContext,
-  String genre,
+  String genre, // ✅ 시그니처 유지(호출부 호환). 프롬프트에서는 사용 안 함.
   String? draftId,
 ) async {
   String cleanBasic(String s) {
@@ -34,11 +34,22 @@ Future<String> generateMetaFields(
     return lines.isEmpty ? '' : lines.first;
   }
 
-  bool containsAll(String text, List<String> keys) {
-    for (final k in keys) {
-      if (!text.contains(k)) return false;
-    }
-    return true;
+  bool looksLikeKeyValueLines(String text, {int minLines = 8}) {
+    final lines = text
+        .replaceAll('\r\n', '\n')
+        .split('\n')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    final kv = lines.where((l) {
+      if (!l.contains(':')) return false;
+      final left = l.split(':').first.trim();
+      final right = l.substring(l.indexOf(':') + 1).trim();
+      return left.isNotEmpty && right.isNotEmpty;
+    }).toList();
+
+    return kv.length >= minLines;
   }
 
   Future<String> callAi(
@@ -76,9 +87,9 @@ Future<String> generateMetaFields(
   }
 
   final key = normalizeKey(targetKey);
-  final safeGenre = genre.trim().isEmpty ? '기본' : genre.trim();
   final ctxRaw = currentStoryContext.trim();
   final ctxBlock = ctxRaw.isEmpty ? '(없음)' : '<CTX>\n$ctxRaw\n</CTX>';
+  final did = (draftId ?? '').trim();
 
   final systemPrompt = """
 너는 웹소설 기획자다.
@@ -91,7 +102,7 @@ Future<String> generateMetaFields(
 
   if (key == 'title') {
     prompt = """
-[장르] $safeGenre
+${did.isNotEmpty ? "[세션키] $did" : ""}
 $ctxBlock
 
 [규칙]
@@ -104,7 +115,7 @@ $ctxBlock
         .trim();
   } else if (key == 'story_intro') {
     prompt = """
-[장르] $safeGenre
+${did.isNotEmpty ? "[세션키] $did" : ""}
 $ctxBlock
 
 [규칙]
@@ -112,31 +123,31 @@ $ctxBlock
 - 반드시 포함: 주인공/핵심목표/핵심갈등(또는 대가)/차별포인트 1개
 - 마지막 문장은 궁금증 1개로 끝내기
 - 과장된 평가(최고의/역대급) 금지
+- 따옴표/마크다운 금지
 """
         .trim();
   } else if (key == 'detail_info') {
+    // ✅✅✅ 라벨 템플릿 삭제 → AI가 항목명도 자유롭게 생성
     prompt = """
-[장르] $safeGenre
+${did.isNotEmpty ? "[세션키] $did" : ""}
 $ctxBlock
 
-[규칙]
-- 단 1개 버전
-- 아래 라벨 형식 그대로(라벨명 변경/추가/삭제 금지)
-- 분량 700~1200자
-- 고유명사 최소 3개 포함
+[요청]
+- 이 작품을 소개/운영하기 위한 "상세 메타 정보"를 작성해라.
+- 너가 필요하다고 생각하는 항목들을 스스로 정해서 작성해라. (항목명도 너가 정해라)
+- 단, 출력 형식은 반드시 아래 규칙만 지켜라.
 
-[출력 형식]
-한줄소개:
-장르/톤:
-시대/무대:
-핵심 전제:
-세계 규칙/대가:
-진행 방식(대화/선택):
-금기/주의사항:
-주요 인물(2~5):
-주요 장소(2~5):
-1화 점화 사건:
-사용자가 알면 좋은 팁:
+[출력 규칙] (매우 중요)
+1) 각 줄은 반드시 "항목명: 내용" 형식 1줄.
+2) 10~14줄.
+3) 같은 항목명 중복 금지.
+4) 후보/옵션/대안/버전 여러 개 금지.
+5) 따옴표/마크다운/번호/글머리표 금지.
+
+[포함 권장 요소(항목명은 자유)]
+- 한줄 훅, 핵심 전제, 세계 규칙/대가(있다면), 금기/주의, 진행 방식(대화/선택 느낌), 주요 인물 구도, 주요 장소, 1화 점화 사건, 독자 체감 톤
+
+이제 규칙대로만 출력해라.
 """
         .trim();
   } else {
@@ -158,26 +169,14 @@ $ctxBlock
   }
 
   if (key == 'detail_info') {
-    if (!containsAll(output, [
-      '한줄소개:',
-      '장르/톤:',
-      '시대/무대:',
-      '핵심 전제:',
-      '세계 규칙/대가:',
-      '진행 방식',
-      '금기/주의사항:',
-      '주요 인물',
-      '주요 장소',
-      '1화 점화 사건:',
-    ])) {
+    if (!looksLikeKeyValueLines(output, minLines: 8)) {
       final repairPrompt = """
-[장르] $safeGenre
 $ctxBlock
 
 [요청]
-- 아래 출력은 라벨이 누락됐다.
-- '출력 형식' 라벨을 정확히 지켜 완성본만 다시 출력.
-- 후보/옵션/해설 금지.
+- 아래 출력은 형식이 틀렸다.
+- 반드시 "항목명: 내용" 형식으로 10~14줄만 '완성본'으로 다시 출력.
+- 후보/옵션/해설/따옴표/마크다운/번호/글머리표 금지.
 
 [기존 출력]
 $output

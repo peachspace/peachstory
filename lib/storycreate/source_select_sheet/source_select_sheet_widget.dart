@@ -21,6 +21,7 @@ class SourceSelectSheetWidget extends StatefulWidget {
     this.receivedSeed,
     this.receivedBaseimage,
     this.receivedevent,
+    this.receivedcharappearance,
   });
 
   final String? imageMode;
@@ -33,6 +34,7 @@ class SourceSelectSheetWidget extends StatefulWidget {
   final int? receivedSeed;
   final String? receivedBaseimage;
   final String? receivedevent;
+  final String? receivedcharappearance;
 
   @override
   State<SourceSelectSheetWidget> createState() =>
@@ -160,6 +162,8 @@ class _SourceSelectSheetWidgetState extends State<SourceSelectSheetWidget> {
                       charList: widget.charList,
                       receivedbaseimage: '',
                       isUploadMode: true,
+                      receivedevent: widget.receivedevent,
+                      receivedcharappearance: widget.receivedcharappearance,
                     ),
                   );
                 },

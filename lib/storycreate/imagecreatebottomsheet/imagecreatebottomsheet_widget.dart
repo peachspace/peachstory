@@ -32,6 +32,7 @@ class ImagecreatebottomsheetWidget extends StatefulWidget {
     this.charList,
     required this.isUploadMode,
     this.receivedevent,
+    this.receivedcharappearance,
   });
 
   final String? imageMode;
@@ -45,6 +46,7 @@ class ImagecreatebottomsheetWidget extends StatefulWidget {
   final List<CharacterStructStruct>? charList;
   final bool? isUploadMode;
   final String? receivedevent;
+  final String? receivedcharappearance;
 
   @override
   State<ImagecreatebottomsheetWidget> createState() =>
@@ -154,82 +156,12 @@ class _ImagecreatebottomsheetWidgetState
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () async {
-                        if (_model.generatedImageUrl != null &&
-                            _model.generatedImageUrl != '') {
-                          if (widget.isUploadMode == true) {
-                            Navigator.pop(
-                                context,
-                                GenResultStructStruct(
-                                  imageurl: _model.generatedImageUrl,
-                                  seed: _model.generatedSeed,
-                                  text: () {
-                                    if (widget.imageMode == 'background') {
-                                      return _model
-                                          .backgroundpromptTextController.text;
-                                    } else if (widget.imageMode == 'emotion') {
-                                      return _model.emotionChoiceChipsValue;
-                                    } else if (widget.imageMode ==
-                                        'situation') {
-                                      return _model
-                                          .situationpromptTextController.text;
-                                    } else if (widget.imageMode == 'event') {
-                                      return _model
-                                          .eventpromptTextController.text;
-                                    } else {
-                                      return '';
-                                    }
-                                  }(),
-                                ));
-                          } else {
-                            Navigator.pop(
-                                context,
-                                GenResultStructStruct(
-                                  imageurl: _model.generatedImageUrl,
-                                  seed: _model.generatedSeed,
-                                  text: () {
-                                    if (widget.imageMode == 'background') {
-                                      return _model
-                                          .backgroundpromptTextController.text;
-                                    } else if (widget.imageMode == 'emotion') {
-                                      return _model.emotionChoiceChipsValue;
-                                    } else if (widget.imageMode ==
-                                        'situation') {
-                                      return _model
-                                          .situationpromptTextController.text;
-                                    } else if (widget.imageMode == 'event') {
-                                      return _model
-                                          .eventpromptTextController.text;
-                                    } else {
-                                      return '';
-                                    }
-                                  }(),
-                                  basePrompt: widget.imageMode == 'character'
-                                      ? _model
-                                          .imagecreatepromptTextController.text
-                                      : '',
-                                ));
-                          }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '먼저 이미지를 생성해주세요.',
-                                style: TextStyle(
-                                  color:
-                                      FlutterFlowTheme.of(context).primaryText,
-                                ),
-                              ),
-                              duration: Duration(milliseconds: 4000),
-                              backgroundColor:
-                                  FlutterFlowTheme.of(context).secondary,
-                            ),
-                          );
-                        }
+                        Navigator.pop(context);
                       },
                       child: Icon(
-                        Icons.arrow_forward_ios,
+                        Icons.arrow_downward,
                         color: FlutterFlowTheme.of(context).primaryText,
-                        size: 24.0,
+                        size: 25.0,
                       ),
                     ),
                   ],
@@ -2267,283 +2199,196 @@ class _ImagecreatebottomsheetWidgetState
                 ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
-                child: Column(
+                child: Row(
                   mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (widget.isUploadMode == false)
-                      FFButtonWidget(
-                        onPressed: () async {
-                          var _shouldSetState = false;
-                          _model.isImageLoading = true;
-                          safeSetState(() {});
-                          if (widget.imageMode == 'character') {
-                            _model.characterImageResult =
-                                await actions.callGenerateImageCloud(
-                              'character',
-                              '',
-                              '',
-                              '',
-                              valueOrDefault<int>(
-                                widget.receivedSeed,
-                                0,
-                              ),
-                              _model.imagecreatepromptTextController.text,
-                              _model.imagestyleChoiceChipsValue!,
-                            );
-                            _shouldSetState = true;
-                            _model.generatedImageUrl = getJsonField(
-                              _model.characterImageResult,
-                              r'''$.imageUrl''',
-                            ).toString();
-                            _model.generatedSeed = getJsonField(
-                              _model.characterImageResult,
-                              r'''$.seed''',
-                            );
-                            safeSetState(() {});
-                          } else if (widget.imageMode == 'emotion') {
-                            _model.emotionimagePrompt =
-                                await actions.composeScenePrompt(
-                              'emotion',
-                              _model.emotionChoiceChipsValue,
-                              _model.imagecreatepromptTextController.text,
-                              '',
-                            );
-                            _shouldSetState = true;
-                            _model.emotionimageResult =
-                                await actions.callGenerateImageCloud(
-                              'emotion',
-                              _model.emotionimagePrompt!,
-                              widget.receivedbaseimage,
-                              '',
-                              widget.receivedSeed,
-                              widget.receivedBasePrompt,
-                              _model.imagestyleChoiceChipsValue!,
-                            );
-                            _shouldSetState = true;
-                            _model.generatedImageUrl = getJsonField(
-                              _model.emotionimageResult,
-                              r'''$.imageUrl''',
-                            ).toString();
-                            safeSetState(() {});
-                          } else if (widget.imageMode == 'situation') {
-                            _model.situationimageprompt =
-                                await actions.composeScenePrompt(
-                              'situation',
-                              '',
-                              _model.imagecreatepromptTextController.text,
-                              '',
-                            );
-                            _shouldSetState = true;
-                            _model.situationImageResult =
-                                await actions.callGenerateImageCloud(
-                              'situation',
-                              _model.situationimageprompt!,
-                              widget.receivedbaseimage,
-                              '',
-                              widget.receivedSeed,
-                              widget.receivedBasePrompt,
-                              _model.imagestyleChoiceChipsValue!,
-                            );
-                            _shouldSetState = true;
-                            _model.generatedImageUrl = getJsonField(
-                              _model.situationImageResult,
-                              r'''$.imageUrl''',
-                            ).toString();
-                            safeSetState(() {});
-                          } else if (widget.imageMode == 'background') {
-                            _model.backgroundimageprompt =
-                                await actions.composeScenePrompt(
-                              'background',
-                              '',
-                              _model.imagecreatepromptTextController.text,
-                              '',
-                            );
-                            _shouldSetState = true;
-                            _model.backgroundimageResult =
-                                await actions.callGenerateImageCloud(
-                              'background',
-                              _model.backgroundimageprompt!,
-                              '',
-                              '',
-                              0,
-                              '',
-                              _model.imagestyleChoiceChipsValue!,
-                            );
-                            _shouldSetState = true;
-                            _model.generatedImageUrl = getJsonField(
-                              _model.backgroundimageResult,
-                              r'''$.imageUrl''',
-                            ).toString();
-                            safeSetState(() {});
-                          } else if (widget.imageMode == 'main') {
-                            _model.mainimageResult =
-                                await actions.callGenerateImageCloud(
-                              'main',
-                              _model.imagecreatepromptTextController.text,
-                              _model.selectedCharImage?.profileimage,
-                              '',
-                              0,
-                              _model.selectedCharImage?.basePrompt,
-                              _model.imagestyleChoiceChipsValue!,
-                            );
-                            _shouldSetState = true;
-                            _model.generatedImageUrl = getJsonField(
-                              _model.mainimageResult,
-                              r'''$.imageUrl''',
-                            ).toString();
-                            safeSetState(() {});
-                          } else if (widget.imageMode == 'event') {
-                            _model.eventimageResult =
-                                await actions.callGenerateImageCloud(
-                              'event',
-                              _model.imagecreatepromptTextController.text,
-                              _model.selectedCharImage?.profileimage,
-                              '',
-                              widget.receivedSeed,
-                              _model.selectedCharImage?.basePrompt,
-                              _model.imagestyleChoiceChipsValue!,
-                            );
-                            _shouldSetState = true;
-                            _model.generatedImageUrl = getJsonField(
-                              _model.eventimageResult,
-                              r'''$.imageUrl''',
-                            ).toString();
-                            safeSetState(() {});
-                          } else {
-                            if (_shouldSetState) safeSetState(() {});
-                            return;
-                          }
-
-                          if (_model.generatedImageUrl != null &&
-                              _model.generatedImageUrl != '') {
-                            _model.isImageLoading = false;
-                            safeSetState(() {});
-                          } else {
-                            _model.isImageLoading = false;
-                            safeSetState(() {});
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  '이미지 생성에 실패했습니다,.',
-                                  style: TextStyle(
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
-                                  ),
-                                ),
-                                duration: Duration(milliseconds: 4000),
-                                backgroundColor:
-                                    FlutterFlowTheme.of(context).accent3,
-                              ),
-                            );
-                          }
-
-                          if (_shouldSetState) safeSetState(() {});
-                        },
-                        text: 'AI생성',
-                        options: FFButtonOptions(
-                          width: double.infinity,
-                          height: 50.0,
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              16.0, 0.0, 16.0, 0.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          color: Color(0xFFFFD1BA),
-                          textStyle:
-                              FlutterFlowTheme.of(context).titleSmall.override(
-                                    font: GoogleFonts.interTight(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .titleSmall
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .titleSmall
-                                          .fontStyle,
-                                    ),
-                                    color: Colors.white,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontStyle,
-                                  ),
-                          elevation: 0.0,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        showLoadingIndicator: false,
-                      ),
-                    if (widget.isUploadMode == true)
-                      FFButtonWidget(
-                        onPressed: () async {
-                          final selectedMedia =
-                              await selectMediaWithSourceBottomSheet(
-                            context: context,
-                            allowPhoto: true,
-                          );
-                          if (selectedMedia != null &&
-                              selectedMedia.every((m) =>
-                                  validateFileFormat(m.storagePath, context))) {
-                            safeSetState(() =>
-                                _model.isDataUploading_downloadUrl = true);
-                            var selectedUploadedFiles = <FFUploadedFile>[];
-
-                            var downloadUrls = <String>[];
-                            try {
-                              selectedUploadedFiles = selectedMedia
-                                  .map((m) => FFUploadedFile(
-                                        name: m.storagePath.split('/').last,
-                                        bytes: m.bytes,
-                                        height: m.dimensions?.height,
-                                        width: m.dimensions?.width,
-                                        blurHash: m.blurHash,
-                                        originalFilename: m.originalFilename,
-                                      ))
-                                  .toList();
-
-                              downloadUrls = (await Future.wait(
-                                selectedMedia.map(
-                                  (m) async =>
-                                      await uploadData(m.storagePath, m.bytes),
-                                ),
-                              ))
-                                  .where((u) => u != null)
-                                  .map((u) => u!)
-                                  .toList();
-                            } finally {
-                              _model.isDataUploading_downloadUrl = false;
-                            }
-                            if (selectedUploadedFiles.length ==
-                                    selectedMedia.length &&
-                                downloadUrls.length == selectedMedia.length) {
-                              safeSetState(() {
-                                _model.uploadedLocalFile_downloadUrl =
-                                    selectedUploadedFiles.first;
-                                _model.uploadedFileUrl_downloadUrl =
-                                    downloadUrls.first;
-                              });
-                            } else {
+                    Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (widget.isUploadMode == false)
+                          FFButtonWidget(
+                            onPressed: () async {
+                              var _shouldSetState = false;
+                              _model.isImageLoading = true;
                               safeSetState(() {});
-                              return;
-                            }
-                          }
+                              if (widget.imageMode == 'character') {
+                                _model.characterImageResult =
+                                    await actions.callGenerateImageCloud(
+                                  'character',
+                                  '',
+                                  '',
+                                  '',
+                                  valueOrDefault<int>(
+                                    widget.receivedSeed,
+                                    0,
+                                  ),
+                                  _model.imagecreatepromptTextController.text,
+                                  _model.imagestyleChoiceChipsValue!,
+                                );
+                                _shouldSetState = true;
+                                _model.generatedImageUrl = getJsonField(
+                                  _model.characterImageResult,
+                                  r'''$.imageUrl''',
+                                ).toString();
+                                _model.generatedSeed = getJsonField(
+                                  _model.characterImageResult,
+                                  r'''$.seed''',
+                                );
+                                safeSetState(() {});
+                              } else if (widget.imageMode == 'emotion') {
+                                _model.emotionimagePrompt =
+                                    await actions.composeScenePrompt(
+                                  'emotion',
+                                  _model.emotionChoiceChipsValue,
+                                  _model.imagecreatepromptTextController.text,
+                                  '',
+                                );
+                                _shouldSetState = true;
+                                _model.emotionimageResult =
+                                    await actions.callGenerateImageCloud(
+                                  'emotion',
+                                  _model.emotionimagePrompt!,
+                                  widget.receivedbaseimage,
+                                  '',
+                                  widget.receivedSeed,
+                                  widget.receivedBasePrompt,
+                                  _model.imagestyleChoiceChipsValue!,
+                                );
+                                _shouldSetState = true;
+                                _model.generatedImageUrl = getJsonField(
+                                  _model.emotionimageResult,
+                                  r'''$.imageUrl''',
+                                ).toString();
+                                safeSetState(() {});
+                              } else if (widget.imageMode == 'situation') {
+                                _model.situationimageprompt =
+                                    await actions.composeScenePrompt(
+                                  'situation',
+                                  '',
+                                  _model.imagecreatepromptTextController.text,
+                                  '',
+                                );
+                                _shouldSetState = true;
+                                _model.situationImageResult =
+                                    await actions.callGenerateImageCloud(
+                                  'situation',
+                                  _model.situationimageprompt!,
+                                  widget.receivedbaseimage,
+                                  '',
+                                  widget.receivedSeed,
+                                  widget.receivedBasePrompt,
+                                  _model.imagestyleChoiceChipsValue!,
+                                );
+                                _shouldSetState = true;
+                                _model.generatedImageUrl = getJsonField(
+                                  _model.situationImageResult,
+                                  r'''$.imageUrl''',
+                                ).toString();
+                                safeSetState(() {});
+                              } else if (widget.imageMode == 'background') {
+                                _model.backgroundimageprompt =
+                                    await actions.composeScenePrompt(
+                                  'background',
+                                  '',
+                                  _model.imagecreatepromptTextController.text,
+                                  '',
+                                );
+                                _shouldSetState = true;
+                                _model.backgroundimageResult =
+                                    await actions.callGenerateImageCloud(
+                                  'background',
+                                  _model.backgroundimageprompt!,
+                                  '',
+                                  '',
+                                  0,
+                                  '',
+                                  _model.imagestyleChoiceChipsValue!,
+                                );
+                                _shouldSetState = true;
+                                _model.generatedImageUrl = getJsonField(
+                                  _model.backgroundimageResult,
+                                  r'''$.imageUrl''',
+                                ).toString();
+                                safeSetState(() {});
+                              } else if (widget.imageMode == 'main') {
+                                _model.mainimageResult =
+                                    await actions.callGenerateImageCloud(
+                                  'main',
+                                  _model.imagecreatepromptTextController.text,
+                                  _model.selectedCharImage?.profileimage,
+                                  '',
+                                  0,
+                                  _model.selectedCharImage?.basePrompt,
+                                  _model.imagestyleChoiceChipsValue!,
+                                );
+                                _shouldSetState = true;
+                                _model.generatedImageUrl = getJsonField(
+                                  _model.mainimageResult,
+                                  r'''$.imageUrl''',
+                                ).toString();
+                                safeSetState(() {});
+                              } else if (widget.imageMode == 'event') {
+                                _model.eventimageResult =
+                                    await actions.callGenerateImageCloud(
+                                  'event',
+                                  _model.imagecreatepromptTextController.text,
+                                  _model.selectedCharImage?.profileimage,
+                                  '',
+                                  widget.receivedSeed,
+                                  _model.selectedCharImage?.basePrompt,
+                                  _model.imagestyleChoiceChipsValue!,
+                                );
+                                _shouldSetState = true;
+                                _model.generatedImageUrl = getJsonField(
+                                  _model.eventimageResult,
+                                  r'''$.imageUrl''',
+                                ).toString();
+                                safeSetState(() {});
+                              } else {
+                                if (_shouldSetState) safeSetState(() {});
+                                return;
+                              }
 
-                          _model.generatedImageUrl =
-                              _model.uploadedFileUrl_downloadUrl;
-                          _model.isImageLoading = false;
-                          safeSetState(() {});
-                        },
-                        text: '업로드',
-                        options: FFButtonOptions(
-                          width: double.infinity,
-                          height: 50.0,
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              16.0, 0.0, 16.0, 0.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          color: Color(0xFFFFD1BA),
-                          textStyle:
-                              FlutterFlowTheme.of(context).titleSmall.override(
+                              if (_model.generatedImageUrl != null &&
+                                  _model.generatedImageUrl != '') {
+                                _model.isImageLoading = false;
+                                safeSetState(() {});
+                              } else {
+                                _model.isImageLoading = false;
+                                safeSetState(() {});
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '이미지 생성에 실패했습니다,.',
+                                      style: TextStyle(
+                                        color: FlutterFlowTheme.of(context)
+                                            .primaryText,
+                                      ),
+                                    ),
+                                    duration: Duration(milliseconds: 4000),
+                                    backgroundColor:
+                                        FlutterFlowTheme.of(context).accent3,
+                                  ),
+                                );
+                              }
+
+                              if (_shouldSetState) safeSetState(() {});
+                            },
+                            text: 'AI생성',
+                            options: FFButtonOptions(
+                              width: 200.0,
+                              height: 50.0,
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 0.0, 16.0, 0.0),
+                              iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 0.0, 0.0, 0.0),
+                              color: Color(0xFFFFD1BA),
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .titleSmall
+                                  .override(
                                     font: GoogleFonts.interTight(
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .titleSmall
@@ -2561,11 +2406,216 @@ class _ImagecreatebottomsheetWidgetState
                                         .titleSmall
                                         .fontStyle,
                                   ),
-                          elevation: 0.0,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        showLoadingIndicator: false,
+                              elevation: 0.0,
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            showLoadingIndicator: false,
+                          ),
+                        if (widget.isUploadMode == true)
+                          FFButtonWidget(
+                            onPressed: () async {
+                              final selectedMedia =
+                                  await selectMediaWithSourceBottomSheet(
+                                context: context,
+                                allowPhoto: true,
+                              );
+                              if (selectedMedia != null &&
+                                  selectedMedia.every((m) => validateFileFormat(
+                                      m.storagePath, context))) {
+                                safeSetState(() =>
+                                    _model.isDataUploading_downloadUrl = true);
+                                var selectedUploadedFiles = <FFUploadedFile>[];
+
+                                var downloadUrls = <String>[];
+                                try {
+                                  selectedUploadedFiles = selectedMedia
+                                      .map((m) => FFUploadedFile(
+                                            name: m.storagePath.split('/').last,
+                                            bytes: m.bytes,
+                                            height: m.dimensions?.height,
+                                            width: m.dimensions?.width,
+                                            blurHash: m.blurHash,
+                                            originalFilename:
+                                                m.originalFilename,
+                                          ))
+                                      .toList();
+
+                                  downloadUrls = (await Future.wait(
+                                    selectedMedia.map(
+                                      (m) async => await uploadData(
+                                          m.storagePath, m.bytes),
+                                    ),
+                                  ))
+                                      .where((u) => u != null)
+                                      .map((u) => u!)
+                                      .toList();
+                                } finally {
+                                  _model.isDataUploading_downloadUrl = false;
+                                }
+                                if (selectedUploadedFiles.length ==
+                                        selectedMedia.length &&
+                                    downloadUrls.length ==
+                                        selectedMedia.length) {
+                                  safeSetState(() {
+                                    _model.uploadedLocalFile_downloadUrl =
+                                        selectedUploadedFiles.first;
+                                    _model.uploadedFileUrl_downloadUrl =
+                                        downloadUrls.first;
+                                  });
+                                } else {
+                                  safeSetState(() {});
+                                  return;
+                                }
+                              }
+
+                              _model.generatedImageUrl =
+                                  _model.uploadedFileUrl_downloadUrl;
+                              _model.isImageLoading = false;
+                              safeSetState(() {});
+                            },
+                            text: '업로드',
+                            options: FFButtonOptions(
+                              width: 200.0,
+                              height: 50.0,
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 0.0, 16.0, 0.0),
+                              iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 0.0, 0.0, 0.0),
+                              color: Color(0xFFFFD1BA),
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .titleSmall
+                                  .override(
+                                    font: GoogleFonts.interTight(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontStyle,
+                                    ),
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
+                                  ),
+                              elevation: 0.0,
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            showLoadingIndicator: false,
+                          ),
+                      ],
+                    ),
+                    FFButtonWidget(
+                      onPressed: () async {
+                        if (_model.generatedImageUrl != null &&
+                            _model.generatedImageUrl != '') {
+                          if (widget.isUploadMode == true) {
+                            Navigator.pop(
+                                context,
+                                GenResultStructStruct(
+                                  imageurl: _model.generatedImageUrl,
+                                  seed: _model.generatedSeed,
+                                  text: () {
+                                    if (widget.imageMode == 'background') {
+                                      return _model
+                                          .backgroundpromptTextController.text;
+                                    } else if (widget.imageMode == 'emotion') {
+                                      return _model.emotionChoiceChipsValue;
+                                    } else if (widget.imageMode ==
+                                        'situation') {
+                                      return _model
+                                          .situationpromptTextController.text;
+                                    } else if (widget.imageMode == 'event') {
+                                      return _model
+                                          .eventpromptTextController.text;
+                                    } else {
+                                      return '';
+                                    }
+                                  }(),
+                                ));
+                          } else {
+                            Navigator.pop(
+                                context,
+                                GenResultStructStruct(
+                                  imageurl: _model.generatedImageUrl,
+                                  seed: _model.generatedSeed,
+                                  text: () {
+                                    if (widget.imageMode == 'background') {
+                                      return _model
+                                          .backgroundpromptTextController.text;
+                                    } else if (widget.imageMode == 'emotion') {
+                                      return _model.emotionChoiceChipsValue;
+                                    } else if (widget.imageMode ==
+                                        'situation') {
+                                      return _model
+                                          .situationpromptTextController.text;
+                                    } else if (widget.imageMode == 'event') {
+                                      return _model
+                                          .eventpromptTextController.text;
+                                    } else {
+                                      return '';
+                                    }
+                                  }(),
+                                  basePrompt: widget.imageMode == 'character'
+                                      ? _model
+                                          .imagecreatepromptTextController.text
+                                      : '',
+                                ));
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '먼저 이미지를 생성해주세요.',
+                                style: TextStyle(
+                                  color:
+                                      FlutterFlowTheme.of(context).primaryText,
+                                ),
+                              ),
+                              duration: Duration(milliseconds: 4000),
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).secondary,
+                            ),
+                          );
+                        }
+                      },
+                      text: '적용하기',
+                      options: FFButtonOptions(
+                        width: 200.0,
+                        height: 50.0,
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                            16.0, 0.0, 16.0, 0.0),
+                        iconPadding:
+                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                        color: Color(0xFFFFD1BA),
+                        textStyle:
+                            FlutterFlowTheme.of(context).titleSmall.override(
+                                  font: GoogleFonts.interTight(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
+                                  ),
+                                  color: Colors.white,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .titleSmall
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .titleSmall
+                                      .fontStyle,
+                                ),
+                        elevation: 0.0,
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
+                      showLoadingIndicator: false,
+                    ),
                   ],
                 ),
               ),
