@@ -69,78 +69,73 @@ class _SourceSelectSheetWidgetState extends State<SourceSelectSheetWidget> {
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
-          child: FFButtonWidget(
-            onPressed: () async {
-              await showModalBottomSheet(
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                enableDrag: false,
-                context: context,
-                builder: (context) {
-                  return Padding(
-                    padding: MediaQuery.viewInsetsOf(context),
-                    child: ImagecreatebottomsheetWidget(
-                      imageMode: widget.imageMode!,
-                      isSourceEmpty: widget.isSourceEmpty!,
-                      warningMessage: widget.warningMessage!,
-                      receivedBasePrompt: widget.receivedBasePrompt,
-                      receivedworldview: widget.receivedworldview,
-                      receivedcharsettings: widget.receivedcharsettings,
-                      charList: widget.charList,
-                      receivedbaseimage: widget.receivedBaseimage,
-                      isUploadMode: false,
-                      receivedSeed: widget.receivedSeed,
-                      receivedevent: widget.receivedevent,
-                    ),
-                  );
-                },
-              ).then((value) => safeSetState(() => _model.aiResult = value));
-
-              Navigator.pop(
-                  context,
-                  GenResultStructStruct(
-                    imageurl: _model.aiResult?.imageurl,
-                    seed: _model.aiResult?.seed,
-                    text: _model.aiResult?.text,
-                    basePrompt: _model.aiResult?.basePrompt,
-                  ));
-
-              safeSetState(() {});
-            },
-            text: 'AI생성',
-            options: FFButtonOptions(
-              width: double.infinity,
-              height: 60.0,
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-              iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-              color: FlutterFlowTheme.of(context).secondaryBackground,
-              textStyle: FlutterFlowTheme.of(context).bodyLarge.override(
-                    font: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.normal,
-                      fontStyle:
-                          FlutterFlowTheme.of(context).bodyLarge.fontStyle,
-                    ),
-                    color: Color(0xFF14181B),
-                    fontSize: 16.0,
-                    letterSpacing: 0.0,
-                    fontWeight: FontWeight.normal,
-                    fontStyle: FlutterFlowTheme.of(context).bodyLarge.fontStyle,
+        Stack(
+          children: [
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
+              child: FFButtonWidget(
+                onPressed: () async {},
+                text: 'AI생성',
+                options: FFButtonOptions(
+                  width: double.infinity,
+                  height: 60.0,
+                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                  iconPadding:
+                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                  textStyle: FlutterFlowTheme.of(context).bodyLarge.override(
+                        font: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w600,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyLarge.fontStyle,
+                        ),
+                        color: Color(0xFF14181B),
+                        fontSize: 16.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w600,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).bodyLarge.fontStyle,
+                      ),
+                  elevation: 2.0,
+                  borderSide: BorderSide(
+                    color: Colors.transparent,
+                    width: 1.0,
                   ),
-              elevation: 2.0,
-              borderSide: BorderSide(
-                color: Colors.transparent,
-                width: 1.0,
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(0.0),
-                bottomRight: Radius.circular(0.0),
-                topLeft: Radius.circular(10.0),
-                topRight: Radius.circular(10.0),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(0.0),
+                    bottomRight: Radius.circular(0.0),
+                    topLeft: Radius.circular(10.0),
+                    topRight: Radius.circular(10.0),
+                  ),
+                ),
               ),
             ),
-          ),
+            Align(
+              alignment: AlignmentDirectional(0.0, 0.0),
+              child: Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(0.0, 40.0, 0.0, 0.0),
+                child: Text(
+                  '추후 업데이트될 예정이에요.',
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        font: GoogleFonts.inter(
+                          fontWeight: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                        color: FlutterFlowTheme.of(context).error,
+                        fontSize: 13.0,
+                        letterSpacing: 0.0,
+                        fontWeight:
+                            FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                      ),
+                ),
+              ),
+            ),
+          ],
         ),
         Padding(
           padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
@@ -187,17 +182,17 @@ class _SourceSelectSheetWidgetState extends State<SourceSelectSheetWidget> {
               height: 60.0,
               padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
               iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-              color: Color(0xFFF1F4F8),
+              color: FlutterFlowTheme.of(context).secondaryBackground,
               textStyle: FlutterFlowTheme.of(context).bodyLarge.override(
                     font: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.normal,
+                      fontWeight: FontWeight.w600,
                       fontStyle:
                           FlutterFlowTheme.of(context).bodyLarge.fontStyle,
                     ),
                     color: Color(0xFF14181B),
                     fontSize: 16.0,
                     letterSpacing: 0.0,
-                    fontWeight: FontWeight.normal,
+                    fontWeight: FontWeight.w600,
                     fontStyle: FlutterFlowTheme.of(context).bodyLarge.fontStyle,
                   ),
               elevation: 2.0,

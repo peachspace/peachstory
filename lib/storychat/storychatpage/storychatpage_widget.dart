@@ -880,8 +880,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                   TextCapitalization.sentences,
                                               obscureText: false,
                                               decoration: InputDecoration(
-                                                hintText:
-                                                    '인물의 대사나 행동을 입력하세요...',
+                                                hintText: '캐릭터의 대사나 행동을 입력하세요.',
                                                 hintStyle: FlutterFlowTheme.of(
                                                         context)
                                                     .bodyMedium

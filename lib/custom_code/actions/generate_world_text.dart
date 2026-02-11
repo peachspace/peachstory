@@ -9,23 +9,42 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'dart:convert';
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> generateWorldText(
   String currentStoryContext,
   String genre,
   String? draftId,
-  String targetKey, // ✅ 추가
+  String targetKey, // ✅ 기존 유지
 ) async {
   // -----------------------
   // 0) 유틸
   // -----------------------
-  String cleanBasic(String s) {
+
+  // ✅ place 같은 "일반 텍스트" 출력에만 사용 (따옴표 제거 OK)
+  String cleanText(String s) {
     var out = s.trim();
     out = out.replaceAll('```json', '').replaceAll('```', '');
     out = out.replaceAll('**', '').replaceAll('__', '');
     out = out.replaceAll('"', '').replaceAll("'", "");
     return out.trim();
+  }
+
+  // ✅ JSON 출력에만 사용: 따옴표/콜론 등 JSON 문법을 절대 건드리지 않기
+  String cleanJsonLike(String s) {
+    var out = s.trim();
+    out = out.replaceAll('```json', '').replaceAll('```', '');
+    return out.trim();
+  }
+
+  // ✅ 모델이 JSON 앞뒤로 말 붙이는 경우 대비: 첫 { 부터 마지막 } 까지 잘라서 반환
+  String extractJsonObject(String raw) {
+    final s = cleanJsonLike(raw);
+    final start = s.indexOf('{');
+    final end = s.lastIndexOf('}');
+    if (start == -1 || end == -1 || end <= start) return s;
+    return s.substring(start, end + 1).trim();
   }
 
   Future<String> callAi(
@@ -56,7 +75,6 @@ Future<String> generateWorldText(
   bool validatePlaceOutput(String text) {
     if (!text.contains('주요 장소')) return false;
 
-    // 라벨 이후 라인 추출
     final lines = text.replaceAll('\r\n', '\n').split('\n');
     int start = -1;
     for (int i = 0; i < lines.length; i++) {
@@ -72,13 +90,11 @@ Future<String> generateWorldText(
       final l = lines[i].trim();
       if (l.isEmpty) continue;
 
-      // 다음 섹션 라벨처럼 보이면 stop (worldview가 섞여 들어오는 경우 방지)
       if (l.endsWith(':') && !l.contains(': ')) break;
 
       placeLines.add(l);
     }
 
-    // 각 줄이 "장소명: 설명" 형태인지
     final valid = placeLines
         .where((l) => l.contains(':') && l.split(':').first.trim().isNotEmpty)
         .toList();
@@ -86,12 +102,50 @@ Future<String> generateWorldText(
     return valid.length >= 5;
   }
 
+  // ✅ worldview(JSON) 검증: 스키마 + fields 길이 + key/label/value 존재
+  bool validateWorldJson(String jsonText, int requiredFieldCount) {
+    try {
+      final obj = jsonDecode(jsonText);
+      if (obj is! Map) return false;
+
+      if (obj['genre'] == null) return false;
+      if (obj['one_line'] == null) return false;
+      if (obj['fields'] == null) return false;
+
+      final fields = obj['fields'];
+      if (fields is! List) return false;
+      if (fields.length != requiredFieldCount) return false;
+
+      for (final f in fields) {
+        if (f is! Map) return false;
+        if (f['key'] == null || f['label'] == null || f['value'] == null)
+          return false;
+        if ((f['key'] as String).trim().isEmpty) return false;
+        if ((f['label'] as String).trim().isEmpty) return false;
+        if ((f['value'] as String).trim().isEmpty) return false;
+      }
+
+      // 옵션 필드들은 있어도 되고 없어도 되지만, 있으면 타입 체크
+      final banned = obj['banned'];
+      if (banned != null && banned is! List) return false;
+
+      final tags = obj['tags'];
+      if (tags != null && tags is! List) return false;
+
+      final tone = obj['tone'];
+      if (tone != null && tone is! String) return false;
+
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   final safeGenre = genre.trim().isEmpty ? '기본' : genre.trim();
   final ctxRaw = currentStoryContext.trim();
   final ctxBlock = ctxRaw.isEmpty ? '(없음)' : '<CTX>\n$ctxRaw\n</CTX>';
   final did = (draftId ?? '').trim();
 
-  // 분기 값 정리
   final key = targetKey.trim().toLowerCase();
   final isPlace = (key == 'place');
 
@@ -111,7 +165,7 @@ Future<String> generateWorldText(
   late String prompt;
 
   if (isPlace) {
-    // ✅ place 전용: 장소만 출력
+    // ✅ place 전용: 기존 유지
     prompt = """
 [장르] $safeGenre
 ${did.isEmpty ? "" : "[세션키] $did"}
@@ -138,7 +192,10 @@ $ctxBlock
 """
         .trim();
   } else {
-    // ✅ worldview 전용: 세계관 문서만(장소는 별도 버튼에서 생성한다고 명시)
+    // ✅✅✅ worldview를 "장르 기반 동적 필드 JSON"으로 변경
+    // 필드 개수는 고정이 파싱/렌더링이 쉬워서 8개 추천
+    const int fieldCount = 8;
+
     prompt = """
 [장르] $safeGenre
 ${did.isEmpty ? "" : "[세션키] $did"}
@@ -147,24 +204,36 @@ $ctxBlock
 
 [절대 금지]
 - 후보/옵션/대안/버전 여러 개
-- 번호 리스트로 나열만 하기
-- 해설/메모/요약
-- 따옴표, 마크다운
+- 마크다운/코드블록/따옴표로 감싸기
+- 설명/해설/메모/요약 문장
+- JSON 밖의 어떤 텍스트도 출력 금지
 
-[출력 형식] (라벨명 변경/추가/삭제 금지)
-핵심 갈등:
-세계 규칙/대가(선택):
-압박 축(1~2):
-세력 구도(최소 2):
-고유명사 묶음(3~7):
-1화 점화 사건:
-전개 레일(1~3화 필연 충돌 3줄):
-씬 패키지(장소 2~5 + 감각 디테일 + 리스크 2개):
+[출력 형식] (스키마 변경/키 추가/삭제 금지)
+아래 JSON 1개만 출력해라:
 
-[추가 지시]
-- "주요 장소"는 별도 기능(place)에서 생성한다. 여기서는 위 라벨만 채워라.
+{
+  "genre": string,
+  "one_line": string,
+  "fields": [
+    { "key": string, "label": string, "value": string }
+  ],
+  "banned": [string],
+  "tone": string,
+  "tags": [string]
+}
 
-[분량] 900~1400자
+[필드 설계 규칙]
+- fields는 정확히 $fieldCount개.
+- 장르에 따라 "필요한 세계관 항목"을 네가 설계해라. (고정 카테고리 금지)
+- label은 한국어, key는 영어 snake_case.
+- value는 한국어로, 바로 소설에 써먹을 수 있게 구체적으로.
+- 서로 모순 없게.
+- banned에는 이 장르에서 피해야 할 클리셰/금기 3~6개.
+- tone에는 문체/분위기 가이드 1줄.
+- tags에는 검색/분류용 태그 5~10개(한국어).
+
+[중요]
+- JSON만 출력해라. 그 외 텍스트 0.
 """
         .trim();
   }
@@ -179,12 +248,12 @@ $ctxBlock
     return '생성 오류: $e';
   }
 
-  output = cleanBasic(output);
-
   // -----------------------
   // 4) 검증/리페어 (분기)
   // -----------------------
   if (isPlace) {
+    output = cleanText(output);
+
     if (!validatePlaceOutput(output)) {
       final repairPrompt = """
 [장르] $safeGenre
@@ -211,44 +280,45 @@ $output
 
       try {
         output = await callAi('solar-mini', systemPrompt, repairPrompt);
-        output = cleanBasic(output);
+        output = cleanText(output);
       } catch (_) {}
     }
+
     return output.trim();
   }
 
-  // worldview 라벨 검증
-  final requiredLabels = [
-    '핵심 갈등:',
-    '세계 규칙/대가',
-    '압박 축',
-    '세력 구도',
-    '고유명사',
-    '1화 점화 사건',
-    '전개 레일',
-    '씬 패키지',
-  ];
+  // ✅✅✅ worldview(JSON) 검증 + 리페어
+  const int fieldCount = 8;
+  String jsonCandidate = extractJsonObject(output);
 
-  if (!containsAll(output, requiredLabels)) {
+  if (!validateWorldJson(jsonCandidate, fieldCount)) {
     final repairPrompt = """
 [장르] $safeGenre
 [현재 맥락 데이터]
 $ctxBlock
 
 [요청]
-- 아래 출력은 라벨이 누락되거나 형식이 틀렸다.
-- 아래 "출력 형식" 라벨을 정확히 지켜 완성본만 다시 출력.
-- 후보/옵션/해설 금지. 따옴표/마크다운 금지.
+- 아래 출력은 JSON이 아니거나 스키마/필드개수가 틀렸다.
+- 반드시 아래 스키마 그대로, fields는 정확히 $fieldCount개로 "JSON 1개만" 다시 출력해라.
+- JSON 밖 텍스트 0, 마크다운 0.
 
-[출력 형식] (라벨명 변경/추가/삭제 금지)
-핵심 갈등:
-세계 규칙/대가(선택):
-압박 축(1~2):
-세력 구도(최소 2):
-고유명사 묶음(3~7):
-1화 점화 사건:
-전개 레일(1~3화 필연 충돌 3줄):
-씬 패키지(장소 2~5 + 감각 디테일 + 리스크 2개):
+[스키마] (변경 금지)
+{
+  "genre": string,
+  "one_line": string,
+  "fields": [
+    { "key": string, "label": string, "value": string }
+  ],
+  "banned": [string],
+  "tone": string,
+  "tags": [string]
+}
+
+[규칙]
+- label: 한국어
+- key: 영어 snake_case
+- value: 한국어, 구체적
+- fields: 정확히 $fieldCount개
 
 [기존 출력]
 $output
@@ -256,10 +326,16 @@ $output
         .trim();
 
     try {
-      output = await callAi('solar-mini', systemPrompt, repairPrompt);
-      output = cleanBasic(output);
+      final repaired = await callAi('solar-mini', systemPrompt, repairPrompt);
+      jsonCandidate = extractJsonObject(repaired);
     } catch (_) {}
   }
 
-  return output.trim();
+  // 마지막으로 한 번 더 검증하고, 그래도 실패면 원본이라도 반환(디버깅 가능하게)
+  if (!validateWorldJson(jsonCandidate, fieldCount)) {
+    // 실패 시 최소한 JSON 후보라도 반환 (앱에서 로그로 확인 가능)
+    return jsonCandidate.trim();
+  }
+
+  return jsonCandidate.trim();
 }

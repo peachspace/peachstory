@@ -18,6 +18,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
     List<EmotionImageStructStruct>? emotionimages,
     String? basePrompt,
     List<SituationalImageStructStruct>? situationImages,
+    String? appearance,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _name = name,
         _personality = personality,
@@ -28,6 +29,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         _emotionimages = emotionimages,
         _basePrompt = basePrompt,
         _situationImages = situationImages,
+        _appearance = appearance,
         super(firestoreUtilData);
 
   // "name" field.
@@ -108,6 +110,13 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   bool hasSituationImages() => _situationImages != null;
 
+  // "appearance" field.
+  String? _appearance;
+  String get appearance => _appearance ?? '';
+  set appearance(String? val) => _appearance = val;
+
+  bool hasAppearance() => _appearance != null;
+
   static CharacterStructStruct fromMap(Map<String, dynamic> data) =>
       CharacterStructStruct(
         name: data['name'] as String?,
@@ -125,6 +134,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
           data['situationImages'],
           SituationalImageStructStruct.fromMap,
         ),
+        appearance: data['appearance'] as String?,
       );
 
   static CharacterStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -141,6 +151,7 @@ class CharacterStructStruct extends FFFirebaseStruct {
         'emotionimages': _emotionimages?.map((e) => e.toMap()).toList(),
         'basePrompt': _basePrompt,
         'situationImages': _situationImages?.map((e) => e.toMap()).toList(),
+        'appearance': _appearance,
       }.withoutNulls;
 
   @override
@@ -182,6 +193,10 @@ class CharacterStructStruct extends FFFirebaseStruct {
           _situationImages,
           ParamType.DataStruct,
           isList: true,
+        ),
+        'appearance': serializeParam(
+          _appearance,
+          ParamType.String,
         ),
       }.withoutNulls;
 
@@ -234,6 +249,11 @@ class CharacterStructStruct extends FFFirebaseStruct {
           true,
           structBuilder: SituationalImageStructStruct.fromSerializableMap,
         ),
+        appearance: deserializeParam(
+          data['appearance'],
+          ParamType.String,
+          false,
+        ),
       );
 
   static CharacterStructStruct fromAlgoliaData(Map<String, dynamic> data) =>
@@ -285,6 +305,11 @@ class CharacterStructStruct extends FFFirebaseStruct {
           true,
           structBuilder: SituationalImageStructStruct.fromAlgoliaData,
         ),
+        appearance: convertAlgoliaParam(
+          data['appearance'],
+          ParamType.String,
+          false,
+        ),
         firestoreUtilData: FirestoreUtilData(
           clearUnsetFields: false,
           create: true,
@@ -306,7 +331,8 @@ class CharacterStructStruct extends FFFirebaseStruct {
         profileimage == other.profileimage &&
         listEquality.equals(emotionimages, other.emotionimages) &&
         basePrompt == other.basePrompt &&
-        listEquality.equals(situationImages, other.situationImages);
+        listEquality.equals(situationImages, other.situationImages) &&
+        appearance == other.appearance;
   }
 
   @override
@@ -319,7 +345,8 @@ class CharacterStructStruct extends FFFirebaseStruct {
         profileimage,
         emotionimages,
         basePrompt,
-        situationImages
+        situationImages,
+        appearance
       ]);
 }
 
@@ -331,6 +358,7 @@ CharacterStructStruct createCharacterStructStruct({
   int? seed,
   String? profileimage,
   String? basePrompt,
+  String? appearance,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
@@ -344,6 +372,7 @@ CharacterStructStruct createCharacterStructStruct({
       seed: seed,
       profileimage: profileimage,
       basePrompt: basePrompt,
+      appearance: appearance,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,

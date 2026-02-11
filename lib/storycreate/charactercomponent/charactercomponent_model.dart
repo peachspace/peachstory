@@ -53,6 +53,13 @@ class CharactercomponentModel
   String? Function(BuildContext, String?)? charNameTextControllerValidator;
   // Stores action output result for [Custom Action - generateCharacterField] action in charnamegenbutton widget.
   String? name;
+  // State field(s) for charAppearance widget.
+  FocusNode? charAppearanceFocusNode;
+  TextEditingController? charAppearanceTextController;
+  String? Function(BuildContext, String?)?
+      charAppearanceTextControllerValidator;
+  // Stores action output result for [Custom Action - generateCharacterField] action in charappearancegenbutton widget.
+  String? appearance;
   // State field(s) for charSetting widget.
   FocusNode? charSettingFocusNode;
   TextEditingController? charSettingTextController;
@@ -79,6 +86,9 @@ class CharactercomponentModel
   void dispose() {
     charNameFocusNode?.dispose();
     charNameTextController?.dispose();
+
+    charAppearanceFocusNode?.dispose();
+    charAppearanceTextController?.dispose();
 
     charSettingFocusNode?.dispose();
     charSettingTextController?.dispose();
