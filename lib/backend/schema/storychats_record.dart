@@ -95,6 +95,11 @@ class StorychatsRecord extends FirestoreRecord {
   String get chapterState => _chapterState ?? '';
   bool hasChapterState() => _chapterState != null;
 
+  // "outlineText" field.
+  String? _outlineText;
+  String get outlineText => _outlineText ?? '';
+  bool hasOutlineText() => _outlineText != null;
+
   void _initializeFields() {
     _storyRef = snapshotData['story_ref'] as DocumentReference?;
     _userRef = snapshotData['user_ref'] as DocumentReference?;
@@ -113,6 +118,7 @@ class StorychatsRecord extends FirestoreRecord {
     _chapterIndex = castToType<int>(snapshotData['chapterIndex']);
     _storyBible = snapshotData['storyBible'] as String?;
     _chapterState = snapshotData['chapterState'] as String?;
+    _outlineText = snapshotData['outlineText'] as String?;
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -167,6 +173,7 @@ Map<String, dynamic> createStorychatsRecordData({
   int? chapterIndex,
   String? storyBible,
   String? chapterState,
+  String? outlineText,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -186,6 +193,7 @@ Map<String, dynamic> createStorychatsRecordData({
       'chapterIndex': chapterIndex,
       'storyBible': storyBible,
       'chapterState': chapterState,
+      'outlineText': outlineText,
     }.withoutNulls,
   );
 
@@ -212,7 +220,8 @@ class StorychatsRecordDocumentEquality implements Equality<StorychatsRecord> {
         e1?.turnCount == e2?.turnCount &&
         e1?.chapterIndex == e2?.chapterIndex &&
         e1?.storyBible == e2?.storyBible &&
-        e1?.chapterState == e2?.chapterState;
+        e1?.chapterState == e2?.chapterState &&
+        e1?.outlineText == e2?.outlineText;
   }
 
   @override
@@ -232,7 +241,8 @@ class StorychatsRecordDocumentEquality implements Equality<StorychatsRecord> {
         e?.turnCount,
         e?.chapterIndex,
         e?.storyBible,
-        e?.chapterState
+        e?.chapterState,
+        e?.outlineText
       ]);
 
   @override
