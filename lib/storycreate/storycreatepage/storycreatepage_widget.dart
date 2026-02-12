@@ -124,7 +124,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
     _model.eventTextController ??= TextEditingController(text: _model.event);
     _model.eventFocusNode ??= FocusNode();
 
-    _model.outlineTextController ??= TextEditingController(text: _model.event);
+    _model.outlineTextController ??=
+        TextEditingController(text: _model.outline);
     _model.outlineFocusNode ??= FocusNode();
 
     _model.prologuetextTextController ??=
@@ -3492,7 +3493,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                   milliseconds:
                                                                       2000),
                                                               () async {
-                                                                _model.event =
+                                                                _model.outline =
                                                                     _model
                                                                         .outlineTextController
                                                                         .text;
@@ -3649,7 +3650,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                 ),
                                                             maxLines: null,
                                                             minLines: 15,
-                                                            maxLength: 4000,
+                                                            maxLength: 10000,
                                                             maxLengthEnforcement:
                                                                 MaxLengthEnforcement
                                                                     .enforced,

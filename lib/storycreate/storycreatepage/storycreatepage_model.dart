@@ -68,6 +68,8 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
           int index, Function(EventstructStruct) updateFn) =>
       eventlist[index] = updateFn(eventlist[index]);
 
+  String? outline;
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TabBar widget.
