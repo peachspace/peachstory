@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'index.dart'; // Imports other custom actions
+import 'index.dart';
+import '/flutter_flow/custom_functions.dart';
+
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> generatePrologueField(
@@ -17,6 +19,7 @@ Future<String> generatePrologueField(
   String genre,
   String? draftId,
   List<CharacterStructStruct>? characters,
+  String? userInstruction, // ✅ 텍스트필드 지시 추가
 ) async {
   Future<String> callAi(
     String modelName,
@@ -38,7 +41,6 @@ Future<String> generatePrologueField(
     return (result.data['fullText'] ?? '').toString();
   }
 
-  // "주요 장소" 블록에서 장소명만 뽑기 (장소명: 설명 형태 지원)
   List<String> extractMajorPlacesFromCtx(String ctx) {
     final lines = ctx.replaceAll('\r\n', '\n').split('\n');
     final out = <String>[];
@@ -79,7 +81,6 @@ Future<String> generatePrologueField(
       }
     }
 
-    // 중복 제거
     final uniq = <String>{};
     final res = <String>[];
     for (final p in out) {
@@ -90,12 +91,12 @@ Future<String> generatePrologueField(
     return res;
   }
 
-  // -----------------------
-  // 힌트 구성
-  // -----------------------
   final ctx = currentStoryContext.trim();
   final safeGenre = genre.trim().isEmpty ? '기본' : genre.trim();
   final did = (draftId ?? '').trim();
+
+  final uiRaw = (userInstruction ?? '').trim();
+  final uiBlock = uiRaw.isEmpty ? '' : '\n[사용자 추가 지시]\n$uiRaw\n';
 
   final majorPlaces = extractMajorPlacesFromCtx(ctx);
 
@@ -109,9 +110,6 @@ Future<String> generatePrologueField(
   final charHint = charNames.isEmpty ? '없음' : charNames.join(', ');
   final hasConfiguredChars = charNames.isNotEmpty;
 
-  // -----------------------
-  // 프롬프트 강화(후처리 없이 안정화)
-  // -----------------------
   final systemPrompt = """
 너는 "프롤로그 텍스트필드"에 들어갈 텍스트만 출력한다.
 설명/해설/요약/목차/JSON/코드블록/마크다운 금지.
@@ -124,6 +122,10 @@ ${did.isNotEmpty ? "[세션키] $did" : ""}
 
 [스토리 데이터]
 $ctx
+$uiBlock
+
+[최우선 규칙]
+- 사용자 추가 지시가 있으면 최대한 반영하되, 아래 형식/금지 규칙은 절대 깨지 마라.
 
 [설정된 캐릭터 이름(있다면 이 이름을 그대로 사용)]
 $charHint
@@ -145,13 +147,12 @@ A) 설정된 캐릭터만: 이름(감정): 대사
 B) 설정되지 않은 인물: 이름: 대사   (감정 괄호 절대 금지)
 C) 내레이션: 라벨 없이 문장만 출력
 
-[감정 태그 규칙(강화)]
+[감정 태그 규칙]
 - A형식에서 (감정)은 반드시 1개만 붙이고, 감정은 1~4글자 단어로 쓴다.
-- 감정 예시(참고): 분노/불안/침착/경멸/당황/결의/냉소/절박/체념/의심/경계/비웃음/공포/안도/흥분/곤혹
 - A형식의 감정 괄호 외에는 어떤 괄호()도 쓰지 마라.
 - B형식(비설정 인물)과 C형식(내레이션)에는 괄호()가 단 하나도 나오면 안 된다.
 
-[스토리 자유도 + 안정 조건]
+[스토리 안정 조건]
 - 대사만 연속으로 6줄 이상 이어지지 않게 해라(중간에 내레이션 끼워라).
 - 내레이션만 연속으로 4줄 이상 이어지지 않게 해라(중간에 대사 끼워라).
 ${hasConfiguredChars ? """
@@ -164,7 +165,6 @@ ${hasConfiguredChars ? """
 [금지]
 - "내레이션:" 같은 라벨 금지
 - JSON/중괄호/대괄호 금지
-- "(이름 없음)" 같은 표기 금지
 - 역할명 화자(예: 악역/길드원/현재연인 등) 금지 → 필요하면 고유 이름을 지어라
 - {user}가 화자로 말하는 형태 금지
 

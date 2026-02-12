@@ -426,6 +426,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                     'char_name',
                                     '${widget.storyContext}/n[캐릭터 설정]:${_model.charSettingTextController.text}',
                                     FFAppState().draftId,
+                                    _model.charNameTextController.text,
                                   );
                                   safeSetState(() {
                                     _model.charNameTextController?.text =
@@ -751,6 +752,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                       'appearance',
                                       '${widget.storyContext}/n[캐릭터 설정]:${_model.charSettingTextController.text}/n[캐릭터 외모]: ${_model.charAppearanceTextController.text}',
                                       FFAppState().draftId,
+                                      _model.charAppearanceTextController.text,
                                     );
                                     safeSetState(() {
                                       _model.charAppearanceTextController
@@ -1107,6 +1109,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                         'char_set',
                                         '${widget.storyContext}/n[캐릭터 이름]: ${_model.charNameTextController.text}/n[캐릭터 외모]: ${_model.charAppearanceTextController.text}',
                                         FFAppState().draftId,
+                                        _model.charSettingTextController.text,
                                       );
                                       _shouldSetState = true;
                                       safeSetState(() {
@@ -1439,6 +1442,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                       'char_intro',
                                       '${widget.storyContext}\\n[캐릭터 이름]: ${_model.charNameTextController.text}\\n[캐릭터 설정]: ${_model.charSettingTextController.text}\\n[캐릭터 외모]: ${_model.charAppearanceTextController.text}',
                                       FFAppState().draftId,
+                                      _model.charintroduceTextController.text,
                                     );
                                     safeSetState(() {
                                       _model.charintroduceTextController?.text =

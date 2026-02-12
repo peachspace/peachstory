@@ -783,6 +783,9 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                         },
                                       ),
                                     });
+                                    await actions.updateStoryMemory(
+                                      _model.currentDocRef!,
+                                    );
                                     if (functions
                                         .isSummaryTurn(valueOrDefault<int>(
                                               stackStorychatsRecord
@@ -1379,7 +1382,23 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                   stackStorychatsRecord
                                                       .userNote,
                                                   widget.userInChatName!,
-                                                  stackStorychatsRecord.summary,
+                                                  functions.composeMemoryBlock(
+                                                      valueOrDefault<int>(
+                                                        stackStorychatsRecord
+                                                            .turnCount,
+                                                        0,
+                                                      ),
+                                                      valueOrDefault<int>(
+                                                        stackStorychatsRecord
+                                                            .chapterIndex,
+                                                        1,
+                                                      ),
+                                                      stackStorychatsRecord
+                                                          .storyBible,
+                                                      stackStorychatsRecord
+                                                          .chapterState,
+                                                      stackStorychatsRecord
+                                                          .summary),
                                                   widget.isNovelMode!,
                                                   storychatpageStoriesRecord
                                                       .place,

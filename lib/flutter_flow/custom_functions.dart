@@ -821,3 +821,37 @@ String parseMajorPlacesTextToJson(String raw) {
 
   return jsonEncode(out);
 }
+
+String composeMemoryBlock(
+  int turnCount,
+  int chapterIndex,
+  String storyBible,
+  String chapterState,
+  String longSummary,
+) {
+  final t = (turnCount).toString();
+  final c = (chapterIndex).toString();
+
+  final bible = (storyBible).trim();
+  final state = (chapterState).trim();
+  final summary = (longSummary).trim();
+
+  return '''
+[MEMORY META]
+Turn: $t
+Chapter: $c
+
+[STORY_BIBLE]
+${bible.isEmpty ? '(empty)' : bible}
+[/STORY_BIBLE]
+
+[CHAPTER_STATE]
+${state.isEmpty ? '(empty)' : state}
+[/CHAPTER_STATE]
+
+[LONG_SUMMARY]
+${summary.isEmpty ? '(empty)' : summary}
+[/LONG_SUMMARY]
+'''
+      .trim();
+}

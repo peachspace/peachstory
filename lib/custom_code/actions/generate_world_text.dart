@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'index.dart'; // Imports other custom actions
+import 'index.dart';
+import '/flutter_flow/custom_functions.dart';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'dart:convert';
@@ -18,6 +19,7 @@ Future<String> generateWorldText(
   String currentStoryContext,
   String genre,
   String? draftId,
+  String? userInstruction, // ✅ 텍스트필드 지시 추가
   String targetKey, // 'place' or 'worldview'
 ) async {
   // -----------------------
@@ -93,6 +95,9 @@ Future<String> generateWorldText(
   final key = targetKey.trim().toLowerCase();
   final isPlace = (key == 'place');
 
+  final uiRaw = (userInstruction ?? '').trim();
+  final uiBlock = uiRaw.isEmpty ? '' : '\n[사용자 추가 지시]\n$uiRaw\n';
+
   // -----------------------
   // 2) 시스템 프롬프트
   // -----------------------
@@ -105,9 +110,9 @@ Future<String> generateWorldText(
       .trim();
 
   // -----------------------
-  // 3) JSON -> 텍스트 복구
+  // 3) JSON -> 텍스트 복구 (PLACE 전용)
   // -----------------------
-  String jsonToText(String rawJson, {required bool isPlaceMode}) {
+  String jsonToTextPlace(String rawJson) {
     dynamic obj;
     try {
       obj = jsonDecode(rawJson);
@@ -115,65 +120,61 @@ Future<String> generateWorldText(
       return rawJson.trim();
     }
 
-    if (isPlaceMode) {
-      final out = <String>[];
+    final out = <String>[];
 
-      void addPlaceLine(String raw) {
-        final t = raw.trim();
-        if (t.isEmpty) return;
+    void addPlaceLine(String raw) {
+      final t = raw.trim();
+      if (t.isEmpty) return;
 
-        // "분류: 장소명: 설명" -> "장소명: 설명"
-        final m = RegExp(r'^([^:]{1,60})\s*:\s*([^:]{1,60})\s*:\s*(.+)$')
-            .firstMatch(t);
-        if (m != null) {
-          out.add('${m.group(2)!.trim()}: ${m.group(3)!.trim()}');
-          return;
-        }
-
-        // 일반 "장소명: 설명"
-        if (t.contains(':')) {
-          final left = t.split(':').first.trim();
-          final right = t.substring(t.indexOf(':') + 1).trim();
-          if (left.isNotEmpty && right.isNotEmpty) out.add('$left: $right');
-        }
+      // "분류: 장소명: 설명" -> "장소명: 설명"
+      final m =
+          RegExp(r'^([^:]{1,60})\s*:\s*([^:]{1,60})\s*:\s*(.+)$').firstMatch(t);
+      if (m != null) {
+        out.add('${m.group(2)!.trim()}: ${m.group(3)!.trim()}');
+        return;
       }
 
-      if (obj is Map) {
-        final fields = obj['fields'];
-        if (fields is List) {
-          for (final f in fields) {
-            if (f is! Map) continue;
-            final v = (f['value'] ?? '').toString().trim();
-            if (v.isEmpty) continue;
-            for (final line in v.split('\n')) {
-              addPlaceLine(line);
-            }
-          }
-        } else {
-          for (final v in obj.values) {
-            final s = (v ?? '').toString();
-            if (s.trim().isEmpty) continue;
-            for (final line in s.split('\n')) {
-              addPlaceLine(line);
-            }
-          }
-        }
+      // 일반 "장소명: 설명"
+      if (t.contains(':')) {
+        final left = t.split(':').first.trim();
+        final right = t.substring(t.indexOf(':') + 1).trim();
+        if (left.isNotEmpty && right.isNotEmpty) out.add('$left: $right');
       }
-
-      if (out.length < 5) {
-        return [
-          '장소A: (설명 필요)',
-          '장소B: (설명 필요)',
-          '장소C: (설명 필요)',
-          '장소D: (설명 필요)',
-          '장소E: (설명 필요)',
-        ].join('\n');
-      }
-
-      return out.take(8).join('\n').trim();
     }
 
-    return rawJson.trim();
+    if (obj is Map) {
+      final fields = obj['fields'];
+      if (fields is List) {
+        for (final f in fields) {
+          if (f is! Map) continue;
+          final v = (f['value'] ?? '').toString().trim();
+          if (v.isEmpty) continue;
+          for (final line in v.split('\n')) {
+            addPlaceLine(line);
+          }
+        }
+      } else {
+        for (final v in obj.values) {
+          final s = (v ?? '').toString();
+          if (s.trim().isEmpty) continue;
+          for (final line in s.split('\n')) {
+            addPlaceLine(line);
+          }
+        }
+      }
+    }
+
+    if (out.length < 5) {
+      return [
+        '장소A: (설명 필요)',
+        '장소B: (설명 필요)',
+        '장소C: (설명 필요)',
+        '장소D: (설명 필요)',
+        '장소E: (설명 필요)',
+      ].join('\n');
+    }
+
+    return out.take(8).join('\n').trim();
   }
 
   // -----------------------
@@ -250,13 +251,16 @@ ${did.isEmpty ? "" : "[세션키] $did"}
 
 [현재 맥락 데이터]
 $ctxBlock
+$uiBlock
+
+[최우선 규칙]
+- 사용자 추가 지시가 있으면 최대한 반영해라. 단, 출력 형식 규칙은 절대 깨지 마라.
 
 [절대 금지]
 - JSON/중괄호/대괄호/코드블록/마크다운/따옴표
 - 후보/옵션/대안/버전 여러 개
 - 번호/글머리표(- •)
-- 머리말/제목줄
-- 카테고리 라벨
+- 머리말/제목줄/카테고리 라벨
 
 [요청]
 - 이 이야기의 "핵심 무대" 장소를 5~8곳 만들어라.
@@ -279,7 +283,7 @@ $ctxBlock
     output = stripQuotes(cleanBasic(output));
 
     if (looksJsonLike(output)) {
-      output = jsonToText(output, isPlaceMode: true);
+      output = jsonToTextPlace(output);
       output = stripQuotes(cleanBasic(output));
     }
 
@@ -288,12 +292,13 @@ $ctxBlock
 [장르] $safeGenre
 [현재 맥락 데이터]
 $ctxBlock
+$uiBlock
 
 [요청]
 - 아래 출력이 규칙을 어겼다.
 - 오직 5~8줄만 출력.
 - 각 줄은 정확히: 장소명: 한 문장 설명
-- 머리말/카테고리 라벨 금지.
+- 머리말/제목줄/카테고리 라벨 금지.
 - JSON/중괄호/대괄호/코드블록/마크다운/따옴표/번호/글머리표 금지.
 
 [기존 출력]
@@ -413,13 +418,17 @@ ${did.isEmpty ? "" : "[세션키] $did"}
 
 [현재 맥락 데이터]
 $ctxBlock
+$uiBlock
+
+[최우선 규칙]
+- 사용자 추가 지시가 있으면 그 지시 목적을 만족하는 방향으로 "고려 항목 라벨"을 구성해라.
 
 [절대 금지]
 - JSON/중괄호/대괄호/코드블록/마크다운/따옴표
 - 후보/옵션/대안/버전 여러 개
 - 번호/글머리표(- •)
 - 해설/메모/요약
-- 제목/캐릭터/유저역할/주요사건/주요장소 관련 라벨
+- 제목/캐릭터/유저역할/주요사건/주요장소 같은 "메타 패키지" 라벨
 
 [요청]
 - 이 장르의 세계관을 설계할 때 "고려할 항목 라벨"만 6~12개 만들어라.
@@ -444,6 +453,10 @@ $ctxBlock
   if (looksJsonLike(labelRaw)) {
     final labelRepair = """
 [장르] $safeGenre
+[현재 맥락 데이터]
+$ctxBlock
+$uiBlock
+
 [요청]
 - 6~12줄.
 - 각 줄은 오직: 항목라벨:
@@ -465,6 +478,7 @@ $ctxBlock
 [장르] $safeGenre
 [현재 맥락 데이터]
 $ctxBlock
+$uiBlock
 
 [요청]
 - 정확히 8줄.
@@ -490,6 +504,11 @@ ${did.isEmpty ? "" : "[세션키] $did"}
 
 [현재 맥락 데이터]
 $ctxBlock
+$uiBlock
+
+[최우선 규칙]
+- 사용자 추가 지시가 있으면 반드시 반영해라.
+- 단, 출력 형식 규칙과 금지 규칙은 절대 깨지 마라.
 
 [절대 금지]
 - JSON/중괄호/대괄호/코드블록/마크다운/따옴표
@@ -527,6 +546,7 @@ $template
 [장르] $safeGenre
 [현재 맥락 데이터]
 $ctxBlock
+$uiBlock
 
 [요청]
 - 아래 출력이 JSON이거나 형식이 틀렸거나 라벨이 누락되었다.

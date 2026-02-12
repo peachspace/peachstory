@@ -833,11 +833,14 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           _model.generatedworldview =
                                                               await actions
                                                                   .generateWorldText(
-                                                            '세계관을 생성하라.',
+                                                            '세계관을 최대한 구체적으로 생성하라.',
                                                             _model
                                                                 .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
+                                                            _model
+                                                                .worldSettingsTextController
+                                                                .text,
                                                             'worldview',
                                                           );
                                                           safeSetState(() {
@@ -1353,6 +1356,9 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                 .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
+                                                            _model
+                                                                .placetextfieldTextController
+                                                                .text,
                                                             'place',
                                                           );
                                                           safeSetState(() {
@@ -2448,6 +2454,9 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                             '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}',
                                                             FFAppState()
                                                                 .draftId,
+                                                            _model
+                                                                .userRoleInfoTextController
+                                                                .text,
                                                           );
                                                           safeSetState(() {
                                                             _model.userRoleInfoTextController
@@ -2961,6 +2970,9 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           _model
                                                               .genredropdownValue!,
                                                           FFAppState().draftId,
+                                                          _model
+                                                              .eventTextController
+                                                              .text,
                                                         );
                                                         safeSetState(() {
                                                           _model.eventTextController
@@ -3578,6 +3590,9 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                         FFAppState()
                                                             .Characters
                                                             .toList(),
+                                                        _model
+                                                            .prologuetextTextController
+                                                            .text,
                                                       );
                                                       safeSetState(() {
                                                         _model.prologuetextTextController
@@ -4100,6 +4115,9 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                 .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
+                                                            _model
+                                                                .storyNameTextController
+                                                                .text,
                                                           );
                                                           safeSetState(() {
                                                             _model.storyNameTextController
@@ -4966,6 +4984,9 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                 .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
+                                                            _model
+                                                                .introduceTextController
+                                                                .text,
                                                           );
                                                           safeSetState(() {
                                                             _model.introduceTextController
@@ -5437,6 +5458,9 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                 .genredropdownValue!,
                                                             FFAppState()
                                                                 .draftId,
+                                                            _model
+                                                                .detailinfotextTextController
+                                                                .text,
                                                           );
                                                           safeSetState(() {
                                                             _model.detailinfotextTextController

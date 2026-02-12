@@ -25,7 +25,7 @@ Future<List<dynamic>> getAndProcessHistory(
     final messagesSnapshot = await storyChatRef
         .collection('storymessages')
         .orderBy('timestamp', descending: true) // 최신순 정렬
-        .limit(20) // 최근 20개만
+        .limit(30) // 최근 20개만
         .get();
 
     if (messagesSnapshot.docs.isEmpty) {

@@ -9,12 +9,16 @@ import 'package:flutter/material.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'index.dart';
+import '/flutter_flow/custom_functions.dart';
+
 import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> generateEventField(
   String currentStoryContext,
-  String genre, // ✅ 시그니처 유지(호출부 호환). 프롬프트에서는 사용 안 함.
+  String genre, // 시그니처 유지
   String? draftId,
+  String? userInstruction, // ✅ 텍스트필드 지시 추가
 ) async {
   String cleanBasic(String s) {
     var out = s.trim();
@@ -64,7 +68,6 @@ Future<String> generateEventField(
     for (final raw in lines) {
       var l = raw;
 
-      // bullet/번호 제거
       l = l.replaceAll(RegExp(r'^[-*•]+\s*'), '');
       l = l.replaceAll(RegExp(r'^\d+\)\s*'), '');
       l = l.replaceAll(RegExp(r'^\d+\.\s*'), '');
@@ -75,13 +78,15 @@ Future<String> generateEventField(
       if (l.isNotEmpty) cleaned.add(l);
     }
 
-    // key:value만
     return cleaned.where(isKeyValue).toList();
   }
 
   final ctxRaw = currentStoryContext.trim();
   final ctxBlock = ctxRaw.isEmpty ? '(없음)' : '<CTX>\n$ctxRaw\n</CTX>';
   final did = (draftId ?? '').trim();
+
+  final uiRaw = (userInstruction ?? '').trim();
+  final uiBlock = uiRaw.isEmpty ? '' : '\n[사용자 추가 지시]\n$uiRaw\n';
 
   final systemPrompt = """
 너는 웹소설 기획자다.
@@ -94,15 +99,18 @@ Future<String> generateEventField(
 ${did.isEmpty ? "" : "[세션키] $did"}
 [현재 맥락 데이터]
 $ctxBlock
+$uiBlock
+
+[최우선 규칙]
+- 사용자 추가 지시가 있으면 반영하되, 아래 형식 규칙을 절대 깨지 마라.
 
 [요청]
 - 이 이야기에서 "큰 사건/전환점/결정적 순간"만 10~14개 작성해라.
 - 사건명(태그)도 너가 자유롭게 지어라.
 - 각 사건은 이미지로 그릴 수 있을 만큼 '순간'이 선명해야 한다.
 - 일상 에피소드/분위기 묘사/사소한 사건 금지.
-- 시간 흐름이 느껴지게 대체로 순서감은 유지해라.
 
-[출력 규칙] (매우 중요)
+[출력 규칙]
 1) 각 줄은 반드시 "사건태그: 한 문장" 형식.
 2) 10~14줄.
 3) 같은 사건태그 중복 금지.
@@ -124,10 +132,10 @@ $ctxBlock
 
   var lines = normalizeLines(output);
 
-  // 10개 미만이면 1회 리페어
   if (lines.length < 10) {
     final repairPrompt = """
 $ctxBlock
+$uiBlock
 
 [요청]
 - 아래 출력이 형식을 어겼거나 줄 수가 부족하다.

@@ -75,6 +75,26 @@ class StorychatsRecord extends FirestoreRecord {
   int get messageCount => _messageCount ?? 0;
   bool hasMessageCount() => _messageCount != null;
 
+  // "turnCount" field.
+  int? _turnCount;
+  int get turnCount => _turnCount ?? 0;
+  bool hasTurnCount() => _turnCount != null;
+
+  // "chapterIndex" field.
+  int? _chapterIndex;
+  int get chapterIndex => _chapterIndex ?? 0;
+  bool hasChapterIndex() => _chapterIndex != null;
+
+  // "storyBible" field.
+  String? _storyBible;
+  String get storyBible => _storyBible ?? '';
+  bool hasStoryBible() => _storyBible != null;
+
+  // "chapterState" field.
+  String? _chapterState;
+  String get chapterState => _chapterState ?? '';
+  bool hasChapterState() => _chapterState != null;
+
   void _initializeFields() {
     _storyRef = snapshotData['story_ref'] as DocumentReference?;
     _userRef = snapshotData['user_ref'] as DocumentReference?;
@@ -89,6 +109,10 @@ class StorychatsRecord extends FirestoreRecord {
     _creatorRef = snapshotData['creator_ref'] as DocumentReference?;
     _isNovelMode = snapshotData['isNovelMode'] as bool?;
     _messageCount = castToType<int>(snapshotData['messageCount']);
+    _turnCount = castToType<int>(snapshotData['turnCount']);
+    _chapterIndex = castToType<int>(snapshotData['chapterIndex']);
+    _storyBible = snapshotData['storyBible'] as String?;
+    _chapterState = snapshotData['chapterState'] as String?;
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -139,6 +163,10 @@ Map<String, dynamic> createStorychatsRecordData({
   DocumentReference? creatorRef,
   bool? isNovelMode,
   int? messageCount,
+  int? turnCount,
+  int? chapterIndex,
+  String? storyBible,
+  String? chapterState,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -154,6 +182,10 @@ Map<String, dynamic> createStorychatsRecordData({
       'creator_ref': creatorRef,
       'isNovelMode': isNovelMode,
       'messageCount': messageCount,
+      'turnCount': turnCount,
+      'chapterIndex': chapterIndex,
+      'storyBible': storyBible,
+      'chapterState': chapterState,
     }.withoutNulls,
   );
 
@@ -176,7 +208,11 @@ class StorychatsRecordDocumentEquality implements Equality<StorychatsRecord> {
         e1?.selectedAiModel == e2?.selectedAiModel &&
         e1?.creatorRef == e2?.creatorRef &&
         e1?.isNovelMode == e2?.isNovelMode &&
-        e1?.messageCount == e2?.messageCount;
+        e1?.messageCount == e2?.messageCount &&
+        e1?.turnCount == e2?.turnCount &&
+        e1?.chapterIndex == e2?.chapterIndex &&
+        e1?.storyBible == e2?.storyBible &&
+        e1?.chapterState == e2?.chapterState;
   }
 
   @override
@@ -192,7 +228,11 @@ class StorychatsRecordDocumentEquality implements Equality<StorychatsRecord> {
         e?.selectedAiModel,
         e?.creatorRef,
         e?.isNovelMode,
-        e?.messageCount
+        e?.messageCount,
+        e?.turnCount,
+        e?.chapterIndex,
+        e?.storyBible,
+        e?.chapterState
       ]);
 
   @override
