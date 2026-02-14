@@ -16,7 +16,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> generatePrologueField(
   String currentStoryContext,
-  String genre,
   String? draftId,
   List<CharacterStructStruct>? characters,
   String? userInstruction, // ✅ 텍스트필드 지시 추가
@@ -92,7 +91,6 @@ Future<String> generatePrologueField(
   }
 
   final ctx = currentStoryContext.trim();
-  final safeGenre = genre.trim().isEmpty ? '기본' : genre.trim();
   final did = (draftId ?? '').trim();
 
   final uiRaw = (userInstruction ?? '').trim();
@@ -117,7 +115,6 @@ Future<String> generatePrologueField(
       .trim();
 
   final userPrompt = """
-[장르] $safeGenre
 ${did.isNotEmpty ? "[세션키] $did" : ""}
 
 [스토리 데이터]

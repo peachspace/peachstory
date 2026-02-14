@@ -17,7 +17,6 @@ import 'dart:convert';
 
 Future<String> generateWorldText(
   String currentStoryContext,
-  String genre,
   String? draftId,
   String? userInstruction, // ✅ 텍스트필드 지시 추가
   String targetKey, // 'place' or 'worldview'
@@ -88,12 +87,16 @@ Future<String> generateWorldText(
   // -----------------------
   // 1) 인풋 정리
   // -----------------------
-  final safeGenre = genre.trim().isEmpty ? '기본' : genre.trim();
   final ctxRaw = currentStoryContext.trim();
   final ctxBlock = ctxRaw.isEmpty ? '(없음)' : '\n$ctxRaw\n';
   final did = (draftId ?? '').trim();
-  final key = targetKey.trim().toLowerCase();
-  final isPlace = (key == 'place');
+
+  final keyRaw = targetKey.trim();
+  final key = keyRaw.toLowerCase();
+
+  // ✅ 'place', 'placegenbutton' 등도 PLACE로 처리 + 한국어 '장소' 포함 처리
+  final isPlace =
+      (key == 'place' || key.contains('place') || keyRaw.contains('장소'));
 
   final uiRaw = (userInstruction ?? '').trim();
   final uiBlock = uiRaw.isEmpty ? '' : '\n[사용자 추가 지시]\n$uiRaw\n';
@@ -190,6 +193,11 @@ Future<String> generateWorldText(
       '주요장소',
       '장소 목록',
       '장소목록',
+      '카페 이름',
+      '공원 이름',
+      '미술관 이름',
+      '건물 이름',
+      '바다 이름',
     ];
     if (bannedHeader.any((b) => t.startsWith(b))) return '';
 
@@ -246,7 +254,6 @@ Future<String> generateWorldText(
 
   if (isPlace) {
     final placePrompt = """
-[장르] $safeGenre
 ${did.isEmpty ? "" : "[세션키] $did"}
 
 [현재 맥락 데이터]
@@ -289,7 +296,6 @@ $uiBlock
 
     if (!validatePlaceOutput(output)) {
       final repair = """
-[장르] $safeGenre
 [현재 맥락 데이터]
 $ctxBlock
 $uiBlock
@@ -315,7 +321,7 @@ $output
   }
 
   // -----------------------
-  // 5) WORLDVIEW 모드 (2단계: 장르별 "고려 항목 라벨" 생성 -> 라벨 채우기)
+  // 5) WORLDVIEW 모드 (2단계: 사용자 지시 기반 라벨 생성 -> 라벨 채우기)
   // -----------------------
   List<String> parseLabelOnlyLines(String text) {
     final lines = toLines(text);
@@ -413,7 +419,6 @@ $output
 
   // 5-A) 라벨 생성
   final labelPrompt = """
-[장르] $safeGenre
 ${did.isEmpty ? "" : "[세션키] $did"}
 
 [현재 맥락 데이터]
@@ -422,6 +427,7 @@ $uiBlock
 
 [최우선 규칙]
 - 사용자 추가 지시가 있으면 그 지시 목적을 만족하는 방향으로 "고려 항목 라벨"을 구성해라.
+- 장르를 추론하거나 장르 기준으로 규칙을 만들지 마라. 사용자 추가 지시가 최우선이다.
 
 [절대 금지]
 - JSON/중괄호/대괄호/코드블록/마크다운/따옴표
@@ -431,7 +437,7 @@ $uiBlock
 - 제목/캐릭터/유저역할/주요사건/주요장소 같은 "메타 패키지" 라벨
 
 [요청]
-- 이 장르의 세계관을 설계할 때 "고려할 항목 라벨"만 6~12개 만들어라.
+- 사용자 추가 지시와 현재 맥락 데이터에 맞춰 "고려할 항목 라벨"만 6~12개 만들어라.
 - 각 줄은 오직: 항목라벨:
 - 내용은 쓰지 마라.
 - 라벨은 한국어로, 짧고 명확하게.
@@ -452,7 +458,6 @@ $uiBlock
 
   if (looksJsonLike(labelRaw)) {
     final labelRepair = """
-[장르] $safeGenre
 [현재 맥락 데이터]
 $ctxBlock
 $uiBlock
@@ -475,7 +480,6 @@ $uiBlock
 
   if (labels.length < 6) {
     final labelRepair2 = """
-[장르] $safeGenre
 [현재 맥락 데이터]
 $ctxBlock
 $uiBlock
@@ -499,7 +503,6 @@ $uiBlock
   final template = labels.join('\n');
 
   final fillPrompt = """
-[장르] $safeGenre
 ${did.isEmpty ? "" : "[세션키] $did"}
 
 [현재 맥락 데이터]
@@ -543,7 +546,6 @@ $template
 
   if (looksJsonLike(output) || !validateWorldview(output, labels)) {
     final repair = """
-[장르] $safeGenre
 [현재 맥락 데이터]
 $ctxBlock
 $uiBlock

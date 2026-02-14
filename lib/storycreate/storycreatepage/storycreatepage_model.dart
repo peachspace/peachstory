@@ -81,9 +81,12 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   int get tabBarPreviousIndex =>
       tabBarController != null ? tabBarController!.previousIndex : 0;
 
-  // State field(s) for genredropdown widget.
-  String? genredropdownValue;
-  FormFieldController<String>? genredropdownValueController;
+  // State field(s) for storyName widget.
+  FocusNode? storyNameFocusNode;
+  TextEditingController? storyNameTextController;
+  String? Function(BuildContext, String?)? storyNameTextControllerValidator;
+  // Stores action output result for [Custom Action - generateMetaFields] action in titlegenbutton widget.
+  String? generatedtitle;
   // State field(s) for worldSettings widget.
   FocusNode? worldSettingsFocusNode;
   TextEditingController? worldSettingsTextController;
@@ -127,12 +130,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? Function(BuildContext, String?)? prologuetextTextControllerValidator;
   // Stores action output result for [Custom Action - generatePrologueField] action in prologuegenbutton widget.
   String? generatedprologue;
-  // State field(s) for storyName widget.
-  FocusNode? storyNameFocusNode;
-  TextEditingController? storyNameTextController;
-  String? Function(BuildContext, String?)? storyNameTextControllerValidator;
-  // Stores action output result for [Custom Action - generateMetaFields] action in titlegenbutton widget.
-  String? generatedtitle;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in addmainimagebutton widget.
   GenResultStructStruct? generatedmainimage;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in editmainimagebutton widget.
@@ -154,6 +151,9 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? authorCommentFocusNode;
   TextEditingController? authorCommentTextController;
   String? Function(BuildContext, String?)? authorCommentTextControllerValidator;
+  // State field(s) for genredropdown widget.
+  String? genredropdownValue;
+  FormFieldController<String>? genredropdownValueController;
   // State field(s) for hashitag widget.
   FocusNode? hashitagFocusNode;
   TextEditingController? hashitagTextController;
@@ -167,6 +167,9 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   @override
   void dispose() {
     tabBarController?.dispose();
+    storyNameFocusNode?.dispose();
+    storyNameTextController?.dispose();
+
     worldSettingsFocusNode?.dispose();
     worldSettingsTextController?.dispose();
 
@@ -184,9 +187,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
     prologuetextFocusNode?.dispose();
     prologuetextTextController?.dispose();
-
-    storyNameFocusNode?.dispose();
-    storyNameTextController?.dispose();
 
     introduceFocusNode?.dispose();
     introduceTextController?.dispose();

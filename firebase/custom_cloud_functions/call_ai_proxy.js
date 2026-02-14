@@ -39,8 +39,10 @@ exports.callAiProxy = functions
     // 3. Provider 결정 로직
     let provider = "anthropic";
     if (modelName.includes("solar")) provider = "upstage";
-    else if (modelName.includes("gemma") || modelName.includes("llama"))
-      provider = "groq";
+    else if (modelName.startsWith("openai/"))
+      provider = "groq"; // ✅ 추가
+    else if (modelName.includes("gpt-oss"))
+      provider = "groq"; // ✅ 추가
     else if (modelName.startsWith("gpt")) provider = "openai";
     else if (modelName.startsWith("gemini")) provider = "google";
     else if (modelName.startsWith("claude")) provider = "anthropic";

@@ -16,7 +16,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 Future<String> generateEventField(
   String currentStoryContext,
-  String genre, // 시그니처 유지
   String? draftId,
   String? userInstruction, // ✅ 텍스트필드 지시 추가
 ) async {
