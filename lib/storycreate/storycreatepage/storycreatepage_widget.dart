@@ -2495,7 +2495,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                             false,
                                                                         characterData: FFAppState()
                                                                             .Characters
-                                                                            .elementAtOrNull(charlistIndex),
+                                                                            .elementAtOrNull(charlistIndex)!,
                                                                         isedit:
                                                                             true,
                                                                         index:

@@ -17,11 +17,10 @@ export 'charactercomponent_model.dart';
 class CharactercomponentWidget extends StatefulWidget {
   const CharactercomponentWidget({
     super.key,
-    this.characterData,
+    required this.characterData,
     this.index,
     required this.storyContext,
     required this.isWorldviewEmpty,
-    this.storyId,
     bool? isedit,
   }) : this.isedit = isedit ?? false;
 
@@ -29,7 +28,6 @@ class CharactercomponentWidget extends StatefulWidget {
   final int? index;
   final String? storyContext;
   final bool? isWorldviewEmpty;
-  final String? storyId;
   final bool isedit;
 
   @override
