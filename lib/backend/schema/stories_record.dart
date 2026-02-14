@@ -142,6 +142,16 @@ class StoriesRecord extends FirestoreRecord {
   List<EventstructStruct> get events => _events ?? const [];
   bool hasEvents() => _events != null;
 
+  // "outlineText" field.
+  String? _outlineText;
+  String get outlineText => _outlineText ?? '';
+  bool hasOutlineText() => _outlineText != null;
+
+  // "outlineMode" field.
+  bool? _outlineMode;
+  bool get outlineMode => _outlineMode ?? false;
+  bool hasOutlineMode() => _outlineMode != null;
+
   void _initializeFields() {
     _title = snapshotData['title'] as String?;
     _worldview = snapshotData['worldview'] as String?;
@@ -177,6 +187,8 @@ class StoriesRecord extends FirestoreRecord {
       snapshotData['events'],
       EventstructStruct.fromMap,
     );
+    _outlineText = snapshotData['outlineText'] as String?;
+    _outlineMode = snapshotData['outlineMode'] as bool?;
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -267,6 +279,8 @@ class StoriesRecord extends FirestoreRecord {
                 .map((d) => EventstructStruct.fromAlgoliaData(d).toMap())
                 .toList(),
           ),
+          'outlineText': snapshot.data['outlineText'],
+          'outlineMode': snapshot.data['outlineMode'],
         },
         StoriesRecord.collection.doc(snapshot.objectID),
       );
@@ -324,6 +338,8 @@ Map<String, dynamic> createStoriesRecordData({
   String? prologuetext,
   String? place,
   String? event,
+  String? outlineText,
+  bool? outlineMode,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -348,6 +364,8 @@ Map<String, dynamic> createStoriesRecordData({
       'prologuetext': prologuetext,
       'place': place,
       'event': event,
+      'outlineText': outlineText,
+      'outlineMode': outlineMode,
     }.withoutNulls,
   );
 
@@ -384,7 +402,9 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.prologuetext == e2?.prologuetext &&
         e1?.place == e2?.place &&
         e1?.event == e2?.event &&
-        listEquality.equals(e1?.events, e2?.events);
+        listEquality.equals(e1?.events, e2?.events) &&
+        e1?.outlineText == e2?.outlineText &&
+        e1?.outlineMode == e2?.outlineMode;
   }
 
   @override
@@ -413,7 +433,9 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.prologuetext,
         e?.place,
         e?.event,
-        e?.events
+        e?.events,
+        e?.outlineText,
+        e?.outlineMode
       ]);
 
   @override

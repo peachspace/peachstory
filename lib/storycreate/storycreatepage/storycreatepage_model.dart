@@ -70,6 +70,8 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String? outline;
 
+  bool outlineSwitch = false;
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TabBar widget.
@@ -111,6 +113,8 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? generatedevent;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in eventaddbutton widget.
   GenResultStructStruct? generatedeventimage;
+  // State field(s) for outlineSwitch widget.
+  bool? outlineSwitchValue;
   // State field(s) for outline widget.
   FocusNode? outlineFocusNode;
   TextEditingController? outlineTextController;

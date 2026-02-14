@@ -855,3 +855,123 @@ ${summary.isEmpty ? '(empty)' : summary}
 '''
       .trim();
 }
+
+String pickOutlineForTurn(
+  String outlineText,
+  int turnCount,
+) {
+  final raw = outlineText.trim();
+  if (raw.isEmpty) return '';
+
+  String clean(String s) {
+    var t = s.replaceAll('\r\n', '\n').trim();
+    t = t.replaceAll('```', '');
+    t = t.replaceAll('**', '');
+    t = t.replaceAll('__', '');
+    return t.trim();
+  }
+
+  final text = raw.replaceAll('\r\n', '\n');
+  final lines = text.split('\n').map(clean).toList();
+
+  final headerRe = RegExp(
+      r'^$begin:math:display$\(\?\:CH\|ch\|챕터\)\\s\*\(\\d\+\)\\s\+\(\\d\+\)\\s\*\-\\s\*\(\\d\+\)$end:math:display$\s*$');
+
+  final blocks = <Map<String, dynamic>>[];
+
+  int? curCh;
+  int? curA;
+  int? curB;
+  final buf = <String>[];
+
+  void flush() {
+    if (curCh != null && curA != null && curB != null) {
+      final body = buf.where((e) => e.isNotEmpty).join('\n').trim();
+      blocks.add({'ch': curCh, 'a': curA, 'b': curB, 'body': body});
+    }
+    buf.clear();
+  }
+
+  for (final l in lines) {
+    final m = headerRe.firstMatch(l);
+    if (m != null) {
+      flush();
+      curCh = int.tryParse(m.group(1)!);
+      curA = int.tryParse(m.group(2)!);
+      curB = int.tryParse(m.group(3)!);
+      continue;
+    }
+    if (curCh != null) buf.add(l);
+  }
+  flush();
+
+  if (blocks.isEmpty) return raw;
+
+  for (final b in blocks) {
+    final a = b['a'] as int;
+    final bb = b['b'] as int;
+    if (turnCount >= a && turnCount <= bb) {
+      final body = (b['body'] as String).trim();
+      return body.isEmpty ? raw : body;
+    }
+  }
+
+  blocks.sort((x, y) => (x['a'] as int).compareTo(y['a'] as int));
+  final last = blocks.last;
+  final lastBody = (last['body'] as String).trim();
+  return lastBody.isEmpty ? raw : lastBody;
+}
+
+String buildOutlineGuideBlock(
+  String outlineText,
+  int turnCount,
+) {
+  final picked = pickOutlineForTurn(
+    outlineText,
+    turnCount,
+  ).trim();
+
+  if (picked.isEmpty) return '';
+
+  return '''
+[OUTLINE GUIDE]
+- 아래 가이드와 모순되지 않게 진행해라.
+- 표현/디테일/대사는 자유롭게 창작해라.
+- 유저의 이번 입력이 가이드보다 우선이다.
+
+$picked
+[/OUTLINE GUIDE]
+'''
+      .trim();
+}
+
+String dynamicContextByOutlineMode(
+  bool outlineMode,
+  String outlineText,
+  int turnCount,
+  int chapterIndex,
+  String storyBible,
+  String chapterState,
+  String summary,
+) {
+  final enabled = outlineMode && outlineText.trim().isNotEmpty;
+  if (!enabled) {
+    return summary.trim();
+  }
+
+  final nextTurn = turnCount + 1;
+
+  return (composeMemoryBlock(
+            nextTurn,
+            chapterIndex,
+            storyBible,
+            chapterState,
+            summary,
+          ) +
+          '\n\n' +
+          buildOutlineGuideBlock(
+            outlineText,
+            nextTurn,
+          ))
+      .trim();
+}

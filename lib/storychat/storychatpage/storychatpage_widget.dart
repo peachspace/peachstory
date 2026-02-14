@@ -785,6 +785,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                     });
                                     await actions.updateStoryMemory(
                                       _model.currentDocRef!,
+                                      storychatpageStoriesRecord.outlineMode,
+                                      storychatpageStoriesRecord.outlineText,
                                     );
                                     if (functions
                                         .isSummaryTurn(valueOrDefault<int>(
@@ -1112,33 +1114,34 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                                     'gpt-4o',
                                                                   ),
                                                                   functions.buildStoryPrompt(
-                                                                      storychatpageStoriesRecord
-                                                                          .title,
-                                                                      storychatpageStoriesRecord
-                                                                          .worldview,
-                                                                      storychatpageStoriesRecord
-                                                                          .characters
-                                                                          .toList(),
-                                                                      storychatpageStoriesRecord
-                                                                          .userRole,
-                                                                      storychatpageStoriesRecord
-                                                                          .backgrounds
-                                                                          .toList(),
-                                                                      stackStorychatsRecord
-                                                                          .userNote,
-                                                                      widget
-                                                                          .userInChatName!,
-                                                                      stackStorychatsRecord
-                                                                          .summary,
-                                                                      widget
-                                                                          .isNovelMode!,
-                                                                      storychatpageStoriesRecord
-                                                                          .place,
-                                                                      storychatpageStoriesRecord
-                                                                          .event,
-                                                                      storychatpageStoriesRecord
-                                                                          .events
-                                                                          .toList()),
+                                                                      storychatpageStoriesRecord.title,
+                                                                      storychatpageStoriesRecord.worldview,
+                                                                      storychatpageStoriesRecord.characters.toList(),
+                                                                      storychatpageStoriesRecord.userRole,
+                                                                      storychatpageStoriesRecord.backgrounds.toList(),
+                                                                      stackStorychatsRecord.userNote,
+                                                                      widget.userInChatName!,
+                                                                      functions.dynamicContextByOutlineMode(
+                                                                          valueOrDefault<bool>(
+                                                                            storychatpageStoriesRecord.outlineMode,
+                                                                            false,
+                                                                          ),
+                                                                          storychatpageStoriesRecord.outlineText,
+                                                                          valueOrDefault<int>(
+                                                                            stackStorychatsRecord.turnCount,
+                                                                            0,
+                                                                          ),
+                                                                          valueOrDefault<int>(
+                                                                            stackStorychatsRecord.chapterIndex,
+                                                                            1,
+                                                                          ),
+                                                                          stackStorychatsRecord.storyBible,
+                                                                          stackStorychatsRecord.chapterState,
+                                                                          stackStorychatsRecord.summary),
+                                                                      widget.isNovelMode!,
+                                                                      storychatpageStoriesRecord.place,
+                                                                      storychatpageStoriesRecord.event,
+                                                                      storychatpageStoriesRecord.events.toList()),
                                                                   _model
                                                                       .formattedHistory
                                                                       ?.toList(),
@@ -1382,23 +1385,31 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                   stackStorychatsRecord
                                                       .userNote,
                                                   widget.userInChatName!,
-                                                  functions.composeMemoryBlock(
-                                                      valueOrDefault<int>(
-                                                        stackStorychatsRecord
-                                                            .turnCount,
-                                                        0,
-                                                      ),
-                                                      valueOrDefault<int>(
-                                                        stackStorychatsRecord
-                                                            .chapterIndex,
-                                                        1,
-                                                      ),
-                                                      stackStorychatsRecord
-                                                          .storyBible,
-                                                      stackStorychatsRecord
-                                                          .chapterState,
-                                                      stackStorychatsRecord
-                                                          .summary),
+                                                  functions
+                                                      .dynamicContextByOutlineMode(
+                                                          valueOrDefault<bool>(
+                                                            storychatpageStoriesRecord
+                                                                .outlineMode,
+                                                            false,
+                                                          ),
+                                                          storychatpageStoriesRecord
+                                                              .outlineText,
+                                                          valueOrDefault<int>(
+                                                            stackStorychatsRecord
+                                                                .turnCount,
+                                                            0,
+                                                          ),
+                                                          valueOrDefault<int>(
+                                                            stackStorychatsRecord
+                                                                .chapterIndex,
+                                                            1,
+                                                          ),
+                                                          stackStorychatsRecord
+                                                              .storyBible,
+                                                          stackStorychatsRecord
+                                                              .chapterState,
+                                                          stackStorychatsRecord
+                                                              .summary),
                                                   widget.isNovelMode!,
                                                   storychatpageStoriesRecord
                                                       .place,

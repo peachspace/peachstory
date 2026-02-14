@@ -16,6 +16,8 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 Future<void> updateStoryMemory(
   DocumentReference storyChatRef,
+  bool outlineMode,
+  String outlineText,
 ) async {
   String _keepMax(String s, int maxLen) {
     final t = (s).trim();
@@ -53,6 +55,13 @@ Future<void> updateStoryMemory(
 
   final newTurn = prevTurn + 1;
 
+  // ✅ outline 모드 OFF(또는 텍스트 없음)이면: turnCount만 올리고 종료
+  final enabled = outlineMode && outlineText.trim().isNotEmpty;
+  if (!enabled) {
+    await storyChatRef.update({'turnCount': newTurn});
+    return;
+  }
+
   // 2) 업데이트 규칙(고정)
   final doMicro = (newTurn % 10 == 0); // 10턴마다 장기요약 갱신
   final doState = (newTurn % 25 == 0); // 25턴마다 챕터상태 갱신
@@ -75,11 +84,8 @@ Future<void> updateStoryMemory(
     if (text.isEmpty) continue;
     if (text == '생각 중') continue;
 
-    // user/assistant 구분 (너 기존 로직과 동일하게 type==user면 user 취급)
-    // (user 메시지 type을 실제로 어떻게 저장하는지에 따라 필요 시 여기만 맞추면 됨)
+    // user/assistant 구분
     final role = (type == 'user') ? 'USER' : 'ASSISTANT';
-
-    // 태그형 출력은 그대로 텍스트로만 요약에 넣기
     lines.add('$role: $text');
   }
 
@@ -92,7 +98,6 @@ Future<void> updateStoryMemory(
   );
 
   // 5) 프롬프트(고정 출력 포맷)
-  // - 모델이 반드시 3개(또는 2개) 블록으로만 내보내게 강제
   final needInitBible = prevBible.trim().isEmpty;
 
   String prompt = '';
@@ -197,7 +202,7 @@ $recentLog
   final result = await callable.call({'summaryPrompt': prompt});
   final resData = result.data;
 
-  // Groq(OpenAI 호환) 응답에서 content 추출
+  // 응답 content 추출
   String content = '';
   try {
     if (resData is Map &&
@@ -240,7 +245,6 @@ $recentLog
   }
 
   if (doChapterEnd) {
-    // 챕터 종료 시: 바이블/요약/챕터상태 갱신 + chapterIndex 증가
     if (nextBible.isNotEmpty) updates['storyBible'] = nextBible;
     if (nextState.isNotEmpty) updates['chapterState'] = nextState;
     updates['chapterIndex'] = prevChapter + 1;
