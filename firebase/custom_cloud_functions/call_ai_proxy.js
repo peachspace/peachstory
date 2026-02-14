@@ -46,6 +46,7 @@ exports.callAiProxy = functions
     else if (modelName.startsWith("gpt")) provider = "openai";
     else if (modelName.startsWith("gemini")) provider = "google";
     else if (modelName.startsWith("claude")) provider = "anthropic";
+    console.log("▶ Routed:", { modelName, provider });
 
     let uri, headers, body;
 

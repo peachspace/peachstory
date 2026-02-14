@@ -2280,18 +2280,51 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                               highlightColor:
                                                   Colors.transparent,
                                               onTap: () async {
-                                                FFAppState().addToCharacters(
-                                                    CharacterStructStruct(
-                                                  name: '',
-                                                  personality: '',
-                                                  introduce: '',
-                                                  profileimage: '',
-                                                  emotionimages: functions
-                                                      .getEmptyEmotionList(),
-                                                  situationImages: functions
-                                                      .getEmptysituationList(),
-                                                ));
-                                                safeSetState(() {});
+                                                await showModalBottomSheet(
+                                                  isScrollControlled: true,
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  enableDrag: false,
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return GestureDetector(
+                                                      onTap: () {
+                                                        FocusScope.of(context)
+                                                            .unfocus();
+                                                        FocusManager.instance
+                                                            .primaryFocus
+                                                            ?.unfocus();
+                                                      },
+                                                      child: Padding(
+                                                        padding: MediaQuery
+                                                            .viewInsetsOf(
+                                                                context),
+                                                        child:
+                                                            CharactercomponentWidget(
+                                                          storyContext: '',
+                                                          isWorldviewEmpty:
+                                                              false,
+                                                          characterData:
+                                                              CharacterStructStruct(
+                                                            name: '',
+                                                            personality: '',
+                                                            introduce: '',
+                                                            profileimage: '',
+                                                            emotionimages: functions
+                                                                .getEmptyEmotionList(),
+                                                            basePrompt: '',
+                                                            situationImages:
+                                                                functions
+                                                                    .getEmptysituationList(),
+                                                            appearance: '',
+                                                          ),
+                                                          isedit: false,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ).then((value) =>
+                                                    safeSetState(() {}));
                                               },
                                               child: Container(
                                                 width: double.infinity,
@@ -2392,151 +2425,200 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                               ),
                                             ),
                                           ),
-                                        ListView(
-                                          padding: EdgeInsets.zero,
-                                          shrinkWrap: true,
-                                          scrollDirection: Axis.vertical,
-                                          children: [
-                                            Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
-                                                  child: Image.network(
-                                                    'https://picsum.photos/seed/567/600',
-                                                    width: 100.0,
-                                                    height: 100.0,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
-                                                Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
-                                                  children: [
-                                                    Text(
-                                                      'Hello World',
-                                                      style:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                font:
-                                                                    GoogleFonts
-                                                                        .inter(
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                    ),
-                                                    Text(
-                                                      'Hello World',
-                                                      style:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                font:
-                                                                    GoogleFonts
-                                                                        .inter(
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                        Builder(
-                                          builder: (context) {
-                                            final characterItems = FFAppState()
-                                                .Characters
-                                                .toList()
-                                                .take(10)
-                                                .toList();
+                                        Padding(
+                                          padding:
+                                              EdgeInsetsDirectional.fromSTEB(
+                                                  0.0, 20.0, 0.0, 0.0),
+                                          child: Builder(
+                                            builder: (context) {
+                                              final charlist = FFAppState()
+                                                  .Characters
+                                                  .toList()
+                                                  .take(10)
+                                                  .toList();
 
-                                            return ListView.separated(
-                                              padding: EdgeInsets.zero,
-                                              shrinkWrap: true,
-                                              scrollDirection: Axis.vertical,
-                                              itemCount: characterItems.length,
-                                              separatorBuilder: (_, __) =>
-                                                  SizedBox(height: 20.0),
-                                              itemBuilder: (context,
-                                                  characterItemsIndex) {
-                                                final characterItemsItem =
-                                                    characterItems[
-                                                        characterItemsIndex];
-                                                return CharactercomponentWidget(
-                                                  key: Key(
-                                                      'Keyrav_${characterItemsIndex}_of_${characterItems.length}'),
-                                                  index: characterItemsIndex,
-                                                  characterData:
-                                                      characterItemsItem,
-                                                  storyContext:
-                                                      '[제목]${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
-                                                  isWorldviewEmpty: _model.worldSettingsTextController
-                                                              .text ==
-                                                          '',
-                                                  genre: _model.genre!,
-                                                  storyId:
-                                                      _model.currentStoryId,
-                                                  onDelete:
-                                                      (indexToDelete) async {
-                                                    FFAppState()
-                                                        .removeAtIndexFromCharacters(
-                                                            characterItemsIndex);
-                                                    safeSetState(() {});
-                                                  },
-                                                  onUpdate:
-                                                      (updatedCharacter) async {
-                                                    FFAppState()
-                                                        .updateCharactersAtIndex(
-                                                      characterItemsIndex,
-                                                      (_) => updatedCharacter,
-                                                    );
-                                                    safeSetState(() {});
-                                                  },
-                                                );
-                                              },
-                                            );
-                                          },
+                                              return ListView.builder(
+                                                padding: EdgeInsets.zero,
+                                                shrinkWrap: true,
+                                                scrollDirection: Axis.vertical,
+                                                itemCount: charlist.length,
+                                                itemBuilder:
+                                                    (context, charlistIndex) {
+                                                  final charlistItem =
+                                                      charlist[charlistIndex];
+                                                  return Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.max,
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            EdgeInsetsDirectional
+                                                                .fromSTEB(
+                                                                    0.0,
+                                                                    5.0,
+                                                                    0.0,
+                                                                    5.0),
+                                                        child: InkWell(
+                                                          splashColor: Colors
+                                                              .transparent,
+                                                          focusColor: Colors
+                                                              .transparent,
+                                                          hoverColor: Colors
+                                                              .transparent,
+                                                          highlightColor: Colors
+                                                              .transparent,
+                                                          onTap: () async {
+                                                            await showModalBottomSheet(
+                                                              isScrollControlled:
+                                                                  true,
+                                                              backgroundColor:
+                                                                  Colors
+                                                                      .transparent,
+                                                              enableDrag: false,
+                                                              context: context,
+                                                              builder:
+                                                                  (context) {
+                                                                return GestureDetector(
+                                                                  onTap: () {
+                                                                    FocusScope.of(
+                                                                            context)
+                                                                        .unfocus();
+                                                                    FocusManager
+                                                                        .instance
+                                                                        .primaryFocus
+                                                                        ?.unfocus();
+                                                                  },
+                                                                  child:
+                                                                      Padding(
+                                                                    padding: MediaQuery
+                                                                        .viewInsetsOf(
+                                                                            context),
+                                                                    child:
+                                                                        CharactercomponentWidget(
+                                                                      storyContext:
+                                                                          '',
+                                                                      isWorldviewEmpty:
+                                                                          false,
+                                                                      characterData:
+                                                                          charlistItem,
+                                                                      isedit:
+                                                                          true,
+                                                                      index:
+                                                                          charlistIndex,
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                            ).then((value) =>
+                                                                safeSetState(
+                                                                    () {}));
+                                                          },
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .max,
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            8.0),
+                                                                child: Image
+                                                                    .network(
+                                                                  functions.stringToImagePath(
+                                                                      charlistItem
+                                                                          .profileimage),
+                                                                  width: 100.0,
+                                                                  height: 100.0,
+                                                                  fit: BoxFit
+                                                                      .cover,
+                                                                ),
+                                                              ),
+                                                              Padding(
+                                                                padding:
+                                                                    EdgeInsetsDirectional
+                                                                        .fromSTEB(
+                                                                            20.0,
+                                                                            0.0,
+                                                                            0.0,
+                                                                            0.0),
+                                                                child: Column(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .max,
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    Padding(
+                                                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                                                          0.0,
+                                                                          0.0,
+                                                                          0.0,
+                                                                          5.0),
+                                                                      child:
+                                                                          Text(
+                                                                        charlistItem
+                                                                            .name,
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .override(
+                                                                              font: GoogleFonts.inter(
+                                                                                fontWeight: FontWeight.w600,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                              fontSize: 16.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FontWeight.w600,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                    Text(
+                                                                      charlistItem
+                                                                          .introduce,
+                                                                      maxLines:
+                                                                          2,
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.inter(
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Divider(
+                                                        thickness: 1.0,
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .alternate,
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          ),
                                         ),
                                       ],
                                     ),

@@ -19,22 +19,18 @@ class CharactercomponentWidget extends StatefulWidget {
     super.key,
     this.characterData,
     this.index,
-    this.onDelete,
-    this.onUpdate,
     required this.storyContext,
     required this.isWorldviewEmpty,
-    required this.genre,
     this.storyId,
-  });
+    bool? isedit,
+  }) : this.isedit = isedit ?? false;
 
   final CharacterStructStruct? characterData;
   final int? index;
-  final Future Function(int indexToDelete)? onDelete;
-  final Future Function(CharacterStructStruct updatedCharacter)? onUpdate;
   final String? storyContext;
   final bool? isWorldviewEmpty;
-  final String? genre;
   final String? storyId;
+  final bool isedit;
 
   @override
   State<CharactercomponentWidget> createState() =>
@@ -57,12 +53,20 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
 
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.deleteCharacter = widget.characterData;
+      _model.profileimage = widget.characterData?.profileimage;
+      _model.emotionimagelist = widget.characterData!.emotionimages
+          .toList()
+          .cast<EmotionImageStructStruct>();
+      _model.situationimage = widget.characterData!.situationImages
+          .toList()
+          .cast<SituationalImageStructStruct>();
+      _model.seed = widget.characterData?.seed;
+      _model.baseprompt = widget.characterData?.basePrompt;
       safeSetState(() {});
     });
 
-    _model.charNameTextController ??= TextEditingController(
-        text: FFAppState().Characters.elementAtOrNull(widget.index!)?.name);
+    _model.charNameTextController ??=
+        TextEditingController(text: widget.characterData?.name);
     _model.charNameFocusNode ??= FocusNode();
     _model.charNameFocusNode!.addListener(
       () async {
@@ -75,11 +79,8 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
         }
       },
     );
-    _model.charAppearanceTextController ??= TextEditingController(
-        text: FFAppState()
-            .Characters
-            .elementAtOrNull(widget.index!)
-            ?.appearance);
+    _model.charAppearanceTextController ??=
+        TextEditingController(text: widget.characterData?.appearance);
     _model.charAppearanceFocusNode ??= FocusNode();
     _model.charAppearanceFocusNode!.addListener(
       () async {
@@ -92,11 +93,8 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
         }
       },
     );
-    _model.charSettingTextController ??= TextEditingController(
-        text: FFAppState()
-            .Characters
-            .elementAtOrNull(widget.index!)
-            ?.personality);
+    _model.charSettingTextController ??=
+        TextEditingController(text: widget.characterData?.personality);
     _model.charSettingFocusNode ??= FocusNode();
     _model.charSettingFocusNode!.addListener(
       () async {
@@ -109,9 +107,8 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
         }
       },
     );
-    _model.charintroduceTextController ??= TextEditingController(
-        text:
-            FFAppState().Characters.elementAtOrNull(widget.index!)?.introduce);
+    _model.charintroduceTextController ??=
+        TextEditingController(text: widget.characterData?.introduce);
     _model.charintroduceFocusNode ??= FocusNode();
     _model.charintroduceFocusNode!.addListener(
       () async {
@@ -217,9 +214,40 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       onTap: () async {
-                        FFAppState()
-                            .removeAtIndexFromCharacters(widget.index!);
-                        safeSetState(() {});
+                        if (widget.isedit == true) {
+                          FFAppState().updateCharactersAtIndex(
+                            widget.index!,
+                            (_) => CharacterStructStruct(
+                              name: _model.charNameTextController.text,
+                              personality:
+                                  _model.charSettingTextController.text,
+                              introduce:
+                                  _model.charintroduceTextController.text,
+                              profileimage: _model.profileimage,
+                              emotionimages: _model.emotionimagelist,
+                              situationImages: _model.situationimage,
+                              appearance:
+                                  _model.charAppearanceTextController.text,
+                              seed: _model.seed,
+                            ),
+                          );
+                          safeSetState(() {});
+                        } else {
+                          FFAppState().addToCharacters(CharacterStructStruct(
+                            name: _model.charNameTextController.text,
+                            personality: _model.charSettingTextController.text,
+                            introduce: _model.charintroduceTextController.text,
+                            profileimage: _model.profileimage,
+                            emotionimages: _model.emotionimagelist,
+                            situationImages: _model.situationimage,
+                            appearance:
+                                _model.charAppearanceTextController.text,
+                            seed: _model.seed,
+                          ));
+                          safeSetState(() {});
+                        }
+
+                        Navigator.pop(context);
                       },
                       child: Icon(
                         Icons.close,
@@ -1653,19 +1681,12 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                 ).then((value) => safeSetState(() =>
                                     _model.generatedcharacterImage = value));
 
-                                FFAppState().updateCharactersAtIndex(
-                                  widget.index!,
-                                  (e) => e
-                                    ..profileimage =
-                                        _model.generatedcharacterImage?.imageurl
-                                    ..seed =
-                                        _model.generatedcharacterImage?.seed
-                                    ..basePrompt = _model
-                                        .generatedcharacterImage?.basePrompt,
-                                );
-                                safeSetState(() {});
                                 _model.profileimage =
                                     _model.generatedcharacterImage?.imageurl;
+                                _model.seed =
+                                    _model.generatedcharacterImage?.seed;
+                                _model.baseprompt =
+                                    _model.generatedcharacterImage?.basePrompt;
                                 safeSetState(() {});
 
                                 safeSetState(() {});
@@ -1841,17 +1862,12 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                             ).then((value) => safeSetState(
                                 () => _model.generatedemotionimage = value));
 
-                            FFAppState().updateCharactersAtIndex(
-                              widget.index!,
-                              (e) => e
-                                ..updateEmotionimages(
-                                  (e) => e.add(EmotionImageStructStruct(
-                                    emotion: _model.generatedemotionimage?.text,
-                                    imageurl:
-                                        _model.generatedemotionimage?.imageurl,
-                                  )),
-                                ),
-                            );
+                            _model.seed = _model.generatedemotionimage?.seed;
+                            _model
+                                .addToEmotionimagelist(EmotionImageStructStruct(
+                              emotion: _model.generatedemotionimage?.text,
+                              imageurl: _model.generatedemotionimage?.imageurl,
+                            ));
                             safeSetState(() {});
 
                             safeSetState(() {});
@@ -1906,12 +1922,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                           EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
                       child: Builder(
                         builder: (context) {
-                          final emotionItem = FFAppState()
-                                  .Characters
-                                  .elementAtOrNull(widget.index!)
-                                  ?.emotionimages
-                                  .toList() ??
-                              [];
+                          final emotionItem = _model.emotionimagelist.toList();
 
                           return Row(
                             mainAxisSize: MainAxisSize.max,
@@ -1925,12 +1936,8 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                 hoverColor: Colors.transparent,
                                 highlightColor: Colors.transparent,
                                 onLongPress: () async {
-                                  _model.updateDeleteCharacterStruct(
-                                    (e) => e
-                                      ..updateEmotionimages(
-                                        (e) => e.remove(emotionItemItem),
-                                      ),
-                                  );
+                                  _model.removeFromEmotionimagelist(
+                                      emotionItemItem);
                                   safeSetState(() {});
                                 },
                                 child: ClipRRect(
@@ -2028,18 +2035,13 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                             ).then((value) => safeSetState(
                                 () => _model.generatedsituationimage = value));
 
-                            FFAppState().updateCharactersAtIndex(
-                              widget.index!,
-                              (e) => e
-                                ..updateSituationImages(
-                                  (e) => e.add(SituationalImageStructStruct(
-                                    condition:
-                                        _model.generatedsituationimage?.text,
-                                    imageUrl: _model
-                                        .generatedsituationimage?.imageurl,
-                                  )),
-                                ),
-                            );
+                            _model.seed = _model.generatedsituationimage?.seed;
+                            _model.addToSituationimage(
+                                SituationalImageStructStruct(
+                              condition: _model.generatedsituationimage?.text,
+                              imageUrl:
+                                  _model.generatedsituationimage?.imageurl,
+                            ));
                             safeSetState(() {});
 
                             safeSetState(() {});
@@ -2090,12 +2092,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                           EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
                       child: Builder(
                         builder: (context) {
-                          final situationtem = FFAppState()
-                                  .Characters
-                                  .elementAtOrNull(widget.index!)
-                                  ?.situationImages
-                                  .toList() ??
-                              [];
+                          final situationtem = _model.situationimage.toList();
 
                           return Row(
                             mainAxisSize: MainAxisSize.max,
@@ -2103,17 +2100,28 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                 (situationtemIndex) {
                               final situationtemItem =
                                   situationtem[situationtemIndex];
-                              return ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: Image.network(
-                                  functions
-                                      .stringToImagePath(valueOrDefault<String>(
-                                    situationtemItem.imageUrl,
-                                    '\"\"',
-                                  )),
-                                  width: 70.0,
-                                  height: 70.0,
-                                  fit: BoxFit.cover,
+                              return InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onLongPress: () async {
+                                  _model.removeFromSituationimage(
+                                      situationtemItem);
+                                  safeSetState(() {});
+                                },
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: Image.network(
+                                    functions.stringToImagePath(
+                                        valueOrDefault<String>(
+                                      situationtemItem.imageUrl,
+                                      '\"\"',
+                                    )),
+                                    width: 70.0,
+                                    height: 70.0,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               );
                             }),

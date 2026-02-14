@@ -8,11 +8,6 @@ class CharactercomponentModel
     extends FlutterFlowModel<CharactercomponentWidget> {
   ///  Local state fields for this component.
 
-  CharacterStructStruct? deleteCharacter;
-  void updateDeleteCharacterStruct(Function(CharacterStructStruct) updateFn) {
-    updateFn(deleteCharacter ??= CharacterStructStruct());
-  }
-
   String? profileimage;
 
   List<EmotionImageStructStruct> emotionimagelist = [];
@@ -44,6 +39,8 @@ class CharactercomponentModel
       situationimage[index] = updateFn(situationimage[index]);
 
   int? seed;
+
+  String? baseprompt;
 
   ///  State fields for stateful widgets in this component.
 
