@@ -68,59 +68,19 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
     _model.charNameTextController ??=
         TextEditingController(text: widget.characterData?.name);
     _model.charNameFocusNode ??= FocusNode();
-    _model.charNameFocusNode!.addListener(
-      () async {
-        if ((_model.charNameFocusNode?.hasFocus ?? false) == false) {
-          FFAppState().updateCharactersAtIndex(
-            widget.index!,
-            (e) => e..name = _model.charNameTextController.text,
-          );
-          safeSetState(() {});
-        }
-      },
-    );
+
     _model.charAppearanceTextController ??=
         TextEditingController(text: widget.characterData?.appearance);
     _model.charAppearanceFocusNode ??= FocusNode();
-    _model.charAppearanceFocusNode!.addListener(
-      () async {
-        if ((_model.charAppearanceFocusNode?.hasFocus ?? false) == false) {
-          FFAppState().updateCharactersAtIndex(
-            widget.index!,
-            (e) => e..appearance = _model.charAppearanceTextController.text,
-          );
-          safeSetState(() {});
-        }
-      },
-    );
+
     _model.charSettingTextController ??=
         TextEditingController(text: widget.characterData?.personality);
     _model.charSettingFocusNode ??= FocusNode();
-    _model.charSettingFocusNode!.addListener(
-      () async {
-        if ((_model.charSettingFocusNode?.hasFocus ?? false) == false) {
-          FFAppState().updateCharactersAtIndex(
-            widget.index!,
-            (e) => e..personality = _model.charSettingTextController.text,
-          );
-          safeSetState(() {});
-        }
-      },
-    );
+
     _model.charintroduceTextController ??=
         TextEditingController(text: widget.characterData?.introduce);
     _model.charintroduceFocusNode ??= FocusNode();
-    _model.charintroduceFocusNode!.addListener(
-      () async {
-        if ((_model.charintroduceFocusNode?.hasFocus ?? false) == false) {
-          FFAppState().updateCharactersAtIndex(
-            widget.index!,
-            (e) => e..introduce = _model.charintroduceTextController.text,
-          );
-          safeSetState(() {});
-        }
-      },
-    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -1946,7 +1906,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                     functions.stringToImagePath(
                                         valueOrDefault<String>(
                                       emotionItemItem.imageurl,
-                                      '\"\"',
+                                      '\" \"',
                                     )),
                                     width: 70.0,
                                     height: 70.0,
@@ -2116,7 +2076,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                     functions.stringToImagePath(
                                         valueOrDefault<String>(
                                       situationtemItem.imageUrl,
-                                      '\"\"',
+                                      '\" \"',
                                     )),
                                     width: 70.0,
                                     height: 70.0,

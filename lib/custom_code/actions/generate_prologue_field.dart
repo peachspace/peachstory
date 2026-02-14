@@ -166,15 +166,15 @@ ${hasConfiguredChars ? """
 - {user}가 화자로 말하는 형태 금지
 
 [분량]
-- '빈 줄을 제외한 내용줄' 기준으로 18~28줄
+- 500자 내외
 - 장소는 프롤로그 내내 유지(이동/전환 묘사 금지)
 
-이제 위 규칙대로만 출력해라.
+이제 위 규칙을 지키면서 스토리의 첫 시작을 흥미롭게 생성해줘.
 """
       .trim();
 
   try {
-    final raw = await callAi('openai/gpt-oss-20b', systemPrompt, userPrompt);
+    final raw = await callAi('gemini-2.5-flash', systemPrompt, userPrompt);
     return raw.trim();
   } catch (e) {
     return "생성 오류: $e";
