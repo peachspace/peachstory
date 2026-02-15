@@ -1435,6 +1435,13 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                     ),
                                                   ],
                                                 ),
+                                                Icon(
+                                                  Icons.image_outlined,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .secondaryText,
+                                                  size: 24.0,
+                                                ),
                                               ],
                                             ),
                                           ),

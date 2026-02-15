@@ -208,6 +208,31 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: SearchpageWidget.routeName,
           path: SearchpageWidget.routePath,
           builder: (context, params) => SearchpageWidget(),
+        ),
+        FFRoute(
+          name: BackgroundimagelistWidget.routeName,
+          path: BackgroundimagelistWidget.routePath,
+          builder: (context, params) => BackgroundimagelistWidget(),
+        ),
+        FFRoute(
+          name: CharactionimagelistWidget.routeName,
+          path: CharactionimagelistWidget.routePath,
+          builder: (context, params) => CharactionimagelistWidget(),
+        ),
+        FFRoute(
+          name: CharemotionimagelistWidget.routeName,
+          path: CharemotionimagelistWidget.routePath,
+          builder: (context, params) => CharemotionimagelistWidget(),
+        ),
+        FFRoute(
+          name: CharsettingpageWidget.routeName,
+          path: CharsettingpageWidget.routePath,
+          builder: (context, params) => CharsettingpageWidget(),
+        ),
+        FFRoute(
+          name: EventimagelistWidget.routeName,
+          path: EventimagelistWidget.routePath,
+          builder: (context, params) => EventimagelistWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

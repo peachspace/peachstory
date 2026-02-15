@@ -18,3 +18,13 @@ export '/my/heartlistpage/heartlistpage_widget.dart' show HeartlistpageWidget;
 export '/my/creatorrequestpage/creatorrequestpage_widget.dart'
     show CreatorrequestpageWidget;
 export '/home/searchpage/searchpage_widget.dart' show SearchpageWidget;
+export '/storycreate/backgroundimagelist/backgroundimagelist_widget.dart'
+    show BackgroundimagelistWidget;
+export '/storycreate/charactionimagelist/charactionimagelist_widget.dart'
+    show CharactionimagelistWidget;
+export '/storycreate/charemotionimagelist/charemotionimagelist_widget.dart'
+    show CharemotionimagelistWidget;
+export '/storycreate/charsettingpage/charsettingpage_widget.dart'
+    show CharsettingpageWidget;
+export '/storycreate/eventimagelist/eventimagelist_widget.dart'
+    show EventimagelistWidget;

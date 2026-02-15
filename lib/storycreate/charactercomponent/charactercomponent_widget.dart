@@ -1933,7 +1933,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                         Align(
                           alignment: AlignmentDirectional(-1.0, 0.0),
                           child: Text(
-                            '상황 이미지',
+                            '행동 이미지',
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
