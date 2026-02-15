@@ -50,6 +50,12 @@ class CharactercomponentModel
   String? Function(BuildContext, String?)? charNameTextControllerValidator;
   // Stores action output result for [Custom Action - generateCharacterField] action in charnamegenbutton widget.
   String? name;
+  // State field(s) for charSetting widget.
+  FocusNode? charSettingFocusNode;
+  TextEditingController? charSettingTextController;
+  String? Function(BuildContext, String?)? charSettingTextControllerValidator;
+  // Stores action output result for [Custom Action - generateCharacterField] action in charsettinggenbutton widget.
+  String? personality;
   // State field(s) for charAppearance widget.
   FocusNode? charAppearanceFocusNode;
   TextEditingController? charAppearanceTextController;
@@ -57,12 +63,10 @@ class CharactercomponentModel
       charAppearanceTextControllerValidator;
   // Stores action output result for [Custom Action - generateCharacterField] action in charappearancegenbutton widget.
   String? appearance;
-  // State field(s) for charSetting widget.
-  FocusNode? charSettingFocusNode;
-  TextEditingController? charSettingTextController;
-  String? Function(BuildContext, String?)? charSettingTextControllerValidator;
-  // Stores action output result for [Custom Action - generateCharacterField] action in charsettinggenbutton widget.
-  String? personality;
+  // State field(s) for charSkill widget.
+  FocusNode? charSkillFocusNode;
+  TextEditingController? charSkillTextController;
+  String? Function(BuildContext, String?)? charSkillTextControllerValidator;
   // State field(s) for charintroduce widget.
   FocusNode? charintroduceFocusNode;
   TextEditingController? charintroduceTextController;
@@ -84,11 +88,14 @@ class CharactercomponentModel
     charNameFocusNode?.dispose();
     charNameTextController?.dispose();
 
+    charSettingFocusNode?.dispose();
+    charSettingTextController?.dispose();
+
     charAppearanceFocusNode?.dispose();
     charAppearanceTextController?.dispose();
 
-    charSettingFocusNode?.dispose();
-    charSettingTextController?.dispose();
+    charSkillFocusNode?.dispose();
+    charSkillTextController?.dispose();
 
     charintroduceFocusNode?.dispose();
     charintroduceTextController?.dispose();

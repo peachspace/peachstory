@@ -975,3 +975,22 @@ String dynamicContextByOutlineMode(
           ))
       .trim();
 }
+
+List<String> extractKeysFromMultiline(String? input) {
+  final text = (input ?? '').trim();
+  if (text.isEmpty) return [];
+
+  final lines = text.split('\n');
+  final keys = <String>{};
+
+  for (final raw in lines) {
+    final line = raw.trim();
+    if (line.isEmpty) continue;
+
+    final idx = line.indexOf(':');
+    final key = (idx >= 0 ? line.substring(0, idx) : line).trim();
+    if (key.isNotEmpty) keys.add(key);
+  }
+
+  return keys.toList();
+}

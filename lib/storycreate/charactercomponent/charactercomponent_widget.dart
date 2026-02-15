@@ -67,13 +67,17 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
         TextEditingController(text: widget.characterData?.name);
     _model.charNameFocusNode ??= FocusNode();
 
+    _model.charSettingTextController ??=
+        TextEditingController(text: widget.characterData?.personality);
+    _model.charSettingFocusNode ??= FocusNode();
+
     _model.charAppearanceTextController ??=
         TextEditingController(text: widget.characterData?.appearance);
     _model.charAppearanceFocusNode ??= FocusNode();
 
-    _model.charSettingTextController ??=
+    _model.charSkillTextController ??=
         TextEditingController(text: widget.characterData?.personality);
-    _model.charSettingFocusNode ??= FocusNode();
+    _model.charSkillFocusNode ??= FocusNode();
 
     _model.charintroduceTextController ??=
         TextEditingController(text: widget.characterData?.introduce);
@@ -552,6 +556,366 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                         padding:
                             EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
                         child: Text(
+                          '설정',
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    font: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    fontSize: 18.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                        ),
+                      ),
+                    ),
+                    Stack(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8.0),
+                            border: Border.all(
+                              color: FlutterFlowTheme.of(context).alternate,
+                            ),
+                          ),
+                          child: Stack(
+                            alignment: AlignmentDirectional(-1.0, 1.0),
+                            children: [
+                              Align(
+                                alignment: AlignmentDirectional(-1.0, -1.0),
+                                child: Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      0.0, 0.0, 0.0, 10.0),
+                                  child: Container(
+                                    width: double.infinity,
+                                    child: TextFormField(
+                                      controller:
+                                          _model.charSettingTextController,
+                                      focusNode: _model.charSettingFocusNode,
+                                      autofocus: false,
+                                      obscureText: false,
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        labelStyle: FlutterFlowTheme.of(context)
+                                            .labelMedium
+                                            .override(
+                                              font: GoogleFonts.inter(
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(context)
+                                                        .labelMedium
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .labelMedium
+                                                        .fontStyle,
+                                              ),
+                                              letterSpacing: 0.0,
+                                              fontWeight:
+                                                  FlutterFlowTheme.of(context)
+                                                      .labelMedium
+                                                      .fontWeight,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .labelMedium
+                                                      .fontStyle,
+                                            ),
+                                        hintText:
+                                            '캐릭터의 외모, 성격, 말투, 역할, 배경 등을 입력하세요.',
+                                        hintStyle: FlutterFlowTheme.of(context)
+                                            .labelMedium
+                                            .override(
+                                              font: GoogleFonts.inter(
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(context)
+                                                        .labelMedium
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .labelMedium
+                                                        .fontStyle,
+                                              ),
+                                              letterSpacing: 0.0,
+                                              fontWeight:
+                                                  FlutterFlowTheme.of(context)
+                                                      .labelMedium
+                                                      .fontWeight,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .labelMedium
+                                                      .fontStyle,
+                                            ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Color(0x00000000),
+                                            width: 1.0,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Color(0x00000000),
+                                            width: 1.0,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                        ),
+                                        errorBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Color(0x00000000),
+                                            width: 1.0,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                        ),
+                                        focusedErrorBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Color(0x00000000),
+                                            width: 1.0,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                        ),
+                                        filled: true,
+                                        fillColor: FlutterFlowTheme.of(context)
+                                            .secondaryBackground,
+                                        contentPadding:
+                                            EdgeInsetsDirectional.fromSTEB(
+                                                10.0, 15.0, 10.0, 15.0),
+                                      ),
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontWeight,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontStyle,
+                                            ),
+                                            letterSpacing: 0.0,
+                                            fontWeight:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMedium
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMedium
+                                                    .fontStyle,
+                                          ),
+                                      maxLines: null,
+                                      minLines: 5,
+                                      maxLength: 4000,
+                                      maxLengthEnforcement:
+                                          MaxLengthEnforcement.enforced,
+                                      cursorColor: FlutterFlowTheme.of(context)
+                                          .primaryText,
+                                      validator: _model
+                                          .charSettingTextControllerValidator
+                                          .asValidator(context),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    7.0, 0.0, 0.0, 7.0),
+                                child: InkWell(
+                                  splashColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  onTap: () async {
+                                    var _shouldSetState = false;
+                                    if (widget.isWorldviewEmpty == true) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            '세계관을 먼저 입력해주세요.',
+                                            style: TextStyle(
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .primaryText,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          duration:
+                                              Duration(milliseconds: 2000),
+                                          backgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .accent3,
+                                        ),
+                                      );
+                                      if (_shouldSetState) safeSetState(() {});
+                                      return;
+                                    } else {
+                                      FFAppState().isGenerating = true;
+                                      FFAppState().generatingTarget =
+                                          'char_\${index}_setting';
+                                      safeSetState(() {});
+                                      _model.personality =
+                                          await actions.generateCharacterField(
+                                        'char_set',
+                                        '${widget.storyContext}/n[캐릭터 이름]: ${_model.charNameTextController.text}/n[캐릭터 외모]: ${_model.charAppearanceTextController.text}',
+                                        FFAppState().draftId,
+                                        _model.charSettingTextController.text,
+                                      );
+                                      _shouldSetState = true;
+                                      safeSetState(() {
+                                        _model.charSettingTextController?.text =
+                                            _model.personality!;
+                                      });
+                                      FFAppState().updateCharactersAtIndex(
+                                        widget.index!,
+                                        (e) =>
+                                            e..personality = _model.personality,
+                                      );
+                                      safeSetState(() {});
+                                      FFAppState().isGenerating = false;
+                                      FFAppState().generatingTarget = '';
+                                      safeSetState(() {});
+                                    }
+
+                                    if (_shouldSetState) safeSetState(() {});
+                                  },
+                                  child: Container(
+                                    width: 70.0,
+                                    height: 25.0,
+                                    decoration: BoxDecoration(
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryBackground,
+                                      borderRadius: BorderRadius.circular(5.0),
+                                      border: Border.all(
+                                        color: FlutterFlowTheme.of(context)
+                                            .alternate,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.auto_awesome,
+                                          color: FlutterFlowTheme.of(context)
+                                              .secondaryText,
+                                          size: 13.0,
+                                        ),
+                                        Padding(
+                                          padding:
+                                              EdgeInsetsDirectional.fromSTEB(
+                                                  5.0, 0.0, 0.0, 0.0),
+                                          child: Text(
+                                            'AI생성',
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .override(
+                                                  font: GoogleFonts.inter(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontStyle,
+                                                  ),
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .secondaryText,
+                                                  fontSize: 13.0,
+                                                  letterSpacing: 0.0,
+                                                  fontWeight:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMedium
+                                                          .fontWeight,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMedium
+                                                          .fontStyle,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if ((FFAppState().isGenerating == true) &&
+                            (FFAppState().generatingTarget ==
+                                'char_\${index}_setting'))
+                          Container(
+                            width: double.infinity,
+                            height: 142.0,
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              borderRadius: BorderRadius.circular(8.0),
+                              border: Border.all(
+                                color: FlutterFlowTheme.of(context).alternate,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: Text(
+                                'Hello World',
+                                style: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      font: GoogleFonts.inter(
+                                        fontWeight: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontWeight,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontStyle,
+                                      ),
+                                      letterSpacing: 0.0,
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Align(
+                      alignment: AlignmentDirectional(-1.0, 0.0),
+                      child: Padding(
+                        padding:
+                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+                        child: Text(
                           '외모',
                           style:
                               FlutterFlowTheme.of(context).bodyMedium.override(
@@ -883,7 +1247,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                         padding:
                             EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
                         child: Text(
-                          '설정',
+                          '액션',
                           style:
                               FlutterFlowTheme.of(context).bodyMedium.override(
                                     font: GoogleFonts.inter(
@@ -923,8 +1287,8 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                     width: double.infinity,
                                     child: TextFormField(
                                       controller:
-                                          _model.charSettingTextController,
-                                      focusNode: _model.charSettingFocusNode,
+                                          _model.charSkillTextController,
+                                      focusNode: _model.charSkillFocusNode,
                                       autofocus: false,
                                       obscureText: false,
                                       decoration: InputDecoration(
@@ -1047,7 +1411,7 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                       cursorColor: FlutterFlowTheme.of(context)
                                           .primaryText,
                                       validator: _model
-                                          .charSettingTextControllerValidator
+                                          .charSkillTextControllerValidator
                                           .asValidator(context),
                                     ),
                                   ),
@@ -1056,116 +1420,39 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
                                     7.0, 0.0, 0.0, 7.0),
-                                child: InkWell(
-                                  splashColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: () async {
-                                    var _shouldSetState = false;
-                                    if (widget.isWorldviewEmpty == true) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            '세계관을 먼저 입력해주세요.',
-                                            style: TextStyle(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryText,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          duration:
-                                              Duration(milliseconds: 2000),
-                                          backgroundColor:
-                                              FlutterFlowTheme.of(context)
-                                                  .accent3,
-                                        ),
-                                      );
-                                      if (_shouldSetState) safeSetState(() {});
-                                      return;
-                                    } else {
-                                      FFAppState().isGenerating = true;
-                                      FFAppState().generatingTarget =
-                                          'char_\${index}_setting';
-                                      safeSetState(() {});
-                                      _model.personality =
-                                          await actions.generateCharacterField(
-                                        'char_set',
-                                        '${widget.storyContext}/n[캐릭터 이름]: ${_model.charNameTextController.text}/n[캐릭터 외모]: ${_model.charAppearanceTextController.text}',
-                                        FFAppState().draftId,
-                                        _model.charSettingTextController.text,
-                                      );
-                                      _shouldSetState = true;
-                                      safeSetState(() {
-                                        _model.charSettingTextController?.text =
-                                            _model.personality!;
-                                      });
-                                      FFAppState().updateCharactersAtIndex(
-                                        widget.index!,
-                                        (e) =>
-                                            e..personality = _model.personality,
-                                      );
-                                      safeSetState(() {});
-                                      FFAppState().isGenerating = false;
-                                      FFAppState().generatingTarget = '';
-                                      safeSetState(() {});
-                                    }
-
-                                    if (_shouldSetState) safeSetState(() {});
-                                  },
-                                  child: Container(
-                                    width: 70.0,
-                                    height: 25.0,
-                                    decoration: BoxDecoration(
+                                child: Container(
+                                  width: 70.0,
+                                  height: 25.0,
+                                  decoration: BoxDecoration(
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryBackground,
+                                    borderRadius: BorderRadius.circular(5.0),
+                                    border: Border.all(
                                       color: FlutterFlowTheme.of(context)
-                                          .secondaryBackground,
-                                      borderRadius: BorderRadius.circular(5.0),
-                                      border: Border.all(
-                                        color: FlutterFlowTheme.of(context)
-                                            .alternate,
-                                      ),
+                                          .alternate,
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.auto_awesome,
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          size: 13.0,
-                                        ),
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  5.0, 0.0, 0.0, 0.0),
-                                          child: Text(
-                                            'AI생성',
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  font: GoogleFonts.inter(
-                                                    fontWeight:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontStyle,
-                                                  ),
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryText,
-                                                  fontSize: 13.0,
-                                                  letterSpacing: 0.0,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.auto_awesome,
+                                        color: FlutterFlowTheme.of(context)
+                                            .secondaryText,
+                                        size: 13.0,
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            5.0, 0.0, 0.0, 0.0),
+                                        child: Text(
+                                          'AI생성',
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                font: GoogleFonts.inter(
                                                   fontWeight:
                                                       FlutterFlowTheme.of(
                                                               context)
@@ -1177,10 +1464,23 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                                                           .bodyMedium
                                                           .fontStyle,
                                                 ),
-                                          ),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryText,
+                                                fontSize: 13.0,
+                                                letterSpacing: 0.0,
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontStyle,
+                                              ),
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

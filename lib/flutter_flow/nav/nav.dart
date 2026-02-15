@@ -215,11 +215,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => BackgroundimagelistWidget(),
         ),
         FFRoute(
-          name: CharactionimagelistWidget.routeName,
-          path: CharactionimagelistWidget.routePath,
-          builder: (context, params) => CharactionimagelistWidget(),
-        ),
-        FFRoute(
           name: CharemotionimagelistWidget.routeName,
           path: CharemotionimagelistWidget.routePath,
           builder: (context, params) => CharemotionimagelistWidget(),
@@ -233,6 +228,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: EventimagelistWidget.routeName,
           path: EventimagelistWidget.routePath,
           builder: (context, params) => EventimagelistWidget(),
+        ),
+        FFRoute(
+          name: CharskillimagelistWidget.routeName,
+          path: CharskillimagelistWidget.routePath,
+          builder: (context, params) => CharskillimagelistWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

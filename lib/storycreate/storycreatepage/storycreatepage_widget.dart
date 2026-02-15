@@ -1510,8 +1510,26 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                     _model
                                                                         .placetextfieldTextController
                                                                         .text;
+                                                                _model.placeOptions = functions
+                                                                    .extractKeysFromMultiline(_model
+                                                                        .placetextfieldTextController
+                                                                        .text)
+                                                                    .toList()
+                                                                    .cast<
+                                                                        String>();
                                                                 safeSetState(
                                                                     () {});
+                                                                if (_model
+                                                                        .placeOptions
+                                                                        .length ==
+                                                                    0) {
+                                                                  _model.placeOptions = []
+                                                                      .toList()
+                                                                      .cast<
+                                                                          String>();
+                                                                  safeSetState(
+                                                                      () {});
+                                                                }
                                                               },
                                                             ),
                                                             autofocus: false,

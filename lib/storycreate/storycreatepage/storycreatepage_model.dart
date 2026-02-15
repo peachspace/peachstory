@@ -72,6 +72,15 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   bool outlineSwitch = false;
 
+  List<String> placeOptions = [];
+  void addToPlaceOptions(String item) => placeOptions.add(item);
+  void removeFromPlaceOptions(String item) => placeOptions.remove(item);
+  void removeAtIndexFromPlaceOptions(int index) => placeOptions.removeAt(index);
+  void insertAtIndexInPlaceOptions(int index, String item) =>
+      placeOptions.insert(index, item);
+  void updatePlaceOptionsAtIndex(int index, Function(String) updateFn) =>
+      placeOptions[index] = updateFn(placeOptions[index]);
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for TabBar widget.

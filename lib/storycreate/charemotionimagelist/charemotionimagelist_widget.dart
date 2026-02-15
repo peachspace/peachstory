@@ -1,6 +1,8 @@
+import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/flutter_flow/form_field_controller.dart';
+import '/storycreate/uploadsheet/uploadsheet_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'charemotionimagelist_model.dart';
@@ -47,153 +49,181 @@ class _CharemotionimagelistWidgetState
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).primary,
+          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
           automaticallyImplyLeading: false,
-          title: Text(
-            '감정 이미지',
-            style: FlutterFlowTheme.of(context).headlineMedium.override(
-                  font: GoogleFonts.interTight(
+          leading: Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 0.0, 0.0),
+            child: Icon(
+              Icons.arrow_back,
+              color: FlutterFlowTheme.of(context).primaryText,
+              size: 24.0,
+            ),
+          ),
+          title: Align(
+            alignment: AlignmentDirectional(0.0, 0.0),
+            child: Text(
+              '감정 이미지',
+              style: FlutterFlowTheme.of(context).headlineMedium.override(
+                    font: GoogleFonts.interTight(
+                      fontWeight: FlutterFlowTheme.of(context)
+                          .headlineMedium
+                          .fontWeight,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).headlineMedium.fontStyle,
+                    ),
+                    color: FlutterFlowTheme.of(context).primaryText,
+                    fontSize: 22.0,
+                    letterSpacing: 0.0,
                     fontWeight:
                         FlutterFlowTheme.of(context).headlineMedium.fontWeight,
                     fontStyle:
                         FlutterFlowTheme.of(context).headlineMedium.fontStyle,
                   ),
-                  color: Colors.white,
-                  fontSize: 22.0,
-                  letterSpacing: 0.0,
-                  fontWeight:
-                      FlutterFlowTheme.of(context).headlineMedium.fontWeight,
-                  fontStyle:
-                      FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                ),
+            ),
           ),
-          actions: [],
-          centerTitle: false,
+          actions: [
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 25.0, 0.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  InkWell(
+                    splashColor: Colors.transparent,
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onTap: () async {
+                      await showModalBottomSheet(
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        enableDrag: false,
+                        context: context,
+                        builder: (context) {
+                          return GestureDetector(
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+                              FocusManager.instance.primaryFocus?.unfocus();
+                            },
+                            child: Padding(
+                              padding: MediaQuery.viewInsetsOf(context),
+                              child: UploadsheetWidget(),
+                            ),
+                          );
+                        },
+                      ).then((value) => safeSetState(() {}));
+                    },
+                    child: Icon(
+                      Icons.upload,
+                      color: FlutterFlowTheme.of(context).primaryText,
+                      size: 24.0,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_back,
+                    color: FlutterFlowTheme.of(context).primaryText,
+                    size: 24.0,
+                  ),
+                ],
+              ),
+            ),
+          ],
+          centerTitle: true,
           elevation: 2.0,
         ),
         body: SafeArea(
           top: true,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [],
+          child: Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 10.0, 0.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: GridView(
+                    padding: EdgeInsets.zero,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 10.0,
+                      mainAxisSpacing: 10.0,
+                      childAspectRatio: 0.75,
                     ),
-                  ),
-                ),
-              ),
-              Align(
-                alignment: AlignmentDirectional(0.0, 1.0),
-                child: Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
-                  child: SafeArea(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Color(0xFFFFF8F9),
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 4.0,
-                            color: Color(0x33000000),
-                            offset: Offset(
-                              0.0,
-                              2.0,
-                            ),
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Row(
+                    scrollDirection: Axis.vertical,
+                    children: [
+                      Column(
                         mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          FFButtonWidget(
-                            onPressed: () {
-                              print('backgroundimageuploadbutton pressed ...');
-                            },
-                            text: '하기',
-                            options: FFButtonOptions(
-                              height: 50.0,
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 0.0, 16.0, 0.0),
-                              iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 0.0),
-                              color: Color(0xFFFFD1BA),
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .titleSmall
-                                  .override(
-                                    font: GoogleFonts.interTight(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .titleSmall
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .titleSmall
-                                          .fontStyle,
-                                    ),
-                                    color: Colors.white,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontStyle,
-                                  ),
-                              elevation: 0.0,
-                              borderRadius: BorderRadius.circular(8.0),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.network(
+                              'https://picsum.photos/seed/578/600',
+                              width: 80.0,
+                              height: 80.0,
+                              fit: BoxFit.cover,
                             ),
                           ),
-                          FFButtonWidget(
-                            onPressed: () {
-                              print('backgroundimageaddbutton pressed ...');
-                            },
-                            text: '하기',
-                            options: FFButtonOptions(
-                              height: 50.0,
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 0.0, 16.0, 0.0),
-                              iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 0.0),
-                              color: Color(0xFFFFD1BA),
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                                0.0, 5.0, 0.0, 0.0),
+                            child: FlutterFlowDropDown<String>(
+                              controller:
+                                  _model.emotiontagDropDownValueController ??=
+                                      FormFieldController<String>(null),
+                              options: ['Option 1', 'Option 2', 'Option 3'],
+                              onChanged: (val) => safeSetState(
+                                  () => _model.emotiontagDropDownValue = val),
+                              width: 80.0,
+                              height: 20.0,
                               textStyle: FlutterFlowTheme.of(context)
-                                  .titleSmall
+                                  .bodyMedium
                                   .override(
-                                    font: GoogleFonts.interTight(
+                                    font: GoogleFonts.inter(
                                       fontWeight: FlutterFlowTheme.of(context)
-                                          .titleSmall
+                                          .bodyMedium
                                           .fontWeight,
                                       fontStyle: FlutterFlowTheme.of(context)
-                                          .titleSmall
+                                          .bodyMedium
                                           .fontStyle,
                                     ),
-                                    color: Colors.white,
+                                    fontSize: 13.0,
                                     letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
-                                        .titleSmall
+                                        .bodyMedium
                                         .fontWeight,
                                     fontStyle: FlutterFlowTheme.of(context)
-                                        .titleSmall
+                                        .bodyMedium
                                         .fontStyle,
                                   ),
-                              elevation: 0.0,
-                              borderRadius: BorderRadius.circular(8.0),
+                              hintText: 'Select...',
+                              icon: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color:
+                                    FlutterFlowTheme.of(context).secondaryText,
+                                size: 20.0,
+                              ),
+                              fillColor: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              elevation: 2.0,
+                              borderColor: Colors.transparent,
+                              borderWidth: 0.0,
+                              borderRadius: 0.0,
+                              margin: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 0.0, 0.0, 0.0),
+                              hidesUnderline: true,
+                              isOverButton: false,
+                              isSearchable: false,
+                              isMultiSelect: false,
                             ),
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
