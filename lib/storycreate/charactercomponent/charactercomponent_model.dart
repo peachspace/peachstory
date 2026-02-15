@@ -77,7 +77,7 @@ class CharactercomponentModel
   GenResultStructStruct? generatedcharacterImage;
   // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in emotionaddbutton widget.
   GenResultStructStruct? generatedemotionimage;
-  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in situationaddbutton widget.
+  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in Abilityaddbutton widget.
   GenResultStructStruct? generatedsituationimage;
 
   @override

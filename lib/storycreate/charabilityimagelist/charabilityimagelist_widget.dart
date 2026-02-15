@@ -5,29 +5,30 @@ import '/flutter_flow/form_field_controller.dart';
 import '/storycreate/uploadsheet/uploadsheet_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'backgroundimagelist_model.dart';
-export 'backgroundimagelist_model.dart';
+import 'charabilityimagelist_model.dart';
+export 'charabilityimagelist_model.dart';
 
-class BackgroundimagelistWidget extends StatefulWidget {
-  const BackgroundimagelistWidget({super.key});
+class CharabilityimagelistWidget extends StatefulWidget {
+  const CharabilityimagelistWidget({super.key});
 
-  static String routeName = 'backgroundimagelist';
-  static String routePath = '/backgroundimagelist';
+  static String routeName = 'charabilityimagelist';
+  static String routePath = '/charabilityimagelist';
 
   @override
-  State<BackgroundimagelistWidget> createState() =>
-      _BackgroundimagelistWidgetState();
+  State<CharabilityimagelistWidget> createState() =>
+      _CharabilityimagelistWidgetState();
 }
 
-class _BackgroundimagelistWidgetState extends State<BackgroundimagelistWidget> {
-  late BackgroundimagelistModel _model;
+class _CharabilityimagelistWidgetState
+    extends State<CharabilityimagelistWidget> {
+  late CharabilityimagelistModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => BackgroundimagelistModel());
+    _model = createModel(context, () => CharabilityimagelistModel());
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -63,7 +64,7 @@ class _BackgroundimagelistWidgetState extends State<BackgroundimagelistWidget> {
           title: Align(
             alignment: AlignmentDirectional(0.0, 0.0),
             child: Text(
-              '장소 이미지',
+              '능력 이미지',
               style: FlutterFlowTheme.of(context).headlineMedium.override(
                     font: GoogleFonts.interTight(
                       fontWeight: FlutterFlowTheme.of(context)
@@ -168,11 +169,11 @@ class _BackgroundimagelistWidgetState extends State<BackgroundimagelistWidget> {
                                 0.0, 5.0, 0.0, 0.0),
                             child: FlutterFlowDropDown<String>(
                               controller:
-                                  _model.placetagDropDownValueController ??=
+                                  _model.abilitytagDropDownValueController ??=
                                       FormFieldController<String>(null),
                               options: ['Option 1', 'Option 2', 'Option 3'],
                               onChanged: (val) => safeSetState(
-                                  () => _model.placetagDropDownValue = val),
+                                  () => _model.abilitytagDropDownValue = val),
                               width: 80.0,
                               height: 20.0,
                               textStyle: FlutterFlowTheme.of(context)

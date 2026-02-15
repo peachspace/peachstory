@@ -1,10 +1,10 @@
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
-import 'charskillimagelist_widget.dart' show CharskillimagelistWidget;
+import 'charabilityimagelist_widget.dart' show CharabilityimagelistWidget;
 import 'package:flutter/material.dart';
 
-class CharskillimagelistModel
-    extends FlutterFlowModel<CharskillimagelistWidget> {
+class CharabilityimagelistModel
+    extends FlutterFlowModel<CharabilityimagelistWidget> {
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for abilitytagDropDown widget.

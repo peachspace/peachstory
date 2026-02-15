@@ -210,9 +210,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => SearchpageWidget(),
         ),
         FFRoute(
-          name: BackgroundimagelistWidget.routeName,
-          path: BackgroundimagelistWidget.routePath,
-          builder: (context, params) => BackgroundimagelistWidget(),
+          name: PlaceimagelistWidget.routeName,
+          path: PlaceimagelistWidget.routePath,
+          builder: (context, params) => PlaceimagelistWidget(),
         ),
         FFRoute(
           name: CharemotionimagelistWidget.routeName,
@@ -230,9 +230,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => EventimagelistWidget(),
         ),
         FFRoute(
-          name: CharskillimagelistWidget.routeName,
-          path: CharskillimagelistWidget.routePath,
-          builder: (context, params) => CharskillimagelistWidget(),
+          name: CharabilityimagelistWidget.routeName,
+          path: CharabilityimagelistWidget.routePath,
+          builder: (context, params) => CharabilityimagelistWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

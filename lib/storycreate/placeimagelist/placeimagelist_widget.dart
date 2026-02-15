@@ -5,29 +5,28 @@ import '/flutter_flow/form_field_controller.dart';
 import '/storycreate/uploadsheet/uploadsheet_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'charskillimagelist_model.dart';
-export 'charskillimagelist_model.dart';
+import 'placeimagelist_model.dart';
+export 'placeimagelist_model.dart';
 
-class CharskillimagelistWidget extends StatefulWidget {
-  const CharskillimagelistWidget({super.key});
+class PlaceimagelistWidget extends StatefulWidget {
+  const PlaceimagelistWidget({super.key});
 
-  static String routeName = 'charskillimagelist';
-  static String routePath = '/charskillimagelist';
+  static String routeName = 'placeimagelist';
+  static String routePath = '/placeimagelist';
 
   @override
-  State<CharskillimagelistWidget> createState() =>
-      _CharskillimagelistWidgetState();
+  State<PlaceimagelistWidget> createState() => _PlaceimagelistWidgetState();
 }
 
-class _CharskillimagelistWidgetState extends State<CharskillimagelistWidget> {
-  late CharskillimagelistModel _model;
+class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
+  late PlaceimagelistModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => CharskillimagelistModel());
+    _model = createModel(context, () => PlaceimagelistModel());
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -63,7 +62,7 @@ class _CharskillimagelistWidgetState extends State<CharskillimagelistWidget> {
           title: Align(
             alignment: AlignmentDirectional(0.0, 0.0),
             child: Text(
-              '능력 이미지',
+              '장소 이미지',
               style: FlutterFlowTheme.of(context).headlineMedium.override(
                     font: GoogleFonts.interTight(
                       fontWeight: FlutterFlowTheme.of(context)
@@ -168,11 +167,11 @@ class _CharskillimagelistWidgetState extends State<CharskillimagelistWidget> {
                                 0.0, 5.0, 0.0, 0.0),
                             child: FlutterFlowDropDown<String>(
                               controller:
-                                  _model.abilitytagDropDownValueController ??=
+                                  _model.placetagDropDownValueController ??=
                                       FormFieldController<String>(null),
                               options: ['Option 1', 'Option 2', 'Option 3'],
                               onChanged: (val) => safeSetState(
-                                  () => _model.abilitytagDropDownValue = val),
+                                  () => _model.placetagDropDownValue = val),
                               width: 80.0,
                               height: 20.0,
                               textStyle: FlutterFlowTheme.of(context)

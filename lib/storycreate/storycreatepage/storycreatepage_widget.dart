@@ -1446,7 +1446,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                       Colors.transparent,
                                                   onTap: () async {
                                                     context.pushNamed(
-                                                        BackgroundimagelistWidget
+                                                        PlaceimagelistWidget
                                                             .routeName);
                                                   },
                                                   child: Icon(
