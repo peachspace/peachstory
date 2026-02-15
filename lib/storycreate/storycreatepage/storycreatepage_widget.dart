@@ -1435,12 +1435,27 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                     ),
                                                   ],
                                                 ),
-                                                Icon(
-                                                  Icons.image_outlined,
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryText,
-                                                  size: 24.0,
+                                                InkWell(
+                                                  splashColor:
+                                                      Colors.transparent,
+                                                  focusColor:
+                                                      Colors.transparent,
+                                                  hoverColor:
+                                                      Colors.transparent,
+                                                  highlightColor:
+                                                      Colors.transparent,
+                                                  onTap: () async {
+                                                    context.pushNamed(
+                                                        BackgroundimagelistWidget
+                                                            .routeName);
+                                                  },
+                                                  child: Icon(
+                                                    Icons.image_outlined,
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondaryText,
+                                                    size: 24.0,
+                                                  ),
                                                 ),
                                               ],
                                             ),

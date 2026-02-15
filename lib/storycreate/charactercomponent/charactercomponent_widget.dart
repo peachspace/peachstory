@@ -1875,53 +1875,11 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                         ),
                       ],
                     ),
-                    Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
-                      child: Builder(
-                        builder: (context) {
-                          final emotionItem = _model.emotionimagelist.toList();
-
-                          return Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: List.generate(emotionItem.length,
-                                (emotionItemIndex) {
-                              final emotionItemItem =
-                                  emotionItem[emotionItemIndex];
-                              return InkWell(
-                                splashColor: Colors.transparent,
-                                focusColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                onLongPress: () async {
-                                  _model.removeFromEmotionimagelist(
-                                      emotionItemItem);
-                                  safeSetState(() {});
-                                },
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.network(
-                                    functions.stringToImagePath(
-                                        valueOrDefault<String>(
-                                      emotionItemItem.imageurl,
-                                      '\" \"',
-                                    )),
-                                    width: 70.0,
-                                    height: 70.0,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              );
-                            }),
-                          );
-                        },
-                      ),
-                    ),
                   ],
                 ),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
+                padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2044,48 +2002,6 @@ class _CharactercomponentWidgetState extends State<CharactercomponentWidget> {
                           showLoadingIndicator: false,
                         ),
                       ],
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
-                      child: Builder(
-                        builder: (context) {
-                          final situationtem = _model.situationimage.toList();
-
-                          return Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: List.generate(situationtem.length,
-                                (situationtemIndex) {
-                              final situationtemItem =
-                                  situationtem[situationtemIndex];
-                              return InkWell(
-                                splashColor: Colors.transparent,
-                                focusColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                onLongPress: () async {
-                                  _model.removeFromSituationimage(
-                                      situationtemItem);
-                                  safeSetState(() {});
-                                },
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.network(
-                                    functions.stringToImagePath(
-                                        valueOrDefault<String>(
-                                      situationtemItem.imageUrl,
-                                      '\" \"',
-                                    )),
-                                    width: 70.0,
-                                    height: 70.0,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              );
-                            }),
-                          );
-                        },
-                      ),
                     ),
                   ],
                 ),
