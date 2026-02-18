@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import '/custom_code/actions/index.dart'; // Imports other custom actions
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -36,8 +38,13 @@ class NotifierChatList extends StatefulWidget {
   final List<StoryChatMessageStructStruct>? initialMessages;
   final String newResponseScript;
   final String? userInChatName;
+
+  // ✅ Character list
   final List<CharacterStructStruct>? preDefinedCharacters;
-  final List<BackgroundStructStruct>? backgroundList;
+
+  // ✅ backgroundList 타입을 PlaceStructStruct로 고정
+  final List<PlaceStructStruct>? backgroundList;
+
   final Future<dynamic> Function(List<dynamic>? scenes)? onTurnComplete;
   final Future<dynamic> Function()? onLoadOlderMessages;
   final bool? isNovelMode;
@@ -55,23 +62,56 @@ class _NotifierChatListState extends State<NotifierChatList>
   bool _isTyping = false;
   bool _isLoadingHistory = false;
 
-  // [수정됨] 마지막으로 보여진 배경 이미지 URL을 저장하는 변수 추가
   String? _lastShownImageUrl;
 
   late AnimationController _loadingController;
   late Animation<double> _loadingAnimation;
+
+  // ✅ 감정 7개만 허용
+  final Set<String> _allowedEmotions = const {
+    '무감정',
+    '기쁨',
+    '슬픔',
+    '혐오',
+    '두려움',
+    '놀람',
+    '분노',
+  };
+
+  String _normalizeEmotionKey(String raw) {
+    final r = raw.trim();
+    if (r.isEmpty) return '무감정';
+    if (_allowedEmotions.contains(r)) return r;
+
+    final compact = r.replaceAll(' ', '');
+
+    if (compact.contains('공포') || compact.contains('두려')) return '두려움';
+    if (compact.contains('화') ||
+        compact.contains('분노') ||
+        compact.contains('화남')) return '분노';
+    if (compact.contains('혐오') ||
+        compact.contains('역겹') ||
+        compact.contains('메스꺼')) return '혐오';
+    if (compact.contains('놀라') || compact.contains('경악')) return '놀람';
+    if (compact.contains('기쁘') ||
+        compact.contains('행복') ||
+        compact.contains('웃')) return '기쁨';
+    if (compact.contains('슬프') ||
+        compact.contains('울') ||
+        compact.contains('눈물')) return '슬픔';
+
+    return '무감정';
+  }
 
   @override
   void initState() {
     super.initState();
     _messagesNotifier = ValueNotifier(List.from(widget.initialMessages ?? []));
 
-    // [수정됨] 초기 로딩 시, 기존 메시지 내역에서 가장 마지막에 나온 이미지를 찾아 중복 방지 초기값 설정
     if (widget.initialMessages != null && widget.initialMessages!.isNotEmpty) {
       for (var msg in widget.initialMessages!.reversed) {
         if (msg.type == 'story_image' &&
-            msg.storyImageUrl != null &&
-            msg.storyImageUrl!.isNotEmpty) {
+            (msg.storyImageUrl ?? '').toString().isNotEmpty) {
           _lastShownImageUrl = msg.storyImageUrl;
           break;
         }
@@ -108,7 +148,6 @@ class _NotifierChatListState extends State<NotifierChatList>
   void didUpdateWidget(covariant NotifierChatList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // 1. 메시지 리스트 업데이트 로직
     if (widget.initialMessages != null && !_isTyping) {
       final parentList = widget.initialMessages!;
       final currentList = _messagesNotifier.value;
@@ -148,7 +187,6 @@ class _NotifierChatListState extends State<NotifierChatList>
 
         _messagesNotifier.value = List.from(parentList);
 
-        // [수정됨] 리스트가 외부에서 업데이트 될 때도 마지막 이미지를 추적
         if (parentList.isNotEmpty && parentList.last.type == 'story_image') {
           _lastShownImageUrl = parentList.last.storyImageUrl;
         }
@@ -159,7 +197,6 @@ class _NotifierChatListState extends State<NotifierChatList>
       }
     }
 
-    // 2. 타이핑(연출) 시작 트리거 로직
     if (widget.newResponseScript != oldWidget.newResponseScript &&
         widget.newResponseScript.isNotEmpty &&
         widget.newResponseScript != '""' &&
@@ -254,12 +291,9 @@ class _NotifierChatListState extends State<NotifierChatList>
     }
 
     if (type == 'show_image') {
-      final condition = scene['condition'] ?? '';
+      final condition = (scene['condition'] ?? '').toString();
       final imageUrl = _findSituationalImageUrlByCondition(condition);
 
-      // [수정됨] 이미지 중복 출력 방지 로직
-      // 1. 이미지가 존재하고
-      // 2. 이전에 보여준 이미지와 다른 경우에만 출력
       if (imageUrl.isNotEmpty && imageUrl != 'null') {
         if (imageUrl != _lastShownImageUrl) {
           final imageMessage = createStoryChatMessageStructStruct(
@@ -272,14 +306,10 @@ class _NotifierChatListState extends State<NotifierChatList>
           );
           _messagesNotifier.value = [..._messagesNotifier.value, imageMessage];
 
-          // 현재 보여준 이미지를 마지막 이미지로 기록
           _lastShownImageUrl = imageUrl;
 
           _jumpToBottom();
           await Future.delayed(const Duration(milliseconds: 800));
-        } else {
-          // 이미 같은 이미지가 배경으로 깔려있다면 스킵하고 다음 씬으로
-          // (디버그용 로그가 필요하다면 print('Image Skipped: Duplicate');)
         }
       }
       _processNextScene();
@@ -291,25 +321,39 @@ class _NotifierChatListState extends State<NotifierChatList>
     }
   }
 
+  // ✅ 장소 단독 태그(place) + 조합 태그(place__tag) 둘 다 지원
   String _findSituationalImageUrlByCondition(String condition) {
     final target = condition.trim();
     if (target.isEmpty) return '';
 
+    // 1) 배경(장소 단독 태그)
     final bgList = widget.backgroundList ?? [];
     for (final bg in bgList) {
-      if (bg.placeName.trim() == target) {
-        return bg.imageUrl;
+      if ((bg.place).toString().trim() == target) {
+        return (bg.imageUrl).toString().trim();
       }
     }
 
-    final charList = widget.preDefinedCharacters ?? [];
-    for (final char in charList) {
-      for (final sit in char.situationImages) {
-        if (sit.condition.trim() == target) {
-          return sit.imageUrl;
+    // 2) 조합 태그: PLACE__TAG (능력/감정)
+    if (target.contains('__')) {
+      final charList = widget.preDefinedCharacters ?? [];
+      for (final char in charList) {
+        // 능력 조합: abilityStruct(place + ability)
+        for (final a in (char.abilityStruct ?? <AbilityStructStruct>[])) {
+          final key =
+              '${(a.place).toString().trim()}__${(a.ability).toString().trim()}';
+          if (key == target) return (a.imageUrl).toString().trim();
+        }
+
+        // 감정 조합: emotionStruct(place + emotion)
+        for (final e in (char.emotionStruct ?? <EmotionStructStruct>[])) {
+          final key =
+              '${(e.place).toString().trim()}__${(e.emotion).toString().trim()}';
+          if (key == target) return (e.imageurl).toString().trim();
         }
       }
     }
+
     return '';
   }
 
@@ -326,7 +370,7 @@ class _NotifierChatListState extends State<NotifierChatList>
     _messagesNotifier.value = [..._messagesNotifier.value, placeholder];
     _jumpToBottom();
 
-    final String content = scene['content'] ?? '';
+    final String content = (scene['content'] ?? '').toString();
 
     for (int i = 0; i <= content.length; i++) {
       if (!mounted) return;
@@ -334,6 +378,7 @@ class _NotifierChatListState extends State<NotifierChatList>
       final currentList =
           List<StoryChatMessageStructStruct>.from(_messagesNotifier.value);
       if (currentList.isEmpty) return;
+
       final updatedMessage = _createStructFromScene(
           scene, content.substring(0, i), true, fixedImageUrl);
       if (updatedMessage != null) {
@@ -391,35 +436,37 @@ class _NotifierChatListState extends State<NotifierChatList>
     );
   }
 
+  // ✅ 감정 키를 7개로 강제 + emotionStruct에서 매칭
   String? _resolveCharacterImageUrl(String speakerName, String? emotionKey) {
     final name = speakerName.trim();
     if (name.isEmpty) return null;
+
     final characters = widget.preDefinedCharacters ?? [];
     CharacterStructStruct? character;
     try {
-      character = characters.firstWhere((c) => c.name.trim() == name);
+      character =
+          characters.firstWhere((c) => (c.name).toString().trim() == name);
     } catch (_) {
       return null;
     }
 
-    final key = (emotionKey != null && emotionKey.trim().isNotEmpty)
-        ? emotionKey.trim()
-        : '무감정';
-    final List<String> candidates = [];
+    final key = _normalizeEmotionKey(emotionKey ?? '');
 
-    for (final e in character.emotionimages) {
-      if (e.emotion == key) {
-        if (e.imageurl != null && e.imageurl!.startsWith('http'))
-          candidates.add(e.imageurl!);
+    final List<String> candidates = [];
+    for (final e in (character.emotionStruct ?? <EmotionStructStruct>[])) {
+      if ((e.emotion).toString().trim() == key) {
+        final url = (e.imageurl).toString().trim();
+        if (url.startsWith('http')) candidates.add(url);
       }
     }
 
-    if (candidates.isNotEmpty)
+    if (candidates.isNotEmpty) {
       return candidates[Random().nextInt(candidates.length)];
+    }
 
-    if (character.profileimage != null &&
-        character.profileimage!.startsWith('http'))
-      return character.profileimage;
+    // ✅ 프로필 이미지 필드명이 다르면 여기만 너 필드명으로 바꿔서 쓰면 됨
+    final p = (character.profileimage ?? '').toString().trim();
+    if (p.startsWith('http')) return p;
 
     return null;
   }
@@ -566,14 +613,13 @@ class _NotifierChatListState extends State<NotifierChatList>
   }
 
   Widget _buildStoryImage(StoryChatMessageStructStruct chatItem) {
-    if (chatItem.storyImageUrl == null ||
-        chatItem.storyImageUrl.isEmpty ||
-        chatItem.storyImageUrl == 'null') return const SizedBox.shrink();
+    final url = (chatItem.storyImageUrl ?? '').toString();
+    if (url.isEmpty || url == 'null') return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8.0),
-        child: Image.network(chatItem.storyImageUrl,
+        child: Image.network(url,
             width: double.infinity,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) =>
@@ -593,7 +639,6 @@ class _NotifierChatListState extends State<NotifierChatList>
   List<dynamic> _parseScriptIntoScenes(String scriptText) {
     final List<dynamic> scenes = [];
 
-    // TURN_HEADER 태그까지 포함
     final RegExp exp = RegExp(
       r'(\[TURN_HEADER\](.*?)\[/TURN_HEADER\])'
       r'|(\[SHOW_IMAGE="(.*?)"\])'
@@ -607,7 +652,6 @@ class _NotifierChatListState extends State<NotifierChatList>
 
     if (matches.isNotEmpty) {
       for (final m in matches) {
-        // 1) TURN_HEADER
         if (m.group(1) != null) {
           scenes.add({
             "type": "turn_header",
@@ -616,7 +660,6 @@ class _NotifierChatListState extends State<NotifierChatList>
           continue;
         }
 
-        // 2) NARRATION
         if (m.group(5) != null) {
           scenes.add({
             "type": "narration",
@@ -625,7 +668,6 @@ class _NotifierChatListState extends State<NotifierChatList>
           continue;
         }
 
-        // 3) DIALOGUE
         if (m.group(7) != null) {
           scenes.add({
             "type": "dialogue",
@@ -636,7 +678,6 @@ class _NotifierChatListState extends State<NotifierChatList>
           continue;
         }
 
-        // 4) SHOW_IMAGE
         if (m.group(3) != null) {
           scenes.add({
             "type": "show_image",

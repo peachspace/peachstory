@@ -32,7 +32,7 @@ Future<List<StoryChatMessageStructStruct>> processAndSaveChatTurn(
   if (events != null) {
     for (final ev in events) {
       final tag = (ev.event).toString().trim();
-      final url = ((ev.imageurl ?? ev.imageUrl) ?? '').toString().trim();
+      final url = (ev.imageurl).toString().trim();
       if (tag.isNotEmpty && url.isNotEmpty) {
         eventMap.putIfAbsent(tag, () => url);
       }

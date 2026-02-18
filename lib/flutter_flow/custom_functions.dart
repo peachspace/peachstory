@@ -606,74 +606,47 @@ String prologueUiToTags(
 ) {
   final text = input.replaceAll('\r\n', '\n').trim();
 
-  // 캐릭터 이름 목록
   final characterNames = characters
-      .map((c) => (c.name ?? '').toString().trim())
+      .map((c) => (c.name).toString().trim())
       .where((s) => s.isNotEmpty)
       .toSet();
 
-  // 배경 place 목록
+  // ✅ 배경 place 목록
   final bgAssets = places
-      .map((b) => (b.place ?? '').toString().trim())
+      .map((b) => (b.place).toString().trim())
       .where((s) => s.isNotEmpty)
       .toSet();
 
-  // 능력(상황) ability 목록
+  // ✅ 상황(능력) 목록: abilityStruct의 ability 값만 수집
   final situationAssets = <String>{};
   for (final c in characters) {
-    for (final s in (c.abilityStruct ?? [])) {
-      final cond = (s.ability ?? '').toString().trim();
+    for (final s in (c.abilityStruct ?? <AbilityStructStruct>[])) {
+      final cond = (s.ability).toString().trim();
       if (cond.isNotEmpty) situationAssets.add(cond);
     }
   }
 
-  // 캐릭터별 허용 감정 목록
+  // ✅ 캐릭터별 허용 감정 목록: emotionStruct의 emotion 값만 수집
   final emotionsByChar = <String, Set<String>>{};
   for (final c in characters) {
-    final charName = (c.name ?? '').toString().trim();
+    final charName = (c.name).toString().trim();
     final emos = <String>{};
-    for (final e in (c.emotionStruct ?? [])) {
-      final emo = (e.emotion ?? '').toString().trim();
+    for (final e in (c.emotionStruct ?? <EmotionStructStruct>[])) {
+      final emo = (e.emotion).toString().trim();
       if (emo.isNotEmpty) emos.add(emo);
     }
     if (charName.isNotEmpty) emotionsByChar[charName] = emos;
   }
 
+  // ✅ 전역 감정 리스트: 7개만
   final globalAllowedEmotions = <String>{
     '무감정',
     '기쁨',
     '슬픔',
-    '화남',
-    '놀람',
-    '공포',
     '혐오',
-    '사랑',
-    '설렘',
-    '안도',
-    '감동',
-    '자신감',
-    '장난',
-    '만족',
-    '감사',
-    '짜증',
-    '질투',
-    '실망',
-    '우울',
-    '고통',
-    '부끄러움',
-    '당황',
-    '경멸',
-    '불안',
-    '피곤',
-    '지루함',
-    '멍함',
-    '호기심',
-    '진지',
-    '결의',
-    '미침',
-    '취함',
-    '아픔',
-    '배고픔'
+    '두려움',
+    '놀람',
+    '분노',
   };
 
   final headerRe = RegExp(
@@ -686,24 +659,40 @@ String prologueUiToTags(
         .trim();
   }
 
+  // ✅ 감정 정규화(7개)
   String normalizeEmotion(String raw, Set<String> allowed) {
-    var e = raw.trim();
-    if (e.isEmpty) return '무감정';
-    if (allowed.contains(e)) return e;
+    final allowed7 = <String>{
+      '무감정',
+      '기쁨',
+      '슬픔',
+      '혐오',
+      '두려움',
+      '놀람',
+      '분노',
+    };
 
-    final lower = e.replaceAll(' ', '');
-    String pick(String target) => allowed.contains(target) ? target : '무감정';
+    final useAllowed = allowed.isNotEmpty ? allowed : allowed7;
 
-    if (lower.contains('냉정') || lower.contains('차갑') || lower.contains('무표정'))
-      return pick('진지');
-    if (lower.contains('떨') || lower.contains('긴장')) return pick('불안');
-    if (lower.contains('짜증') || lower.contains('날카')) return pick('짜증');
-    if (lower.contains('분노') || lower.contains('화')) return pick('화남');
-    if (lower.contains('결심') || lower.contains('단호')) return pick('결의');
-    if (lower.contains('웃') || lower.contains('미소')) return pick('기쁨');
-    if (lower.contains('슬프') || lower.contains('울')) return pick('슬픔');
-    if (lower.contains('설레')) return pick('설렘');
-    if (lower.contains('놀라')) return pick('놀람');
+    final r = raw.trim();
+    if (r.isEmpty) return '무감정';
+    if (useAllowed.contains(r)) return r;
+
+    final compact = r.replaceAll(' ', '');
+
+    if (compact.contains('공포') || compact.contains('두려')) return '두려움';
+    if (compact.contains('화') ||
+        compact.contains('분노') ||
+        compact.contains('화남')) return '분노';
+    if (compact.contains('혐오') ||
+        compact.contains('역겹') ||
+        compact.contains('메스꺼')) return '혐오';
+    if (compact.contains('놀라') || compact.contains('경악')) return '놀람';
+    if (compact.contains('기쁘') ||
+        compact.contains('행복') ||
+        compact.contains('웃')) return '기쁨';
+    if (compact.contains('슬프') ||
+        compact.contains('울') ||
+        compact.contains('눈물')) return '슬픔';
 
     return '무감정';
   }
@@ -724,7 +713,7 @@ String prologueUiToTags(
     final raw =
         stripParensInContent(raw0.replaceAll('"', '').replaceAll("'", ""));
 
-    // 장소:
+    // ✅ 1) 장소:
     if (raw.startsWith('장소:') || raw.startsWith('장소 :')) {
       final p = raw.split(':').sublist(1).join(':').trim();
       if (p.isEmpty) continue;
@@ -742,7 +731,7 @@ String prologueUiToTags(
       continue;
     }
 
-    // 상황(능력):
+    // ✅ 2) 상황: (능력 태그) -> 자산에 있을 때만 SHOW_IMAGE
     if (raw.startsWith('상황:') || raw.startsWith('상황 :')) {
       final sit = raw.split(':').sublist(1).join(':').trim();
       if (sit.isEmpty) continue;
@@ -757,14 +746,14 @@ String prologueUiToTags(
       continue;
     }
 
-    // 이름(감정): 대사 / 이름: 대사
+    // ✅ 3) 이름(감정): 대사  또는 이름: 대사
     final m =
         RegExp(r'^(.+?)\s*(?:\(\s*(.+?)\s*\))?\s*:\s*(.+)$').firstMatch(raw);
 
     if (m != null) {
-      final speaker = m.group(1)!.trim();
+      final speaker = (m.group(1) ?? '').trim();
       final emoRaw = (m.group(2) ?? '').trim();
-      var speech = m.group(3)!.trim();
+      var speech = (m.group(3) ?? '').trim();
       speech = stripParensInContent(speech);
 
       if (speaker.isEmpty || speech.isEmpty) continue;
@@ -785,12 +774,13 @@ String prologueUiToTags(
       continue;
     }
 
-    // 나머지 내레이션
+    // ✅ 4) 그 외: 내레이션
     if (raw.isNotEmpty) {
       outLines.add('[NARRATION]$raw[/NARRATION]');
     }
   }
 
+  // ✅ 장소 라인이 없으면 안전장치
   if (!hasPlace) {
     final fallbackPlace = bgAssets.isNotEmpty ? bgAssets.first : '어딘가';
     outLines.insert(0, '[NARRATION]__PLACE__$fallbackPlace[/NARRATION]');
