@@ -306,18 +306,13 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                         alignment:
                                             AlignmentDirectional(0.0, 0.0),
                                         children: [
-                                          if (FFAppState()
-                                                      .Characters
-                                                      .elementAtOrNull(
-                                                          widget.editIndex)
-                                                      ?.profileimage ==
-                                                  null ||
-                                              FFAppState()
-                                                      .Characters
-                                                      .elementAtOrNull(
-                                                          widget.editIndex)
-                                                      ?.profileimage ==
-                                                  '')
+                                          if (valueOrDefault<bool>(
+                                            _model.editchar?.profileimage ==
+                                                    null ||
+                                                _model.editchar?.profileimage ==
+                                                    '',
+                                            false,
+                                          ))
                                             Container(
                                               width: 200.0,
                                               height: 200.0,
@@ -386,34 +381,19 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                                 ],
                                               ),
                                             ),
-                                          if (FFAppState()
-                                                      .Characters
-                                                      .elementAtOrNull(
-                                                          widget.editIndex)
-                                                      ?.profileimage !=
+                                          if (_model.editchar?.profileimage !=
                                                   null &&
-                                              FFAppState()
-                                                      .Characters
-                                                      .elementAtOrNull(
-                                                          widget.editIndex)
-                                                      ?.profileimage !=
+                                              _model.editchar?.profileimage !=
                                                   '')
                                             ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(10.0),
                                               child: Image.network(
-                                                valueOrDefault<String>(
-                                                  functions.stringToImagePath(
-                                                      valueOrDefault<String>(
-                                                    FFAppState()
-                                                        .Characters
-                                                        .elementAtOrNull(
-                                                            widget.editIndex)
-                                                        ?.profileimage,
-                                                    '\' \'',
-                                                  )),
+                                                functions.stringToImagePath(
+                                                    valueOrDefault<String>(
+                                                  _model.editchar?.profileimage,
                                                   '\' \'',
-                                                ),
+                                                )),
                                                 width: 200.0,
                                                 height: 200.0,
                                                 fit: BoxFit.cover,
