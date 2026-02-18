@@ -8,6 +8,7 @@ import '/flutter_flow/upload_data.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -19,16 +20,15 @@ export 'charsettingpage_model.dart';
 class CharsettingpageWidget extends StatefulWidget {
   const CharsettingpageWidget({
     super.key,
-    this.isEdit,
-    this.editIndex,
+    bool? isEdit,
+    int? editIndex,
     this.storyContext,
-    this.initialCharacter,
-  });
+  })  : this.isEdit = isEdit ?? false,
+        this.editIndex = editIndex ?? -1;
 
-  final bool? isEdit;
-  final int? editIndex;
+  final bool isEdit;
+  final int editIndex;
   final String? storyContext;
-  final CharacterStructStruct? initialCharacter;
 
   static String routeName = 'charsettingpage';
   static String routePath = '/charsettingpage';
@@ -49,9 +49,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (widget.isEdit == true) {
+      if ((widget.isEdit == true) && (widget.editIndex >= 0)) {
         _model.editchar =
-            FFAppState().Characters.elementAtOrNull(widget.editIndex!);
+            FFAppState().Characters.elementAtOrNull(widget.editIndex);
         safeSetState(() {});
       } else {
         _model.editchar = CharacterStructStruct(
@@ -282,13 +282,13 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                     if (FFAppState()
                                                 .Characters
                                                 .elementAtOrNull(
-                                                    widget.editIndex!)
+                                                    widget.editIndex)
                                                 ?.profileimage ==
                                             null ||
                                         FFAppState()
                                                 .Characters
                                                 .elementAtOrNull(
-                                                    widget.editIndex!)
+                                                    widget.editIndex)
                                                 ?.profileimage ==
                                             '')
                                       Container(
@@ -359,25 +359,31 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                     if (FFAppState()
                                                 .Characters
                                                 .elementAtOrNull(
-                                                    widget.editIndex!)
+                                                    widget.editIndex)
                                                 ?.profileimage !=
                                             null &&
                                         FFAppState()
                                                 .Characters
                                                 .elementAtOrNull(
-                                                    widget.editIndex!)
+                                                    widget.editIndex)
                                                 ?.profileimage !=
                                             '')
                                       ClipRRect(
                                         borderRadius:
                                             BorderRadius.circular(10.0),
                                         child: Image.network(
-                                          functions.stringToImagePath(
+                                          valueOrDefault<String>(
+                                            functions.stringToImagePath(
+                                                valueOrDefault<String>(
                                               FFAppState()
                                                   .Characters
                                                   .elementAtOrNull(
-                                                      widget.editIndex!)
-                                                  ?.profileimage),
+                                                      widget.editIndex)
+                                                  ?.profileimage,
+                                              '\' \'',
+                                            )),
+                                            '\' \'',
+                                          ),
                                           width: 200.0,
                                           height: 200.0,
                                           fit: BoxFit.cover,
@@ -499,6 +505,20 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                                     .charNameTextController,
                                                 focusNode:
                                                     _model.charNameFocusNode,
+                                                onChanged: (_) =>
+                                                    EasyDebounce.debounce(
+                                                  '_model.charNameTextController',
+                                                  Duration(milliseconds: 2000),
+                                                  () async {
+                                                    _model.editchar =
+                                                        CharacterStructStruct(
+                                                      name: _model
+                                                          .charNameTextController
+                                                          .text,
+                                                    );
+                                                    safeSetState(() {});
+                                                  },
+                                                ),
                                                 autofocus: false,
                                                 obscureText: false,
                                                 decoration: InputDecoration(
@@ -681,7 +701,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               });
                                               FFAppState()
                                                   .updateCharactersAtIndex(
-                                                widget.editIndex!,
+                                                widget.editIndex,
                                                 (e) => e..name = _model.name,
                                               );
                                               safeSetState(() {});
@@ -885,6 +905,20 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                                     .charSettingTextController,
                                                 focusNode:
                                                     _model.charSettingFocusNode,
+                                                onChanged: (_) =>
+                                                    EasyDebounce.debounce(
+                                                  '_model.charSettingTextController',
+                                                  Duration(milliseconds: 2000),
+                                                  () async {
+                                                    _model.editchar =
+                                                        CharacterStructStruct(
+                                                      setting: _model
+                                                          .charSettingTextController
+                                                          .text,
+                                                    );
+                                                    safeSetState(() {});
+                                                  },
+                                                ),
                                                 autofocus: false,
                                                 obscureText: false,
                                                 decoration: InputDecoration(
@@ -1071,7 +1105,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               });
                                               FFAppState()
                                                   .updateCharactersAtIndex(
-                                                widget.editIndex!,
+                                                widget.editIndex,
                                                 (e) => e
                                                   ..setting =
                                                       _model.personality,
@@ -1277,6 +1311,20 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                                     .charAppearanceTextController,
                                                 focusNode: _model
                                                     .charAppearanceFocusNode,
+                                                onChanged: (_) =>
+                                                    EasyDebounce.debounce(
+                                                  '_model.charAppearanceTextController',
+                                                  Duration(milliseconds: 2000),
+                                                  () async {
+                                                    _model.editchar =
+                                                        CharacterStructStruct(
+                                                      appearance: _model
+                                                          .charAppearanceTextController
+                                                          .text,
+                                                    );
+                                                    safeSetState(() {});
+                                                  },
+                                                ),
                                                 autofocus: false,
                                                 obscureText: false,
                                                 decoration: InputDecoration(
@@ -1462,7 +1510,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               });
                                               FFAppState()
                                                   .updateCharactersAtIndex(
-                                                widget.editIndex!,
+                                                widget.editIndex,
                                                 (e) => e
                                                   ..appearance =
                                                       _model.appearance,
@@ -1668,6 +1716,20 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                                     .charabilityTextController,
                                                 focusNode:
                                                     _model.charabilityFocusNode,
+                                                onChanged: (_) =>
+                                                    EasyDebounce.debounce(
+                                                  '_model.charabilityTextController',
+                                                  Duration(milliseconds: 2000),
+                                                  () async {
+                                                    _model.editchar =
+                                                        CharacterStructStruct(
+                                                      ability: _model
+                                                          .charabilityTextController
+                                                          .text,
+                                                    );
+                                                    safeSetState(() {});
+                                                  },
+                                                ),
                                                 autofocus: false,
                                                 obscureText: false,
                                                 decoration: InputDecoration(
@@ -2021,6 +2083,20 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                                     .charintroduceTextController,
                                                 focusNode: _model
                                                     .charintroduceFocusNode,
+                                                onChanged: (_) =>
+                                                    EasyDebounce.debounce(
+                                                  '_model.charintroduceTextController',
+                                                  Duration(milliseconds: 2000),
+                                                  () async {
+                                                    _model.editchar =
+                                                        CharacterStructStruct(
+                                                      introduce: _model
+                                                          .charintroduceTextController
+                                                          .text,
+                                                    );
+                                                    safeSetState(() {});
+                                                  },
+                                                ),
                                                 autofocus: false,
                                                 obscureText: false,
                                                 decoration: InputDecoration(
@@ -2205,7 +2281,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               });
                                               FFAppState()
                                                   .updateCharactersAtIndex(
-                                                widget.editIndex!,
+                                                widget.editIndex,
                                                 (e) => e
                                                   ..introduce =
                                                       _model.introduce,
@@ -2456,6 +2532,11 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               ParamType.String,
                                               isList: true,
                                             ),
+                                            'placeTags': serializeParam(
+                                              [],
+                                              ParamType.String,
+                                              isList: true,
+                                            ),
                                           }.withoutNulls,
                                         );
                                       },
@@ -2542,7 +2623,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                             FFAppState().Characters = functions
                                 .updateCharacterAt(
                                     FFAppState().Characters.toList(),
-                                    widget.editIndex!,
+                                    widget.editIndex,
                                     CharacterStructStruct(
                                       name: _model.editchar?.name,
                                       setting: _model.editchar?.setting,
