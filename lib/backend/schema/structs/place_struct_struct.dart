@@ -6,13 +6,13 @@ import '/backend/schema/util/firestore_util.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
 
-class BackgroundStructStruct extends FFFirebaseStruct {
-  BackgroundStructStruct({
+class PlaceStructStruct extends FFFirebaseStruct {
+  PlaceStructStruct({
     String? imageUrl,
-    String? placeName,
+    String? place,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _imageUrl = imageUrl,
-        _placeName = placeName,
+        _place = place,
         super(firestoreUtilData);
 
   // "imageUrl" field.
@@ -22,26 +22,26 @@ class BackgroundStructStruct extends FFFirebaseStruct {
 
   bool hasImageUrl() => _imageUrl != null;
 
-  // "placeName" field.
-  String? _placeName;
-  String get placeName => _placeName ?? '';
-  set placeName(String? val) => _placeName = val;
+  // "place" field.
+  String? _place;
+  String get place => _place ?? '';
+  set place(String? val) => _place = val;
 
-  bool hasPlaceName() => _placeName != null;
+  bool hasPlace() => _place != null;
 
-  static BackgroundStructStruct fromMap(Map<String, dynamic> data) =>
-      BackgroundStructStruct(
+  static PlaceStructStruct fromMap(Map<String, dynamic> data) =>
+      PlaceStructStruct(
         imageUrl: data['imageUrl'] as String?,
-        placeName: data['placeName'] as String?,
+        place: data['place'] as String?,
       );
 
-  static BackgroundStructStruct? maybeFromMap(dynamic data) => data is Map
-      ? BackgroundStructStruct.fromMap(data.cast<String, dynamic>())
+  static PlaceStructStruct? maybeFromMap(dynamic data) => data is Map
+      ? PlaceStructStruct.fromMap(data.cast<String, dynamic>())
       : null;
 
   Map<String, dynamic> toMap() => {
         'imageUrl': _imageUrl,
-        'placeName': _placeName,
+        'place': _place,
       }.withoutNulls;
 
   @override
@@ -50,36 +50,35 @@ class BackgroundStructStruct extends FFFirebaseStruct {
           _imageUrl,
           ParamType.String,
         ),
-        'placeName': serializeParam(
-          _placeName,
+        'place': serializeParam(
+          _place,
           ParamType.String,
         ),
       }.withoutNulls;
 
-  static BackgroundStructStruct fromSerializableMap(
-          Map<String, dynamic> data) =>
-      BackgroundStructStruct(
+  static PlaceStructStruct fromSerializableMap(Map<String, dynamic> data) =>
+      PlaceStructStruct(
         imageUrl: deserializeParam(
           data['imageUrl'],
           ParamType.String,
           false,
         ),
-        placeName: deserializeParam(
-          data['placeName'],
+        place: deserializeParam(
+          data['place'],
           ParamType.String,
           false,
         ),
       );
 
-  static BackgroundStructStruct fromAlgoliaData(Map<String, dynamic> data) =>
-      BackgroundStructStruct(
+  static PlaceStructStruct fromAlgoliaData(Map<String, dynamic> data) =>
+      PlaceStructStruct(
         imageUrl: convertAlgoliaParam(
           data['imageUrl'],
           ParamType.String,
           false,
         ),
-        placeName: convertAlgoliaParam(
-          data['placeName'],
+        place: convertAlgoliaParam(
+          data['place'],
           ParamType.String,
           false,
         ),
@@ -90,30 +89,30 @@ class BackgroundStructStruct extends FFFirebaseStruct {
       );
 
   @override
-  String toString() => 'BackgroundStructStruct(${toMap()})';
+  String toString() => 'PlaceStructStruct(${toMap()})';
 
   @override
   bool operator ==(Object other) {
-    return other is BackgroundStructStruct &&
+    return other is PlaceStructStruct &&
         imageUrl == other.imageUrl &&
-        placeName == other.placeName;
+        place == other.place;
   }
 
   @override
-  int get hashCode => const ListEquality().hash([imageUrl, placeName]);
+  int get hashCode => const ListEquality().hash([imageUrl, place]);
 }
 
-BackgroundStructStruct createBackgroundStructStruct({
+PlaceStructStruct createPlaceStructStruct({
   String? imageUrl,
-  String? placeName,
+  String? place,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
   bool delete = false,
 }) =>
-    BackgroundStructStruct(
+    PlaceStructStruct(
       imageUrl: imageUrl,
-      placeName: placeName,
+      place: place,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,
@@ -122,66 +121,64 @@ BackgroundStructStruct createBackgroundStructStruct({
       ),
     );
 
-BackgroundStructStruct? updateBackgroundStructStruct(
-  BackgroundStructStruct? backgroundStruct, {
+PlaceStructStruct? updatePlaceStructStruct(
+  PlaceStructStruct? placeStruct, {
   bool clearUnsetFields = true,
   bool create = false,
 }) =>
-    backgroundStruct
+    placeStruct
       ?..firestoreUtilData = FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,
       );
 
-void addBackgroundStructStructData(
+void addPlaceStructStructData(
   Map<String, dynamic> firestoreData,
-  BackgroundStructStruct? backgroundStruct,
+  PlaceStructStruct? placeStruct,
   String fieldName, [
   bool forFieldValue = false,
 ]) {
   firestoreData.remove(fieldName);
-  if (backgroundStruct == null) {
+  if (placeStruct == null) {
     return;
   }
-  if (backgroundStruct.firestoreUtilData.delete) {
+  if (placeStruct.firestoreUtilData.delete) {
     firestoreData[fieldName] = FieldValue.delete();
     return;
   }
   final clearFields =
-      !forFieldValue && backgroundStruct.firestoreUtilData.clearUnsetFields;
+      !forFieldValue && placeStruct.firestoreUtilData.clearUnsetFields;
   if (clearFields) {
     firestoreData[fieldName] = <String, dynamic>{};
   }
-  final backgroundStructData =
-      getBackgroundStructFirestoreData(backgroundStruct, forFieldValue);
+  final placeStructData =
+      getPlaceStructFirestoreData(placeStruct, forFieldValue);
   final nestedData =
-      backgroundStructData.map((k, v) => MapEntry('$fieldName.$k', v));
+      placeStructData.map((k, v) => MapEntry('$fieldName.$k', v));
 
-  final mergeFields = backgroundStruct.firestoreUtilData.create || clearFields;
+  final mergeFields = placeStruct.firestoreUtilData.create || clearFields;
   firestoreData
       .addAll(mergeFields ? mergeNestedFields(nestedData) : nestedData);
 }
 
-Map<String, dynamic> getBackgroundStructFirestoreData(
-  BackgroundStructStruct? backgroundStruct, [
+Map<String, dynamic> getPlaceStructFirestoreData(
+  PlaceStructStruct? placeStruct, [
   bool forFieldValue = false,
 ]) {
-  if (backgroundStruct == null) {
+  if (placeStruct == null) {
     return {};
   }
-  final firestoreData = mapToFirestore(backgroundStruct.toMap());
+  final firestoreData = mapToFirestore(placeStruct.toMap());
 
   // Add any Firestore field values
-  backgroundStruct.firestoreUtilData.fieldValues
+  placeStruct.firestoreUtilData.fieldValues
       .forEach((k, v) => firestoreData[k] = v);
 
   return forFieldValue ? mergeNestedFields(firestoreData) : firestoreData;
 }
 
-List<Map<String, dynamic>> getBackgroundStructListFirestoreData(
-  List<BackgroundStructStruct>? backgroundStructs,
+List<Map<String, dynamic>> getPlaceStructListFirestoreData(
+  List<PlaceStructStruct>? placeStructs,
 ) =>
-    backgroundStructs
-        ?.map((e) => getBackgroundStructFirestoreData(e, true))
-        .toList() ??
+    placeStructs?.map((e) => getPlaceStructFirestoreData(e, true)).toList() ??
     [];

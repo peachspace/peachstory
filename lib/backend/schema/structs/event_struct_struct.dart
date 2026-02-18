@@ -6,8 +6,8 @@ import '/backend/schema/util/firestore_util.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
 
-class EventstructStruct extends FFFirebaseStruct {
-  EventstructStruct({
+class EventStructStruct extends FFFirebaseStruct {
+  EventStructStruct({
     String? event,
     String? imageurl,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
@@ -29,14 +29,14 @@ class EventstructStruct extends FFFirebaseStruct {
 
   bool hasImageurl() => _imageurl != null;
 
-  static EventstructStruct fromMap(Map<String, dynamic> data) =>
-      EventstructStruct(
+  static EventStructStruct fromMap(Map<String, dynamic> data) =>
+      EventStructStruct(
         event: data['event'] as String?,
         imageurl: data['imageurl'] as String?,
       );
 
-  static EventstructStruct? maybeFromMap(dynamic data) => data is Map
-      ? EventstructStruct.fromMap(data.cast<String, dynamic>())
+  static EventStructStruct? maybeFromMap(dynamic data) => data is Map
+      ? EventStructStruct.fromMap(data.cast<String, dynamic>())
       : null;
 
   Map<String, dynamic> toMap() => {
@@ -56,8 +56,8 @@ class EventstructStruct extends FFFirebaseStruct {
         ),
       }.withoutNulls;
 
-  static EventstructStruct fromSerializableMap(Map<String, dynamic> data) =>
-      EventstructStruct(
+  static EventStructStruct fromSerializableMap(Map<String, dynamic> data) =>
+      EventStructStruct(
         event: deserializeParam(
           data['event'],
           ParamType.String,
@@ -70,8 +70,8 @@ class EventstructStruct extends FFFirebaseStruct {
         ),
       );
 
-  static EventstructStruct fromAlgoliaData(Map<String, dynamic> data) =>
-      EventstructStruct(
+  static EventStructStruct fromAlgoliaData(Map<String, dynamic> data) =>
+      EventStructStruct(
         event: convertAlgoliaParam(
           data['event'],
           ParamType.String,
@@ -89,11 +89,11 @@ class EventstructStruct extends FFFirebaseStruct {
       );
 
   @override
-  String toString() => 'EventstructStruct(${toMap()})';
+  String toString() => 'EventStructStruct(${toMap()})';
 
   @override
   bool operator ==(Object other) {
-    return other is EventstructStruct &&
+    return other is EventStructStruct &&
         event == other.event &&
         imageurl == other.imageurl;
   }
@@ -102,7 +102,7 @@ class EventstructStruct extends FFFirebaseStruct {
   int get hashCode => const ListEquality().hash([event, imageurl]);
 }
 
-EventstructStruct createEventstructStruct({
+EventStructStruct createEventStructStruct({
   String? event,
   String? imageurl,
   Map<String, dynamic> fieldValues = const {},
@@ -110,7 +110,7 @@ EventstructStruct createEventstructStruct({
   bool create = false,
   bool delete = false,
 }) =>
-    EventstructStruct(
+    EventStructStruct(
       event: event,
       imageurl: imageurl,
       firestoreUtilData: FirestoreUtilData(
@@ -121,64 +121,64 @@ EventstructStruct createEventstructStruct({
       ),
     );
 
-EventstructStruct? updateEventstructStruct(
-  EventstructStruct? eventstruct, {
+EventStructStruct? updateEventStructStruct(
+  EventStructStruct? eventStruct, {
   bool clearUnsetFields = true,
   bool create = false,
 }) =>
-    eventstruct
+    eventStruct
       ?..firestoreUtilData = FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,
       );
 
-void addEventstructStructData(
+void addEventStructStructData(
   Map<String, dynamic> firestoreData,
-  EventstructStruct? eventstruct,
+  EventStructStruct? eventStruct,
   String fieldName, [
   bool forFieldValue = false,
 ]) {
   firestoreData.remove(fieldName);
-  if (eventstruct == null) {
+  if (eventStruct == null) {
     return;
   }
-  if (eventstruct.firestoreUtilData.delete) {
+  if (eventStruct.firestoreUtilData.delete) {
     firestoreData[fieldName] = FieldValue.delete();
     return;
   }
   final clearFields =
-      !forFieldValue && eventstruct.firestoreUtilData.clearUnsetFields;
+      !forFieldValue && eventStruct.firestoreUtilData.clearUnsetFields;
   if (clearFields) {
     firestoreData[fieldName] = <String, dynamic>{};
   }
-  final eventstructData =
-      getEventstructFirestoreData(eventstruct, forFieldValue);
+  final eventStructData =
+      getEventStructFirestoreData(eventStruct, forFieldValue);
   final nestedData =
-      eventstructData.map((k, v) => MapEntry('$fieldName.$k', v));
+      eventStructData.map((k, v) => MapEntry('$fieldName.$k', v));
 
-  final mergeFields = eventstruct.firestoreUtilData.create || clearFields;
+  final mergeFields = eventStruct.firestoreUtilData.create || clearFields;
   firestoreData
       .addAll(mergeFields ? mergeNestedFields(nestedData) : nestedData);
 }
 
-Map<String, dynamic> getEventstructFirestoreData(
-  EventstructStruct? eventstruct, [
+Map<String, dynamic> getEventStructFirestoreData(
+  EventStructStruct? eventStruct, [
   bool forFieldValue = false,
 ]) {
-  if (eventstruct == null) {
+  if (eventStruct == null) {
     return {};
   }
-  final firestoreData = mapToFirestore(eventstruct.toMap());
+  final firestoreData = mapToFirestore(eventStruct.toMap());
 
   // Add any Firestore field values
-  eventstruct.firestoreUtilData.fieldValues
+  eventStruct.firestoreUtilData.fieldValues
       .forEach((k, v) => firestoreData[k] = v);
 
   return forFieldValue ? mergeNestedFields(firestoreData) : firestoreData;
 }
 
-List<Map<String, dynamic>> getEventstructListFirestoreData(
-  List<EventstructStruct>? eventstructs,
+List<Map<String, dynamic>> getEventStructListFirestoreData(
+  List<EventStructStruct>? eventStructs,
 ) =>
-    eventstructs?.map((e) => getEventstructFirestoreData(e, true)).toList() ??
+    eventStructs?.map((e) => getEventStructFirestoreData(e, true)).toList() ??
     [];

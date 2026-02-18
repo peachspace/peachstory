@@ -1,13 +1,12 @@
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
-import 'charemotionimagelist_widget.dart' show CharemotionimagelistWidget;
+import 'emotionstruct_widget.dart' show EmotionstructWidget;
 import 'package:flutter/material.dart';
 
-class CharemotionimagelistModel
-    extends FlutterFlowModel<CharemotionimagelistWidget> {
-  ///  State fields for stateful widgets in this page.
+class EmotionstructModel extends FlutterFlowModel<EmotionstructWidget> {
+  ///  State fields for stateful widgets in this component.
 
-  // State field(s) for emotiontagDropDown widget.
+  // State field(s) for EmotiontagDropDown widget.
   String? emotiontagDropDownValue;
   FormFieldController<String>? emotiontagDropDownValueController;
 

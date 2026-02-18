@@ -6,15 +6,15 @@ import '/backend/schema/util/firestore_util.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
 
-class EmotionImageStructStruct extends FFFirebaseStruct {
-  EmotionImageStructStruct({
+class EmotionStructStruct extends FFFirebaseStruct {
+  EmotionStructStruct({
     String? emotion,
     String? imageurl,
-    DateTime? createdAt,
+    String? place,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _emotion = emotion,
         _imageurl = imageurl,
-        _createdAt = createdAt,
+        _place = place,
         super(firestoreUtilData);
 
   // "emotion" field.
@@ -31,28 +31,28 @@ class EmotionImageStructStruct extends FFFirebaseStruct {
 
   bool hasImageurl() => _imageurl != null;
 
-  // "createdAt" field.
-  DateTime? _createdAt;
-  DateTime? get createdAt => _createdAt;
-  set createdAt(DateTime? val) => _createdAt = val;
+  // "place" field.
+  String? _place;
+  String get place => _place ?? '';
+  set place(String? val) => _place = val;
 
-  bool hasCreatedAt() => _createdAt != null;
+  bool hasPlace() => _place != null;
 
-  static EmotionImageStructStruct fromMap(Map<String, dynamic> data) =>
-      EmotionImageStructStruct(
+  static EmotionStructStruct fromMap(Map<String, dynamic> data) =>
+      EmotionStructStruct(
         emotion: data['emotion'] as String?,
         imageurl: data['imageurl'] as String?,
-        createdAt: data['createdAt'] as DateTime?,
+        place: data['place'] as String?,
       );
 
-  static EmotionImageStructStruct? maybeFromMap(dynamic data) => data is Map
-      ? EmotionImageStructStruct.fromMap(data.cast<String, dynamic>())
+  static EmotionStructStruct? maybeFromMap(dynamic data) => data is Map
+      ? EmotionStructStruct.fromMap(data.cast<String, dynamic>())
       : null;
 
   Map<String, dynamic> toMap() => {
         'emotion': _emotion,
         'imageurl': _imageurl,
-        'createdAt': _createdAt,
+        'place': _place,
       }.withoutNulls;
 
   @override
@@ -65,15 +65,14 @@ class EmotionImageStructStruct extends FFFirebaseStruct {
           _imageurl,
           ParamType.String,
         ),
-        'createdAt': serializeParam(
-          _createdAt,
-          ParamType.DateTime,
+        'place': serializeParam(
+          _place,
+          ParamType.String,
         ),
       }.withoutNulls;
 
-  static EmotionImageStructStruct fromSerializableMap(
-          Map<String, dynamic> data) =>
-      EmotionImageStructStruct(
+  static EmotionStructStruct fromSerializableMap(Map<String, dynamic> data) =>
+      EmotionStructStruct(
         emotion: deserializeParam(
           data['emotion'],
           ParamType.String,
@@ -84,15 +83,15 @@ class EmotionImageStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        createdAt: deserializeParam(
-          data['createdAt'],
-          ParamType.DateTime,
+        place: deserializeParam(
+          data['place'],
+          ParamType.String,
           false,
         ),
       );
 
-  static EmotionImageStructStruct fromAlgoliaData(Map<String, dynamic> data) =>
-      EmotionImageStructStruct(
+  static EmotionStructStruct fromAlgoliaData(Map<String, dynamic> data) =>
+      EmotionStructStruct(
         emotion: convertAlgoliaParam(
           data['emotion'],
           ParamType.String,
@@ -103,9 +102,9 @@ class EmotionImageStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        createdAt: convertAlgoliaParam(
-          data['createdAt'],
-          ParamType.DateTime,
+        place: convertAlgoliaParam(
+          data['place'],
+          ParamType.String,
           false,
         ),
         firestoreUtilData: FirestoreUtilData(
@@ -115,33 +114,33 @@ class EmotionImageStructStruct extends FFFirebaseStruct {
       );
 
   @override
-  String toString() => 'EmotionImageStructStruct(${toMap()})';
+  String toString() => 'EmotionStructStruct(${toMap()})';
 
   @override
   bool operator ==(Object other) {
-    return other is EmotionImageStructStruct &&
+    return other is EmotionStructStruct &&
         emotion == other.emotion &&
         imageurl == other.imageurl &&
-        createdAt == other.createdAt;
+        place == other.place;
   }
 
   @override
-  int get hashCode => const ListEquality().hash([emotion, imageurl, createdAt]);
+  int get hashCode => const ListEquality().hash([emotion, imageurl, place]);
 }
 
-EmotionImageStructStruct createEmotionImageStructStruct({
+EmotionStructStruct createEmotionStructStruct({
   String? emotion,
   String? imageurl,
-  DateTime? createdAt,
+  String? place,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
   bool delete = false,
 }) =>
-    EmotionImageStructStruct(
+    EmotionStructStruct(
       emotion: emotion,
       imageurl: imageurl,
-      createdAt: createdAt,
+      place: place,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,
@@ -150,67 +149,66 @@ EmotionImageStructStruct createEmotionImageStructStruct({
       ),
     );
 
-EmotionImageStructStruct? updateEmotionImageStructStruct(
-  EmotionImageStructStruct? emotionImageStruct, {
+EmotionStructStruct? updateEmotionStructStruct(
+  EmotionStructStruct? emotionStruct, {
   bool clearUnsetFields = true,
   bool create = false,
 }) =>
-    emotionImageStruct
+    emotionStruct
       ?..firestoreUtilData = FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,
       );
 
-void addEmotionImageStructStructData(
+void addEmotionStructStructData(
   Map<String, dynamic> firestoreData,
-  EmotionImageStructStruct? emotionImageStruct,
+  EmotionStructStruct? emotionStruct,
   String fieldName, [
   bool forFieldValue = false,
 ]) {
   firestoreData.remove(fieldName);
-  if (emotionImageStruct == null) {
+  if (emotionStruct == null) {
     return;
   }
-  if (emotionImageStruct.firestoreUtilData.delete) {
+  if (emotionStruct.firestoreUtilData.delete) {
     firestoreData[fieldName] = FieldValue.delete();
     return;
   }
   final clearFields =
-      !forFieldValue && emotionImageStruct.firestoreUtilData.clearUnsetFields;
+      !forFieldValue && emotionStruct.firestoreUtilData.clearUnsetFields;
   if (clearFields) {
     firestoreData[fieldName] = <String, dynamic>{};
   }
-  final emotionImageStructData =
-      getEmotionImageStructFirestoreData(emotionImageStruct, forFieldValue);
+  final emotionStructData =
+      getEmotionStructFirestoreData(emotionStruct, forFieldValue);
   final nestedData =
-      emotionImageStructData.map((k, v) => MapEntry('$fieldName.$k', v));
+      emotionStructData.map((k, v) => MapEntry('$fieldName.$k', v));
 
-  final mergeFields =
-      emotionImageStruct.firestoreUtilData.create || clearFields;
+  final mergeFields = emotionStruct.firestoreUtilData.create || clearFields;
   firestoreData
       .addAll(mergeFields ? mergeNestedFields(nestedData) : nestedData);
 }
 
-Map<String, dynamic> getEmotionImageStructFirestoreData(
-  EmotionImageStructStruct? emotionImageStruct, [
+Map<String, dynamic> getEmotionStructFirestoreData(
+  EmotionStructStruct? emotionStruct, [
   bool forFieldValue = false,
 ]) {
-  if (emotionImageStruct == null) {
+  if (emotionStruct == null) {
     return {};
   }
-  final firestoreData = mapToFirestore(emotionImageStruct.toMap());
+  final firestoreData = mapToFirestore(emotionStruct.toMap());
 
   // Add any Firestore field values
-  emotionImageStruct.firestoreUtilData.fieldValues
+  emotionStruct.firestoreUtilData.fieldValues
       .forEach((k, v) => firestoreData[k] = v);
 
   return forFieldValue ? mergeNestedFields(firestoreData) : firestoreData;
 }
 
-List<Map<String, dynamic>> getEmotionImageStructListFirestoreData(
-  List<EmotionImageStructStruct>? emotionImageStructs,
+List<Map<String, dynamic>> getEmotionStructListFirestoreData(
+  List<EmotionStructStruct>? emotionStructs,
 ) =>
-    emotionImageStructs
-        ?.map((e) => getEmotionImageStructFirestoreData(e, true))
+    emotionStructs
+        ?.map((e) => getEmotionStructFirestoreData(e, true))
         .toList() ??
     [];

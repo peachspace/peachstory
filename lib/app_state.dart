@@ -123,6 +123,93 @@ class FFAppState extends ChangeNotifier {
   set storyMode(String value) {
     _storyMode = value;
   }
+
+  List<PlaceStructStruct> _places = [];
+  List<PlaceStructStruct> get places => _places;
+  set places(List<PlaceStructStruct> value) {
+    _places = value;
+  }
+
+  void addToPlaces(PlaceStructStruct value) {
+    places.add(value);
+  }
+
+  void removeFromPlaces(PlaceStructStruct value) {
+    places.remove(value);
+  }
+
+  void removeAtIndexFromPlaces(int index) {
+    places.removeAt(index);
+  }
+
+  void updatePlacesAtIndex(
+    int index,
+    PlaceStructStruct Function(PlaceStructStruct) updateFn,
+  ) {
+    places[index] = updateFn(_places[index]);
+  }
+
+  void insertAtIndexInPlaces(int index, PlaceStructStruct value) {
+    places.insert(index, value);
+  }
+
+  List<AbilityStructStruct> _Abilities = [];
+  List<AbilityStructStruct> get Abilities => _Abilities;
+  set Abilities(List<AbilityStructStruct> value) {
+    _Abilities = value;
+  }
+
+  void addToAbilities(AbilityStructStruct value) {
+    Abilities.add(value);
+  }
+
+  void removeFromAbilities(AbilityStructStruct value) {
+    Abilities.remove(value);
+  }
+
+  void removeAtIndexFromAbilities(int index) {
+    Abilities.removeAt(index);
+  }
+
+  void updateAbilitiesAtIndex(
+    int index,
+    AbilityStructStruct Function(AbilityStructStruct) updateFn,
+  ) {
+    Abilities[index] = updateFn(_Abilities[index]);
+  }
+
+  void insertAtIndexInAbilities(int index, AbilityStructStruct value) {
+    Abilities.insert(index, value);
+  }
+
+  List<EmotionStructStruct> _emotions = [];
+  List<EmotionStructStruct> get emotions => _emotions;
+  set emotions(List<EmotionStructStruct> value) {
+    _emotions = value;
+  }
+
+  void addToEmotions(EmotionStructStruct value) {
+    emotions.add(value);
+  }
+
+  void removeFromEmotions(EmotionStructStruct value) {
+    emotions.remove(value);
+  }
+
+  void removeAtIndexFromEmotions(int index) {
+    emotions.removeAt(index);
+  }
+
+  void updateEmotionsAtIndex(
+    int index,
+    EmotionStructStruct Function(EmotionStructStruct) updateFn,
+  ) {
+    emotions[index] = updateFn(_emotions[index]);
+  }
+
+  void insertAtIndexInEmotions(int index, EmotionStructStruct value) {
+    emotions.insert(index, value);
+  }
 }
 
 void _safeInit(Function() initializeField) {

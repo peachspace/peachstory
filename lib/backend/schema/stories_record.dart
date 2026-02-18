@@ -117,11 +117,6 @@ class StoriesRecord extends FirestoreRecord {
   String get detailmode => _detailmode ?? '';
   bool hasDetailmode() => _detailmode != null;
 
-  // "backgrounds" field.
-  List<BackgroundStructStruct>? _backgrounds;
-  List<BackgroundStructStruct> get backgrounds => _backgrounds ?? const [];
-  bool hasBackgrounds() => _backgrounds != null;
-
   // "prologuetext" field.
   String? _prologuetext;
   String get prologuetext => _prologuetext ?? '';
@@ -138,8 +133,8 @@ class StoriesRecord extends FirestoreRecord {
   bool hasEvent() => _event != null;
 
   // "events" field.
-  List<EventstructStruct>? _events;
-  List<EventstructStruct> get events => _events ?? const [];
+  List<EventStructStruct>? _events;
+  List<EventStructStruct> get events => _events ?? const [];
   bool hasEvents() => _events != null;
 
   // "outlineText" field.
@@ -151,6 +146,11 @@ class StoriesRecord extends FirestoreRecord {
   bool? _outlineMode;
   bool get outlineMode => _outlineMode ?? false;
   bool hasOutlineMode() => _outlineMode != null;
+
+  // "places" field.
+  List<PlaceStructStruct>? _places;
+  List<PlaceStructStruct> get places => _places ?? const [];
+  bool hasPlaces() => _places != null;
 
   void _initializeFields() {
     _title = snapshotData['title'] as String?;
@@ -176,19 +176,19 @@ class StoriesRecord extends FirestoreRecord {
     _authorIsCreator = snapshotData['authorIsCreator'] as bool?;
     _createdTimestamp = snapshotData['created_timestamp'] as DateTime?;
     _detailmode = snapshotData['detailmode'] as String?;
-    _backgrounds = getStructList(
-      snapshotData['backgrounds'],
-      BackgroundStructStruct.fromMap,
-    );
     _prologuetext = snapshotData['prologuetext'] as String?;
     _place = snapshotData['place'] as String?;
     _event = snapshotData['event'] as String?;
     _events = getStructList(
       snapshotData['events'],
-      EventstructStruct.fromMap,
+      EventStructStruct.fromMap,
     );
     _outlineText = snapshotData['outlineText'] as String?;
     _outlineMode = snapshotData['outlineMode'] as bool?;
+    _places = getStructList(
+      snapshotData['places'],
+      PlaceStructStruct.fromMap,
+    );
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -266,21 +266,21 @@ class StoriesRecord extends FirestoreRecord {
             false,
           ),
           'detailmode': snapshot.data['detailmode'],
-          'backgrounds': safeGet(
-            () => (snapshot.data['backgrounds'] as Iterable)
-                .map((d) => BackgroundStructStruct.fromAlgoliaData(d).toMap())
-                .toList(),
-          ),
           'prologuetext': snapshot.data['prologuetext'],
           'place': snapshot.data['place'],
           'event': snapshot.data['event'],
           'events': safeGet(
             () => (snapshot.data['events'] as Iterable)
-                .map((d) => EventstructStruct.fromAlgoliaData(d).toMap())
+                .map((d) => EventStructStruct.fromAlgoliaData(d).toMap())
                 .toList(),
           ),
           'outlineText': snapshot.data['outlineText'],
           'outlineMode': snapshot.data['outlineMode'],
+          'places': safeGet(
+            () => (snapshot.data['places'] as Iterable)
+                .map((d) => PlaceStructStruct.fromAlgoliaData(d).toMap())
+                .toList(),
+          ),
         },
         StoriesRecord.collection.doc(snapshot.objectID),
       );
@@ -398,13 +398,13 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.authorIsCreator == e2?.authorIsCreator &&
         e1?.createdTimestamp == e2?.createdTimestamp &&
         e1?.detailmode == e2?.detailmode &&
-        listEquality.equals(e1?.backgrounds, e2?.backgrounds) &&
         e1?.prologuetext == e2?.prologuetext &&
         e1?.place == e2?.place &&
         e1?.event == e2?.event &&
         listEquality.equals(e1?.events, e2?.events) &&
         e1?.outlineText == e2?.outlineText &&
-        e1?.outlineMode == e2?.outlineMode;
+        e1?.outlineMode == e2?.outlineMode &&
+        listEquality.equals(e1?.places, e2?.places);
   }
 
   @override
@@ -429,13 +429,13 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.authorIsCreator,
         e?.createdTimestamp,
         e?.detailmode,
-        e?.backgrounds,
         e?.prologuetext,
         e?.place,
         e?.event,
         e?.events,
         e?.outlineText,
-        e?.outlineMode
+        e?.outlineMode,
+        e?.places
       ]);
 
   @override

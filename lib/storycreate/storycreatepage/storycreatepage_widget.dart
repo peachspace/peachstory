@@ -5,7 +5,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
-import '/storycreate/charactercomponent/charactercomponent_widget.dart';
 import '/storycreate/source_select_sheet/source_select_sheet_widget.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
@@ -68,8 +67,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
         _model.hashitags = widget.storyDoc!.hashtags.toList().cast<String>();
         _model.prologuetext = _model.prologuetext;
         _model.backgroundlist =
-            _model.backgroundlist.toList().cast<BackgroundStructStruct>();
-        _model.place = widget.storyDoc?.place;
+            _model.backgroundlist.toList().cast<PlaceStructStruct>();
+        _model.placetext = widget.storyDoc?.place;
         _model.event = widget.storyDoc?.event;
         _model.outline = widget.storyDoc?.outlineText;
         safeSetState(() {});
@@ -84,7 +83,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
         _model.genre = '';
         _model.backgroundlist = [];
         _model.prologuetext = null;
-        _model.place = null;
+        _model.placetext = null;
         _model.event = null;
         _model.outline = null;
         safeSetState(() {});
@@ -106,7 +105,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
     _model.worldSettingsFocusNode ??= FocusNode();
 
     _model.placetextfieldTextController ??=
-        TextEditingController(text: _model.place);
+        TextEditingController(text: _model.placetext);
     _model.placetextfieldFocusNode ??= FocusNode();
 
     _model.userRoleInfoTextController ??=
@@ -1446,8 +1445,21 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                       Colors.transparent,
                                                   onTap: () async {
                                                     context.pushNamed(
-                                                        PlaceimagelistWidget
-                                                            .routeName);
+                                                      PlaceimagelistWidget
+                                                          .routeName,
+                                                      queryParameters: {
+                                                        'placeTags':
+                                                            serializeParam(
+                                                          functions
+                                                              .extractTagsFromColonLines(
+                                                                  _model
+                                                                      .placetextfieldTextController
+                                                                      .text),
+                                                          ParamType.String,
+                                                          isList: true,
+                                                        ),
+                                                      }.withoutNulls,
+                                                    );
                                                   },
                                                   child: Icon(
                                                     Icons.image_outlined,
@@ -1498,40 +1510,6 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                 .placetextfieldTextController,
                                                             focusNode: _model
                                                                 .placetextfieldFocusNode,
-                                                            onChanged: (_) =>
-                                                                EasyDebounce
-                                                                    .debounce(
-                                                              '_model.placetextfieldTextController',
-                                                              Duration(
-                                                                  milliseconds:
-                                                                      2000),
-                                                              () async {
-                                                                _model.place =
-                                                                    _model
-                                                                        .placetextfieldTextController
-                                                                        .text;
-                                                                _model.placeOptions = functions
-                                                                    .extractKeysFromMultiline(_model
-                                                                        .placetextfieldTextController
-                                                                        .text)
-                                                                    .toList()
-                                                                    .cast<
-                                                                        String>();
-                                                                safeSetState(
-                                                                    () {});
-                                                                if (_model
-                                                                        .placeOptions
-                                                                        .length ==
-                                                                    0) {
-                                                                  _model.placeOptions = []
-                                                                      .toList()
-                                                                      .cast<
-                                                                          String>();
-                                                                  safeSetState(
-                                                                      () {});
-                                                                }
-                                                              },
-                                                            ),
                                                             autofocus: false,
                                                             obscureText: false,
                                                             decoration:
@@ -1890,304 +1868,6 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                         ],
                                       ),
                                     ),
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 20.0, 0.0, 20.0),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.max,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Align(
-                                            alignment:
-                                                AlignmentDirectional(-1.0, 0.0),
-                                            child: Padding(
-                                              padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      0.0, 0.0, 0.0, 10.0),
-                                              child: Text(
-                                                '장소 이미지',
-                                                style:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          fontSize: 18.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                              ),
-                                            ),
-                                          ),
-                                          SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 0.0, 10.0, 0.0),
-                                                  child: FFButtonWidget(
-                                                    onPressed: () async {
-                                                      await showModalBottomSheet(
-                                                        isScrollControlled:
-                                                            true,
-                                                        backgroundColor:
-                                                            Colors.transparent,
-                                                        enableDrag: false,
-                                                        context: context,
-                                                        builder: (context) {
-                                                          return GestureDetector(
-                                                            onTap: () {
-                                                              FocusScope.of(
-                                                                      context)
-                                                                  .unfocus();
-                                                              FocusManager
-                                                                  .instance
-                                                                  .primaryFocus
-                                                                  ?.unfocus();
-                                                            },
-                                                            child: Padding(
-                                                              padding: MediaQuery
-                                                                  .viewInsetsOf(
-                                                                      context),
-                                                              child:
-                                                                  SourceSelectSheetWidget(
-                                                                imageMode:
-                                                                    'background',
-                                                                isSourceEmpty:
-                                                                    false,
-                                                                warningMessage:
-                                                                    '먼저 세계관을 입력해주세요.',
-                                                                receivedworldview:
-                                                                    _model
-                                                                        .worldSettingsTextController
-                                                                        .text,
-                                                              ),
-                                                            ),
-                                                          );
-                                                        },
-                                                      ).then((value) =>
-                                                          safeSetState(() =>
-                                                              _model.generatedbackgroundimage =
-                                                                  value));
-
-                                                      _model.addToBackgroundlist(
-                                                          BackgroundStructStruct(
-                                                        imageUrl: _model
-                                                            .generatedbackgroundimage
-                                                            ?.imageurl,
-                                                        placeName: _model
-                                                            .generatedbackgroundimage
-                                                            ?.text,
-                                                      ));
-                                                      safeSetState(() {});
-
-                                                      safeSetState(() {});
-                                                    },
-                                                    text: 'Button',
-                                                    icon: Icon(
-                                                      Icons.add_sharp,
-                                                      size: 45.0,
-                                                    ),
-                                                    options: FFButtonOptions(
-                                                      width: 80.0,
-                                                      height: 80.0,
-                                                      padding:
-                                                          EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  16.0,
-                                                                  0.0,
-                                                                  16.0,
-                                                                  0.0),
-                                                      iconPadding:
-                                                          EdgeInsets.all(2.0),
-                                                      iconColor:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primaryText,
-                                                      color: FlutterFlowTheme
-                                                              .of(context)
-                                                          .secondaryBackground,
-                                                      textStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .override(
-                                                                font: GoogleFonts
-                                                                    .interTight(
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontStyle,
-                                                                ),
-                                                                color: Colors
-                                                                    .white,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontStyle,
-                                                              ),
-                                                      elevation: 0.0,
-                                                      borderSide: BorderSide(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .alternate,
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10.0),
-                                                    ),
-                                                    showLoadingIndicator: false,
-                                                  ),
-                                                ),
-                                                Builder(
-                                                  builder: (context) {
-                                                    final backgroundItem =
-                                                        _model.backgroundlist
-                                                            .toList();
-
-                                                    return Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.max,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: List.generate(
-                                                          backgroundItem.length,
-                                                          (backgroundItemIndex) {
-                                                        final backgroundItemItem =
-                                                            backgroundItem[
-                                                                backgroundItemIndex];
-                                                        return Container(
-                                                          width: 80.0,
-                                                          decoration:
-                                                              BoxDecoration(),
-                                                          child: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .max,
-                                                            children: [
-                                                              InkWell(
-                                                                splashColor: Colors
-                                                                    .transparent,
-                                                                focusColor: Colors
-                                                                    .transparent,
-                                                                hoverColor: Colors
-                                                                    .transparent,
-                                                                highlightColor:
-                                                                    Colors
-                                                                        .transparent,
-                                                                onLongPress:
-                                                                    () async {
-                                                                  safeSetState(
-                                                                      () {});
-                                                                },
-                                                                child:
-                                                                    ClipRRect(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              10.0),
-                                                                  child: Image
-                                                                      .network(
-                                                                    functions.stringToImagePath(
-                                                                        valueOrDefault<
-                                                                            String>(
-                                                                      backgroundItemItem
-                                                                          .imageUrl,
-                                                                      '\"\"',
-                                                                    )),
-                                                                    width: 80.0,
-                                                                    height:
-                                                                        80.0,
-                                                                    fit: BoxFit
-                                                                        .cover,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              Padding(
-                                                                padding:
-                                                                    EdgeInsetsDirectional
-                                                                        .fromSTEB(
-                                                                            0.0,
-                                                                            5.0,
-                                                                            0.0,
-                                                                            0.0),
-                                                                child: Text(
-                                                                  backgroundItemItem
-                                                                      .placeName,
-                                                                  maxLines: 1,
-                                                                  style: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .override(
-                                                                        font: GoogleFonts
-                                                                            .inter(
-                                                                          fontWeight: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontWeight,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontStyle,
-                                                                        ),
-                                                                        letterSpacing:
-                                                                            0.0,
-                                                                        fontWeight: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .fontWeight,
-                                                                        fontStyle: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .fontStyle,
-                                                                      ),
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      }).divide(SizedBox(
-                                                          width: 10.0)),
-                                                    );
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
@@ -2306,54 +1986,25 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                               highlightColor:
                                                   Colors.transparent,
                                               onTap: () async {
-                                                await showModalBottomSheet(
-                                                  isScrollControlled: true,
-                                                  backgroundColor:
-                                                      Colors.transparent,
-                                                  enableDrag: false,
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        FocusScope.of(context)
-                                                            .unfocus();
-                                                        FocusManager.instance
-                                                            .primaryFocus
-                                                            ?.unfocus();
-                                                      },
-                                                      child: Padding(
-                                                        padding: MediaQuery
-                                                            .viewInsetsOf(
-                                                                context),
-                                                        child:
-                                                            CharactercomponentWidget(
-                                                          storyContext: '',
-                                                          isWorldviewEmpty:
-                                                              false,
-                                                          characterData:
-                                                              CharacterStructStruct(
-                                                            name: '\' \'',
-                                                            personality:
-                                                                '\' \'',
-                                                            introduce: '\' \'',
-                                                            profileimage:
-                                                                '\' \'',
-                                                            emotionimages: functions
-                                                                .getEmptyEmotionList(),
-                                                            basePrompt: '\' \'',
-                                                            situationImages:
-                                                                functions
-                                                                    .getEmptysituationList(),
-                                                            appearance: '\' \'',
-                                                            seed: null,
-                                                          ),
-                                                          isedit: false,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ).then((value) =>
-                                                    safeSetState(() {}));
+                                                context.pushNamed(
+                                                  CharsettingpageWidget
+                                                      .routeName,
+                                                  queryParameters: {
+                                                    'isEdit': serializeParam(
+                                                      false,
+                                                      ParamType.bool,
+                                                    ),
+                                                    'editIndex': serializeParam(
+                                                      -1,
+                                                      ParamType.int,
+                                                    ),
+                                                    'storyContext':
+                                                        serializeParam(
+                                                      '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저 역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
+                                                      ParamType.String,
+                                                    ),
+                                                  }.withoutNulls,
+                                                );
                                               },
                                               child: Container(
                                                 width: double.infinity,
@@ -2500,53 +2151,31 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                 Colors
                                                                     .transparent,
                                                             onTap: () async {
-                                                              await showModalBottomSheet(
-                                                                isScrollControlled:
+                                                              context.pushNamed(
+                                                                CharsettingpageWidget
+                                                                    .routeName,
+                                                                queryParameters:
+                                                                    {
+                                                                  'isEdit':
+                                                                      serializeParam(
                                                                     true,
-                                                                backgroundColor:
-                                                                    Colors
-                                                                        .transparent,
-                                                                enableDrag:
-                                                                    false,
-                                                                context:
-                                                                    context,
-                                                                builder:
-                                                                    (context) {
-                                                                  return GestureDetector(
-                                                                    onTap: () {
-                                                                      FocusScope.of(
-                                                                              context)
-                                                                          .unfocus();
-                                                                      FocusManager
-                                                                          .instance
-                                                                          .primaryFocus
-                                                                          ?.unfocus();
-                                                                    },
-                                                                    child:
-                                                                        Padding(
-                                                                      padding: MediaQuery
-                                                                          .viewInsetsOf(
-                                                                              context),
-                                                                      child:
-                                                                          CharactercomponentWidget(
-                                                                        storyContext:
-                                                                            '',
-                                                                        isWorldviewEmpty:
-                                                                            false,
-                                                                        characterData: FFAppState()
-                                                                            .Characters
-                                                                            .elementAtOrNull(charlistIndex)!,
-                                                                        isedit:
-                                                                            true,
-                                                                        index:
-                                                                            charlistIndex,
-                                                                      ),
-                                                                    ),
-                                                                  );
-                                                                },
-                                                              ).then((value) =>
-                                                                  safeSetState(
-                                                                      () {}));
+                                                                    ParamType
+                                                                        .bool,
+                                                                  ),
+                                                                  'editIndex':
+                                                                      serializeParam(
+                                                                    -1,
+                                                                    ParamType
+                                                                        .int,
+                                                                  ),
+                                                                  'storyContext':
+                                                                      serializeParam(
+                                                                    '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저 역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
+                                                                    ParamType
+                                                                        .String,
+                                                                  ),
+                                                                }.withoutNulls,
+                                                              );
                                                             },
                                                             child: Row(
                                                               mainAxisSize:
@@ -3791,7 +3420,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                   value));
 
                                                       _model.addToEventlist(
-                                                          EventstructStruct(
+                                                          EventStructStruct(
                                                         event: _model
                                                             .generatedeventimage
                                                             ?.text,
@@ -4496,6 +4125,60 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                   children: [
                                     Stack(
                                       children: [
+                                        if ((_model.isgenerating == true) &&
+                                            (_model.generatingTarget ==
+                                                'prologue'))
+                                          Container(
+                                            width: double.infinity,
+                                            height: 534.0,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .secondaryBackground,
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                              border: Border.all(
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .alternate,
+                                              ),
+                                            ),
+                                            child: Padding(
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Text(
+                                                'Hello World',
+                                                style:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font:
+                                                              GoogleFonts.inter(
+                                                            fontWeight:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                              ),
+                                            ),
+                                          ),
                                         Padding(
                                           padding:
                                               EdgeInsetsDirectional.fromSTEB(
@@ -4810,60 +4493,6 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                             ),
                                           ),
                                         ),
-                                        if ((_model.isgenerating == true) &&
-                                            (_model.generatingTarget ==
-                                                'prologue'))
-                                          Container(
-                                            width: double.infinity,
-                                            height: 534.0,
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondaryBackground,
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              border: Border.all(
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .alternate,
-                                              ),
-                                            ),
-                                            child: Padding(
-                                              padding: EdgeInsets.all(10.0),
-                                              child: Text(
-                                                'Hello World',
-                                                style:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                              ),
-                                            ),
-                                          ),
                                       ],
                                     ),
                                   ],
@@ -7046,7 +6675,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                   userRef: currentUserReference,
                                   heartCount: 0,
                                   prologuetext: _model.prologuetext,
-                                  place: _model.place,
+                                  place: _model.placetext,
                                   event: _model.event,
                                   outlineText: _model.outline,
                                   outlineMode: _model.outlineSwitch,
@@ -7058,9 +6687,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                       FFAppState().Characters,
                                     ),
                                     'hashtags': _model.hashitags,
-                                    'backgrounds':
-                                        getBackgroundStructListFirestoreData(
-                                      _model.backgroundlist,
+                                    'places': getPlaceStructListFirestoreData(
+                                      FFAppState().places,
                                     ),
                                   },
                                 ),
@@ -7089,7 +6717,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                   userRef: currentUserReference,
                                   heartCount: 0,
                                   prologuetext: _model.prologuetext,
-                                  place: _model.place,
+                                  place: _model.placetext,
                                   event: _model.event,
                                   outlineText: _model.outline,
                                   outlineMode: _model.outlineSwitch,
@@ -7101,9 +6729,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                       FFAppState().Characters,
                                     ),
                                     'hashtags': _model.hashitags,
-                                    'backgrounds':
-                                        getBackgroundStructListFirestoreData(
-                                      _model.backgroundlist,
+                                    'places': getPlaceStructListFirestoreData(
+                                      FFAppState().places,
                                     ),
                                   },
                                 ),
@@ -7137,7 +6764,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                       currentUserDocument?.isCreator, false),
                                   detailmode: _model.selectedDetailMode,
                                   prologuetext: _model.prologuetext,
-                                  place: _model.place,
+                                  place: _model.placetext,
                                   event: _model.event,
                                   outlineText: _model.outline,
                                   outlineMode: _model.outlineSwitch,
@@ -7149,9 +6776,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                       FFAppState().Characters,
                                     ),
                                     'hashtags': _model.hashitags,
-                                    'backgrounds':
-                                        getBackgroundStructListFirestoreData(
-                                      _model.backgroundlist,
+                                    'places': getPlaceStructListFirestoreData(
+                                      FFAppState().places,
                                     ),
                                   },
                                 ),

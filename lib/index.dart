@@ -20,11 +20,11 @@ export '/my/creatorrequestpage/creatorrequestpage_widget.dart'
 export '/home/searchpage/searchpage_widget.dart' show SearchpageWidget;
 export '/storycreate/placeimagelist/placeimagelist_widget.dart'
     show PlaceimagelistWidget;
-export '/storycreate/charemotionimagelist/charemotionimagelist_widget.dart'
-    show CharemotionimagelistWidget;
 export '/storycreate/charsettingpage/charsettingpage_widget.dart'
     show CharsettingpageWidget;
 export '/storycreate/eventimagelist/eventimagelist_widget.dart'
     show EventimagelistWidget;
-export '/storycreate/charabilityimagelist/charabilityimagelist_widget.dart'
-    show CharabilityimagelistWidget;
+export '/storycreate/abilityimagelist/abilityimagelist_widget.dart'
+    show AbilityimagelistWidget;
+export '/storycreate/emotionimagelist/emotionimagelist_widget.dart'
+    show EmotionimagelistWidget;

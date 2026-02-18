@@ -212,17 +212,31 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: PlaceimagelistWidget.routeName,
           path: PlaceimagelistWidget.routePath,
-          builder: (context, params) => PlaceimagelistWidget(),
-        ),
-        FFRoute(
-          name: CharemotionimagelistWidget.routeName,
-          path: CharemotionimagelistWidget.routePath,
-          builder: (context, params) => CharemotionimagelistWidget(),
+          builder: (context, params) => PlaceimagelistWidget(
+            placeTags: params.getParam<String>(
+              'placeTags',
+              ParamType.String,
+              isList: true,
+            ),
+          ),
         ),
         FFRoute(
           name: CharsettingpageWidget.routeName,
           path: CharsettingpageWidget.routePath,
-          builder: (context, params) => CharsettingpageWidget(),
+          builder: (context, params) => CharsettingpageWidget(
+            isEdit: params.getParam(
+              'isEdit',
+              ParamType.bool,
+            ),
+            editIndex: params.getParam(
+              'editIndex',
+              ParamType.int,
+            ),
+            storyContext: params.getParam(
+              'storyContext',
+              ParamType.String,
+            ),
+          ),
         ),
         FFRoute(
           name: EventimagelistWidget.routeName,
@@ -230,9 +244,31 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => EventimagelistWidget(),
         ),
         FFRoute(
-          name: CharabilityimagelistWidget.routeName,
-          path: CharabilityimagelistWidget.routePath,
-          builder: (context, params) => CharabilityimagelistWidget(),
+          name: AbilityimagelistWidget.routeName,
+          path: AbilityimagelistWidget.routePath,
+          builder: (context, params) => AbilityimagelistWidget(
+            abilityTags: params.getParam<String>(
+              'abilityTags',
+              ParamType.String,
+              isList: true,
+            ),
+            placeTags: params.getParam<String>(
+              'placeTags',
+              ParamType.String,
+              isList: true,
+            ),
+          ),
+        ),
+        FFRoute(
+          name: EmotionimagelistWidget.routeName,
+          path: EmotionimagelistWidget.routePath,
+          builder: (context, params) => EmotionimagelistWidget(
+            placeTags: params.getParam<String>(
+              'placeTags',
+              ParamType.String,
+              isList: true,
+            ),
+          ),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

@@ -55,15 +55,15 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
 
   bool istyping = false;
 
-  List<BackgroundStructStruct> backgrounds = [];
-  void addToBackgrounds(BackgroundStructStruct item) => backgrounds.add(item);
-  void removeFromBackgrounds(BackgroundStructStruct item) =>
+  List<PlaceStructStruct> backgrounds = [];
+  void addToBackgrounds(PlaceStructStruct item) => backgrounds.add(item);
+  void removeFromBackgrounds(PlaceStructStruct item) =>
       backgrounds.remove(item);
   void removeAtIndexFromBackgrounds(int index) => backgrounds.removeAt(index);
-  void insertAtIndexInBackgrounds(int index, BackgroundStructStruct item) =>
+  void insertAtIndexInBackgrounds(int index, PlaceStructStruct item) =>
       backgrounds.insert(index, item);
   void updateBackgroundsAtIndex(
-          int index, Function(BackgroundStructStruct) updateFn) =>
+          int index, Function(PlaceStructStruct) updateFn) =>
       backgrounds[index] = updateFn(backgrounds[index]);
 
   List<dynamic> messageAsJson = [];

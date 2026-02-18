@@ -70,9 +70,9 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
           functions.prologueTextToTagScript(
               _model.loadedStory!.prologuetext,
               _model.loadedStory!.characters.toList(),
-              _model.loadedStory!.backgrounds.toList()),
+              _model.loadedStory!.places.toList()),
           _model.chatMessages.toList(),
-          _model.loadedStory?.backgrounds.toList(),
+          _model.loadedStory?.places.toList(),
           _model.loadedStory?.characters.toList(),
           widget.userInChatName,
           true,
@@ -753,13 +753,13 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                   preDefinedCharacters:
                                       storychatpageStoriesRecord.characters,
                                   backgroundList:
-                                      storychatpageStoriesRecord.backgrounds,
+                                      storychatpageStoriesRecord.places,
                                   onTurnComplete: (scenes) async {
                                     _model.newMessages =
                                         await actions.processAndSaveChatTurn(
                                       scenes!.toList(),
                                       stackStorychatsRecord.reference,
-                                      storychatpageStoriesRecord.backgrounds
+                                      storychatpageStoriesRecord.places
                                           .toList(),
                                       storychatpageStoriesRecord.characters
                                           .toList(),
@@ -1118,7 +1118,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                                       storychatpageStoriesRecord.worldview,
                                                                       storychatpageStoriesRecord.characters.toList(),
                                                                       storychatpageStoriesRecord.userRole,
-                                                                      storychatpageStoriesRecord.backgrounds.toList(),
+                                                                      storychatpageStoriesRecord.places.toList(),
                                                                       stackStorychatsRecord.userNote,
                                                                       widget.userInChatName!,
                                                                       functions.dynamicContextByOutlineMode(
@@ -1380,7 +1380,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                   storychatpageStoriesRecord
                                                       .userRole,
                                                   storychatpageStoriesRecord
-                                                      .backgrounds
+                                                      .places
                                                       .toList(),
                                                   stackStorychatsRecord
                                                       .userNote,
@@ -1461,7 +1461,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                 _model.aiFullText1!,
                                                 _model.cleanList1?.toList(),
                                                 storychatpageStoriesRecord
-                                                    .backgrounds
+                                                    .places
                                                     .toList(),
                                                 storychatpageStoriesRecord
                                                     .characters

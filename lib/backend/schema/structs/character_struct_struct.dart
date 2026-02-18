@@ -10,26 +10,26 @@ import '/flutter_flow/flutter_flow_util.dart';
 class CharacterStructStruct extends FFFirebaseStruct {
   CharacterStructStruct({
     String? name,
-    String? personality,
+    String? setting,
     String? introduce,
-    String? id,
     int? seed,
     String? profileimage,
-    List<EmotionImageStructStruct>? emotionimages,
+    List<EmotionStructStruct>? emotionStruct,
     String? basePrompt,
-    List<SituationalImageStructStruct>? situationImages,
+    List<AbilityStructStruct>? abilityStruct,
     String? appearance,
+    String? ability,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _name = name,
-        _personality = personality,
+        _setting = setting,
         _introduce = introduce,
-        _id = id,
         _seed = seed,
         _profileimage = profileimage,
-        _emotionimages = emotionimages,
+        _emotionStruct = emotionStruct,
         _basePrompt = basePrompt,
-        _situationImages = situationImages,
+        _abilityStruct = abilityStruct,
         _appearance = appearance,
+        _ability = ability,
         super(firestoreUtilData);
 
   // "name" field.
@@ -39,12 +39,12 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   bool hasName() => _name != null;
 
-  // "personality" field.
-  String? _personality;
-  String get personality => _personality ?? '';
-  set personality(String? val) => _personality = val;
+  // "setting" field.
+  String? _setting;
+  String get setting => _setting ?? '';
+  set setting(String? val) => _setting = val;
 
-  bool hasPersonality() => _personality != null;
+  bool hasSetting() => _setting != null;
 
   // "introduce" field.
   String? _introduce;
@@ -52,13 +52,6 @@ class CharacterStructStruct extends FFFirebaseStruct {
   set introduce(String? val) => _introduce = val;
 
   bool hasIntroduce() => _introduce != null;
-
-  // "id" field.
-  String? _id;
-  String get id => _id ?? '';
-  set id(String? val) => _id = val;
-
-  bool hasId() => _id != null;
 
   // "Seed" field.
   int? _seed;
@@ -76,18 +69,16 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   bool hasProfileimage() => _profileimage != null;
 
-  // "emotionimages" field.
-  List<EmotionImageStructStruct>? _emotionimages;
-  List<EmotionImageStructStruct> get emotionimages =>
-      _emotionimages ?? const [];
-  set emotionimages(List<EmotionImageStructStruct>? val) =>
-      _emotionimages = val;
+  // "emotionStruct" field.
+  List<EmotionStructStruct>? _emotionStruct;
+  List<EmotionStructStruct> get emotionStruct => _emotionStruct ?? const [];
+  set emotionStruct(List<EmotionStructStruct>? val) => _emotionStruct = val;
 
-  void updateEmotionimages(Function(List<EmotionImageStructStruct>) updateFn) {
-    updateFn(_emotionimages ??= []);
+  void updateEmotionStruct(Function(List<EmotionStructStruct>) updateFn) {
+    updateFn(_emotionStruct ??= []);
   }
 
-  bool hasEmotionimages() => _emotionimages != null;
+  bool hasEmotionStruct() => _emotionStruct != null;
 
   // "basePrompt" field.
   String? _basePrompt;
@@ -96,19 +87,16 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   bool hasBasePrompt() => _basePrompt != null;
 
-  // "situationImages" field.
-  List<SituationalImageStructStruct>? _situationImages;
-  List<SituationalImageStructStruct> get situationImages =>
-      _situationImages ?? const [];
-  set situationImages(List<SituationalImageStructStruct>? val) =>
-      _situationImages = val;
+  // "abilityStruct" field.
+  List<AbilityStructStruct>? _abilityStruct;
+  List<AbilityStructStruct> get abilityStruct => _abilityStruct ?? const [];
+  set abilityStruct(List<AbilityStructStruct>? val) => _abilityStruct = val;
 
-  void updateSituationImages(
-      Function(List<SituationalImageStructStruct>) updateFn) {
-    updateFn(_situationImages ??= []);
+  void updateAbilityStruct(Function(List<AbilityStructStruct>) updateFn) {
+    updateFn(_abilityStruct ??= []);
   }
 
-  bool hasSituationImages() => _situationImages != null;
+  bool hasAbilityStruct() => _abilityStruct != null;
 
   // "appearance" field.
   String? _appearance;
@@ -117,24 +105,31 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   bool hasAppearance() => _appearance != null;
 
+  // "ability" field.
+  String? _ability;
+  String get ability => _ability ?? '';
+  set ability(String? val) => _ability = val;
+
+  bool hasAbility() => _ability != null;
+
   static CharacterStructStruct fromMap(Map<String, dynamic> data) =>
       CharacterStructStruct(
         name: data['name'] as String?,
-        personality: data['personality'] as String?,
+        setting: data['setting'] as String?,
         introduce: data['introduce'] as String?,
-        id: data['id'] as String?,
         seed: castToType<int>(data['Seed']),
         profileimage: data['profileimage'] as String?,
-        emotionimages: getStructList(
-          data['emotionimages'],
-          EmotionImageStructStruct.fromMap,
+        emotionStruct: getStructList(
+          data['emotionStruct'],
+          EmotionStructStruct.fromMap,
         ),
         basePrompt: data['basePrompt'] as String?,
-        situationImages: getStructList(
-          data['situationImages'],
-          SituationalImageStructStruct.fromMap,
+        abilityStruct: getStructList(
+          data['abilityStruct'],
+          AbilityStructStruct.fromMap,
         ),
         appearance: data['appearance'] as String?,
+        ability: data['ability'] as String?,
       );
 
   static CharacterStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -143,15 +138,15 @@ class CharacterStructStruct extends FFFirebaseStruct {
 
   Map<String, dynamic> toMap() => {
         'name': _name,
-        'personality': _personality,
+        'setting': _setting,
         'introduce': _introduce,
-        'id': _id,
         'Seed': _seed,
         'profileimage': _profileimage,
-        'emotionimages': _emotionimages?.map((e) => e.toMap()).toList(),
+        'emotionStruct': _emotionStruct?.map((e) => e.toMap()).toList(),
         'basePrompt': _basePrompt,
-        'situationImages': _situationImages?.map((e) => e.toMap()).toList(),
+        'abilityStruct': _abilityStruct?.map((e) => e.toMap()).toList(),
         'appearance': _appearance,
+        'ability': _ability,
       }.withoutNulls;
 
   @override
@@ -160,16 +155,12 @@ class CharacterStructStruct extends FFFirebaseStruct {
           _name,
           ParamType.String,
         ),
-        'personality': serializeParam(
-          _personality,
+        'setting': serializeParam(
+          _setting,
           ParamType.String,
         ),
         'introduce': serializeParam(
           _introduce,
-          ParamType.String,
-        ),
-        'id': serializeParam(
-          _id,
           ParamType.String,
         ),
         'Seed': serializeParam(
@@ -180,8 +171,8 @@ class CharacterStructStruct extends FFFirebaseStruct {
           _profileimage,
           ParamType.String,
         ),
-        'emotionimages': serializeParam(
-          _emotionimages,
+        'emotionStruct': serializeParam(
+          _emotionStruct,
           ParamType.DataStruct,
           isList: true,
         ),
@@ -189,13 +180,17 @@ class CharacterStructStruct extends FFFirebaseStruct {
           _basePrompt,
           ParamType.String,
         ),
-        'situationImages': serializeParam(
-          _situationImages,
+        'abilityStruct': serializeParam(
+          _abilityStruct,
           ParamType.DataStruct,
           isList: true,
         ),
         'appearance': serializeParam(
           _appearance,
+          ParamType.String,
+        ),
+        'ability': serializeParam(
+          _ability,
           ParamType.String,
         ),
       }.withoutNulls;
@@ -207,18 +202,13 @@ class CharacterStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        personality: deserializeParam(
-          data['personality'],
+        setting: deserializeParam(
+          data['setting'],
           ParamType.String,
           false,
         ),
         introduce: deserializeParam(
           data['introduce'],
-          ParamType.String,
-          false,
-        ),
-        id: deserializeParam(
-          data['id'],
           ParamType.String,
           false,
         ),
@@ -232,25 +222,30 @@ class CharacterStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        emotionimages: deserializeStructParam<EmotionImageStructStruct>(
-          data['emotionimages'],
+        emotionStruct: deserializeStructParam<EmotionStructStruct>(
+          data['emotionStruct'],
           ParamType.DataStruct,
           true,
-          structBuilder: EmotionImageStructStruct.fromSerializableMap,
+          structBuilder: EmotionStructStruct.fromSerializableMap,
         ),
         basePrompt: deserializeParam(
           data['basePrompt'],
           ParamType.String,
           false,
         ),
-        situationImages: deserializeStructParam<SituationalImageStructStruct>(
-          data['situationImages'],
+        abilityStruct: deserializeStructParam<AbilityStructStruct>(
+          data['abilityStruct'],
           ParamType.DataStruct,
           true,
-          structBuilder: SituationalImageStructStruct.fromSerializableMap,
+          structBuilder: AbilityStructStruct.fromSerializableMap,
         ),
         appearance: deserializeParam(
           data['appearance'],
+          ParamType.String,
+          false,
+        ),
+        ability: deserializeParam(
+          data['ability'],
           ParamType.String,
           false,
         ),
@@ -263,18 +258,13 @@ class CharacterStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        personality: convertAlgoliaParam(
-          data['personality'],
+        setting: convertAlgoliaParam(
+          data['setting'],
           ParamType.String,
           false,
         ),
         introduce: convertAlgoliaParam(
           data['introduce'],
-          ParamType.String,
-          false,
-        ),
-        id: convertAlgoliaParam(
-          data['id'],
           ParamType.String,
           false,
         ),
@@ -288,25 +278,30 @@ class CharacterStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        emotionimages: convertAlgoliaParam<EmotionImageStructStruct>(
-          data['emotionimages'],
+        emotionStruct: convertAlgoliaParam<EmotionStructStruct>(
+          data['emotionStruct'],
           ParamType.DataStruct,
           true,
-          structBuilder: EmotionImageStructStruct.fromAlgoliaData,
+          structBuilder: EmotionStructStruct.fromAlgoliaData,
         ),
         basePrompt: convertAlgoliaParam(
           data['basePrompt'],
           ParamType.String,
           false,
         ),
-        situationImages: convertAlgoliaParam<SituationalImageStructStruct>(
-          data['situationImages'],
+        abilityStruct: convertAlgoliaParam<AbilityStructStruct>(
+          data['abilityStruct'],
           ParamType.DataStruct,
           true,
-          structBuilder: SituationalImageStructStruct.fromAlgoliaData,
+          structBuilder: AbilityStructStruct.fromAlgoliaData,
         ),
         appearance: convertAlgoliaParam(
           data['appearance'],
+          ParamType.String,
+          false,
+        ),
+        ability: convertAlgoliaParam(
+          data['ability'],
           ParamType.String,
           false,
         ),
@@ -324,41 +319,41 @@ class CharacterStructStruct extends FFFirebaseStruct {
     const listEquality = ListEquality();
     return other is CharacterStructStruct &&
         name == other.name &&
-        personality == other.personality &&
+        setting == other.setting &&
         introduce == other.introduce &&
-        id == other.id &&
         seed == other.seed &&
         profileimage == other.profileimage &&
-        listEquality.equals(emotionimages, other.emotionimages) &&
+        listEquality.equals(emotionStruct, other.emotionStruct) &&
         basePrompt == other.basePrompt &&
-        listEquality.equals(situationImages, other.situationImages) &&
-        appearance == other.appearance;
+        listEquality.equals(abilityStruct, other.abilityStruct) &&
+        appearance == other.appearance &&
+        ability == other.ability;
   }
 
   @override
   int get hashCode => const ListEquality().hash([
         name,
-        personality,
+        setting,
         introduce,
-        id,
         seed,
         profileimage,
-        emotionimages,
+        emotionStruct,
         basePrompt,
-        situationImages,
-        appearance
+        abilityStruct,
+        appearance,
+        ability
       ]);
 }
 
 CharacterStructStruct createCharacterStructStruct({
   String? name,
-  String? personality,
+  String? setting,
   String? introduce,
-  String? id,
   int? seed,
   String? profileimage,
   String? basePrompt,
   String? appearance,
+  String? ability,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
@@ -366,13 +361,13 @@ CharacterStructStruct createCharacterStructStruct({
 }) =>
     CharacterStructStruct(
       name: name,
-      personality: personality,
+      setting: setting,
       introduce: introduce,
-      id: id,
       seed: seed,
       profileimage: profileimage,
       basePrompt: basePrompt,
       appearance: appearance,
+      ability: ability,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,

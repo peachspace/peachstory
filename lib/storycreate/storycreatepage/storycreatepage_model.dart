@@ -33,17 +33,16 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String selectedDetailMode = 'text';
 
-  List<BackgroundStructStruct> backgroundlist = [];
-  void addToBackgroundlist(BackgroundStructStruct item) =>
-      backgroundlist.add(item);
-  void removeFromBackgroundlist(BackgroundStructStruct item) =>
+  List<PlaceStructStruct> backgroundlist = [];
+  void addToBackgroundlist(PlaceStructStruct item) => backgroundlist.add(item);
+  void removeFromBackgroundlist(PlaceStructStruct item) =>
       backgroundlist.remove(item);
   void removeAtIndexFromBackgroundlist(int index) =>
       backgroundlist.removeAt(index);
-  void insertAtIndexInBackgroundlist(int index, BackgroundStructStruct item) =>
+  void insertAtIndexInBackgroundlist(int index, PlaceStructStruct item) =>
       backgroundlist.insert(index, item);
   void updateBackgroundlistAtIndex(
-          int index, Function(BackgroundStructStruct) updateFn) =>
+          int index, Function(PlaceStructStruct) updateFn) =>
       backgroundlist[index] = updateFn(backgroundlist[index]);
 
   String? prologuetext;
@@ -54,32 +53,23 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String? generatingTarget;
 
-  String? place;
+  String? placetext;
 
   String? event;
 
-  List<EventstructStruct> eventlist = [];
-  void addToEventlist(EventstructStruct item) => eventlist.add(item);
-  void removeFromEventlist(EventstructStruct item) => eventlist.remove(item);
+  List<EventStructStruct> eventlist = [];
+  void addToEventlist(EventStructStruct item) => eventlist.add(item);
+  void removeFromEventlist(EventStructStruct item) => eventlist.remove(item);
   void removeAtIndexFromEventlist(int index) => eventlist.removeAt(index);
-  void insertAtIndexInEventlist(int index, EventstructStruct item) =>
+  void insertAtIndexInEventlist(int index, EventStructStruct item) =>
       eventlist.insert(index, item);
   void updateEventlistAtIndex(
-          int index, Function(EventstructStruct) updateFn) =>
+          int index, Function(EventStructStruct) updateFn) =>
       eventlist[index] = updateFn(eventlist[index]);
 
   String? outline;
 
   bool outlineSwitch = false;
-
-  List<String> placeOptions = [];
-  void addToPlaceOptions(String item) => placeOptions.add(item);
-  void removeFromPlaceOptions(String item) => placeOptions.remove(item);
-  void removeAtIndexFromPlaceOptions(int index) => placeOptions.removeAt(index);
-  void insertAtIndexInPlaceOptions(int index, String item) =>
-      placeOptions.insert(index, item);
-  void updatePlaceOptionsAtIndex(int index, Function(String) updateFn) =>
-      placeOptions[index] = updateFn(placeOptions[index]);
 
   ///  State fields for stateful widgets in this page.
 
@@ -109,8 +99,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
       placetextfieldTextControllerValidator;
   // Stores action output result for [Custom Action - generateWorldText] action in placegenbutton widget.
   String? generatedplace;
-  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in backgroundaddbutton widget.
-  GenResultStructStruct? generatedbackgroundimage;
   // State field(s) for UserRoleInfo widget.
   FocusNode? userRoleInfoFocusNode;
   TextEditingController? userRoleInfoTextController;

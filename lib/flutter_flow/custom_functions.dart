@@ -43,86 +43,139 @@ String buildStoryPrompt(
   String storySetting,
   List<CharacterStructStruct> characters,
   String userRole,
-  List<BackgroundStructStruct> backgrounds,
+  List<PlaceStructStruct> places,
   String userNote,
   String userInChatName,
   String? summary,
   bool isNovelMode,
   String majorPlacesText,
   String majorEventsText,
-  List<EventstructStruct>? events,
+  List<EventStructStruct>? events,
 ) {
-  // ---------- 0) 안전 정리 ----------
+  Map<String, dynamic> _toMap(dynamic s) {
+    if (s == null) return <String, dynamic>{};
+    if (s is Map) return Map<String, dynamic>.from(s as Map);
+    try {
+      final m = (s as dynamic).toMap();
+      if (m is Map) return Map<String, dynamic>.from(m as Map);
+    } catch (_) {}
+    return <String, dynamic>{};
+  }
+
+  List<dynamic> _asList(dynamic v) => (v is List) ? v : const [];
+
+  String _pickStr(Map<String, dynamic> m, List<String> keys) {
+    for (final k in keys) {
+      final v = m[k];
+      if (v == null) continue;
+      final s = v.toString().trim();
+      if (s.isNotEmpty) return s;
+    }
+    return '';
+  }
+
   final safePlacesText =
       majorPlacesText.trim().isEmpty ? 'None' : majorPlacesText.trim();
   final safeEventsText =
       majorEventsText.trim().isEmpty ? 'None' : majorEventsText.trim();
 
-  // ---------- 1) 캐릭터 블록 ----------
+  // -------------------------
+  // BackgroundAssets (장소 배경 이미지 있는 것만)
+  // -------------------------
+  final bgSet = <String>{};
+  for (final p in places) {
+    final pm = _toMap(p);
+    final place = _pickStr(pm, ['place', 'placeName']);
+    final url = _pickStr(pm, ['imageUrl', 'imageurl', 'imageURL']);
+    if (place.isNotEmpty && url.isNotEmpty) bgSet.add(place);
+  }
+  final bgBlock = bgSet.isEmpty ? 'None' : bgSet.join(', ');
+
+  // -------------------------
+  // Ability/Emotion 조합 자산 수집
+  // - 형식: PLACE__TAG
+  // -------------------------
+  final abilityComboSet = <String>{};
+  final emotionComboSet = <String>{};
+
+  // 캐릭터 블록 (감정 태그 목록은 캐릭터별로 제공)
   final characterBlock = StringBuffer();
+
   for (final c in characters) {
-    final emotions = c.emotionimages
-        .map((e) => (e.emotion).trim())
-        .where((e) => e.isNotEmpty)
-        .toSet()
-        .toList();
+    final cm = _toMap(c);
+    final name = _pickStr(cm, ['name']);
+    final setting = _pickStr(cm, ['setting']);
 
-    if (!emotions.contains('무감정')) emotions.insert(0, '무감정');
+    // (1) ability list: abilityStruct / abilityImages / situationImages 호환
+    final abilityList = <dynamic>[
+      ..._asList(cm['abilityStruct']),
+      ..._asList(cm['abilityImages']),
+      ..._asList(cm['situationImages']),
+    ];
 
-    characterBlock.writeln('- Name: ${c.name}');
-    characterBlock.writeln('  Personality: ${c.personality}');
+    for (final it in abilityList) {
+      final im = _toMap(it);
+      final place = _pickStr(im, ['place', 'placeName']);
+      final tag = _pickStr(im, ['ability', 'condition']);
+      final url = _pickStr(im, ['imageUrl', 'imageurl', 'imageURL']);
+      if (place.isNotEmpty && tag.isNotEmpty && url.isNotEmpty) {
+        abilityComboSet.add('${place}__${tag}');
+      }
+    }
+
+    // (2) emotion list: emotionStruct / emotionimages 호환
+    final emotionList = <dynamic>[
+      ..._asList(cm['emotionStruct']),
+      ..._asList(cm['emotionimages']),
+    ];
+
+    final emoTagSet = <String>{};
+    for (final it in emotionList) {
+      final em = _toMap(it);
+      final place = _pickStr(em, ['place', 'placeName']);
+      final tag = _pickStr(em, ['emotion']);
+      final url = _pickStr(em, ['imageurl', 'imageUrl', 'imageURL']);
+      if (tag.isNotEmpty) emoTagSet.add(tag);
+      if (place.isNotEmpty && tag.isNotEmpty && url.isNotEmpty) {
+        emotionComboSet.add('${place}__${tag}');
+      }
+    }
+
+    final emoList = emoTagSet.toList()..sort();
+    if (!emoList.contains('무감정')) emoList.insert(0, '무감정');
+
+    characterBlock.writeln('- Name: ${name.isEmpty ? 'Unknown' : name}');
+    characterBlock.writeln('  Setting: ${setting.isEmpty ? 'None' : setting}');
     characterBlock.writeln(
-      '  AvailableEmotionAssets: ${emotions.isEmpty ? 'None' : emotions.join(', ')}',
+      '  AvailableEmotionTags: ${emoList.isEmpty ? 'None' : emoList.join(', ')}',
     );
   }
 
-  // ---------- 2) 배경 자산 ----------
-  final bgList = backgrounds
-      .map((b) => (b.placeName).trim())
-      .where((s) => s.isNotEmpty)
-      .toSet()
-      .toList();
-  final bgBlock = bgList.isEmpty ? 'None' : bgList.join(', ');
+  final abilityLines = abilityComboSet.toList()..sort();
+  final emotionLines = emotionComboSet.toList()..sort();
 
-  // ---------- 3) 상황 자산 ----------
-  final situationBlock = StringBuffer();
-  final sitSet = <String>{};
-
-  for (final c in characters) {
-    for (final s in c.situationImages) {
-      final cond = (s.condition).trim();
-      if (cond.isNotEmpty && sitSet.add(cond)) {
-        situationBlock.writeln('- $cond');
-      }
-    }
-  }
-
-  final sitBlock = situationBlock.toString().trim().isEmpty
+  final abilityAssetBlock = abilityLines.isEmpty
       ? 'None'
-      : situationBlock.toString().trim();
+      : abilityLines.map((e) => '- $e').join('\n');
+  final emotionAssetBlock = emotionLines.isEmpty
+      ? 'None'
+      : emotionLines.map((e) => '- $e').join('\n');
 
-  // ---------- 4) 이벤트 자산 ----------
-  // events: [{event:tag, imageurl:url}, ...]
-  // 프롬프트에는 "태그"만 노출하고, 실제 URL 매핑은 processAndSaveChatTurn에서 함.
+  // -------------------------
+  // EventAssets (태그 -> 이미지 있는 것만)
+  // -------------------------
   final evSet = <String>{};
   final evLines = <String>[];
-
   final evList = events ?? [];
   for (final ev in evList) {
-    final d = ev as dynamic;
-
-    final tag = (d.event ?? '').toString().trim();
-    final url = ((d.imageurl ?? d.imageUrl) ?? '').toString().trim();
-
-    if (tag.isEmpty) continue;
-    if (url.isEmpty) continue;
-
+    final em = _toMap(ev);
+    final tag = _pickStr(em, ['event']);
+    final url = _pickStr(em, ['imageurl', 'imageUrl', 'imageURL']);
+    if (tag.isEmpty || url.isEmpty) continue;
     if (evSet.add(tag)) evLines.add('- $tag');
   }
-
   final eventAssetBlock = evLines.isEmpty ? 'None' : evLines.join('\n');
 
-  // ---------- 5) 모드 규칙 ----------
   final modeText = isNovelMode
       ? 'WEB NOVEL (Continue story without waiting user input)'
       : 'ROLEPLAY (Wait user input, never speak as the user)';
@@ -148,12 +201,10 @@ String buildStoryPrompt(
   Only change location when a major scene shift happens.
 ''';
 
-  // ---------- 6) 동적 컨텍스트 ----------
   final noteSection = userNote.trim().isNotEmpty ? userNote.trim() : '';
   final memorySection =
       (summary != null && summary.trim().isNotEmpty) ? summary.trim() : '';
 
-  // ---------- 7) 최종 프롬프트 ----------
   return '''
 You are an AI storyteller.
 
@@ -178,8 +229,13 @@ $characterBlock
 
 [ASSET LIST]
 BackgroundAssets: $bgBlock
-SituationAssets:
-$sitBlock
+
+AbilityAssets (Place__Ability):
+$abilityAssetBlock
+
+EmotionAssets (Place__Emotion):
+$emotionAssetBlock
+
 EventAssets:
 $eventAssetBlock
 
@@ -188,7 +244,8 @@ $eventAssetBlock
 - Keep causal flow (earlier events should lead to later events).
 - When changing locations, prefer names from MAJOR PLACES.
 - If a place is not in BackgroundAssets, you can still use it as __PLACE__,
-  but do NOT output SHOW_IMAGE for it.
+  but do NOT output SHOW_IMAGE for background.
+- AbilityAssets and EmotionAssets are strictly PLACE__TAG matches only.
 - EventAssets are "very important moments". Use them only at the exact moment.
 
 [CRITICAL OUTPUT FORMAT — ONLY THESE TAGS]
@@ -199,21 +256,27 @@ $eventAssetBlock
   2) Do not include any other words in that line.
   3) Even if there is no background image asset, you MUST still output __PLACE__.
 
-- For image display (background, situation, event), output only:
+- For image display, output only:
   [SHOW_IMAGE="ASSET_NAME"]
 
   IMPORTANT:
-  1) Only use ASSET_NAME if it EXACTLY matches the Asset List
-     (BackgroundAssets OR SituationAssets OR EventAssets).
+  1) Only use ASSET_NAME if it EXACTLY matches one of:
+     - BackgroundAssets (place name)
+     - AbilityAssets (PLACE__ABILITY)
+     - EmotionAssets (PLACE__EMOTION)
+     - EventAssets (event tag)
   2) Background rule:
      - If the location changes AND the new place exists in BackgroundAssets,
        output exactly ONE background [SHOW_IMAGE="PLACE"] near the top of the turn.
      - If the location changes but the place is NOT in BackgroundAssets,
-       do NOT output SHOW_IMAGE. Only update the __PLACE__ line.
-  3) Situation rule:
-     - If an action/condition moment clearly matches a SituationAsset,
-       output [SHOW_IMAGE="SITUATION_TAG"] once near the top.
-  4) Event rule (MOST IMPORTANT MOMENTS):
+       do NOT output background SHOW_IMAGE. Only update the __PLACE__ line.
+  3) Ability rule:
+     - Only when the current place is PLACE and the action matches ABILITY,
+       output [SHOW_IMAGE="PLACE__ABILITY"] once near the top.
+  4) Emotion rule:
+     - Only when the current place is PLACE and the character emotion matches EMOTION,
+       output [SHOW_IMAGE="PLACE__EMOTION"] once near the top.
+  5) Event rule (MOST IMPORTANT MOMENTS):
      - Only when the current story moment IS the event described by an EventAsset tag,
        output [SHOW_IMAGE="EVENT_TAG"] once near the top.
      - Do NOT output Event SHOW_IMAGE early.
@@ -317,17 +380,15 @@ String formatNumberCompact(int count) {
 }
 
 String convertCharactersToString(List<CharacterStructStruct> charList) {
-  if (charList == null || charList.isEmpty) {
+  if (charList.isEmpty) {
     return "설정된 캐릭터 없음";
   }
 
   String result = "";
 
   for (var char in charList) {
-    // 이름, 성격, 소개 등 필요한 필드를 가져옵니다.
-    // 구조체 필드명(name, personality 등)은 사용자님 DB에 맞춰 수정하세요.
     String name = char.name;
-    String desc = char.personality; // 혹은 char.intro 등
+    String desc = char.setting;
 
     result += "- 이름: $name\n  설정: $desc\n\n";
   }
@@ -387,36 +448,41 @@ List<StoriesRecord> sortStories(
 List<StoryChatMessageStructStruct> parsePrologueToMessages(
   String? prologueText,
   List<CharacterStructStruct> characters,
-  List<BackgroundStructStruct> backgrounds,
+  List<PlaceStructStruct> places,
 ) {
   if (prologueText == null || prologueText.isEmpty) {
     return [];
   }
 
   List<StoryChatMessageStructStruct> messages = [];
-
-  // 줄바꿈 단위로 쪼개서 분석합니다.
   final lines = prologueText.split('\n');
 
   for (var line in lines) {
     line = line.trim();
     if (line.isEmpty) continue;
 
-    // 1. 이미지 태그 감지: [Image: Condition]
     if (line.startsWith('[Image:') && line.endsWith(']')) {
       String condition = line.substring(7, line.length - 1).trim();
       String foundImageUrl = '';
 
-      // 배경에서 찾기
-      for (var bg in backgrounds) {
-        if (bg.placeName == condition) foundImageUrl = bg.imageUrl;
+      // 1) 장소(배경)에서 찾기
+      for (var bg in places) {
+        if ((bg.place ?? '').trim() == condition) {
+          foundImageUrl = (bg.imageUrl ?? '').trim();
+          break;
+        }
       }
-      // 캐릭터 상황 이미지에서 찾기
+
+      // 2) 캐릭터 능력(상황) 이미지에서 찾기
       if (foundImageUrl.isEmpty) {
         for (var char in characters) {
-          for (var sit in char.situationImages) {
-            if (sit.condition == condition) foundImageUrl = sit.imageUrl;
+          for (var sit in (char.abilityStruct ?? [])) {
+            if (((sit.ability ?? '').trim()) == condition) {
+              foundImageUrl = (sit.imageUrl ?? '').trim();
+              break;
+            }
           }
+          if (foundImageUrl.isNotEmpty) break;
         }
       }
 
@@ -428,13 +494,11 @@ List<StoryChatMessageStructStruct> parsePrologueToMessages(
           speakerName: '',
         ));
       }
-    }
-    // 2. 대사 감지: 이름 | 대사
-    else if (line.contains('|')) {
+    } else if (line.contains('|')) {
       final parts = line.split('|');
       if (parts.length >= 2) {
         String name = parts[0].trim();
-        String content = parts.sublist(1).join('|').trim(); // 뒤에 또 |가 있을 수 있으므로
+        String content = parts.sublist(1).join('|').trim();
 
         messages.add(createStoryChatMessageStructStruct(
           type: 'dialogue',
@@ -443,16 +507,13 @@ List<StoryChatMessageStructStruct> parsePrologueToMessages(
           storyImageUrl: '',
         ));
       } else {
-        // 형식이 애매하면 그냥 지문으로
         messages.add(createStoryChatMessageStructStruct(
           type: 'narration',
           text: line,
           speakerName: 'ai',
         ));
       }
-    }
-    // 3. 나머지는 지문(Narration)
-    else {
+    } else {
       messages.add(createStoryChatMessageStructStruct(
         type: 'narration',
         text: line,
@@ -464,81 +525,62 @@ List<StoryChatMessageStructStruct> parsePrologueToMessages(
   return messages;
 }
 
-List<EmotionImageStructStruct> getEmptyEmotionList() {
+List<EmotionStructStruct> getEmptyEmotionList() {
   return [];
 }
 
-List<SituationalImageStructStruct> getEmptysituationList() {
+List<AbilityStructStruct> getEmptyabilityList() {
   return [];
 }
 
 String getSituationTagString(List<CharacterStructStruct> characters) {
-  if (characters == null || characters.isEmpty) {
+  if (characters.isEmpty) {
     return "없음";
   }
 
-  // 모든 캐릭터를 돌면서 'situationImages' 안에 있는 'condition(상황태그)'을 수집합니다.
-  List<String> allSituations = [];
+  final set = <String>{};
 
-  for (var char in characters) {
-    for (var sit in char.situationImages) {
-      if (sit.condition != null && sit.condition.isNotEmpty) {
-        allSituations.add(sit.condition);
-      }
+  for (final char in characters) {
+    for (final s in (char.abilityStruct ?? [])) {
+      final a = (s.ability ?? '').toString().trim();
+      if (a.isNotEmpty) set.add(a);
     }
   }
 
-  if (allSituations.isEmpty) {
-    return "없음";
-  }
-
-  // 예시 출력: "- 칼뽑기\n- 울음\n- 도망"
-  return allSituations.map((s) => "- $s").join('\n');
+  if (set.isEmpty) return "없음";
+  return set.map((s) => "- $s").join('\n');
 }
 
 String getEmotionTagString(List<CharacterStructStruct> characters) {
-  if (characters == null || characters.isEmpty) {
+  if (characters.isEmpty) {
     return "없음";
   }
 
-  // 모든 캐릭터의 emotionImages를 돌면서 'emotion(감정태그)'을 수집
-  // 중복을 제거하기 위해 Set을 사용
-  Set<String> uniqueEmotions = {};
+  final set = <String>{};
 
-  for (var char in characters) {
-    for (var emo in char.emotionimages) {
-      if (emo.emotion != null && emo.emotion.isNotEmpty) {
-        uniqueEmotions.add(emo.emotion);
-      }
+  for (final char in characters) {
+    for (final e in (char.emotionStruct ?? [])) {
+      final emo = (e.emotion ?? '').toString().trim();
+      if (emo.isNotEmpty) set.add(emo);
     }
   }
 
-  if (uniqueEmotions.isEmpty) {
-    return "없음";
-  }
-
-  // 예시 출력: "- 기쁨\n- 슬픔\n- 분노"
-  return uniqueEmotions.map((e) => "- $e").join('\n');
+  if (set.isEmpty) return "없음";
+  return set.map((e) => "- $e").join('\n');
 }
 
-String getBackgroundTagString(List<BackgroundStructStruct>? backgrounds) {
-// 1. 배경 리스트가 비어있거나 없으면 "없음" 반환
+String getBackgroundTagString(List<PlaceStructStruct>? backgrounds) {
   if (backgrounds == null || backgrounds.isEmpty) {
     return "없음";
   }
 
-  // 2. 배경 리스트를 순회하며 이름(placeName)만 뽑아서 줄바꿈으로 연결
-  // 예시 결과:
-  // - 학교
-  // - 숲
-  // - 집
-  return backgrounds.map((bg) => "- ${bg.placeName}").join('\n');
+  return backgrounds.map((bg) => "- ${bg.place}").join('\n');
 }
 
-String joinPlaceNames(List<BackgroundStructStruct>? list) {
+String joinPlaceNames(List<PlaceStructStruct>? list) {
   if (list == null || list.isEmpty) return '';
   return list
-      .map((e) => (e.placeName ?? '').trim())
+      .map((e) => (e.place).trim())
       .where((e) => e.isNotEmpty)
       .toSet()
       .join('|');
@@ -551,7 +593,7 @@ List<StoryChatMessageStructStruct> getemptyStoryChatMessages() {
 String prologueTextToTagScript(
   String prologueText,
   List<CharacterStructStruct> characters,
-  List<BackgroundStructStruct> backgrounds,
+  List<PlaceStructStruct> backgrounds,
 ) {
   final cleaned = cleanPrologue(prologueText);
   return prologueUiToTags(cleaned, characters, backgrounds);
@@ -560,27 +602,27 @@ String prologueTextToTagScript(
 String prologueUiToTags(
   String input,
   List<CharacterStructStruct> characters,
-  List<BackgroundStructStruct> backgrounds,
+  List<PlaceStructStruct> places,
 ) {
   final text = input.replaceAll('\r\n', '\n').trim();
 
   // 캐릭터 이름 목록
   final characterNames = characters
-      .map((c) => (c.name ?? '').trim())
+      .map((c) => (c.name ?? '').toString().trim())
       .where((s) => s.isNotEmpty)
       .toSet();
 
-  // 배경 placeName 목록
-  final bgAssets = backgrounds
-      .map((b) => (b.placeName ?? '').trim())
+  // 배경 place 목록
+  final bgAssets = places
+      .map((b) => (b.place ?? '').toString().trim())
       .where((s) => s.isNotEmpty)
       .toSet();
 
-  // 상황 condition 목록 (모든 캐릭터의 situationImages에서)
+  // 능력(상황) ability 목록
   final situationAssets = <String>{};
   for (final c in characters) {
-    for (final s in c.situationImages) {
-      final cond = (s.condition ?? '').trim();
+    for (final s in (c.abilityStruct ?? [])) {
+      final cond = (s.ability ?? '').toString().trim();
       if (cond.isNotEmpty) situationAssets.add(cond);
     }
   }
@@ -588,16 +630,15 @@ String prologueUiToTags(
   // 캐릭터별 허용 감정 목록
   final emotionsByChar = <String, Set<String>>{};
   for (final c in characters) {
-    final charName = (c.name ?? '').trim();
+    final charName = (c.name ?? '').toString().trim();
     final emos = <String>{};
-    for (final e in c.emotionimages) {
-      final emo = (e.emotion ?? '').trim();
+    for (final e in (c.emotionStruct ?? [])) {
+      final emo = (e.emotion ?? '').toString().trim();
       if (emo.isNotEmpty) emos.add(emo);
     }
     if (charName.isNotEmpty) emotionsByChar[charName] = emos;
   }
 
-  // 전역 감정 리스트
   final globalAllowedEmotions = <String>{
     '무감정',
     '기쁨',
@@ -635,7 +676,6 @@ String prologueUiToTags(
     '배고픔'
   };
 
-  // TURN_HEADER 같은 라인은 무시
   final headerRe = RegExp(
       r'^\[\s*\d{4}년\s*\d{2}월\s*\d{2}일\s*\d{2}시\s*\d{2}분\s*\|\s*.+\s*\]\s*$');
 
@@ -648,7 +688,7 @@ String prologueUiToTags(
 
   String normalizeEmotion(String raw, Set<String> allowed) {
     var e = raw.trim();
-    if (e.isEmpty) return allowed.contains('무감정') ? '무감정' : '무감정';
+    if (e.isEmpty) return '무감정';
     if (allowed.contains(e)) return e;
 
     final lower = e.replaceAll(' ', '');
@@ -671,36 +711,29 @@ String prologueUiToTags(
   final lines =
       text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
 
-  // ✅ 결과는 리스트로 쌓아야 "장소 라인"을 맨 앞으로 강제하기 쉬움
   final outLines = <String>[];
 
-  bool keptOneBg = false; // 프롤로그 배경 1개만
-  final keptSituations = <String>[]; // 프롤로그 상황 0~2개만
+  bool keptOneBg = false;
+  final keptSituations = <String>[];
 
   bool hasPlace = false;
-  String? placeName; // 장소: 에서 뽑은 장소
 
   for (final raw0 in lines) {
     if (headerRe.hasMatch(raw0)) continue;
 
-    // 따옴표 제거 + 괄호연출 제거(문장/대사 공통)
     final raw =
         stripParensInContent(raw0.replaceAll('"', '').replaceAll("'", ""));
 
-    // ✅ 1) 장소: 장소명  -> __PLACE__ + (배경자산 있으면) 배경 SHOW_IMAGE 자동 1개
+    // 장소:
     if (raw.startsWith('장소:') || raw.startsWith('장소 :')) {
       final p = raw.split(':').sublist(1).join(':').trim();
       if (p.isEmpty) continue;
 
-      // 중복 장소 라인 방지: 첫 번째만 채택
       if (!hasPlace) {
         hasPlace = true;
-        placeName = p;
 
-        // __PLACE__ 라인은 반드시 있어야 함
         outLines.add('[NARRATION]__PLACE__$p[/NARRATION]');
 
-        // 배경 자산이 있으면 배경 SHOW_IMAGE 1개 자동 삽입
         if (!keptOneBg && bgAssets.contains(p)) {
           outLines.add('[SHOW_IMAGE="$p"]');
           keptOneBg = true;
@@ -709,26 +742,22 @@ String prologueUiToTags(
       continue;
     }
 
-    // ✅ 2) 상황: 상황태그  -> (자산에 있을 때만) SHOW_IMAGE만 출력 (텍스트 출력 금지)
+    // 상황(능력):
     if (raw.startsWith('상황:') || raw.startsWith('상황 :')) {
       final sit = raw.split(':').sublist(1).join(':').trim();
       if (sit.isEmpty) continue;
 
-      // 중복/개수 제한
       if (keptSituations.contains(sit)) continue;
       if (keptSituations.length >= 2) continue;
 
-      // ✅ 상황 자산이 있을 때만 이미지 태그 추가
       if (situationAssets.contains(sit)) {
         outLines.add('[SHOW_IMAGE="$sit"]');
         keptSituations.add(sit);
       }
-
-      // ✅ 상황 텍스트는 절대 출력하지 않는다
       continue;
     }
 
-    // ✅ 6) 이름(감정): 대사  또는 이름: 대사
+    // 이름(감정): 대사 / 이름: 대사
     final m =
         RegExp(r'^(.+?)\s*(?:\(\s*(.+?)\s*\))?\s*:\s*(.+)$').firstMatch(raw);
 
@@ -739,11 +768,8 @@ String prologueUiToTags(
       speech = stripParensInContent(speech);
 
       if (speaker.isEmpty || speech.isEmpty) continue;
-
-      // {user}가 프롤로그에서 말하면 안 됨
       if (speaker == '{user}') continue;
 
-      // 캐릭터 목록 밖이면 감정 없이
       if (!characterNames.contains(speaker)) {
         outLines.add('[DIALOGUE SPEAKER="$speaker"]$speech[/DIALOGUE]');
         continue;
@@ -759,13 +785,12 @@ String prologueUiToTags(
       continue;
     }
 
-    // ✅ 7) 그 외는 전부 "내레이션 문장"으로 처리 (라벨 없는 문장)
+    // 나머지 내레이션
     if (raw.isNotEmpty) {
       outLines.add('[NARRATION]$raw[/NARRATION]');
     }
   }
 
-  // ✅ 장소 라인이 없으면 안전장치로 맨 앞에 넣기
   if (!hasPlace) {
     final fallbackPlace = bgAssets.isNotEmpty ? bgAssets.first : '어딘가';
     outLines.insert(0, '[NARRATION]__PLACE__$fallbackPlace[/NARRATION]');
@@ -976,21 +1001,144 @@ String dynamicContextByOutlineMode(
       .trim();
 }
 
-List<String> extractKeysFromMultiline(String? input) {
-  final text = (input ?? '').trim();
+List<String> extractTagsFromColonLines(String inputText) {
+  final text = (inputText).trim();
   if (text.isEmpty) return [];
 
-  final lines = text.split('\n');
-  final keys = <String>{};
+  final lines = text.split(RegExp(r'\r?\n'));
+  final out = <String>[];
+  final seen = <String>{};
 
   for (final raw in lines) {
-    final line = raw.trim();
+    var line = raw.trim();
     if (line.isEmpty) continue;
 
     final idx = line.indexOf(':');
-    final key = (idx >= 0 ? line.substring(0, idx) : line).trim();
-    if (key.isNotEmpty) keys.add(key);
-  }
+    if (idx >= 0) {
+      line = line.substring(0, idx).trim();
+    }
 
-  return keys.toList();
+    if (line.isEmpty) continue;
+    if (seen.add(line)) out.add(line);
+  }
+  return out;
+}
+
+List<PlaceStructStruct> updatePlaceTagByImageUrl(
+  List<PlaceStructStruct> list,
+  String imageUrl,
+  String newPlace,
+) {
+  final out = List<PlaceStructStruct>.from(list);
+
+  final u = imageUrl.trim();
+  final p = newPlace.trim();
+  if (u.isEmpty) return out;
+
+  final idx = out.indexWhere((e) => (e.imageUrl ?? '').trim() == u);
+  if (idx < 0) return out;
+
+  final old = out[idx];
+  out[idx] = createPlaceStructStruct(
+    place: p,
+    imageUrl: old.imageUrl,
+  );
+  return out;
+}
+
+List<CharacterStructStruct> addCharacter(
+  List<CharacterStructStruct> list,
+  CharacterStructStruct newChar,
+) {
+  final out = List<CharacterStructStruct>.from(list);
+  out.add(newChar);
+  return out;
+}
+
+List<EmotionStructStruct> updateEmotionImageUrlAt(
+  List<EmotionStructStruct> list,
+  String place,
+  String imageUrl,
+  String newEmotion,
+) {
+  final out = List<EmotionStructStruct>.from(list);
+
+  final p = place.trim();
+  final u = imageUrl.trim();
+  final e = newEmotion.trim();
+
+  if (p.isEmpty || u.isEmpty) return out;
+
+  final idx = out.indexWhere((x) =>
+      (x.place ?? '').toString().trim() == p &&
+      (x.imageurl ?? '').toString().trim() == u);
+
+  if (idx < 0) return out;
+
+  final old = out[idx];
+
+  out[idx] = createEmotionStructStruct(
+    place: old.place,
+    emotion: e,
+    imageurl: old.imageurl,
+  );
+
+  return out;
+}
+
+List<AbilityStructStruct> updateAbilityTagByPlaceAndUrl(
+  List<AbilityStructStruct> list,
+  String place,
+  String imageUrl,
+  String newAbility,
+) {
+  final out = List<AbilityStructStruct>.from(list);
+
+  final p = place.trim();
+  final u = imageUrl.trim();
+  final a = newAbility.trim();
+
+  if (p.isEmpty || u.isEmpty) return out;
+
+  final idx = out.indexWhere(
+      (e) => (e.place ?? '').trim() == p && (e.imageUrl ?? '').trim() == u);
+
+  if (idx < 0) return out;
+
+  final old = out[idx];
+  out[idx] = createAbilityStructStruct(
+    place: old.place,
+    ability: a,
+    imageUrl: old.imageUrl,
+  );
+  return out;
+}
+
+List<CharacterStructStruct> updateCharacterAt(
+  List<CharacterStructStruct> list,
+  int index,
+  CharacterStructStruct updated,
+) {
+  final out = List<CharacterStructStruct>.from(list);
+  if (index < 0 || index >= out.length) return out;
+  out[index] = updated;
+  return out;
+}
+
+List<AbilityStructStruct> filterAbilityByPlace(
+  List<AbilityStructStruct> list,
+  String place,
+) {
+  final p = place.trim();
+  if (p.isEmpty) return [];
+  return list.where((e) => (e.place ?? '').trim() == p).toList();
+}
+
+List<EmotionStructStruct> filterEmotionByPlace(
+  List<EmotionStructStruct> list,
+  String place,
+) {
+  final p = place.trim();
+  if (p.isEmpty) return [];
+  return list.where((e) => (e.place ?? '').trim() == p).toList();
 }

@@ -1,15 +1,24 @@
-import '/flutter_flow/flutter_flow_drop_down.dart';
+import '/backend/backend.dart';
+import '/backend/firebase_storage/storage.dart';
+import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/form_field_controller.dart';
-import '/storycreate/uploadsheet/uploadsheet_widget.dart';
+import '/flutter_flow/upload_data.dart';
+import '/storycreate/placestruct/placestruct_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'placeimagelist_model.dart';
 export 'placeimagelist_model.dart';
 
 class PlaceimagelistWidget extends StatefulWidget {
-  const PlaceimagelistWidget({super.key});
+  const PlaceimagelistWidget({
+    super.key,
+    this.placeTags,
+  });
+
+  final List<String>? placeTags;
 
   static String routeName = 'placeimagelist';
   static String routePath = '/placeimagelist';
@@ -28,6 +37,12 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
     super.initState();
     _model = createModel(context, () => PlaceimagelistModel());
 
+    // On page load action.
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      _model.places = FFAppState().places.toList().cast<PlaceStructStruct>();
+      safeSetState(() {});
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -40,6 +55,8 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -53,10 +70,22 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
           automaticallyImplyLeading: false,
           leading: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 0.0, 0.0),
-            child: Icon(
-              Icons.arrow_back,
-              color: FlutterFlowTheme.of(context).primaryText,
-              size: 24.0,
+            child: InkWell(
+              splashColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              onTap: () async {
+                FFAppState().places =
+                    _model.places.toList().cast<PlaceStructStruct>();
+                safeSetState(() {});
+                context.safePop();
+              },
+              child: Icon(
+                Icons.arrow_back,
+                color: FlutterFlowTheme.of(context).primaryText,
+                size: 24.0,
+              ),
             ),
           ),
           title: Align(
@@ -93,24 +122,66 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onTap: () async {
-                      await showModalBottomSheet(
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        enableDrag: false,
+                      final selectedMedia =
+                          await selectMediaWithSourceBottomSheet(
                         context: context,
-                        builder: (context) {
-                          return GestureDetector(
-                            onTap: () {
-                              FocusScope.of(context).unfocus();
-                              FocusManager.instance.primaryFocus?.unfocus();
-                            },
-                            child: Padding(
-                              padding: MediaQuery.viewInsetsOf(context),
-                              child: UploadsheetWidget(),
+                        allowPhoto: true,
+                      );
+                      if (selectedMedia != null &&
+                          selectedMedia.every((m) =>
+                              validateFileFormat(m.storagePath, context))) {
+                        safeSetState(() =>
+                            _model.isDataUploading_uploadplaceimage = true);
+                        var selectedUploadedFiles = <FFUploadedFile>[];
+
+                        var downloadUrls = <String>[];
+                        try {
+                          selectedUploadedFiles = selectedMedia
+                              .map((m) => FFUploadedFile(
+                                    name: m.storagePath.split('/').last,
+                                    bytes: m.bytes,
+                                    height: m.dimensions?.height,
+                                    width: m.dimensions?.width,
+                                    blurHash: m.blurHash,
+                                    originalFilename: m.originalFilename,
+                                  ))
+                              .toList();
+
+                          downloadUrls = (await Future.wait(
+                            selectedMedia.map(
+                              (m) async =>
+                                  await uploadData(m.storagePath, m.bytes),
                             ),
-                          );
-                        },
-                      ).then((value) => safeSetState(() {}));
+                          ))
+                              .where((u) => u != null)
+                              .map((u) => u!)
+                              .toList();
+                        } finally {
+                          _model.isDataUploading_uploadplaceimage = false;
+                        }
+                        if (selectedUploadedFiles.length ==
+                                selectedMedia.length &&
+                            downloadUrls.length == selectedMedia.length) {
+                          safeSetState(() {
+                            _model.uploadedLocalFile_uploadplaceimage =
+                                selectedUploadedFiles.first;
+                            _model.uploadedFileUrl_uploadplaceimage =
+                                downloadUrls.first;
+                          });
+                        } else {
+                          safeSetState(() {});
+                          return;
+                        }
+                      }
+
+                      _model.addToPlaces(PlaceStructStruct(
+                        imageUrl: _model.uploadedFileUrl_uploadplaceimage,
+                        place: '\' \'',
+                      ));
+                      safeSetState(() {});
+                      FFAppState().places =
+                          _model.places.toList().cast<PlaceStructStruct>();
+                      safeSetState(() {});
                     },
                     child: Icon(
                       Icons.upload,
@@ -139,85 +210,31 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: GridView(
-                    padding: EdgeInsets.zero,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 10.0,
-                      mainAxisSpacing: 10.0,
-                      childAspectRatio: 0.75,
-                    ),
-                    scrollDirection: Axis.vertical,
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Image.network(
-                              'https://picsum.photos/seed/578/600',
-                              width: 80.0,
-                              height: 80.0,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 5.0, 0.0, 0.0),
-                            child: FlutterFlowDropDown<String>(
-                              controller:
-                                  _model.placetagDropDownValueController ??=
-                                      FormFieldController<String>(null),
-                              options: ['Option 1', 'Option 2', 'Option 3'],
-                              onChanged: (val) => safeSetState(
-                                  () => _model.placetagDropDownValue = val),
-                              width: 80.0,
-                              height: 20.0,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                                    fontSize: 13.0,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                              hintText: 'Select...',
-                              icon: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color:
-                                    FlutterFlowTheme.of(context).secondaryText,
-                                size: 20.0,
-                              ),
-                              fillColor: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              elevation: 2.0,
-                              borderColor: Colors.transparent,
-                              borderWidth: 0.0,
-                              borderRadius: 0.0,
-                              margin: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 0.0),
-                              hidesUnderline: true,
-                              isOverButton: false,
-                              isSearchable: false,
-                              isMultiSelect: false,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: Builder(
+                    builder: (context) {
+                      final placeitem = _model.places.toList();
+
+                      return GridView.builder(
+                        padding: EdgeInsets.zero,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 4,
+                          crossAxisSpacing: 10.0,
+                          mainAxisSpacing: 10.0,
+                          childAspectRatio: 0.75,
+                        ),
+                        scrollDirection: Axis.vertical,
+                        itemCount: placeitem.length,
+                        itemBuilder: (context, placeitemIndex) {
+                          final placeitemItem = placeitem[placeitemIndex];
+                          return PlacestructWidget(
+                            key: Key(
+                                'Keyica_${placeitemIndex}_of_${placeitem.length}'),
+                            placeTags: widget.placeTags,
+                            item: placeitemItem,
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
               ],

@@ -1,14 +1,27 @@
+import '/backend/backend.dart';
+import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/form_field_controller.dart';
 import 'placeimagelist_widget.dart' show PlaceimagelistWidget;
 import 'package:flutter/material.dart';
 
 class PlaceimagelistModel extends FlutterFlowModel<PlaceimagelistWidget> {
+  ///  Local state fields for this page.
+
+  List<PlaceStructStruct> places = [];
+  void addToPlaces(PlaceStructStruct item) => places.add(item);
+  void removeFromPlaces(PlaceStructStruct item) => places.remove(item);
+  void removeAtIndexFromPlaces(int index) => places.removeAt(index);
+  void insertAtIndexInPlaces(int index, PlaceStructStruct item) =>
+      places.insert(index, item);
+  void updatePlacesAtIndex(int index, Function(PlaceStructStruct) updateFn) =>
+      places[index] = updateFn(places[index]);
+
   ///  State fields for stateful widgets in this page.
 
-  // State field(s) for placetagDropDown widget.
-  String? placetagDropDownValue;
-  FormFieldController<String>? placetagDropDownValueController;
+  bool isDataUploading_uploadplaceimage = false;
+  FFUploadedFile uploadedLocalFile_uploadplaceimage =
+      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
+  String uploadedFileUrl_uploadplaceimage = '';
 
   @override
   void initState(BuildContext context) {}
