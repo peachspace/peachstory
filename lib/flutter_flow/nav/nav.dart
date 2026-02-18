@@ -236,6 +236,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               'storyContext',
               ParamType.String,
             ),
+            initialCharacter: params.getParam(
+              'initialCharacter',
+              ParamType.DataStruct,
+              isList: false,
+              structBuilder: CharacterStructStruct.fromSerializableMap,
+            ),
           ),
         ),
         FFRoute(

@@ -22,11 +22,13 @@ class CharsettingpageWidget extends StatefulWidget {
     this.isEdit,
     this.editIndex,
     this.storyContext,
+    this.initialCharacter,
   });
 
   final bool? isEdit;
   final int? editIndex;
   final String? storyContext;
+  final CharacterStructStruct? initialCharacter;
 
   static String routeName = 'charsettingpage';
   static String routePath = '/charsettingpage';

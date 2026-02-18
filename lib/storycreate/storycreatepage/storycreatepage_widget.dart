@@ -2003,6 +2003,24 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                       '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저 역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
                                                       ParamType.String,
                                                     ),
+                                                    'initialCharacter':
+                                                        serializeParam(
+                                                      CharacterStructStruct(
+                                                        name: '\' \'',
+                                                        setting: '\' \'',
+                                                        introduce: '\' \'',
+                                                        seed: 0,
+                                                        profileimage: '\' \'',
+                                                        emotionStruct: functions
+                                                            .getEmptyEmotionList(),
+                                                        basePrompt: '\' \'',
+                                                        abilityStruct: functions
+                                                            .getEmptyabilityList(),
+                                                        appearance: '\' \'',
+                                                        ability: '\' \'',
+                                                      ),
+                                                      ParamType.DataStruct,
+                                                    ),
                                                   }.withoutNulls,
                                                 );
                                               },
