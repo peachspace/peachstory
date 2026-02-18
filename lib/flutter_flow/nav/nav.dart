@@ -236,6 +236,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               'storyContext',
               ParamType.String,
             ),
+            placeTags: params.getParam<String>(
+              'placeTags',
+              ParamType.String,
+              isList: true,
+            ),
           ),
         ),
         FFRoute(
