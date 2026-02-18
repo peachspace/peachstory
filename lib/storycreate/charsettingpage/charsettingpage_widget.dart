@@ -26,7 +26,7 @@ class CharsettingpageWidget extends StatefulWidget {
     this.storyContext,
     this.placeTags,
   })  : this.isEdit = isEdit ?? false,
-        this.editIndex = editIndex ?? -1;
+        this.editIndex = editIndex ?? 0;
 
   final bool isEdit;
   final int editIndex;
