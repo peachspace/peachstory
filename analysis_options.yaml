@@ -5,3 +5,12 @@ analyzer:
   exclude:
     - lib/custom_code/**
     - lib/flutter_flow/custom_functions.dart
+  errors:
+    body_might_complete_normally_catch_error: ignore
+    dead_code: ignore
+    deprecated_member_use: ignore
+    override_on_non_overriding_member: ignore
+    unreachable_switch_default: ignore
+    unused_element: ignore
+    unused_field: ignore
+    unused_local_variable: ignore

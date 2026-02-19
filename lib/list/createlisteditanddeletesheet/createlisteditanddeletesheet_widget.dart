@@ -27,6 +27,16 @@ class _CreatelisteditanddeletesheetWidgetState
     extends State<CreatelisteditanddeletesheetWidget> {
   late CreatelisteditanddeletesheetModel _model;
 
+  void _closeSheetIfPossible() {
+    if (!mounted) {
+      return;
+    }
+    final navigator = Navigator.maybeOf(context);
+    if (navigator != null && navigator.canPop()) {
+      navigator.pop();
+    }
+  }
+
   @override
   void setState(VoidCallback callback) {
     super.setState(callback);
@@ -58,9 +68,13 @@ class _CreatelisteditanddeletesheetWidgetState
           padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
           child: FFButtonWidget(
             onPressed: () async {
-              Navigator.pop(context);
+              final rootContext = appNavigatorKey.currentContext;
+              _closeSheetIfPossible();
+              if (rootContext == null) {
+                return;
+              }
 
-              context.pushNamed(
+              GoRouter.of(rootContext).pushNamed(
                 StorycreatepageWidget.routeName,
                 queryParameters: {
                   'storyDoc': serializeParam(
@@ -115,7 +129,6 @@ class _CreatelisteditanddeletesheetWidgetState
           padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
           child: FFButtonWidget(
             onPressed: () async {
-              Navigator.pop(context);
               var confirmDialogResponse = await showDialog<bool>(
                     context: context,
                     builder: (alertDialogContext) {
@@ -161,7 +174,7 @@ class _CreatelisteditanddeletesheetWidgetState
                   );
                 }
               }
-              Navigator.pop(context);
+              _closeSheetIfPossible();
 
               safeSetState(() {});
             },

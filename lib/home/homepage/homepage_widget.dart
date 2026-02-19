@@ -28,6 +28,77 @@ class _HomepageWidgetState extends State<HomepageWidget>
   late HomepageModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  static const String _imageFallbackAssetPath = 'assets/images/error_image.jpg';
+
+  bool _hasUsableImageUrl(String? imageUrl) {
+    final raw = imageUrl?.trim() ?? '';
+    if (raw.isEmpty) {
+      return false;
+    }
+    final uri = Uri.tryParse(raw);
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
+  }
+
+  ImageProvider<Object> _imageProviderOrPlaceholder(String? imageUrl) {
+    if (_hasUsableImageUrl(imageUrl)) {
+      return NetworkImage(imageUrl!.trim());
+    }
+    return const AssetImage(_imageFallbackAssetPath);
+  }
+
+  Widget _buildNetworkImageOrPlaceholder(
+    String? imageUrl, {
+    required double width,
+    required double height,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    if (!_hasUsableImageUrl(imageUrl)) {
+      return Image.asset(
+        _imageFallbackAssetPath,
+        width: width,
+        height: height,
+        fit: fit,
+      );
+    }
+
+    return Image.network(
+      imageUrl!.trim(),
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (_, __, ___) => Image.asset(
+        _imageFallbackAssetPath,
+        width: width,
+        height: height,
+        fit: fit,
+      ),
+    );
+  }
+
+  Widget _buildBannerEmptyState(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 350.0,
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.image_not_supported_outlined,
+            size: 28.0,
+            color: FlutterFlowTheme.of(context).secondaryText,
+          ),
+          SizedBox(height: 8.0),
+          Text(
+            '표시할 배너가 없습니다',
+            style: FlutterFlowTheme.of(context).bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -467,6 +538,9 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                     List<BannersRecord>
                                         carouselBannersRecordList =
                                         snapshot.data!;
+                                    if (carouselBannersRecordList.isEmpty) {
+                                      return _buildBannerEmptyState(context);
+                                    }
 
                                     return Container(
                                       width: double.infinity,
@@ -482,7 +556,8 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                           return ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(8.0),
-                                            child: Image.network(
+                                            child:
+                                                _buildNetworkImageOrPlaceholder(
                                               carouselBannersRecord.imageUrl,
                                               width: 200.0,
                                               height: 200.0,
@@ -505,9 +580,13 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                           disableCenter: true,
                                           enlargeCenterPage: true,
                                           enlargeFactor: 0.25,
-                                          enableInfiniteScroll: true,
+                                          enableInfiniteScroll:
+                                              carouselBannersRecordList.length >
+                                                  1,
                                           scrollDirection: Axis.horizontal,
-                                          autoPlay: true,
+                                          autoPlay:
+                                              carouselBannersRecordList.length >
+                                                  1,
                                           autoPlayAnimationDuration:
                                               Duration(milliseconds: 300),
                                           autoPlayInterval: Duration(
@@ -651,10 +730,12 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                             .secondaryBackground,
                                                         image: DecorationImage(
                                                           fit: BoxFit.cover,
-                                                          image: Image.network(
+                                                          image:
+                                                              _imageProviderOrPlaceholder(
                                                             listViewStoriesRecord
                                                                 .mainImage,
-                                                          ).image,
+                                                          ),
+                                                          onError: (_, __) {},
                                                         ),
                                                       ),
                                                       child: Column(
@@ -1204,10 +1285,12 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                         .secondaryBackground,
                                                 image: DecorationImage(
                                                   fit: BoxFit.cover,
-                                                  image: Image.network(
+                                                  image:
+                                                      _imageProviderOrPlaceholder(
                                                     listViewStoriesRecord
                                                         .mainImage,
-                                                  ).image,
+                                                  ),
+                                                  onError: (_, __) {},
                                                 ),
                                               ),
                                               child: Column(
@@ -1980,10 +2063,12 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                         .secondaryBackground,
                                                     image: DecorationImage(
                                                       fit: BoxFit.cover,
-                                                      image: Image.network(
+                                                      image:
+                                                          _imageProviderOrPlaceholder(
                                                         gridViewStoriesRecord
                                                             .mainImage,
-                                                      ).image,
+                                                      ),
+                                                      onError: (_, __) {},
                                                     ),
                                                   ),
                                                   child: Column(
@@ -2402,10 +2487,12 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                         .secondaryBackground,
                                                     image: DecorationImage(
                                                       fit: BoxFit.cover,
-                                                      image: Image.network(
+                                                      image:
+                                                          _imageProviderOrPlaceholder(
                                                         gridViewStoriesRecord
                                                             .mainImage,
-                                                      ).image,
+                                                      ),
+                                                      onError: (_, __) {},
                                                     ),
                                                   ),
                                                   child: Column(
