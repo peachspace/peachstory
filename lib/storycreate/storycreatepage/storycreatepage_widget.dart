@@ -41,6 +41,9 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  String _normalizedImageUrl(String? rawUrl) =>
+      functions.stringToImagePath(rawUrl);
+
   @override
   void initState() {
     super.initState();
@@ -673,7 +676,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                         },
                                                         child: Container(
-                                                          width: 70.0,
+                                                          width: 86.0,
                                                           height: 20.0,
                                                           decoration:
                                                               BoxDecoration(
@@ -1189,7 +1192,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                         },
                                                         child: Container(
-                                                          width: 70.0,
+                                                          width: 86.0,
                                                           height: 25.0,
                                                           decoration:
                                                               BoxDecoration(
@@ -1724,7 +1727,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                         },
                                                         child: Container(
-                                                          width: 70.0,
+                                                          width: 86.0,
                                                           height: 25.0,
                                                           decoration:
                                                               BoxDecoration(
@@ -2192,11 +2195,13 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                       BorderRadius
                                                                           .circular(
                                                                               8.0),
-                                                                  child: Image
-                                                                      .network(
-                                                                    functions.stringToImagePath(
-                                                                        charlistItem
-                                                                            .profileimage),
+                                                                  child:
+                                                                      safeNetworkImage(
+                                                                    imageUrl:
+                                                                        _normalizedImageUrl(
+                                                                      charlistItem
+                                                                          .profileimage,
+                                                                    ),
                                                                     width:
                                                                         100.0,
                                                                     height:
@@ -2205,65 +2210,66 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                         .cover,
                                                                   ),
                                                                 ),
-                                                                Padding(
-                                                                  padding: EdgeInsetsDirectional
-                                                                      .fromSTEB(
-                                                                          20.0,
-                                                                          0.0,
-                                                                          0.0,
-                                                                          0.0),
-                                                                  child: Column(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
+                                                                Expanded(
+                                                                  child:
                                                                       Padding(
-                                                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                                                    padding: EdgeInsetsDirectional
+                                                                        .fromSTEB(
+                                                                            20.0,
                                                                             0.0,
                                                                             0.0,
-                                                                            0.0,
-                                                                            5.0),
-                                                                        child:
-                                                                            Text(
+                                                                            0.0),
+                                                                    child:
+                                                                        Column(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .max,
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        Padding(
+                                                                          padding: EdgeInsetsDirectional.fromSTEB(
+                                                                              0.0,
+                                                                              0.0,
+                                                                              0.0,
+                                                                              5.0),
+                                                                          child:
+                                                                              Text(
+                                                                            charlistItem.name,
+                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                  font: GoogleFonts.inter(
+                                                                                    fontWeight: FontWeight.w600,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                  ),
+                                                                                  fontSize: 16.0,
+                                                                                  letterSpacing: 0.0,
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                ),
+                                                                          ),
+                                                                        ),
+                                                                        Text(
                                                                           charlistItem
-                                                                              .name,
+                                                                              .introduce,
+                                                                          maxLines:
+                                                                              2,
                                                                           style: FlutterFlowTheme.of(context)
                                                                               .bodyMedium
                                                                               .override(
                                                                                 font: GoogleFonts.inter(
-                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                   fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                 ),
-                                                                                fontSize: 16.0,
                                                                                 letterSpacing: 0.0,
-                                                                                fontWeight: FontWeight.w600,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                        ),
-                                                                      ),
-                                                                      Text(
-                                                                        charlistItem
-                                                                            .introduce,
-                                                                        maxLines:
-                                                                            2,
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.inter(
                                                                                 fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                      ),
-                                                                    ],
+                                                                          overflow:
+                                                                              TextOverflow.ellipsis,
+                                                                        ),
+                                                                      ],
+                                                                    ),
                                                                   ),
                                                                 ),
                                                               ],
@@ -2653,7 +2659,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                         },
                                                         child: Container(
-                                                          width: 70.0,
+                                                          width: 86.0,
                                                           height: 20.0,
                                                           decoration:
                                                               BoxDecoration(
@@ -3179,7 +3185,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                         },
                                                         child: Container(
-                                                          width: 70.0,
+                                                          width: 86.0,
                                                           height: 25.0,
                                                           decoration:
                                                               BoxDecoration(
@@ -3538,14 +3544,16 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                                     .circular(
                                                                         10.0),
                                                             child:
-                                                                Image.network(
-                                                              functions.stringToImagePath(
-                                                                  valueOrDefault<
-                                                                      String>(
-                                                                backgroundItemItem
-                                                                    .imageurl,
-                                                                '\" \"',
-                                                              )),
+                                                                safeNetworkImage(
+                                                              imageUrl:
+                                                                  _normalizedImageUrl(
+                                                                valueOrDefault<
+                                                                    String>(
+                                                                  backgroundItemItem
+                                                                      .imageurl,
+                                                                  '\" \"',
+                                                                ),
+                                                              ),
                                                               width: 70.0,
                                                               height: 70.0,
                                                               fit: BoxFit.cover,
@@ -4032,7 +4040,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                             safeSetState(() {});
                                                           },
                                                           child: Container(
-                                                            width: 70.0,
+                                                            width: 86.0,
                                                             height: 25.0,
                                                             decoration:
                                                                 BoxDecoration(
@@ -4414,7 +4422,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                       safeSetState(() {});
                                                     },
                                                     child: Container(
-                                                      width: 70.0,
+                                                      width: 86.0,
                                                       height: 25.0,
                                                       decoration: BoxDecoration(
                                                         color: FlutterFlowTheme
@@ -4699,15 +4707,16 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                               DecorationImage(
                                                             fit: BoxFit.cover,
                                                             image:
-                                                                Image.network(
-                                                              functions.stringToImagePath(
-                                                                  valueOrDefault<
-                                                                      String>(
-                                                                _model
-                                                                    .mainImage,
-                                                                '\"\"',
-                                                              )),
-                                                            ).image,
+                                                                safeImageProviderFromUrl(
+                                                              _normalizedImageUrl(
+                                                                valueOrDefault<
+                                                                    String>(
+                                                                  _model
+                                                                      .mainImage,
+                                                                  '\"\"',
+                                                                ),
+                                                              ),
+                                                            ),
                                                           ),
                                                           borderRadius:
                                                               BorderRadius
@@ -5234,7 +5243,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                         },
                                                         child: Container(
-                                                          width: 70.0,
+                                                          width: 86.0,
                                                           height: 25.0,
                                                           decoration:
                                                               BoxDecoration(
@@ -5706,7 +5715,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                           safeSetState(() {});
                                                         },
                                                         child: Container(
-                                                          width: 70.0,
+                                                          width: 86.0,
                                                           height: 25.0,
                                                           decoration:
                                                               BoxDecoration(

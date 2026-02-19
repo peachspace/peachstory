@@ -784,7 +784,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                       ),
                                     });
                                     await actions.updateStoryMemory(
-                                      _model.currentDocRef!,
+                                      stackStorychatsRecord.reference,
                                       storychatpageStoriesRecord.outlineMode,
                                       storychatpageStoriesRecord.outlineText,
                                     );

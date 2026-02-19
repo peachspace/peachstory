@@ -220,8 +220,8 @@ class _ImagecreatebottomsheetWidgetState
                             EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 20.0),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15.0),
-                          child: Image.network(
-                            functions
+                          child: safeNetworkImage(
+                            imageUrl: functions
                                 .stringToImagePath(_model.generatedImageUrl),
                             width: double.infinity,
                             height: 300.0,
@@ -1707,11 +1707,11 @@ class _ImagecreatebottomsheetWidgetState
                                       decoration: BoxDecoration(
                                         image: DecorationImage(
                                           fit: BoxFit.cover,
-                                          image: Image.network(
+                                          image: safeImageProviderFromUrl(
                                             functions.stringToImagePath(
                                                 selectedcharacterItem
                                                     .profileimage),
-                                          ).image,
+                                          ),
                                         ),
                                         borderRadius:
                                             BorderRadius.circular(8.0),
@@ -2018,8 +2018,7 @@ class _ImagecreatebottomsheetWidgetState
                                                 .imagecreatepromptTextController
                                                 ?.text = _model.backgroundtag!;
                                           });
-                                        } else if (widget.imageMode ==
-                                            'main') {
+                                        } else if (widget.imageMode == 'main') {
                                           _model.maintag =
                                               await actions.generateVisualTags(
                                             'main',

@@ -59,11 +59,8 @@ class _EmotionstructWidgetState extends State<EmotionstructWidget> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
-            child: Image.network(
-              valueOrDefault<String>(
-                functions.stringToImagePath(widget.item?.imageurl),
-                '\' \'',
-              ),
+            child: safeNetworkImage(
+              imageUrl: functions.stringToImagePath(widget.item?.imageurl),
               width: 80.0,
               height: 80.0,
               fit: BoxFit.cover,

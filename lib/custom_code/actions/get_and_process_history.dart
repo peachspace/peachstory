@@ -16,6 +16,28 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 Future<List<dynamic>> getAndProcessHistory(
   DocumentReference? storyChatRef,
 ) async {
+  String _sanitizeAttr(String raw) =>
+      raw.replaceAll('"', '').replaceAll('\n', ' ').trim();
+
+  String _buildAssistantTaggedContent(Map<String, dynamic> data) {
+    final type = (data['type'] ?? '').toString().trim();
+    final text = (data['text'] ?? '').toString().trim();
+    final speaker = _sanitizeAttr((data['speakerName'] ?? '').toString());
+    final action = _sanitizeAttr((data['actionText'] ?? '').toString());
+
+    if (text.isEmpty || text == '생각 중') return '';
+
+    if (type == 'dialogue') {
+      final safeSpeaker = speaker.isEmpty ? '인물' : speaker;
+      if (action.isNotEmpty) {
+        return '[DIALOGUE SPEAKER="$safeSpeaker" ACTION="$action"]$text[/DIALOGUE]';
+      }
+      return '[DIALOGUE SPEAKER="$safeSpeaker"]$text[/DIALOGUE]';
+    }
+
+    return '[NARRATION]$text[/NARRATION]';
+  }
+
   if (storyChatRef == null) {
     return [];
   }
@@ -35,11 +57,14 @@ Future<List<dynamic>> getAndProcessHistory(
     // 가져온 데이터를 다시 시간순(과거->미래)으로 뒤집어야 AI가 이해함
     final docs = messagesSnapshot.docs.toList().reversed;
 
-    List<dynamic> formattedHistory = [];
+    final List<dynamic> formattedHistory = [];
     for (var doc in docs) {
       final data = doc.data();
-      String role = (data['type'] == 'user') ? 'user' : 'assistant';
-      String content = data['text'] ?? '';
+      final type = (data['type'] ?? '').toString();
+      final role = type == 'user' ? 'user' : 'assistant';
+      final content = role == 'user'
+          ? (data['text'] ?? '').toString().trim()
+          : _buildAssistantTaggedContent(data);
 
       // 내용이 없거나 '생각 중' 같은 메시지는 제외
       if (content.isNotEmpty && content != '생각 중') {

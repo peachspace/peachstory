@@ -455,8 +455,8 @@ class _NotifierChatListState extends State<NotifierChatList>
     final List<String> candidates = [];
     for (final e in (character.emotionStruct ?? <EmotionStructStruct>[])) {
       if ((e.emotion).toString().trim() == key) {
-        final url = (e.imageurl).toString().trim();
-        if (url.startsWith('http')) candidates.add(url);
+        final url = stringToImagePath((e.imageurl).toString().trim());
+        if (isValidNetworkImageUrl(url)) candidates.add(url);
       }
     }
 
@@ -465,8 +465,8 @@ class _NotifierChatListState extends State<NotifierChatList>
     }
 
     // ✅ 프로필 이미지 필드명이 다르면 여기만 너 필드명으로 바꿔서 쓰면 됨
-    final p = (character.profileimage ?? '').toString().trim();
-    if (p.startsWith('http')) return p;
+    final p = stringToImagePath((character.profileimage ?? '').toString());
+    if (isValidNetworkImageUrl(p)) return p;
 
     return null;
   }
@@ -532,16 +532,16 @@ class _NotifierChatListState extends State<NotifierChatList>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isUser && imageUrl.isNotEmpty && imageUrl.startsWith('http'))
+          if (!isUser && isValidNetworkImageUrl(imageUrl))
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
-                child: Image.network(imageUrl,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const SizedBox.shrink()),
+                child: safeNetworkImage(
+                  imageUrl: imageUrl,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           RichText(
@@ -613,17 +613,17 @@ class _NotifierChatListState extends State<NotifierChatList>
   }
 
   Widget _buildStoryImage(StoryChatMessageStructStruct chatItem) {
-    final url = (chatItem.storyImageUrl ?? '').toString();
-    if (url.isEmpty || url == 'null') return const SizedBox.shrink();
+    final url = stringToImagePath((chatItem.storyImageUrl ?? '').toString());
+    if (!isValidNetworkImageUrl(url)) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8.0),
-        child: Image.network(url,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) =>
-                const SizedBox.shrink()),
+        child: safeNetworkImage(
+          imageUrl: url,
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }

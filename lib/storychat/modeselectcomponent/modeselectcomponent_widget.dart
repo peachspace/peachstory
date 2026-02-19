@@ -108,15 +108,15 @@ class _ModeselectcomponentWidgetState extends State<ModeselectcomponentWidget> {
                           topLeft: Radius.circular(15.0),
                           topRight: Radius.circular(15.0),
                         ),
-                        child: Image.network(
-                          'https://picsum.photos/seed/490/600',
+                        child: safeNetworkImage(
+                          imageUrl: 'https://picsum.photos/seed/490/600',
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
                     Container(
                       width: 250.0,
-                      height: 100.0,
+                      height: 110.0,
                       decoration: BoxDecoration(
                         color: FlutterFlowTheme.of(context).secondaryBackground,
                         borderRadius: BorderRadius.only(
@@ -158,12 +158,25 @@ class _ModeselectcomponentWidgetState extends State<ModeselectcomponentWidget> {
                                     ),
                               ),
                             ),
-                            Text(
-                              '캐릭터의 대사나 행동을 입력하면서 AI와 함꼐 스토리를 만들어요.',
-                              style: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    font: GoogleFonts.inter(
+                            Expanded(
+                              child: Text(
+                                '캐릭터의 대사나 행동을 입력하면서 AI와 함꼐 스토리를 만들어요.',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      font: GoogleFonts.inter(
+                                        fontWeight: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontWeight,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontStyle,
+                                      ),
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryText,
+                                      letterSpacing: 0.0,
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .bodyMedium
                                           .fontWeight,
@@ -171,16 +184,7 @@ class _ModeselectcomponentWidgetState extends State<ModeselectcomponentWidget> {
                                           .bodyMedium
                                           .fontStyle,
                                     ),
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
+                              ),
                             ),
                           ],
                         ),
@@ -239,15 +243,15 @@ class _ModeselectcomponentWidgetState extends State<ModeselectcomponentWidget> {
                           topLeft: Radius.circular(15.0),
                           topRight: Radius.circular(15.0),
                         ),
-                        child: Image.network(
-                          'https://picsum.photos/seed/598/600',
+                        child: safeNetworkImage(
+                          imageUrl: 'https://picsum.photos/seed/598/600',
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
                     Container(
                       width: 250.0,
-                      height: 100.0,
+                      height: 110.0,
                       decoration: BoxDecoration(
                         color: FlutterFlowTheme.of(context).secondaryBackground,
                         borderRadius: BorderRadius.only(
@@ -289,12 +293,25 @@ class _ModeselectcomponentWidgetState extends State<ModeselectcomponentWidget> {
                                     ),
                               ),
                             ),
-                            Text(
-                              'AI가 생성하는 스토리를 감상해요.',
-                              style: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    font: GoogleFonts.inter(
+                            Expanded(
+                              child: Text(
+                                'AI가 생성하는 스토리를 감상해요.',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      font: GoogleFonts.inter(
+                                        fontWeight: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontWeight,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontStyle,
+                                      ),
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryText,
+                                      letterSpacing: 0.0,
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .bodyMedium
                                           .fontWeight,
@@ -302,16 +319,7 @@ class _ModeselectcomponentWidgetState extends State<ModeselectcomponentWidget> {
                                           .bodyMedium
                                           .fontStyle,
                                     ),
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
+                              ),
                             ),
                           ],
                         ),
