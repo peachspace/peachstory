@@ -44,6 +44,12 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  String _profileImageUrl() => functions.stringToImagePath(
+        valueOrDefault<String>(_model.editchar?.profileimage, ''),
+      );
+
+  bool _hasValidProfileImage() => isValidNetworkImageUrl(_profileImageUrl());
+
   @override
   void initState() {
     super.initState();
@@ -57,16 +63,16 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
         safeSetState(() {});
       } else {
         _model.editchar = CharacterStructStruct(
-          name: '\' \'',
-          setting: '\' \'',
-          introduce: '\' \'',
+          name: '',
+          setting: '',
+          introduce: '',
           seed: 0,
-          profileimage: '\' \'',
+          profileimage: '',
           emotionStruct: functions.getEmptyEmotionList(),
-          basePrompt: '\' \'',
+          basePrompt: '',
           abilityStruct: functions.getEmptyabilityList(),
-          appearance: '\' \'',
-          ability: '\' \'',
+          appearance: '',
+          ability: '',
         );
         safeSetState(() {});
       }
@@ -295,11 +301,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                 child: Stack(
                                   alignment: AlignmentDirectional(0.0, 0.0),
                                   children: [
-                                    if (valueOrDefault<bool>(
-                                      _model.editchar?.profileimage == null ||
-                                          _model.editchar?.profileimage == '',
-                                      false,
-                                    ))
+                                    if (!_hasValidProfileImage())
                                       Container(
                                         width: 200.0,
                                         height: 200.0,
@@ -365,17 +367,12 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                           ],
                                         ),
                                       ),
-                                    if (_model.editchar?.profileimage != null &&
-                                        _model.editchar?.profileimage != '')
+                                    if (_hasValidProfileImage())
                                       ClipRRect(
                                         borderRadius:
                                             BorderRadius.circular(10.0),
-                                        child: Image.network(
-                                          functions.stringToImagePath(
-                                              valueOrDefault<String>(
-                                            _model.editchar?.profileimage,
-                                            '\' \'',
-                                          )),
+                                        child: safeNetworkImage(
+                                          imageUrl: _profileImageUrl(),
                                           width: 200.0,
                                           height: 200.0,
                                           fit: BoxFit.cover,
@@ -705,7 +702,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               safeSetState(() {});
                                             },
                                             child: Container(
-                                              width: 70.0,
+                                              width: 86.0,
                                               height: 25.0,
                                               decoration: BoxDecoration(
                                                 color:
@@ -1111,7 +1108,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               safeSetState(() {});
                                             },
                                             child: Container(
-                                              width: 70.0,
+                                              width: 86.0,
                                               height: 25.0,
                                               decoration: BoxDecoration(
                                                 color:
@@ -1516,7 +1513,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               safeSetState(() {});
                                             },
                                             child: Container(
-                                              width: 70.0,
+                                              width: 86.0,
                                               height: 25.0,
                                               decoration: BoxDecoration(
                                                 color:
@@ -1884,7 +1881,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               EdgeInsetsDirectional.fromSTEB(
                                                   7.0, 0.0, 0.0, 7.0),
                                           child: Container(
-                                            width: 70.0,
+                                            width: 86.0,
                                             height: 25.0,
                                             decoration: BoxDecoration(
                                               color:
@@ -2287,7 +2284,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                                               safeSetState(() {});
                                             },
                                             child: Container(
-                                              width: 70.0,
+                                              width: 86.0,
                                               height: 25.0,
                                               decoration: BoxDecoration(
                                                 color:
