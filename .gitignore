@@ -10,3 +10,6 @@ pubspec.lock
 
 # iOS (generated)
 ios/Flutter/ephemeral/
+
+# Flutter build output
+build/
