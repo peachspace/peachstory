@@ -1,0 +1,12 @@
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Dart/Flutter
+.dart_tool/
+.flutter-plugins-dependencies
+pubspec.lock
+
+# iOS (generated)
+ios/Flutter/ephemeral/
