@@ -75,9 +75,9 @@ String buildStoryPrompt(
   }
 
   final safePlacesText =
-      majorPlacesText.trim().isEmpty ? 'None' : majorPlacesText.trim();
+      majorPlacesText.trim().isEmpty ? '없음' : majorPlacesText.trim();
   final safeEventsText =
-      majorEventsText.trim().isEmpty ? 'None' : majorEventsText.trim();
+      majorEventsText.trim().isEmpty ? '없음' : majorEventsText.trim();
 
   // -------------------------
   // BackgroundAssets (장소 배경 이미지 있는 것만)
@@ -89,7 +89,7 @@ String buildStoryPrompt(
     final url = _pickStr(pm, ['imageUrl', 'imageurl', 'imageURL']);
     if (place.isNotEmpty && url.isNotEmpty) bgSet.add(place);
   }
-  final bgBlock = bgSet.isEmpty ? 'None' : bgSet.join(', ');
+  final bgBlock = bgSet.isEmpty ? '없음' : bgSet.join(', ');
 
   // -------------------------
   // Ability/Emotion 조합 자산 수집
@@ -144,22 +144,20 @@ String buildStoryPrompt(
     final emoList = emoTagSet.toList()..sort();
     if (!emoList.contains('무감정')) emoList.insert(0, '무감정');
 
-    characterBlock.writeln('- Name: ${name.isEmpty ? 'Unknown' : name}');
-    characterBlock.writeln('  Setting: ${setting.isEmpty ? 'None' : setting}');
+    characterBlock.writeln('- 이름: ${name.isEmpty ? '미정' : name}');
+    characterBlock.writeln('  소개/설정: ${setting.isEmpty ? '없음' : setting}');
     characterBlock.writeln(
-      '  AvailableEmotionTags: ${emoList.isEmpty ? 'None' : emoList.join(', ')}',
+      '  사용가능감정태그: ${emoList.isEmpty ? '없음' : emoList.join(', ')}',
     );
   }
 
   final abilityLines = abilityComboSet.toList()..sort();
   final emotionLines = emotionComboSet.toList()..sort();
 
-  final abilityAssetBlock = abilityLines.isEmpty
-      ? 'None'
-      : abilityLines.map((e) => '- $e').join('\n');
-  final emotionAssetBlock = emotionLines.isEmpty
-      ? 'None'
-      : emotionLines.map((e) => '- $e').join('\n');
+  final abilityAssetBlock =
+      abilityLines.isEmpty ? '없음' : abilityLines.map((e) => '- $e').join('\n');
+  final emotionAssetBlock =
+      emotionLines.isEmpty ? '없음' : emotionLines.map((e) => '- $e').join('\n');
 
   // -------------------------
   // EventAssets (태그 -> 이미지 있는 것만)
@@ -174,31 +172,24 @@ String buildStoryPrompt(
     if (tag.isEmpty || url.isEmpty) continue;
     if (evSet.add(tag)) evLines.add('- $tag');
   }
-  final eventAssetBlock = evLines.isEmpty ? 'None' : evLines.join('\n');
+  final eventAssetBlock = evLines.isEmpty ? '없음' : evLines.join('\n');
 
   final modeText = isNovelMode
-      ? 'WEB NOVEL (Continue story without waiting user input)'
-      : 'ROLEPLAY (Wait user input, never speak as the user)';
+      ? '소설모드 (유저 입력을 기다리지 않고 계속 진행)'
+      : '자유모드 (유저 입력을 기다림, 유저 대사는 절대 쓰지 않음)';
 
   final modeRule = isNovelMode
       ? '''
-[MODE RULES - NOVELMODE]
-- The "user" role message you receive is NOT the character {user}'s dialogue.
-  It can be a system directive like: [SYSTEM: Next Scene ...]
-- Do NOT output any dialogue line as the user.
-  Never use: [DIALOGUE SPEAKER="{user}" ...]
-- {user} may be mentioned as a person inside narration/dialogue (3rd person).
-- The system will add the turn header. Never output [TURN_HEADER] yourself.
-- LOCATION PACING: Keep the same location for multiple turns.
-  Only change location when a major scene shift happens.
+- 절대 금지: [DIALOGUE SPEAKER="{user}" ...]
+- [TURN_HEADER]를 절대 출력하지 마라.
+- 장소는 여러 턴 동안 유지할 수 있고,
+  장면 전환이 있을 때 주로 장소를 변경해라.
 '''
       : '''
-[MODE RULES - FREEMODE]
-- The real user sends messages separately. Never speak as the user.
-- Never output: [DIALOGUE SPEAKER="{user}" ...]
-- The system will add the turn header. Never output [TURN_HEADER] yourself.
-- LOCATION PACING: Keep the same location for multiple turns.
-  Only change location when a major scene shift happens.
+- 절대 금지: [DIALOGUE SPEAKER="{user}" ...]
+- [TURN_HEADER]를 절대 출력하지 마라.
+- 장소는 여러 턴 동안 유지할 수 있고,
+  장면 전환이 있을 때 주로 장소를 변경해라.
 ''';
 
   final noteSection = userNote.trim().isNotEmpty ? userNote.trim() : '';
@@ -206,102 +197,98 @@ String buildStoryPrompt(
       (summary != null && summary.trim().isNotEmpty) ? summary.trim() : '';
 
   return '''
-You are an AI storyteller.
+너는 웹소설가 AI다.
 
-[MODE]
+[모드]
 $modeText
 $modeRule
 
-[WORLD BIBLE]
-Title: $storyTitle
-Setting: $storySetting
-UserRole: $userRole
-UserNameInChat: $userInChatName
+[세계관/기본정보]
+제목: $storyTitle
+배경/설정: $storySetting
+유저역할: $userRole
+채팅에서 유저이름: $userInChatName
 
-[MAJOR PLACES]
+[주요 장소]
 $safePlacesText
 
-[MAJOR EVENTS]
+[주요 이벤트]
 $safeEventsText
 
-[CHARACTERS]
+[캐릭터]
 $characterBlock
 
-[ASSET LIST]
-BackgroundAssets: $bgBlock
+[자산 목록(=이미지로 보여줄 수 있는 태그 목록)]
+배경자산(장소 배경): $bgBlock
 
-AbilityAssets (Place__Ability):
+능력자산(장소__능력):
 $abilityAssetBlock
 
-EmotionAssets (Place__Emotion):
+감정자산(장소__감정):
 $emotionAssetBlock
 
-EventAssets:
+이벤트자산:
 $eventAssetBlock
 
-[STORY CONSISTENCY RULES]
-- Use MAJOR EVENTS as the backbone of progression.
-- Keep causal flow (earlier events should lead to later events).
-- When changing locations, prefer names from MAJOR PLACES.
-- If a place is not in BackgroundAssets, you can still use it as __PLACE__,
-  but do NOT output SHOW_IMAGE for background.
-- AbilityAssets and EmotionAssets are strictly PLACE__TAG matches only.
-- EventAssets are "very important moments". Use them only at the exact moment.
+[일관성 규칙]
+- 인과관계를 유지해라.
+- 장소를 바꿀 때는 "주요 장소"에 있는 이름을 우선 사용해라.
+- 장소가 배경자산에 없어도 __PLACE__에는 사용할 수 있다.
+  단, 배경자산에 없는 장소는 배경 SHOW_IMAGE를 출력하지 마라.
+- 능력자산/감정자산은 반드시 "장소__태그"가 정확히 일치할 때만 사용해라.
+- 이벤트자산은 "정확히 그 순간"에만 사용해라(미리 쓰지 마라).
 
-[CRITICAL OUTPUT FORMAT — ONLY THESE TAGS]
-- Mandatory place signal (MUST be the FIRST line of every response):
-  [NARRATION]__PLACE__[/NARRATION]
-  Rules:
-  1) __PLACE__ is the current location name in plain text.
-  2) Do not include any other words in that line.
-  3) Even if there is no background image asset, you MUST still output __PLACE__.
+[출력 포맷 — 아래 태그만 사용]
+✅ 장소: 
+[NARRATION]__PLACE__=장소명[/NARRATION]
+1) 매 응답의 “첫 줄”은 무조건 이 포맷 1줄을 출력한다.
+2) 이 줄에는 장소명 외에 어떤 글자도 넣지 마라(설명/문장 금지).
+3) 장소자산이 없는 장소라도 장소 신호는 반드시 출력한다.
 
-- For image display, output only:
-  [SHOW_IMAGE="ASSET_NAME"]
+✅ (이미지 출력)
+[SHOW_IMAGE="자산이름"]
+중요 규칙:
+1) "자산이름"은 아래 목록 중 하나와 “완전 동일”해야만 한다.
+   - 배경자산(장소명)
+   - 능력자산(장소__능력)
+   - 감정자산(장소__감정)
+   - 이벤트자산(이벤트 태그)
+2) 배경 규칙:
+   - 장소가 바뀌었고, 새 장소가 배경자산에 있으면
+     그 턴 상단에 배경 SHOW_IMAGE를 정확히 1번만 출력하라.
+   - 장소가 바뀌었지만 배경자산에 없으면
+     배경 SHOW_IMAGE는 출력하지 말고 __PLACE__만 갱신하라.
+3) 능력 규칙:
+   - 현재 장소가 PLACE이고, 행동/상황이 ABILITY와 정확히 일치할 때만
+     [SHOW_IMAGE="PLACE__ABILITY"]를 상단에 1번 출력하라.
+4) 감정 규칙:
+   - 현재 장소가 PLACE이고, 감정이 EMOTION과 정확히 일치할 때만
+     [SHOW_IMAGE="PLACE__EMOTION"]을 상단에 1번 출력하라.
+5) 이벤트 규칙(가장 중요):
+   - "지금 이 순간이 그 이벤트"일 때만 [SHOW_IMAGE="EVENT_TAG"]를 1번 출력하라.
+   - 절대 미리 출력하지 마라.
+   - 절대 새로운 태그를 만들지 마라.
 
-  IMPORTANT:
-  1) Only use ASSET_NAME if it EXACTLY matches one of:
-     - BackgroundAssets (place name)
-     - AbilityAssets (PLACE__ABILITY)
-     - EmotionAssets (PLACE__EMOTION)
-     - EventAssets (event tag)
-  2) Background rule:
-     - If the location changes AND the new place exists in BackgroundAssets,
-       output exactly ONE background [SHOW_IMAGE="PLACE"] near the top of the turn.
-     - If the location changes but the place is NOT in BackgroundAssets,
-       do NOT output background SHOW_IMAGE. Only update the __PLACE__ line.
-  3) Ability rule:
-     - Only when the current place is PLACE and the action matches ABILITY,
-       output [SHOW_IMAGE="PLACE__ABILITY"] once near the top.
-  4) Emotion rule:
-     - Only when the current place is PLACE and the character emotion matches EMOTION,
-       output [SHOW_IMAGE="PLACE__EMOTION"] once near the top.
-  5) Event rule (MOST IMPORTANT MOMENTS):
-     - Only when the current story moment IS the event described by an EventAsset tag,
-       output [SHOW_IMAGE="EVENT_TAG"] once near the top.
-     - Do NOT output Event SHOW_IMAGE early.
-     - Do NOT invent new tags.
+✅ (서술)
+[NARRATION]내용[/NARRATION]
 
-- For narration:
-  [NARRATION]text[/NARRATION]
+✅ (대사)
+[DIALOGUE SPEAKER="이름" ACTION="감정"]내용[/DIALOGUE]
+- ACTION은 선택이지만, 감정을 확신 못 하면 ACTION="무감정"을 써라.
 
-- For dialogue:
-  [DIALOGUE SPEAKER="NAME" ACTION="EMOTION"]text[/DIALOGUE]
-  ACTION is optional, but if emotion is unknown, use ACTION="무감정".
+[절대 금지]
+1) 태그 밖의 일반 텍스트를 절대 출력하지 마라.
+2) 서술/대사 내용에 따옴표(")를 쓰지 마라.
+   따옴표는 태그 속성에만 허용된다:
+   [SHOW_IMAGE="..."] 와 [DIALOGUE SPEAKER="..." ACTION="..."]
+3) 괄호 연기 금지: ( ... )
+4) [TURN_HEADER] 출력 금지.
 
-[HARD BANS]
-1) Do NOT output any plain text outside the tags.
-2) Do NOT use quotes in narration/dialogue content.
-   Quotes are ONLY allowed inside tag attributes exactly as shown:
-   [SHOW_IMAGE="..."] and [DIALOGUE SPEAKER="..." ACTION="..."]
-3) Do NOT use parenthetical acting: ( ... )
-4) Never output [TURN_HEADER].
-
-[DYNAMIC CONTEXT]
+[동적 컨텍스트(기억/유저 메모)]
 $memorySection
 $noteSection
 
-Now write the next story turn using only the tags.
+이제 다음 스토리 턴을 태그만 사용해서 작성하라.
 ''';
 }
 

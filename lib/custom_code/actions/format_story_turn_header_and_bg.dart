@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 
 import 'index.dart';
 import '/flutter_flow/custom_functions.dart';
-
 import 'package:intl/intl.dart';
 
 Future<String> formatStoryTurnHeaderAndBg(
@@ -53,7 +52,6 @@ Future<String> formatStoryTurnHeaderAndBg(
   final comboNames = <String>{};
   if (characters != null) {
     for (final c in characters) {
-      // abilityStruct
       for (final a in (c.abilityStruct ?? <AbilityStructStruct>[])) {
         final place = (a.place).toString().trim();
         final tag = (a.ability).toString().trim();
@@ -62,7 +60,6 @@ Future<String> formatStoryTurnHeaderAndBg(
           comboNames.add('${place}__${tag}');
         }
       }
-      // emotionStruct
       for (final e in (c.emotionStruct ?? <EmotionStructStruct>[])) {
         final place = (e.place).toString().trim();
         final tag = (e.emotion).toString().trim();
@@ -115,20 +112,42 @@ Future<String> formatStoryTurnHeaderAndBg(
   final imgRe = RegExp(r'^\[SHOW_IMAGE="(.*?)"\]$');
   final narRe = RegExp(r'^\[NARRATION\](.*?)\[/NARRATION\]$', dotAll: true);
 
-  // __PLACE__ 파싱 + 라인 제거
+  // ✅ 장소 단독 NARRATION 판별(너무 길면 장소로 보지 않음 / 문장부호 있으면 제외)
+  bool _looksLikePurePlaceLine(String s) {
+    final x = s.trim();
+    if (x.isEmpty) return false;
+    if (x.length > 60) return false;
+    if (RegExp(r'[.!?…"]|\.\.\.').hasMatch(x)) return false;
+    if (x.contains('|')) return false;
+    if (x.contains('[') || x.contains(']')) return false;
+    return true;
+  }
+
+  // __PLACE__ 파싱 + "장소만 있는 NARRATION"도 파싱 + 라인 제거
   String? thisPlace;
   final cleanedTokens = <String>[];
-  for (final t in tokens) {
+
+  for (int i = 0; i < tokens.length; i++) {
+    final t = tokens[i];
     final nm = narRe.firstMatch(t);
     if (nm != null) {
       final content = (nm.group(1) ?? '').trim();
+
+      // (1) __PLACE__ 형식
       if (content.startsWith('__PLACE__')) {
         var p = content.substring('__PLACE__'.length).trim();
         if (p.startsWith('=') || p.startsWith(':')) p = p.substring(1).trim();
         if (p.isNotEmpty) thisPlace = p;
-        continue;
+        continue; // ✅ 장소줄 제거
+      }
+
+      // (2) 장소만 단독 NARRATION (첫 토큰에서만 인정)
+      if (i == 0 && thisPlace == null && _looksLikePurePlaceLine(content)) {
+        thisPlace = content;
+        continue; // ✅ 장소줄 제거
       }
     }
+
     cleanedTokens.add(t);
   }
 

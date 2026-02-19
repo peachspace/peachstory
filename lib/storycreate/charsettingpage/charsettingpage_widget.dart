@@ -2624,45 +2624,37 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget> {
                       child: FFButtonWidget(
                         onPressed: () async {
                           if (widget.isEdit == true) {
-                            FFAppState().Characters = functions
-                                .updateCharacterAt(
-                                    FFAppState().Characters.toList(),
-                                    widget.editIndex,
-                                    CharacterStructStruct(
-                                      name: _model.editchar?.name,
-                                      setting: _model.editchar?.setting,
-                                      introduce: _model.editchar?.introduce,
-                                      seed: _model.editchar?.seed,
-                                      profileimage:
-                                          _model.editchar?.profileimage,
-                                      emotionStruct: FFAppState().emotions,
-                                      basePrompt: _model.editchar?.basePrompt,
-                                      abilityStruct: FFAppState().Abilities,
-                                      appearance: _model.editchar?.appearance,
-                                      ability: _model.editchar?.ability,
-                                    ))
-                                .toList()
-                                .cast<CharacterStructStruct>();
+                            FFAppState().updateCharactersAtIndex(
+                              widget.editIndex,
+                              (e) => e
+                                ..name = _model.charNameTextController.text
+                                ..setting =
+                                    _model.charSettingTextController.text
+                                ..appearance =
+                                    _model.charAppearanceTextController.text
+                                ..ability =
+                                    _model.charabilityTextController.text
+                                ..introduce =
+                                    _model.charintroduceTextController.text
+                                ..profileimage = _model.editchar?.profileimage
+                                ..emotionStruct = FFAppState().emotions.toList()
+                                ..abilityStruct =
+                                    FFAppState().Abilities.toList(),
+                            );
                             safeSetState(() {});
                           } else {
-                            FFAppState().Characters = functions
-                                .addCharacter(
-                                    FFAppState().Characters.toList(),
-                                    CharacterStructStruct(
-                                      name: _model.editchar?.name,
-                                      setting: _model.editchar?.setting,
-                                      introduce: _model.editchar?.introduce,
-                                      seed: _model.editchar?.seed,
-                                      profileimage:
-                                          _model.editchar?.profileimage,
-                                      emotionStruct: FFAppState().emotions,
-                                      basePrompt: _model.editchar?.basePrompt,
-                                      abilityStruct: FFAppState().Abilities,
-                                      appearance: _model.editchar?.appearance,
-                                      ability: _model.editchar?.ability,
-                                    ))
-                                .toList()
-                                .cast<CharacterStructStruct>();
+                            FFAppState().addToCharacters(CharacterStructStruct(
+                              name: _model.charNameTextController.text,
+                              setting: _model.charSettingTextController.text,
+                              introduce:
+                                  _model.charintroduceTextController.text,
+                              profileimage: _model.editchar?.profileimage,
+                              emotionStruct: FFAppState().emotions,
+                              abilityStruct: FFAppState().Abilities,
+                              appearance:
+                                  _model.charAppearanceTextController.text,
+                              ability: _model.charabilityTextController.text,
+                            ));
                             safeSetState(() {});
                           }
 
