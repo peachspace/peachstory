@@ -83,8 +83,8 @@ class _StorycommentcomponentWidgetState
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                   ),
-                  child: Image.network(
-                    widget.commentDocument!.userProfileImage,
+                  child: safeNetworkImage(
+                    imageUrl: widget.commentDocument?.userProfileImage,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -103,6 +103,8 @@ class _StorycommentcomponentWidgetState
                             widget.commentDocument?.userName,
                             'No name',
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style:
                               FlutterFlowTheme.of(context).bodyMedium.override(
                                     font: GoogleFonts.inter(

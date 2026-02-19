@@ -15,7 +15,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
 
-
 export 'keep_alive_wrapper.dart';
 export 'lat_lng.dart';
 export 'place.dart';
@@ -35,6 +34,155 @@ export 'nav/nav.dart';
 
 T valueOrDefault<T>(T? value, T defaultValue) =>
     (value is String && value.isEmpty) || value == null ? defaultValue : value;
+
+const String kDefaultImagePlaceholderAssetPath =
+    'assets/images/error_image.jpg';
+
+bool isValidNetworkImageUrl(String? imageUrl) {
+  final raw = imageUrl?.trim() ?? '';
+  if (raw.isEmpty) {
+    return false;
+  }
+
+  final uri = Uri.tryParse(raw);
+  return uri != null &&
+      (uri.scheme == 'http' || uri.scheme == 'https') &&
+      uri.host.isNotEmpty;
+}
+
+Widget _buildFallbackAssetImage({
+  required String placeholderAssetPath,
+  double? width,
+  double? height,
+  BoxFit fit = BoxFit.cover,
+}) {
+  return Image.asset(
+    placeholderAssetPath,
+    width: width,
+    height: height,
+    fit: fit,
+    errorBuilder: (_, __, ___) => SizedBox(
+      width: width,
+      height: height,
+      child: FittedBox(
+        fit: fit,
+        child: const Icon(Icons.broken_image_outlined),
+      ),
+    ),
+  );
+}
+
+ImageProvider<Object> safeImageProviderFromUrl(
+  String? imageUrl, {
+  String placeholderAssetPath = kDefaultImagePlaceholderAssetPath,
+}) {
+  if (isValidNetworkImageUrl(imageUrl)) {
+    return NetworkImage(imageUrl!.trim());
+  }
+  return AssetImage(placeholderAssetPath);
+}
+
+Widget safeNetworkImage({
+  required String? imageUrl,
+  double? width,
+  double? height,
+  BoxFit fit = BoxFit.cover,
+  String placeholderAssetPath = kDefaultImagePlaceholderAssetPath,
+}) {
+  if (!isValidNetworkImageUrl(imageUrl)) {
+    return _buildFallbackAssetImage(
+      placeholderAssetPath: placeholderAssetPath,
+      width: width,
+      height: height,
+      fit: fit,
+    );
+  }
+
+  return Image.network(
+    imageUrl!.trim(),
+    width: width,
+    height: height,
+    fit: fit,
+    loadingBuilder: (context, child, loadingProgress) {
+      if (loadingProgress == null) {
+        return child;
+      }
+      return _buildFallbackAssetImage(
+        placeholderAssetPath: placeholderAssetPath,
+        width: width,
+        height: height,
+        fit: fit,
+      );
+    },
+    errorBuilder: (_, __, ___) => _buildFallbackAssetImage(
+      placeholderAssetPath: placeholderAssetPath,
+      width: width,
+      height: height,
+      fit: fit,
+    ),
+  );
+}
+
+Widget safeAssetImage({
+  required String? assetPath,
+  double? width,
+  double? height,
+  BoxFit fit = BoxFit.cover,
+  String placeholderAssetPath = kDefaultImagePlaceholderAssetPath,
+}) {
+  final normalizedAssetPath = assetPath?.trim() ?? '';
+  if (normalizedAssetPath.isEmpty) {
+    return _buildFallbackAssetImage(
+      placeholderAssetPath: placeholderAssetPath,
+      width: width,
+      height: height,
+      fit: fit,
+    );
+  }
+
+  return Image.asset(
+    normalizedAssetPath,
+    width: width,
+    height: height,
+    fit: fit,
+    errorBuilder: (_, __, ___) => _buildFallbackAssetImage(
+      placeholderAssetPath: placeholderAssetPath,
+      width: width,
+      height: height,
+      fit: fit,
+    ),
+  );
+}
+
+Widget safeMemoryImage({
+  required Uint8List? bytes,
+  double? width,
+  double? height,
+  BoxFit fit = BoxFit.cover,
+  String placeholderAssetPath = kDefaultImagePlaceholderAssetPath,
+}) {
+  if (bytes == null || bytes.isEmpty) {
+    return _buildFallbackAssetImage(
+      placeholderAssetPath: placeholderAssetPath,
+      width: width,
+      height: height,
+      fit: fit,
+    );
+  }
+
+  return Image.memory(
+    bytes,
+    width: width,
+    height: height,
+    fit: fit,
+    errorBuilder: (_, __, ___) => _buildFallbackAssetImage(
+      placeholderAssetPath: placeholderAssetPath,
+      width: width,
+      height: height,
+      fit: fit,
+    ),
+  );
+}
 
 void _setTimeagoLocales() {
   timeago.setLocaleMessages('ko', timeago.KoMessages());

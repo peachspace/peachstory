@@ -215,8 +215,9 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                                       child: ClipRRect(
                                         borderRadius:
                                             BorderRadius.circular(8.0),
-                                        child: Image.network(
-                                          listViewStoriesRecord.mainImage,
+                                        child: safeNetworkImage(
+                                          imageUrl:
+                                              listViewStoriesRecord.mainImage,
                                           width: 60.0,
                                           height: 60.0,
                                           fit: BoxFit.cover,
@@ -241,6 +242,8 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                                                       0.0, 0.0, 0.0, 10.0),
                                               child: Text(
                                                 listViewStoriesRecord.title,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                                 style:
                                                     FlutterFlowTheme.of(context)
                                                         .bodyLarge
@@ -279,6 +282,8 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                                               child: Text(
                                                 listViewStoriesRecord
                                                     .description,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                                 style: FlutterFlowTheme.of(
                                                         context)
                                                     .labelSmall

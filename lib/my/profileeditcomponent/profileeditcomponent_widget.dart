@@ -174,8 +174,11 @@ class _ProfileeditcomponentWidgetState
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                           ),
-                          child: Image.network(
-                            '',
+                          child: safeNetworkImage(
+                            imageUrl: valueOrDefault<String>(
+                              currentUserPhoto,
+                              '',
+                            ),
                             fit: BoxFit.cover,
                           ),
                         ),
