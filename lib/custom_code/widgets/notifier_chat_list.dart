@@ -544,31 +544,34 @@ class _NotifierChatListState extends State<NotifierChatList>
                 ),
               ),
             ),
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                    text: "$speaker ",
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily: 'Inter',
-                        color: nameColor,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15.0)),
-                TextSpan(
-                    text: "| ",
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily: 'Inter',
-                        color: Colors.grey.shade400,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 14.0)),
-                TextSpan(
-                    text: chatItem.text,
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily: 'Inter',
-                        color: Colors.black87,
-                        fontSize: 15.0,
-                        lineHeight: 1.6)),
-              ],
+          Container(
+            width: double.infinity,
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                      text: "$speaker ",
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'Inter',
+                          color: nameColor,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15.0)),
+                  TextSpan(
+                      text: "| ",
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'Inter',
+                          color: Colors.grey.shade400,
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14.0)),
+                  TextSpan(
+                      text: chatItem.text,
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'Inter',
+                          color: Colors.black87,
+                          fontSize: 15.0,
+                          lineHeight: 1.6)),
+                ],
+              ),
             ),
           ),
         ],
@@ -595,11 +598,13 @@ class _NotifierChatListState extends State<NotifierChatList>
   Widget _buildTurnHeader(StoryChatMessageStructStruct message) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 18.0, top: 6.0),
-      child: Align(
-        alignment: Alignment.center,
+      child: Container(
+        width: double.infinity,
         child: Text(
           message.text,
           textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: FlutterFlowTheme.of(context).bodyMedium.override(
                 fontFamily: 'Inter',
                 color: Colors.grey.shade600,

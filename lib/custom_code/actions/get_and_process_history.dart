@@ -61,6 +61,12 @@ Future<List<dynamic>> getAndProcessHistory(
     for (var doc in docs) {
       final data = doc.data();
       final type = (data['type'] ?? '').toString();
+      if (type == 'thinking' ||
+          type == 'turn_header' ||
+          type == 'story_image') {
+        continue;
+      }
+
       final role = type == 'user' ? 'user' : 'assistant';
       final content = role == 'user'
           ? (data['text'] ?? '').toString().trim()

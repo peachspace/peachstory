@@ -111,6 +111,33 @@ Future<String> formatStoryTurnHeaderAndBg(
 
   final imgRe = RegExp(r'^\[SHOW_IMAGE="(.*?)"\]$');
   final narRe = RegExp(r'^\[NARRATION\](.*?)\[/NARRATION\]$', dotAll: true);
+  final diaRe = RegExp(
+    r'^\[DIALOGUE SPEAKER=".*?"(?: ACTION=".*?")?\](.*?)\[/DIALOGUE\]$',
+    dotAll: true,
+  );
+
+  bool _hasTransitionCue(String text) {
+    final t = text.trim();
+    if (t.isEmpty) return false;
+    return RegExp(
+      r'(잠시 뒤|몇 분 뒤|다음 날|그날 저녁|한편|장면 전환|이동|옮기|향하|걸어|뛰어|복도로|교실로|학생부실로|밖으로|안으로|도착)',
+    ).hasMatch(t);
+  }
+
+  String _tokenContent(String token) {
+    final n = narRe.firstMatch(token);
+    if (n != null) return (n.group(1) ?? '').trim();
+    final d = diaRe.firstMatch(token);
+    if (d != null) return (d.group(1) ?? '').trim();
+    return '';
+  }
+
+  String _stripTags(String s) {
+    return s
+        .replaceAll(RegExp(r'\[/?[A-Z_]+(?: [^\]]+)?\]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
 
   // ✅ 장소 단독 NARRATION 판별(너무 길면 장소로 보지 않음 / 문장부호 있으면 제외)
   bool _looksLikePurePlaceLine(String s) {
@@ -151,6 +178,9 @@ Future<String> formatStoryTurnHeaderAndBg(
     cleanedTokens.add(t);
   }
 
+  final combinedTokenText =
+      cleanedTokens.map(_tokenContent).where((e) => e.isNotEmpty).join('\n');
+
   // AI가 요청한 bg 후보
   String? requestedBg;
   for (final t in cleanedTokens) {
@@ -163,9 +193,20 @@ Future<String> formatStoryTurnHeaderAndBg(
     }
   }
 
+  String? effectivePlace = thisPlace?.trim();
+  if (!isPrologue &&
+      effectivePlace != null &&
+      effectivePlace.isNotEmpty &&
+      lastBgPlace != null &&
+      lastBgPlace.isNotEmpty &&
+      effectivePlace != lastBgPlace &&
+      !_hasTransitionCue(combinedTokenText)) {
+    effectivePlace = lastBgPlace;
+  }
+
   // 헤더 장소
   final placeForHeader =
-      (thisPlace ?? requestedBg ?? lastBgPlace ?? '어딘가').trim();
+      (effectivePlace ?? requestedBg ?? lastBgPlace ?? '어딘가').trim();
 
   String sanitizePlace(String p) {
     var x = p.trim();
@@ -181,7 +222,7 @@ Future<String> formatStoryTurnHeaderAndBg(
 
   // 배경 후보는 헤더 장소와 동일할 때만
   String? bgCandidate;
-  if (thisPlace != null && thisPlace!.isNotEmpty) {
+  if (effectivePlace != null && effectivePlace.isNotEmpty) {
     bgCandidate = bgNames.contains(safePlace) ? safePlace : null;
   } else {
     bgCandidate = (requestedBg != null && bgNames.contains(requestedBg!))
@@ -258,6 +299,16 @@ Future<String> formatStoryTurnHeaderAndBg(
   final dt = DateFormat('yyyy년 MM월 dd일 HH시 mm분', 'ko_KR').format(now);
   final headerText = '[ $dt | $safePlace ]';
 
-  final body = filtered.join('\n').trim();
+  var body = filtered.join('\n').trim();
+  final plainBody = _stripTags(body);
+
+  if (body.isEmpty || plainBody.isEmpty) {
+    body =
+        '[NARRATION]$safePlace의 공기가 잠시 무겁게 가라앉았다. 누구도 쉽게 다음 말을 잇지 못했고, 방금 벌어진 일의 여운이 남아 있었다.[/NARRATION]';
+  } else if (plainBody.length < 120) {
+    body =
+        '$body\n[NARRATION]짧은 침묵 끝에, 방금의 선택이 앞으로의 관계를 바꿀 수 있다는 예감이 천천히 번져 갔다.[/NARRATION]';
+  }
+
   return '[TURN_HEADER]$headerText[/TURN_HEADER]\n$body'.trim();
 }

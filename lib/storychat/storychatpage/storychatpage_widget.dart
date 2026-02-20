@@ -666,6 +666,8 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                   _model.title,
                   'PEACHSTORY',
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: FlutterFlowTheme.of(context).titleSmall.override(
                       font: GoogleFonts.interTight(
                         fontWeight:
@@ -955,21 +957,6 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                               validator: _model
                                                   .messageTextFieldTextControllerValidator
                                                   .asValidator(context),
-                                              inputFormatters: [
-                                                if (!isAndroid && !isiOS)
-                                                  TextInputFormatter
-                                                      .withFunction(
-                                                          (oldValue, newValue) {
-                                                    return TextEditingValue(
-                                                      selection:
-                                                          newValue.selection,
-                                                      text: newValue.text
-                                                          .toCapitalization(
-                                                              TextCapitalization
-                                                                  .sentences),
-                                                    );
-                                                  }),
-                                              ],
                                             ),
                                           ),
                                         ),
