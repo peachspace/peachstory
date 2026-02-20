@@ -53,7 +53,7 @@ class _PlacestructWidgetState extends State<PlacestructWidget> {
     context.watch<FFAppState>();
 
     return Container(
-      height: 110.0,
+      height: 200.0,
       decoration: BoxDecoration(),
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -66,13 +66,13 @@ class _PlacestructWidgetState extends State<PlacestructWidget> {
                 functions.stringToImagePath(widget.item?.imageUrl),
                 '\' \'',
               ),
-              width: 80.0,
-              height: 80.0,
+              width: 150.0,
+              height: 150.0,
               fit: BoxFit.cover,
             ),
           ),
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(0.0, 5.0, 0.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
             child: FlutterFlowDropDown<String>(
               controller: _model.placetagDropDownValueController ??=
                   FormFieldController<String>(
@@ -88,8 +88,8 @@ class _PlacestructWidgetState extends State<PlacestructWidget> {
                     .cast<PlaceStructStruct>();
                 safeSetState(() {});
               },
-              width: 80.0,
-              height: 20.0,
+              width: 150.0,
+              height: 30.0,
               textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                     font: GoogleFonts.inter(
                       fontWeight:
@@ -97,7 +97,7 @@ class _PlacestructWidgetState extends State<PlacestructWidget> {
                       fontStyle:
                           FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                     ),
-                    fontSize: 13.0,
+                    fontSize: 15.0,
                     letterSpacing: 0.0,
                     fontWeight:
                         FlutterFlowTheme.of(context).bodyMedium.fontWeight,
@@ -108,9 +108,8 @@ class _PlacestructWidgetState extends State<PlacestructWidget> {
               icon: Icon(
                 Icons.keyboard_arrow_down_rounded,
                 color: FlutterFlowTheme.of(context).secondaryText,
-                size: 20.0,
+                size: 25.0,
               ),
-              fillColor: FlutterFlowTheme.of(context).secondaryBackground,
               elevation: 2.0,
               borderColor: Colors.transparent,
               borderWidth: 0.0,

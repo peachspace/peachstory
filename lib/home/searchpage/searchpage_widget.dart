@@ -96,7 +96,7 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
         body: SafeArea(
           top: true,
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(25.0, 15.0, 25.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(20.0, 10.0, 20.0, 0.0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [

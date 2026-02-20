@@ -1,6 +1,7 @@
 import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/storycreate/emotionstruct/emotionstruct_widget.dart';
 import 'emotionimagelist_widget.dart' show EmotionimagelistWidget;
 import 'package:flutter/material.dart';
 
@@ -19,14 +20,16 @@ class EmotionimagelistModel extends FlutterFlowModel<EmotionimagelistWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  bool isDataUploading_uploademotion = false;
-  FFUploadedFile uploadedLocalFile_uploademotion =
-      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
-  String uploadedFileUrl_uploademotion = '';
+  // Model for emotionstruct component.
+  late EmotionstructModel emotionstructModel;
 
   @override
-  void initState(BuildContext context) {}
+  void initState(BuildContext context) {
+    emotionstructModel = createModel(context, () => EmotionstructModel());
+  }
 
   @override
-  void dispose() {}
+  void dispose() {
+    emotionstructModel.dispose();
+  }
 }

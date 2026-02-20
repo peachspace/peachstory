@@ -53,7 +53,7 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
     context.watch<FFAppState>();
 
     return Container(
-      height: 110.0,
+      height: 200.0,
       decoration: BoxDecoration(),
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -66,13 +66,13 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
                 functions.stringToImagePath(widget.item?.imageUrl),
                 '\' \'',
               ),
-              width: 80.0,
-              height: 80.0,
+              width: 150.0,
+              height: 150.0,
               fit: BoxFit.cover,
             ),
           ),
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(0.0, 5.0, 0.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
             child: FlutterFlowDropDown<String>(
               controller: _model.abilitytagDropDownValueController ??=
                   FormFieldController<String>(
@@ -82,17 +82,14 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
               onChanged: (val) async {
                 safeSetState(() => _model.abilitytagDropDownValue = val);
                 FFAppState().Abilities = functions
-                    .updateAbilityTagByPlaceAndUrl(
-                        FFAppState().Abilities.toList(),
-                        widget.item!.place,
-                        widget.item!.imageUrl,
-                        _model.abilitytagDropDownValue!)
+                    .updateAbilityTagByUrl(FFAppState().Abilities.toList(),
+                        widget.item!.imageUrl, widget.item!.ability)
                     .toList()
                     .cast<AbilityStructStruct>();
                 safeSetState(() {});
               },
-              width: 80.0,
-              height: 20.0,
+              width: 150.0,
+              height: 30.0,
               textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                     font: GoogleFonts.inter(
                       fontWeight:
@@ -100,7 +97,7 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
                       fontStyle:
                           FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                     ),
-                    fontSize: 13.0,
+                    fontSize: 15.0,
                     letterSpacing: 0.0,
                     fontWeight:
                         FlutterFlowTheme.of(context).bodyMedium.fontWeight,
@@ -111,9 +108,8 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
               icon: Icon(
                 Icons.keyboard_arrow_down_rounded,
                 color: FlutterFlowTheme.of(context).secondaryText,
-                size: 20.0,
+                size: 25.0,
               ),
-              fillColor: FlutterFlowTheme.of(context).secondaryBackground,
               elevation: 2.0,
               borderColor: Colors.transparent,
               borderWidth: 0.0,

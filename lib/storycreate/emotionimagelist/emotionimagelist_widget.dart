@@ -1,14 +1,13 @@
 import '/backend/backend.dart';
-import '/backend/firebase_storage/storage.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/upload_data.dart';
+import '/flutter_flow/flutter_flow_widgets.dart';
 import '/storycreate/emotionstruct/emotionstruct_widget.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'emotionimagelist_model.dart';
 export 'emotionimagelist_model.dart';
 
@@ -49,8 +48,6 @@ class _EmotionimagelistWidgetState extends State<EmotionimagelistWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -73,7 +70,7 @@ class _EmotionimagelistWidgetState extends State<EmotionimagelistWidget> {
                 context.safePop();
               },
               child: Icon(
-                Icons.arrow_back,
+                Icons.keyboard_arrow_left,
                 color: FlutterFlowTheme.of(context).primaryText,
                 size: 24.0,
               ),
@@ -91,8 +88,8 @@ class _EmotionimagelistWidgetState extends State<EmotionimagelistWidget> {
                       fontStyle:
                           FlutterFlowTheme.of(context).headlineMedium.fontStyle,
                     ),
-                    color: FlutterFlowTheme.of(context).primaryText,
-                    fontSize: 22.0,
+                    color: FlutterFlowTheme.of(context).tertiary,
+                    fontSize: 20.0,
                     letterSpacing: 0.0,
                     fontWeight:
                         FlutterFlowTheme.of(context).headlineMedium.fontWeight,
@@ -107,206 +104,150 @@ class _EmotionimagelistWidgetState extends State<EmotionimagelistWidget> {
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Icon(
-                    Icons.upload,
-                    color: FlutterFlowTheme.of(context).primaryText,
-                    size: 24.0,
-                  ),
-                  Icon(
-                    Icons.arrow_back,
-                    color: FlutterFlowTheme.of(context).primaryText,
-                    size: 24.0,
+                  FaIcon(
+                    FontAwesomeIcons.images,
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    size: 20.0,
                   ),
                 ],
               ),
             ),
           ],
           centerTitle: true,
-          elevation: 2.0,
+          elevation: 0.0,
         ),
         body: SafeArea(
           top: true,
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 10.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Builder(
-                  builder: (context) {
-                    final placeitem = widget.placeTags?.toList() ?? [];
-
-                    return ListView.builder(
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      scrollDirection: Axis.vertical,
-                      itemCount: placeitem.length,
-                      itemBuilder: (context, placeitemIndex) {
-                        final placeitemItem = placeitem[placeitemIndex];
-                        return Column(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Align(
-                                  alignment: AlignmentDirectional(-1.0, 0.0),
-                                  child: Text(
-                                    placeitemItem,
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ),
-                                InkWell(
-                                  splashColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: () async {
-                                    final selectedMedia =
-                                        await selectMediaWithSourceBottomSheet(
-                                      context: context,
-                                      allowPhoto: true,
-                                    );
-                                    if (selectedMedia != null &&
-                                        selectedMedia.every((m) =>
-                                            validateFileFormat(
-                                                m.storagePath, context))) {
-                                      safeSetState(() =>
-                                          _model.isDataUploading_uploademotion =
-                                              true);
-                                      var selectedUploadedFiles =
-                                          <FFUploadedFile>[];
-
-                                      var downloadUrls = <String>[];
-                                      try {
-                                        selectedUploadedFiles = selectedMedia
-                                            .map((m) => FFUploadedFile(
-                                                  name: m.storagePath
-                                                      .split('/')
-                                                      .last,
-                                                  bytes: m.bytes,
-                                                  height: m.dimensions?.height,
-                                                  width: m.dimensions?.width,
-                                                  blurHash: m.blurHash,
-                                                  originalFilename:
-                                                      m.originalFilename,
-                                                ))
-                                            .toList();
-
-                                        downloadUrls = (await Future.wait(
-                                          selectedMedia.map(
-                                            (m) async => await uploadData(
-                                                m.storagePath, m.bytes),
-                                          ),
-                                        ))
-                                            .where((u) => u != null)
-                                            .map((u) => u!)
-                                            .toList();
-                                      } finally {
-                                        _model.isDataUploading_uploademotion =
-                                            false;
-                                      }
-                                      if (selectedUploadedFiles.length ==
-                                              selectedMedia.length &&
-                                          downloadUrls.length ==
-                                              selectedMedia.length) {
-                                        safeSetState(() {
-                                          _model.uploadedLocalFile_uploademotion =
-                                              selectedUploadedFiles.first;
-                                          _model.uploadedFileUrl_uploademotion =
-                                              downloadUrls.first;
-                                        });
-                                      } else {
-                                        safeSetState(() {});
-                                        return;
-                                      }
-                                    }
-
-                                    FFAppState()
-                                        .addToEmotions(EmotionStructStruct(
-                                      emotion: '\' \'',
-                                      imageurl:
-                                          _model.uploadedFileUrl_uploademotion,
-                                      place: placeitemItem,
-                                    ));
-                                    safeSetState(() {});
-                                  },
-                                  child: Icon(
-                                    Icons.arrow_back,
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
-                                    size: 24.0,
-                                  ),
-                                ),
-                              ],
+                Expanded(
+                  child: GridView(
+                    padding: EdgeInsets.zero,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 15.0,
+                      mainAxisSpacing: 15.0,
+                      childAspectRatio: 0.85,
+                    ),
+                    scrollDirection: Axis.vertical,
+                    children: [
+                      wrapWithModel(
+                        model: _model.emotionstructModel,
+                        updateCallback: () => safeSetState(() {}),
+                        child: EmotionstructWidget(),
+                      ),
+                    ],
+                  ),
+                ),
+                Align(
+                  alignment: AlignmentDirectional(0.0, 1.0),
+                  child: SafeArea(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          FFButtonWidget(
+                            onPressed: () async {
+                              FFAppState().Abilities = functions
+                                  .getEmptyabilityList()
+                                  .toList()
+                                  .cast<AbilityStructStruct>();
+                              FFAppState().emotions = functions
+                                  .getEmptyEmotionList()
+                                  .toList()
+                                  .cast<EmotionStructStruct>();
+                              safeSetState(() {});
+                              context.safePop();
+                            },
+                            text: '',
+                            icon: Icon(
+                              Icons.auto_fix_high,
+                              size: 25.0,
                             ),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Container(
-                                    height: 110.0,
-                                    decoration: BoxDecoration(),
-                                    child: Builder(
-                                      builder: (context) {
-                                        final emotionitem = functions
-                                            .filterEmotionByPlace(
-                                                FFAppState().emotions.toList(),
-                                                placeitemItem)
-                                            .toList();
-
-                                        return ListView.builder(
-                                          padding: EdgeInsets.zero,
-                                          shrinkWrap: true,
-                                          scrollDirection: Axis.horizontal,
-                                          itemCount: emotionitem.length,
-                                          itemBuilder:
-                                              (context, emotionitemIndex) {
-                                            final emotionitemItem =
-                                                emotionitem[emotionitemIndex];
-                                            return EmotionstructWidget(
-                                              key: Key(
-                                                  'Keyd30_${emotionitemIndex}_of_${emotionitem.length}'),
-                                              item: emotionitemItem,
-                                            );
-                                          },
-                                        );
-                                      },
+                            options: FFButtonOptions(
+                              width: 50.0,
+                              height: 50.0,
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 0.0, 0.0, 0.0),
+                              iconAlignment: IconAlignment.start,
+                              iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                  7.0, 0.0, 0.0, 0.0),
+                              iconColor: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              color: Color(0xFFFFD1BA),
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .titleSmall
+                                  .override(
+                                    font: GoogleFonts.interTight(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontStyle,
                                     ),
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
                                   ),
-                                ],
-                              ),
+                              elevation: 0.0,
+                              borderRadius: BorderRadius.circular(8.0),
                             ),
-                          ],
-                        );
-                      },
-                    );
-                  },
+                          ),
+                          FFButtonWidget(
+                            onPressed: () {
+                              print('emotionuploadbutton pressed ...');
+                            },
+                            text: '업로드',
+                            options: FFButtonOptions(
+                              width: 290.0,
+                              height: 50.0,
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 0.0, 0.0, 0.0),
+                              iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 0.0, 0.0, 0.0),
+                              color: Color(0xFFFFD1BA),
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .titleSmall
+                                  .override(
+                                    font: GoogleFonts.interTight(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .fontStyle,
+                                    ),
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
+                                  ),
+                              elevation: 0.0,
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
