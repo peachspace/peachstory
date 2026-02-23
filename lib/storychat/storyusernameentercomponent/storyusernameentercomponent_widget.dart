@@ -14,11 +14,9 @@ class StoryusernameentercomponentWidget extends StatefulWidget {
   const StoryusernameentercomponentWidget({
     super.key,
     required this.storydoc,
-    required this.novelmode,
   });
 
   final StoriesRecord? storydoc;
-  final bool? novelmode;
 
   @override
   State<StoryusernameentercomponentWidget> createState() =>
@@ -106,7 +104,7 @@ class _StoryusernameentercomponentWidgetState
                           controller: _model.usernameTextFieldTextController,
                           focusNode: _model.usernameTextFieldFocusNode,
                           autofocus: false,
-                          enabled: false,
+                          enabled: true,
                           obscureText: false,
                           decoration: InputDecoration(
                             isDense: false,
@@ -185,6 +183,24 @@ class _StoryusernameentercomponentWidgetState
                       ),
                       showLoadingIndicator: true,
                       onPressed: () async {
+                        if (_model.usernameTextFieldTextController.text
+                            .trim()
+                            .isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '이름을 입력하세요.',
+                                style: TextStyle(
+                                  color:
+                                      FlutterFlowTheme.of(context).secondaryText,
+                                ),
+                              ),
+                              duration: Duration(milliseconds: 2000),
+                              backgroundColor: FlutterFlowTheme.of(context).info,
+                            ),
+                          );
+                          return;
+                        }
                         FFAppState().storyUserName =
                             _model.usernameTextFieldTextController.text;
                         safeSetState(() {});
@@ -199,7 +215,6 @@ class _StoryusernameentercomponentWidgetState
                               _model.usernameTextFieldTextController.text,
                           selectedAiModel: 'gemini-2.5-pro',
                           creatorRef: widget.storydoc?.creatorRef,
-                          isNovelMode: widget.novelmode,
                         ));
                         _model.newChatDoc =
                             StorychatsRecord.getDocumentFromData(
@@ -210,7 +225,6 @@ class _StoryusernameentercomponentWidgetState
                                       .usernameTextFieldTextController.text,
                                   selectedAiModel: 'gemini-2.5-pro',
                                   creatorRef: widget.storydoc?.creatorRef,
-                                  isNovelMode: widget.novelmode,
                                 ),
                                 storychatsRecordReference);
 
@@ -228,10 +242,6 @@ class _StoryusernameentercomponentWidgetState
                             'storychatRef': serializeParam(
                               _model.newChatDoc?.reference,
                               ParamType.DocumentReference,
-                            ),
-                            'isNovelMode': serializeParam(
-                              widget.novelmode,
-                              ParamType.bool,
                             ),
                           }.withoutNulls,
                         );

@@ -138,10 +138,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               'storychatdoc',
               ParamType.Document,
             ),
-            isNovelMode: params.getParam(
-              'isNovelMode',
-              ParamType.bool,
-            ),
             storyRef: params.getParam(
               'storyRef',
               ParamType.DocumentReference,
@@ -182,10 +178,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
             userInChatName: params.getParam(
               'userInChatName',
               ParamType.String,
-            ),
-            isNovelMode: params.getParam(
-              'isNovelMode',
-              ParamType.bool,
             ),
           ),
         ),

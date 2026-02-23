@@ -47,7 +47,6 @@ String buildStoryPrompt(
   String userNote,
   String userInChatName,
   String? summary,
-  bool isNovelMode,
   String majorPlacesText,
   String majorEventsText,
   List<EventStructStruct>? events,
@@ -174,24 +173,6 @@ String buildStoryPrompt(
   }
   final eventAssetBlock = evLines.isEmpty ? '없음' : evLines.join('\n');
 
-  final modeText = isNovelMode
-      ? '소설모드 (유저 입력을 기다리지 않고 계속 진행)'
-      : '자유모드 (유저 입력을 기다림, 유저 대사는 절대 쓰지 않음)';
-
-  final modeRule = isNovelMode
-      ? '''
-- 절대 금지: [DIALOGUE SPEAKER="{user}" ...]
-- [TURN_HEADER]를 절대 출력하지 마라.
-- 장소는 여러 턴 동안 유지할 수 있고,
-  장면 전환이 있을 때 주로 장소를 변경해라.
-'''
-      : '''
-- 절대 금지: [DIALOGUE SPEAKER="{user}" ...]
-- [TURN_HEADER]를 절대 출력하지 마라.
-- 장소는 여러 턴 동안 유지할 수 있고,
-  장면 전환이 있을 때 주로 장소를 변경해라.
-''';
-
   final noteSection = userNote.trim().isNotEmpty ? userNote.trim() : '';
   final memorySection =
       (summary != null && summary.trim().isNotEmpty) ? summary.trim() : '';
@@ -200,8 +181,10 @@ String buildStoryPrompt(
 너는 웹소설가 AI다.
 
 [모드]
-$modeText
-$modeRule
+- 자유모드 (유저 입력을 기다림, 유저 대사는 절대 쓰지 않음)
+- 절대 금지: [DIALOGUE SPEAKER="{user}" ...]
+- [TURN_HEADER]를 절대 출력하지 마라.
+- 장소는 여러 턴 동안 유지할 수 있고, 장면 전환이 있을 때 주로 장소를 변경해라.
 
 [세계관/기본정보]
 제목: $storyTitle

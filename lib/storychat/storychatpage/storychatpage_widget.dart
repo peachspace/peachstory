@@ -24,13 +24,11 @@ class StorychatpageWidget extends StatefulWidget {
     this.storyRef,
     this.storychatRef,
     required this.userInChatName,
-    this.isNovelMode,
   });
 
   final DocumentReference? storyRef;
   final DocumentReference? storychatRef;
   final String? userInChatName;
-  final bool? isNovelMode;
 
   static String routeName = 'storychatpage';
   static String routePath = '/storychatpage';
@@ -750,7 +748,6 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                   height: double.infinity,
                                   newResponseScript: _model.aiResponseScript,
                                   userInChatName: widget.userInChatName,
-                                  isNovelMode: widget.isNovelMode,
                                   initialMessages: _model.chatMessages,
                                   preDefinedCharacters:
                                       storychatpageStoriesRecord.characters,
@@ -834,8 +831,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                               ),
                             ),
                           ),
-                          if (widget.isNovelMode == false)
-                            Align(
+                          Align(
                               alignment: AlignmentDirectional(0.0, 1.0),
                               child: SafeArea(
                                 child: Container(
@@ -1125,7 +1121,6 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                                           stackStorychatsRecord.storyBible,
                                                                           stackStorychatsRecord.chapterState,
                                                                           stackStorychatsRecord.summary),
-                                                                      widget.isNovelMode!,
                                                                       storychatpageStoriesRecord.place,
                                                                       storychatpageStoriesRecord.event,
                                                                       storychatpageStoriesRecord.events.toList()),
@@ -1261,7 +1256,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                             ),
                         ],
                       ),
-                      if (widget.isNovelMode == true)
+                      if (false)
                         Align(
                           alignment: AlignmentDirectional(1.0, 1.0),
                           child: Padding(
@@ -1397,7 +1392,6 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                               .chapterState,
                                                           stackStorychatsRecord
                                                               .summary),
-                                                  widget.isNovelMode!,
                                                   storychatpageStoriesRecord
                                                       .place,
                                                   storychatpageStoriesRecord

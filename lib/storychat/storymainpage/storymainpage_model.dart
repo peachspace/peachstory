@@ -13,9 +13,6 @@ class StorymainpageModel extends FlutterFlowModel<StorymainpageWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  // Stores action output result for [Firestore Query - Query a collection] action in startButton widget.
-  StorychatsRecord? foundChat;
-
   @override
   void initState(BuildContext context) {}
 

@@ -5,8 +5,8 @@ import '/flutter_flow/flutter_flow_toggle_icon.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
+import '/storychat/storyusernameentercomponent/storyusernameentercomponent_widget.dart';
 import '/index.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,12 +17,10 @@ class StorymainpageWidget extends StatefulWidget {
   const StorymainpageWidget({
     super.key,
     this.storychatdoc,
-    this.isNovelMode,
     required this.storyRef,
   });
 
   final StorychatsRecord? storychatdoc;
-  final bool? isNovelMode;
   final DocumentReference? storyRef;
 
   static String routeName = 'storymainpage';
@@ -1214,41 +1212,21 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                           ),
                           child: FFButtonWidget(
                             onPressed: () async {
-                              _model.foundChat =
-                                  await queryStorychatsRecordOnce(
-                                queryBuilder: (storychatsRecord) =>
-                                    storychatsRecord
-                                        .where(
-                                          'user_ref',
-                                          isEqualTo: currentUserReference,
-                                        )
-                                        .where(
-                                          'story_ref',
-                                          isEqualTo: widget.storyRef,
-                                        ),
-                                singleRecord: true,
-                              ).then((s) => s.firstOrNull);
-                              if (_model.foundChat?.reference != null) {
-                                context.pushNamed(
-                                  VisualnovelpageWidget.routeName,
-                                  queryParameters: {
-                                    'storychatRef': serializeParam(
-                                      _model.foundChat?.reference,
-                                      ParamType.DocumentReference,
+                              await showDialog(
+                                context: context,
+                                builder: (dialogContext) {
+                                  return Dialog(
+                                    elevation: 0,
+                                    insetPadding: EdgeInsets.zero,
+                                    backgroundColor: Colors.transparent,
+                                    alignment: AlignmentDirectional(0.0, 0.0)
+                                        .resolve(Directionality.of(context)),
+                                    child: StoryusernameentercomponentWidget(
+                                      storydoc: storymainpageStoriesRecord,
                                     ),
-                                    'userInChatName': serializeParam(
-                                      _model.foundChat?.userInChatName,
-                                      ParamType.String,
-                                    ),
-                                    'isNovelMode': serializeParam(
-                                      _model.foundChat?.isNovelMode,
-                                      ParamType.bool,
-                                    ),
-                                  }.withoutNulls,
-                                );
-                              }
-
-                              safeSetState(() {});
+                                  );
+                                },
+                              );
                             },
                             text: '시작하기',
                             options: FFButtonOptions(

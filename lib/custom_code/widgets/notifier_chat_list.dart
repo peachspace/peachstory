@@ -30,7 +30,6 @@ class NotifierChatList extends StatefulWidget {
     this.backgroundList,
     this.onTurnComplete,
     this.onLoadOlderMessages,
-    this.isNovelMode,
   });
 
   final double? width;
@@ -47,7 +46,6 @@ class NotifierChatList extends StatefulWidget {
 
   final Future<dynamic> Function(List<dynamic>? scenes)? onTurnComplete;
   final Future<dynamic> Function()? onLoadOlderMessages;
-  final bool? isNovelMode;
 
   @override
   State<NotifierChatList> createState() => _NotifierChatListState();

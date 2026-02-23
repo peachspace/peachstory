@@ -20,13 +20,11 @@ class VisualnovelpageWidget extends StatefulWidget {
     this.storyRef,
     this.storychatRef,
     required this.userInChatName,
-    this.isNovelMode,
   });
 
   final DocumentReference? storyRef;
   final DocumentReference? storychatRef;
   final String? userInChatName;
-  final bool? isNovelMode;
 
   static String routeName = 'visualnovelpage';
   static String routePath = '/visualnovelpage';
@@ -1062,7 +1060,6 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                       newResponseScript:
                                           _model.aiResponseScript,
                                       userInChatName: widget.userInChatName,
-                                      isNovelMode: widget.isNovelMode,
                                       initialMessages: _model.chatMessages,
                                       preDefinedCharacters:
                                           visualnovelpageStoriesRecord
