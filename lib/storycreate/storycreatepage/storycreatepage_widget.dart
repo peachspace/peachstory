@@ -777,6 +777,229 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 핵심 캐�
     );
   }
 
+  String? _parsePrologueTapAiOutput(String raw) {
+    String cleaned = raw.trim();
+    cleaned = cleaned.replaceAll('```json', '').replaceAll('```', '').trim();
+
+    dynamic parsed;
+    try {
+      parsed = jsonDecode(cleaned);
+    } catch (_) {
+      parsed = null;
+    }
+
+    if (parsed is Map) {
+      final value = (parsed['prologuetext'] ?? parsed['prologue'] ?? '')
+          .toString()
+          .trim();
+      return value.isEmpty ? null : value;
+    }
+
+    final match = RegExp(
+      r'(?:prologuetext|prologue|프롤로그)\s*[:：]\s*([\s\S]+)$',
+      multiLine: true,
+    ).firstMatch(cleaned);
+    final output = (match?.group(1) ?? cleaned).trim();
+    return output.isEmpty ? null : output;
+  }
+
+  Future<void> _runPrologueTapAiGeneration(String userInstruction) async {
+    if (_model.isgenerating) return;
+
+    safeSetState(() {
+      _model.isgenerating = true;
+      _model.generatingTarget = 'prologuetap';
+    });
+
+    try {
+      final contextBlock = '''
+[현재 스토리 컨텍스트]
+제목: ${_model.storyNameTextController.text}
+세계관: ${_model.worldSettingsTextController.text}
+주요 장소:
+${_model.placetextfieldTextController.text}
+캐릭터:
+${functions.convertCharactersToString(FFAppState().Characters.toList())}
+유저 역할: ${_model.userRoleInfoTextController.text}
+주요 사건:
+${_model.eventTextController.text}
+기존 프롤로그:
+${_model.prologuetextTextController.text}
+''';
+
+      final systemPrompt = '''
+너는 웹소설 프롤로그 작성 assistant다.
+출력은 반드시 JSON 객체 1개만 출력한다. 코드블록, 설명, 마크다운 금지.
+JSON 스키마:
+{
+  "prologuetext": "프롤로그 본문"
+}
+규칙:
+- 한국어로 작성.
+- 프롤로그의 시작 줄은 가능하면 "장소: 장소명" 형식을 사용한다.
+- 세계관/캐릭터/주요 장소를 반영해 자연스럽고 개연성 있게 작성한다.
+- prologuetext는 절대 비우지 마라.
+''';
+
+      final userPrompt = '''
+$contextBlock
+
+[사용자 지시]
+${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연스러운 프롤로그를 생성해줘.' : userInstruction.trim()}
+''';
+
+      final raw = await actions.callAiProxy(
+        'gpt-4o-mini',
+        systemPrompt,
+        const [],
+        userPrompt,
+      );
+
+      if (raw == null || raw.trim().isEmpty || raw.startsWith('ERROR:')) {
+        throw Exception(raw ?? 'AI 응답이 비어 있습니다.');
+      }
+
+      final prologue = _parsePrologueTapAiOutput(raw);
+      if (prologue == null || prologue.trim().isEmpty) {
+        throw Exception('AI 응답 파싱 실패');
+      }
+
+      _model.prologuetextTextController.text = prologue;
+      _model.prologuetext = prologue;
+      safeSetState(() {});
+    } catch (e) {
+      _showMessage('프롤로그 AI 생성에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      if (!mounted) return;
+      safeSetState(() {
+        _model.isgenerating = false;
+        _model.generatingTarget = null;
+      });
+    }
+  }
+
+  Future<void> _openPrologueTapAiSheet() async {
+    if (_model.isgenerating) return;
+
+    final hasWorld = _model.worldSettingsTextController.text.trim().isNotEmpty;
+    final hasCharacters = FFAppState().Characters.isNotEmpty;
+    if (!hasWorld || !hasCharacters) {
+      _showMessage('세계관과 캐릭터를 먼저 설정해 주세요.');
+      return;
+    }
+
+    final promptController = TextEditingController();
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            20.0,
+            20.0,
+            20.0,
+            20.0 + MediaQuery.viewInsetsOf(sheetContext).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'PrologueTap AI 생성',
+                style: FlutterFlowTheme.of(context).titleMedium.override(
+                      font: GoogleFonts.interTight(
+                        fontWeight:
+                            FlutterFlowTheme.of(context).titleMedium.fontWeight,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).titleMedium.fontStyle,
+                      ),
+                      color: FlutterFlowTheme.of(context).primaryBackground,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
+                child: TextFormField(
+                  controller: promptController,
+                  autofocus: true,
+                  maxLines: 4,
+                  minLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'AI에게 지시할 내용을 입력하세요...',
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                        width: 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                        width: 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    filled: true,
+                    fillColor: FlutterFlowTheme.of(context).secondaryText,
+                  ),
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        font: GoogleFonts.inter(
+                          fontWeight: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                        color: FlutterFlowTheme.of(context).alternate,
+                        letterSpacing: 0.0,
+                      ),
+                ),
+              ),
+              FFButtonWidget(
+                onPressed: () async {
+                  final userInstruction = promptController.text;
+                  Navigator.pop(sheetContext);
+                  await _runPrologueTapAiGeneration(userInstruction);
+                },
+                text: 'AI 생성',
+                icon: const Icon(
+                  Icons.auto_awesome,
+                  size: 16.0,
+                ),
+                options: FFButtonOptions(
+                  height: 46.0,
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                      16.0, 0.0, 16.0, 0.0),
+                  iconPadding:
+                      const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                        font: GoogleFonts.interTight(
+                          fontWeight: FlutterFlowTheme.of(context)
+                              .titleSmall
+                              .fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                        ),
+                        color: FlutterFlowTheme.of(context).primaryText,
+                        letterSpacing: 0.0,
+                      ),
+                  elevation: 0.0,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -3059,9 +3282,63 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 핵심 캐�
                                 ),
                                 Stack(
                                   children: [
+                                    Align(
+                                      alignment:
+                                          AlignmentDirectional(1.0, -1.0),
+                                      child: Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            0.0, 30.0, 25.0, 0.0),
+                                        child: FFButtonWidget(
+                                          onPressed: () async {
+                                            await _openPrologueTapAiSheet();
+                                          },
+                                          text: 'PrologueTap AI',
+                                          icon: Icon(
+                                            Icons.auto_awesome,
+                                            size: 14.0,
+                                          ),
+                                          options: FFButtonOptions(
+                                            height: 32.0,
+                                            padding:
+                                                EdgeInsetsDirectional.fromSTEB(
+                                                    12.0, 0.0, 12.0, 0.0),
+                                            iconPadding:
+                                                EdgeInsetsDirectional.fromSTEB(
+                                                    0.0, 0.0, 0.0, 0.0),
+                                            color: FlutterFlowTheme.of(context)
+                                                .secondaryBackground,
+                                            textStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .primaryText,
+                                                      letterSpacing: 0.0,
+                                                    ),
+                                            elevation: 0.0,
+                                            borderRadius:
+                                                BorderRadius.circular(6.0),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                     Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
-                                          25.0, 30.0, 25.0, 0.0),
+                                          25.0, 72.0, 25.0, 0.0),
                                       child: SingleChildScrollView(
                                         child: Column(
                                           mainAxisSize: MainAxisSize.max,
