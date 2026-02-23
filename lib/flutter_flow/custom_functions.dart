@@ -1073,6 +1073,29 @@ List<AbilityStructStruct> updateAbilityTagByUrl(
   return out;
 }
 
+List<EventStructStruct> updateEventTagByUrl(
+  List<EventStructStruct> list,
+  String imageUrl,
+  String eventTag,
+) {
+  final url = imageUrl.trim();
+  final tag = eventTag.trim();
+  if (url.isEmpty) return list;
+
+  final out = <EventStructStruct>[];
+  for (final it in list) {
+    if ((it.imageurl).trim() == url) {
+      out.add(EventStructStruct(
+        event: tag,
+        imageurl: it.imageurl,
+      ));
+    } else {
+      out.add(it);
+    }
+  }
+  return out;
+}
+
 List<CharacterStructStruct> updateCharacterAt(
   List<CharacterStructStruct> list,
   int index,

@@ -254,7 +254,13 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: EventimagelistWidget.routeName,
           path: EventimagelistWidget.routePath,
-          builder: (context, params) => EventimagelistWidget(),
+          builder: (context, params) => EventimagelistWidget(
+            eventTags: params.getParam<String>(
+              'eventTags',
+              ParamType.String,
+              isList: true,
+            ),
+          ),
         ),
         FFRoute(
           name: AbilityimagelistWidget.routeName,

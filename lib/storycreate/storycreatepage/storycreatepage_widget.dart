@@ -73,6 +73,10 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
             _model.backgroundlist.toList().cast<PlaceStructStruct>();
         _model.placetext = widget.storyDoc?.place;
         _model.event = widget.storyDoc?.event;
+        _model.eventlist =
+            widget.storyDoc!.events.toList().cast<EventStructStruct>();
+        FFAppState().events =
+            _model.eventlist.toList().cast<EventStructStruct>();
         _model.outline = widget.storyDoc?.outlineText;
         safeSetState(() {});
       } else {
@@ -88,6 +92,8 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
         _model.prologuetext = null;
         _model.placetext = null;
         _model.event = null;
+        _model.eventlist = [];
+        FFAppState().events = [];
         _model.outline = null;
         safeSetState(() {});
       }
@@ -998,6 +1004,108 @@ ${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연�
         );
       },
     );
+  }
+
+  String? _parseOutlineAiOutput(String raw) {
+    String cleaned = raw.trim();
+    cleaned = cleaned.replaceAll('```json', '').replaceAll('```', '').trim();
+
+    dynamic parsed;
+    try {
+      parsed = jsonDecode(cleaned);
+    } catch (_) {
+      parsed = null;
+    }
+
+    if (parsed is Map) {
+      final value =
+          (parsed['outlineText'] ?? parsed['outline'] ?? '').toString().trim();
+      return value.isEmpty ? null : value;
+    }
+
+    final match = RegExp(
+      r'(?:outlineText|outline|아웃라인)\s*[:：]\s*([\s\S]+)$',
+      multiLine: true,
+    ).firstMatch(cleaned);
+    final output = (match?.group(1) ?? cleaned).trim();
+    return output.isEmpty ? null : output;
+  }
+
+  Future<String?> _runOutlineAutoGeneration() async {
+    if (_model.isgenerating) return null;
+
+    safeSetState(() {
+      _model.isgenerating = true;
+      _model.generatingTarget = 'outline';
+    });
+
+    try {
+      final eventText = _model.eventTextController.text.trim();
+      final contextBlock = '''
+[스토리 정보]
+제목: ${_model.storyNameTextController.text}
+세계관: ${_model.worldSettingsTextController.text}
+주요 장소:
+${_model.placetextfieldTextController.text}
+캐릭터:
+${functions.convertCharactersToString(FFAppState().Characters.toList())}
+프롤로그:
+${_model.prologuetextTextController.text}
+${eventText.isEmpty ? '' : '주요 사건:\n$eventText'}
+''';
+
+      final systemPrompt = '''
+너는 웹소설 시나리오 아웃라인 설계 assistant다.
+출력은 반드시 JSON 객체 1개만 출력한다. 코드블록, 설명, 마크다운 금지.
+JSON 스키마:
+{
+  "outlineText": "아웃라인 본문"
+}
+규칙:
+- 한국어로 작성.
+- 분량은 10~20개 내외의 핵심 진행 포인트를 번호 목록으로 정리.
+- 장소 목록은 시간순이 아닐 수 있음을 고려하고, 개연성 있게 진행 순서를 설계.
+- 캐릭터의 역할/갈등/목표 변화를 반영.
+- 이벤트 입력이 있으면 과도하지 않게 중요 지점에 반영.
+- outlineText는 절대 비우지 마라.
+''';
+
+      final userPrompt = '''
+$contextBlock
+
+위 정보를 바탕으로 저장용 아웃라인을 생성해줘.
+''';
+
+      final raw = await actions.callAiProxy(
+        'gpt-4o-mini',
+        systemPrompt,
+        const [],
+        userPrompt,
+      );
+
+      if (raw == null || raw.trim().isEmpty || raw.startsWith('ERROR:')) {
+        throw Exception(raw ?? 'AI 응답이 비어 있습니다.');
+      }
+
+      final outlineText = _parseOutlineAiOutput(raw);
+      if (outlineText == null || outlineText.trim().isEmpty) {
+        throw Exception('AI 응답 파싱 실패');
+      }
+
+      _model.outline = outlineText;
+      _model.outlineSwitch = true;
+      safeSetState(() {});
+      return outlineText;
+    } catch (e) {
+      _showMessage('아웃라인 자동 생성에 실패했습니다. 다시 시도해주세요.');
+      return null;
+    } finally {
+      if (!mounted) return null;
+      safeSetState(() {
+        _model.isgenerating = false;
+        _model.generatingTarget = null;
+      });
+    }
   }
 
   @override
@@ -3091,46 +3199,104 @@ ${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연�
                                                       mainAxisSize:
                                                           MainAxisSize.max,
                                                       children: [
-                                                        Text(
-                                                          '이미지',
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                font:
-                                                                    GoogleFonts
-                                                                        .inter(
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
+                                                        InkWell(
+                                                          splashColor: Colors
+                                                              .transparent,
+                                                          focusColor: Colors
+                                                              .transparent,
+                                                          hoverColor: Colors
+                                                              .transparent,
+                                                          highlightColor: Colors
+                                                              .transparent,
+                                                          onTap: () async {
+                                                            if (_model
+                                                                .eventTextController
+                                                                .text
+                                                                .trim()
+                                                                .isEmpty) {
+                                                              _showMessage(
+                                                                  '먼저 이벤트를 입력하세요.');
+                                                              return;
+                                                            }
+                                                            FFAppState()
+                                                                    .events =
+                                                                _model.eventlist
+                                                                    .toList()
+                                                                    .cast<
+                                                                        EventStructStruct>();
+                                                            safeSetState(() {});
+
+                                                            await context
+                                                                .pushNamed(
+                                                              EventimagelistWidget
+                                                                  .routeName,
+                                                              queryParameters: {
+                                                                'eventTags':
+                                                                    serializeParam(
+                                                                  functions.extractTagsFromColonLines(
+                                                                      _model
+                                                                          .eventTextController
+                                                                          .text),
+                                                                  ParamType
+                                                                      .String,
+                                                                  isList: true,
                                                                 ),
+                                                              }.withoutNulls,
+                                                            );
+
+                                                            _model.eventlist =
+                                                                FFAppState()
+                                                                    .events
+                                                                    .toList()
+                                                                    .cast<
+                                                                        EventStructStruct>();
+                                                            safeSetState(() {});
+                                                          },
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .max,
+                                                            children: [
+                                                              Text(
+                                                                '이미지',
+                                                                style: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .inter(
+                                                                        fontWeight: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .fontWeight,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      color: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .alternate,
+                                                                      letterSpacing:
+                                                                          0.0,
+                                                                      fontWeight: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontWeight,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                              ),
+                                                              Icon(
+                                                                Icons
+                                                                    .keyboard_arrow_right,
                                                                 color: FlutterFlowTheme.of(
                                                                         context)
-                                                                    .alternate,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
+                                                                    .primaryBackground,
+                                                                size: 24.0,
                                                               ),
-                                                        ),
-                                                        Icon(
-                                                          Icons
-                                                              .keyboard_arrow_right,
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .primaryBackground,
-                                                          size: 24.0,
+                                                            ],
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -4849,8 +5015,23 @@ ${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연�
                                   _model.prologuetextTextController.text;
                               _model.selectedDetailMode =
                                   _model.detailinfotextTextController.text;
+                              _model.placetext =
+                                  _model.placetextfieldTextController.text;
+                              _model.event = _model.eventTextController.text;
+                              _model.eventlist = FFAppState()
+                                  .events
+                                  .toList()
+                                  .cast<EventStructStruct>();
                               safeSetState(() {});
                               if (_model.title != null && _model.title != '') {
+                                final generatedOutline =
+                                    await _runOutlineAutoGeneration();
+                                if (generatedOutline == null ||
+                                    generatedOutline.trim().isEmpty) {
+                                  if (_shouldSetState) safeSetState(() {});
+                                  return;
+                                }
+                                _model.outline = generatedOutline;
                                 if (widget.storyToEdit == null) {
                                   var storiesRecordReference =
                                       StoriesRecord.collection.doc();
@@ -4893,6 +5074,10 @@ ${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연�
                                         'places':
                                             getPlaceStructListFirestoreData(
                                           FFAppState().places,
+                                        ),
+                                        'events':
+                                            getEventStructListFirestoreData(
+                                          _model.eventlist,
                                         ),
                                       },
                                     ),
@@ -4937,6 +5122,10 @@ ${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연�
                                         'places':
                                             getPlaceStructListFirestoreData(
                                           FFAppState().places,
+                                        ),
+                                        'events':
+                                            getEventStructListFirestoreData(
+                                          _model.eventlist,
                                         ),
                                       },
                                     ),
@@ -4986,6 +5175,10 @@ ${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연�
                                         'places':
                                             getPlaceStructListFirestoreData(
                                           FFAppState().places,
+                                        ),
+                                        'events':
+                                            getEventStructListFirestoreData(
+                                          _model.eventlist,
                                         ),
                                       },
                                     ),

@@ -211,6 +211,35 @@ class FFAppState extends ChangeNotifier {
     emotions.insert(index, value);
   }
 
+  List<EventStructStruct> _events = [];
+  List<EventStructStruct> get events => _events;
+  set events(List<EventStructStruct> value) {
+    _events = value;
+  }
+
+  void addToEvents(EventStructStruct value) {
+    events.add(value);
+  }
+
+  void removeFromEvents(EventStructStruct value) {
+    events.remove(value);
+  }
+
+  void removeAtIndexFromEvents(int index) {
+    events.removeAt(index);
+  }
+
+  void updateEventsAtIndex(
+    int index,
+    EventStructStruct Function(EventStructStruct) updateFn,
+  ) {
+    events[index] = updateFn(_events[index]);
+  }
+
+  void insertAtIndexInEvents(int index, EventStructStruct value) {
+    events.insert(index, value);
+  }
+
   bool _isAIGenerating = false;
   bool get isAIGenerating => _isAIGenerating;
   set isAIGenerating(bool value) {
