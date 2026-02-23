@@ -51,27 +51,34 @@ Future<List<StoryChatMessageStructStruct>> processAndSaveChatTurn(
     }
   }
 
-  // 조합 맵: PLACE__TAG -> url
+  // 조합 맵: TAG -> url (place 미사용)
   final comboMap = <String, String>{};
   if (characters != null) {
     for (final c in characters) {
       for (final a in (c.abilityStruct ?? <AbilityStructStruct>[])) {
-        final place = (a.place).toString().trim();
         final tag = (a.ability).toString().trim();
         final url = (a.imageUrl).toString().trim();
-        if (place.isNotEmpty && tag.isNotEmpty && url.isNotEmpty) {
-          comboMap.putIfAbsent('${place}__${tag}', () => url);
+        if (tag.isNotEmpty && url.isNotEmpty) {
+          comboMap.putIfAbsent(tag, () => url);
         }
       }
       for (final e in (c.emotionStruct ?? <EmotionStructStruct>[])) {
-        final place = (e.place).toString().trim();
         final tag = (e.emotion).toString().trim();
         final url = (e.imageurl).toString().trim();
-        if (place.isNotEmpty && tag.isNotEmpty && url.isNotEmpty) {
-          comboMap.putIfAbsent('${place}__${tag}', () => url);
+        if (tag.isNotEmpty && url.isNotEmpty) {
+          comboMap.putIfAbsent(tag, () => url);
         }
       }
     }
+  }
+
+  String normalizeImageTag(String raw) {
+    final t = raw.trim();
+    if (t.contains('__')) {
+      final parts = t.split('__');
+      return parts.last.trim();
+    }
+    return t;
   }
 
   String resolveUrl(String assetName) {
@@ -82,8 +89,8 @@ Future<List<StoryChatMessageStructStruct>> processAndSaveChatTurn(
     final ev = eventMap[key];
     if (ev != null && ev.isNotEmpty) return ev;
 
-    // 2) combo
-    final c = comboMap[key];
+    // 2) combo (기존 PLACE__TAG 입력도 TAG로 정규화해 호환)
+    final c = comboMap[normalizeImageTag(key)];
     if (c != null && c.isNotEmpty) return c;
 
     // 3) background(place)
