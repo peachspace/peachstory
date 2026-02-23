@@ -147,10 +147,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                 decoration: BoxDecoration(
                                   image: DecorationImage(
                                     fit: BoxFit.cover,
-                                    image: safeImageProviderFromUrl(
+                                    image: Image.network(
                                       storymainpageStoriesRecord.mainImage,
-                                    ),
-                                    onError: (_, __) {},
+                                    ).image,
                                   ),
                                   borderRadius: BorderRadius.circular(8.0),
                                   border: Border.all(
@@ -460,14 +459,12 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                   decoration: BoxDecoration(
                                                     image: DecorationImage(
                                                       fit: BoxFit.cover,
-                                                      image:
-                                                          safeImageProviderFromUrl(
+                                                      image: Image.network(
                                                         functions
                                                             .stringToImagePath(
                                                                 charactersItem
                                                                     .profileimage),
-                                                      ),
-                                                      onError: (_, __) {},
+                                                      ).image,
                                                     ),
                                                     borderRadius:
                                                         BorderRadius.circular(
@@ -703,10 +700,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                         decoration: BoxDecoration(
                                           image: DecorationImage(
                                             fit: BoxFit.cover,
-                                            image: safeImageProviderFromUrl(
+                                            image: Image.network(
                                               rowUsersRecord.photoUrl,
-                                            ),
-                                            onError: (_, __) {},
+                                            ).image,
                                           ),
                                           borderRadius:
                                               BorderRadius.circular(5.0),
@@ -718,31 +714,15 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                           ),
                                         ),
                                       ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  20.0, 0.0, 0.0, 0.0),
-                                          child: Text(
-                                            rowUsersRecord.displayName,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyLarge
-                                                .override(
-                                                  font: GoogleFonts.inter(
-                                                    fontWeight:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyLarge
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyLarge
-                                                            .fontStyle,
-                                                  ),
-                                                  letterSpacing: 0.0,
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            20.0, 0.0, 0.0, 0.0),
+                                        child: Text(
+                                          rowUsersRecord.displayName,
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyLarge
+                                              .override(
+                                                font: GoogleFonts.inter(
                                                   fontWeight:
                                                       FlutterFlowTheme.of(
                                                               context)
@@ -754,9 +734,6 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                           .bodyLarge
                                                           .fontStyle,
                                                 ),
-<<<<<<< HEAD
-                                          ),
-=======
                                                 color:
                                                     FlutterFlowTheme.of(context)
                                                         .primaryBackground,
@@ -770,7 +747,6 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                         .bodyLarge
                                                         .fontStyle,
                                               ),
->>>>>>> origin/flutterflow
                                         ),
                                       ),
                                     ],
@@ -1044,10 +1020,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                       decoration: BoxDecoration(
                                                         shape: BoxShape.circle,
                                                       ),
-                                                      child: safeNetworkImage(
-                                                        imageUrl:
-                                                            listViewCommentsRecord
-                                                                .userProfileImage,
+                                                      child: Image.network(
+                                                        listViewCommentsRecord
+                                                            .userProfileImage,
                                                         fit: BoxFit.cover,
                                                       ),
                                                     ),

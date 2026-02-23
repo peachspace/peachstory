@@ -321,35 +321,36 @@ class _NotifierChatListState extends State<NotifierChatList>
     }
   }
 
-  // ✅ 장소 단독 태그(place) + 조합 태그(place__tag) 둘 다 지원
+  // place 기반 조합 없이 tag + imageUrl 기준으로만 매칭
   String _findSituationalImageUrlByCondition(String condition) {
-    final target = condition.trim();
-    if (target.isEmpty) return '';
-
-    // 1) 배경(장소 단독 태그)
-    final bgList = widget.backgroundList ?? [];
-    for (final bg in bgList) {
-      if ((bg.place).toString().trim() == target) {
-        return (bg.imageUrl).toString().trim();
+    final targetRaw = condition.trim();
+    String normalizeTag(String raw) {
+      final t = raw.trim();
+      if (t.contains('__')) {
+        final parts = t.split('__');
+        return parts.last.trim();
       }
+      return t;
     }
 
-    // 2) 조합 태그: PLACE__TAG (능력/감정)
-    if (target.contains('__')) {
-      final charList = widget.preDefinedCharacters ?? [];
-      for (final char in charList) {
-        // 능력 조합: abilityStruct(place + ability)
-        for (final a in (char.abilityStruct ?? <AbilityStructStruct>[])) {
-          final key =
-              '${(a.place).toString().trim()}__${(a.ability).toString().trim()}';
-          if (key == target) return (a.imageUrl).toString().trim();
-        }
+    final target = normalizeTag(targetRaw);
+    if (target.isEmpty) return '';
 
-        // 감정 조합: emotionStruct(place + emotion)
-        for (final e in (char.emotionStruct ?? <EmotionStructStruct>[])) {
-          final key =
-              '${(e.place).toString().trim()}__${(e.emotion).toString().trim()}';
-          if (key == target) return (e.imageurl).toString().trim();
+    final charList = widget.preDefinedCharacters ?? [];
+    for (final char in charList) {
+      for (final a in (char.abilityStruct ?? <AbilityStructStruct>[])) {
+        final tag = normalizeTag((a.ability).toString());
+        if (tag == target) {
+          final url = (a.imageUrl).toString().trim();
+          if (url.startsWith('http')) return url;
+        }
+      }
+
+      for (final e in (char.emotionStruct ?? <EmotionStructStruct>[])) {
+        final tag = normalizeTag((e.emotion).toString());
+        if (tag == target) {
+          final url = (e.imageurl).toString().trim();
+          if (url.startsWith('http')) return url;
         }
       }
     }

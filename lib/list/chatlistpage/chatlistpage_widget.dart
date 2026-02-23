@@ -466,8 +466,8 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
                                             child: ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(8.0),
-                                              child: safeNetworkImage(
-                                                imageUrl: containerStoriesRecord
+                                              child: Image.network(
+                                                containerStoriesRecord
                                                     .mainImage,
                                                 width: 60.0,
                                                 height: 60.0,
@@ -497,11 +497,6 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
                                                       containerStoriesRecord
                                                           .title,
                                                       maxLines: 1,
-<<<<<<< HEAD
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-=======
->>>>>>> origin/flutterflow
                                                       style:
                                                           FlutterFlowTheme.of(
                                                                   context)
@@ -549,11 +544,6 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
                                                         '대화를 시작해보세요!',
                                                       ),
                                                       maxLines: 1,
-<<<<<<< HEAD
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-=======
->>>>>>> origin/flutterflow
                                                       style:
                                                           FlutterFlowTheme.of(
                                                                   context)

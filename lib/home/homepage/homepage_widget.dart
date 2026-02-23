@@ -29,29 +29,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  Widget _buildBannerEmptyState(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 350.0,
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.image_not_supported_outlined,
-            size: 28.0,
-            color: FlutterFlowTheme.of(context).secondaryText,
-          ),
-          SizedBox(height: 8.0),
-          Text(
-            '표시할 배너가 없습니다',
-            style: FlutterFlowTheme.of(context).bodyMedium,
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -492,9 +469,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                     List<BannersRecord>
                                         carouselBannersRecordList =
                                         snapshot.data!;
-                                    if (carouselBannersRecordList.isEmpty) {
-                                      return _buildBannerEmptyState(context);
-                                    }
 
                                     return Container(
                                       width: double.infinity,
@@ -510,9 +484,8 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                           return ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(8.0),
-                                            child: safeNetworkImage(
-                                              imageUrl: carouselBannersRecord
-                                                  .imageUrl,
+                                            child: Image.network(
+                                              carouselBannersRecord.imageUrl,
                                               width: 200.0,
                                               height: 200.0,
                                               fit: BoxFit.cover,
@@ -534,13 +507,9 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                           disableCenter: true,
                                           enlargeCenterPage: true,
                                           enlargeFactor: 0.25,
-                                          enableInfiniteScroll:
-                                              carouselBannersRecordList.length >
-                                                  1,
+                                          enableInfiniteScroll: true,
                                           scrollDirection: Axis.horizontal,
-                                          autoPlay:
-                                              carouselBannersRecordList.length >
-                                                  1,
+                                          autoPlay: true,
                                           autoPlayAnimationDuration:
                                               Duration(milliseconds: 300),
                                           autoPlayInterval: Duration(
@@ -1141,23 +1110,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
                                                   children: [
-<<<<<<< HEAD
-                                                    Container(
-                                                      width: 150.0,
-                                                      height: 150.0,
-                                                      decoration: BoxDecoration(
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        image: DecorationImage(
-                                                          fit: BoxFit.cover,
-                                                          image:
-                                                              safeImageProviderFromUrl(
-                                                            listViewStoriesRecord
-                                                                .mainImage,
-                                                          ),
-                                                          onError: (_, __) {},
-=======
                                                     Stack(
                                                       alignment:
                                                           AlignmentDirectional(
@@ -1174,7 +1126,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                             height: 150.0,
                                                             fit: BoxFit.cover,
                                                           ),
->>>>>>> origin/flutterflow
                                                         ),
                                                         Opacity(
                                                           opacity: 0.5,
@@ -1288,10 +1239,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                             Text(
                                                               listViewStoriesRecord
                                                                   .title,
-                                                              maxLines: 1,
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
                                                               style: FlutterFlowTheme
                                                                       .of(context)
                                                                   .bodyMedium
@@ -1333,7 +1280,7 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                               child: Text(
                                                                 listViewStoriesRecord
                                                                     .description,
-                                                                maxLines: 1,
+                                                                maxLines: 2,
                                                                 style: FlutterFlowTheme.of(
                                                                         context)
                                                                     .bodyMedium
@@ -1382,19 +1329,19 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                   // Customize what your widget looks like when it's loading.
                                                                   if (!snapshot
                                                                       .hasData) {
-                                                                    return SizedBox(
-                                                                      width:
-                                                                          14.0,
-                                                                      height:
-                                                                          14.0,
+                                                                    return Center(
                                                                       child:
-                                                                          CircularProgressIndicator(
-                                                                        strokeWidth:
-                                                                            2.0,
-                                                                        valueColor:
-                                                                            AlwaysStoppedAnimation<Color>(
-                                                                          FlutterFlowTheme.of(context)
-                                                                              .primary,
+                                                                          SizedBox(
+                                                                        width:
+                                                                            50.0,
+                                                                        height:
+                                                                            50.0,
+                                                                        child:
+                                                                            CircularProgressIndicator(
+                                                                          valueColor:
+                                                                              AlwaysStoppedAnimation<Color>(
+                                                                            FlutterFlowTheme.of(context).primary,
+                                                                          ),
                                                                         ),
                                                                       ),
                                                                     );
@@ -1427,32 +1374,20 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                               color: FlutterFlowTheme.of(context).error,
                                                                               size: 18.0,
                                                                             ),
-                                                                            Expanded(
-                                                                              child: Padding(
-                                                                                padding: EdgeInsetsDirectional.fromSTEB(3.0, 0.0, 0.0, 0.0),
-                                                                                child: Text(
-                                                                                  listViewStoriesRecord.creatorNickname,
-                                                                                  maxLines: 1,
-                                                                                  overflow: TextOverflow.ellipsis,
-                                                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                        font: GoogleFonts.inter(
-                                                                                          fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
-                                                                                        color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                        letterSpacing: 0.0,
+                                                                            Padding(
+                                                                              padding: EdgeInsetsDirectional.fromSTEB(3.0, 0.0, 0.0, 0.0),
+                                                                              child: Text(
+                                                                                listViewStoriesRecord.creatorNickname,
+                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                      font: GoogleFonts.inter(
                                                                                         fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                         fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                       ),
-<<<<<<< HEAD
-                                                                                ),
-=======
                                                                                       color: FlutterFlowTheme.of(context).warning,
                                                                                       letterSpacing: 0.0,
                                                                                       fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                       fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                     ),
->>>>>>> origin/flutterflow
                                                                               ),
                                                                             ),
                                                                           ],
@@ -1466,15 +1401,7 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                               0.0),
                                                                           child:
                                                                               Text(
-<<<<<<< HEAD
-                                                                            '@${listViewStoriesRecord.creatorNickname}',
-                                                                            maxLines:
-                                                                                1,
-                                                                            overflow:
-                                                                                TextOverflow.ellipsis,
-=======
                                                                             '@ ${listViewStoriesRecord.creatorNickname}',
->>>>>>> origin/flutterflow
                                                                             style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                   font: GoogleFonts.inter(
                                                                                     fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
@@ -1737,23 +1664,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
                                           children: [
-<<<<<<< HEAD
-                                            Container(
-                                              width: 150.0,
-                                              height: 150.0,
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                image: DecorationImage(
-                                                  fit: BoxFit.cover,
-                                                  image:
-                                                      safeImageProviderFromUrl(
-                                                    listViewStoriesRecord
-                                                        .mainImage,
-                                                  ),
-                                                  onError: (_, __) {},
-=======
                                             Stack(
                                               children: [
                                                 ClipRRect(
@@ -1766,7 +1676,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                     height: 150.0,
                                                     fit: BoxFit.cover,
                                                   ),
->>>>>>> origin/flutterflow
                                                 ),
                                                 Opacity(
                                                   opacity: 0.6,
@@ -1940,9 +1849,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                     child: Text(
                                                       listViewStoriesRecord
                                                           .title,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
                                                       style: FlutterFlowTheme
                                                               .of(context)
                                                           .bodyMedium
@@ -1981,7 +1887,7 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                     child: Text(
                                                       listViewStoriesRecord
                                                           .description,
-                                                      maxLines: 1,
+                                                      maxLines: 2,
                                                       style:
                                                           FlutterFlowTheme.of(
                                                                   context)
@@ -2107,18 +2013,19 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                           (context, snapshot) {
                                                         // Customize what your widget looks like when it's loading.
                                                         if (!snapshot.hasData) {
-                                                          return SizedBox(
-                                                            width: 14.0,
-                                                            height: 14.0,
-                                                            child:
-                                                                CircularProgressIndicator(
-                                                              strokeWidth: 2.0,
-                                                              valueColor:
-                                                                  AlwaysStoppedAnimation<
-                                                                      Color>(
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .primary,
+                                                          return Center(
+                                                            child: SizedBox(
+                                                              width: 50.0,
+                                                              height: 50.0,
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                valueColor:
+                                                                    AlwaysStoppedAnimation<
+                                                                        Color>(
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .primary,
+                                                                ),
                                                               ),
                                                             ),
                                                           );
@@ -2153,37 +2060,25 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                         .error,
                                                                     size: 18.0,
                                                                   ),
-                                                                  Expanded(
-                                                                    child:
-                                                                        Padding(
-                                                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                                                          3.0,
-                                                                          0.0,
-                                                                          0.0,
-                                                                          0.0),
-                                                                      child:
-                                                                          Text(
-                                                                        listViewStoriesRecord
-                                                                            .creatorNickname,
-                                                                        maxLines:
-                                                                            1,
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.inter(
-                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              color: FlutterFlowTheme.of(context).secondaryText,
-                                                                              letterSpacing: 0.0,
+                                                                  Padding(
+                                                                    padding: EdgeInsetsDirectional
+                                                                        .fromSTEB(
+                                                                            3.0,
+                                                                            0.0,
+                                                                            0.0,
+                                                                            0.0),
+                                                                    child: Text(
+                                                                      listViewStoriesRecord
+                                                                          .creatorNickname,
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.inter(
                                                                               fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
-<<<<<<< HEAD
-                                                                      ),
-=======
                                                                             color:
                                                                                 FlutterFlowTheme.of(context).warning,
                                                                             letterSpacing:
@@ -2193,7 +2088,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                             fontStyle:
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
->>>>>>> origin/flutterflow
                                                                     ),
                                                                   ),
                                                                 ],
@@ -2207,15 +2101,7 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                         -1.0,
                                                                         0.0),
                                                                 child: Text(
-<<<<<<< HEAD
-                                                                  '@${listViewStoriesRecord.creatorNickname}',
-                                                                  maxLines: 1,
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-=======
                                                                   '@ ${listViewStoriesRecord.creatorNickname}',
->>>>>>> origin/flutterflow
                                                                   style: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
@@ -2539,15 +2425,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                       width: 180.0,
                                                       height: 180.0,
                                                       fit: BoxFit.cover,
-<<<<<<< HEAD
-                                                      image:
-                                                          safeImageProviderFromUrl(
-                                                        gridViewStoriesRecord
-                                                            .mainImage,
-                                                      ),
-                                                      onError: (_, __) {},
-=======
->>>>>>> origin/flutterflow
                                                     ),
                                                   ),
                                                   Opacity(
@@ -2646,45 +2523,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                       ),
                                                     ),
                                                   ),
-<<<<<<< HEAD
-                                                ),
-                                                Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        gridViewStoriesRecord
-                                                            .title,
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .inter(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                              fontSize: 16.0,
-                                                              letterSpacing:
-                                                                  0.0,
-=======
                                                 ],
                                               ),
                                               Padding(
@@ -2708,7 +2546,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                           .override(
                                                             font: GoogleFonts
                                                                 .inter(
->>>>>>> origin/flutterflow
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w600,
@@ -2718,30 +2555,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                       .bodyMedium
                                                                       .fontStyle,
                                                             ),
-<<<<<<< HEAD
-                                                      ),
-                                                      Padding(
-                                                        padding:
-                                                            EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    0.0,
-                                                                    10.0,
-                                                                    0.0,
-                                                                    10.0),
-                                                        child: Text(
-                                                          gridViewStoriesRecord
-                                                              .description,
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                font:
-                                                                    GoogleFonts
-                                                                        .inter(
-=======
                                                             color: FlutterFlowTheme
                                                                     .of(context)
                                                                 .secondaryBackground,
@@ -2789,7 +2602,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                       .alternate,
                                                                   letterSpacing:
                                                                       0.0,
->>>>>>> origin/flutterflow
                                                                   fontWeight: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
@@ -2800,30 +2612,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                       .fontStyle,
                                                                 ),
                                                       ),
-<<<<<<< HEAD
-                                                      Align(
-                                                        alignment:
-                                                            AlignmentDirectional(
-                                                                -1.0, 0.0),
-                                                        child: StreamBuilder<
-                                                            UsersRecord>(
-                                                          stream: UsersRecord
-                                                              .getDocument(
-                                                                  gridViewStoriesRecord
-                                                                      .creatorRef!),
-                                                          builder: (context,
-                                                              snapshot) {
-                                                            // Customize what your widget looks like when it's loading.
-                                                            if (!snapshot
-                                                                .hasData) {
-                                                              return SizedBox(
-                                                                width: 14.0,
-                                                                height: 14.0,
-                                                                child:
-                                                                    CircularProgressIndicator(
-                                                                  strokeWidth:
-                                                                      2.0,
-=======
                                                     ),
                                                     Align(
                                                       alignment:
@@ -2846,7 +2634,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                 height: 50.0,
                                                                 child:
                                                                     CircularProgressIndicator(
->>>>>>> origin/flutterflow
                                                                   valueColor:
                                                                       AlwaysStoppedAnimation<
                                                                           Color>(
@@ -2862,86 +2649,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                           final columnUsersRecord =
                                                               snapshot.data!;
 
-<<<<<<< HEAD
-                                                            return Column(
-                                                              mainAxisSize:
-                                                                  MainAxisSize
-                                                                      .min,
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
-                                                              children: [
-                                                                if (columnUsersRecord
-                                                                        .isCreator ==
-                                                                    true)
-                                                                  Row(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    children: [
-                                                                      Icon(
-                                                                        Icons
-                                                                            .brightness_7_sharp,
-                                                                        color: FlutterFlowTheme.of(context)
-                                                                            .error,
-                                                                        size:
-                                                                            18.0,
-                                                                      ),
-                                                                      Expanded(
-                                                                        child:
-                                                                            Padding(
-                                                                          padding: EdgeInsetsDirectional.fromSTEB(
-                                                                              3.0,
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0),
-                                                                          child:
-                                                                              Text(
-                                                                            gridViewStoriesRecord.creatorNickname,
-                                                                            maxLines:
-                                                                                1,
-                                                                            overflow:
-                                                                                TextOverflow.ellipsis,
-                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                  font: GoogleFonts.inter(
-                                                                                    fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                  ),
-                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                if (columnUsersRecord
-                                                                        .isCreator ==
-                                                                    false)
-                                                                  Align(
-                                                                    alignment:
-                                                                        AlignmentDirectional(
-                                                                            -1.0,
-                                                                            0.0),
-                                                                    child: Text(
-                                                                      '@${gridViewStoriesRecord.creatorNickname}',
-                                                                      maxLines:
-                                                                          1,
-                                                                      overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
-                                                                      style: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .bodyMedium
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.inter(
-=======
                                                           return Column(
                                                             mainAxisSize:
                                                                 MainAxisSize
@@ -2989,7 +2696,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                               ),
                                                                               color: FlutterFlowTheme.of(context).warning,
                                                                               letterSpacing: 0.0,
->>>>>>> origin/flutterflow
                                                                               fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
@@ -3113,23 +2819,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.center,
                                               children: [
-<<<<<<< HEAD
-                                                Container(
-                                                  width: 150.0,
-                                                  height: 150.0,
-                                                  decoration: BoxDecoration(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .secondaryBackground,
-                                                    image: DecorationImage(
-                                                      fit: BoxFit.cover,
-                                                      image:
-                                                          safeImageProviderFromUrl(
-                                                        gridViewStoriesRecord
-                                                            .mainImage,
-                                                      ),
-                                                      onError: (_, __) {},
-=======
                                                 Stack(
                                                   children: [
                                                     ClipRRect(
@@ -3142,7 +2831,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                         height: 180.0,
                                                         fit: BoxFit.cover,
                                                       ),
->>>>>>> origin/flutterflow
                                                     ),
                                                     Opacity(
                                                       opacity: 0.5,
@@ -3257,33 +2945,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                       Text(
                                                         gridViewStoriesRecord
                                                             .title,
-<<<<<<< HEAD
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .inter(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                              fontSize: 16.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-=======
                                                         style:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -3311,7 +2972,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                       FontWeight
                                                                           .w600,
                                                                   fontStyle: FlutterFlowTheme.of(
->>>>>>> origin/flutterflow
                                                                           context)
                                                                       .bodyMedium
                                                                       .fontStyle,
@@ -3328,9 +2988,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                         child: Text(
                                                           gridViewStoriesRecord
                                                               .description,
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
                                                           style: FlutterFlowTheme
                                                                   .of(context)
                                                               .bodyMedium
@@ -3378,19 +3035,19 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                             // Customize what your widget looks like when it's loading.
                                                             if (!snapshot
                                                                 .hasData) {
-                                                              return SizedBox(
-                                                                width: 14.0,
-                                                                height: 14.0,
-                                                                child:
-                                                                    CircularProgressIndicator(
-                                                                  strokeWidth:
-                                                                      2.0,
-                                                                  valueColor:
-                                                                      AlwaysStoppedAnimation<
-                                                                          Color>(
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primary,
+                                                              return Center(
+                                                                child: SizedBox(
+                                                                  width: 50.0,
+                                                                  height: 50.0,
+                                                                  child:
+                                                                      CircularProgressIndicator(
+                                                                    valueColor:
+                                                                        AlwaysStoppedAnimation<
+                                                                            Color>(
+                                                                      FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .primary,
+                                                                    ),
                                                                   ),
                                                                 ),
                                                               );
@@ -3426,40 +3083,28 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                         size:
                                                                             18.0,
                                                                       ),
-                                                                      Expanded(
+                                                                      Padding(
+                                                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                                                            3.0,
+                                                                            0.0,
+                                                                            0.0,
+                                                                            0.0),
                                                                         child:
-                                                                            Padding(
-                                                                          padding: EdgeInsetsDirectional.fromSTEB(
-                                                                              3.0,
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0),
-                                                                          child:
-                                                                              Text(
-                                                                            gridViewStoriesRecord.creatorNickname,
-                                                                            maxLines:
-                                                                                1,
-                                                                            overflow:
-                                                                                TextOverflow.ellipsis,
-                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                  font: GoogleFonts.inter(
-                                                                                    fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                  ),
-                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                  letterSpacing: 0.0,
+                                                                            Text(
+                                                                          gridViewStoriesRecord
+                                                                              .creatorNickname,
+                                                                          style: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .override(
+                                                                                font: GoogleFonts.inter(
                                                                                   fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                   fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                 ),
-<<<<<<< HEAD
-                                                                          ),
-=======
                                                                                 color: FlutterFlowTheme.of(context).warning,
                                                                                 letterSpacing: 0.0,
                                                                                 fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
->>>>>>> origin/flutterflow
                                                                         ),
                                                                       ),
                                                                     ],
@@ -3474,11 +3119,6 @@ class _HomepageWidgetState extends State<HomepageWidget>
                                                                             0.0),
                                                                     child: Text(
                                                                       '@${gridViewStoriesRecord.creatorNickname}',
-                                                                      maxLines:
-                                                                          1,
-                                                                      overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .bodyMedium

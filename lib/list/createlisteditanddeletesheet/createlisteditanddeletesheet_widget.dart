@@ -27,16 +27,6 @@ class _CreatelisteditanddeletesheetWidgetState
     extends State<CreatelisteditanddeletesheetWidget> {
   late CreatelisteditanddeletesheetModel _model;
 
-  void _closeSheetIfPossible() {
-    if (!mounted) {
-      return;
-    }
-    final navigator = Navigator.maybeOf(context);
-    if (navigator != null && navigator.canPop()) {
-      navigator.pop();
-    }
-  }
-
   @override
   void setState(VoidCallback callback) {
     super.setState(callback);
@@ -60,49 +50,6 @@ class _CreatelisteditanddeletesheetWidgetState
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
-          child: FFButtonWidget(
-            onPressed: () async {
-              final rootContext = appNavigatorKey.currentContext;
-              _closeSheetIfPossible();
-              if (rootContext == null) {
-                return;
-              }
-
-              GoRouter.of(rootContext).pushNamed(
-                StorycreatepageWidget.routeName,
-                queryParameters: {
-                  'storyDoc': serializeParam(
-                    widget.storyDoc,
-                    ParamType.Document,
-                  ),
-                  'storyToEdit': serializeParam(
-                    widget.storyDoc,
-                    ParamType.Document,
-                  ),
-                }.withoutNulls,
-                extra: <String, dynamic>{
-                  'storyDoc': widget.storyDoc,
-                  'storyToEdit': widget.storyDoc,
-                },
-              );
-            },
-            text: '수정하기',
-            options: FFButtonOptions(
-              width: double.infinity,
-              height: 60.0,
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-              iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-              color: FlutterFlowTheme.of(context).secondaryBackground,
-              textStyle: FlutterFlowTheme.of(context).bodyLarge.override(
-                    font: GoogleFonts.plusJakartaSans(
-=======
     return Container(
       width: double.infinity,
       height: 180.0,
@@ -159,7 +106,6 @@ class _CreatelisteditanddeletesheetWidgetState
                       color: FlutterFlowTheme.of(context).secondaryBackground,
                       fontSize: 16.0,
                       letterSpacing: 0.0,
->>>>>>> origin/flutterflow
                       fontWeight: FontWeight.normal,
                       fontStyle:
                           FlutterFlowTheme.of(context).bodyLarge.fontStyle,
@@ -176,59 +122,6 @@ class _CreatelisteditanddeletesheetWidgetState
               ),
             ),
           ),
-<<<<<<< HEAD
-        ),
-        Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
-          child: FFButtonWidget(
-            onPressed: () async {
-              var confirmDialogResponse = await showDialog<bool>(
-                    context: context,
-                    builder: (alertDialogContext) {
-                      return AlertDialog(
-                        title: Text('삭제'),
-                        content: Text('정말 삭제하시겠습니까?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(alertDialogContext, false),
-                            child: Text('취소'),
-                          ),
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(alertDialogContext, true),
-                            child: Text('확인'),
-                          ),
-                        ],
-                      );
-                    },
-                  ) ??
-                  false;
-              if (confirmDialogResponse) {
-                try {
-                  final result =
-                      await FirebaseFunctions.instanceFor(region: 'us-central1')
-                          .httpsCallable('deleteStoryWithData')
-                          .call({
-                    "storyPath": widget.storyDoc!.reference.path,
-                  });
-                  _model.cloudFunction =
-                      DeleteStoryWithDataCloudFunctionCallResponse(
-                    data: result.data,
-                    succeeded: true,
-                    resultAsString: result.data.toString(),
-                    jsonBody: result.data,
-                  );
-                } on FirebaseFunctionsException catch (error) {
-                  _model.cloudFunction =
-                      DeleteStoryWithDataCloudFunctionCallResponse(
-                    errorCode: error.code,
-                    succeeded: false,
-                  );
-                }
-              }
-              _closeSheetIfPossible();
-=======
           Padding(
             padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
             child: FFButtonWidget(
@@ -280,7 +173,6 @@ class _CreatelisteditanddeletesheetWidgetState
                   }
                 }
                 Navigator.pop(context);
->>>>>>> origin/flutterflow
 
                 safeSetState(() {});
               },

@@ -24,6 +24,9 @@ Future<String> formatStoryTurnHeaderAndBg(
   var raw = scriptTags.replaceAll('\r\n', '\n').trim();
   if (raw.isEmpty) return raw;
 
+  // 사용하지 않아도 시그니처 호환을 위해 유지
+  backgrounds;
+
   // {user} 치환
   final u = (userName ?? '').trim();
   if (u.isNotEmpty) raw = raw.replaceAll('{user}', u);
@@ -36,51 +39,41 @@ Future<String> formatStoryTurnHeaderAndBg(
       )
       .trim();
 
-  // 배경 자산: place 이름 + url->place 맵
-  final bgNames = <String>{};
-  final bgUrlToName = <String, String>{};
-  if (backgrounds != null) {
-    for (final bg in backgrounds) {
-      final name = (bg.place).toString().trim();
-      final url = (bg.imageUrl).toString().trim();
-      if (name.isNotEmpty) bgNames.add(name);
-      if (name.isNotEmpty && url.isNotEmpty) bgUrlToName[url] = name;
-    }
-  }
-
-  // 조합 자산(능력/감정): PLACE__TAG 만 허용
-  final comboNames = <String>{};
+  // 조합 자산(능력/감정): tag + imageUrl 기준만 사용 (place 미사용)
+  final imageTags = <String>{};
   if (characters != null) {
     for (final c in characters) {
       for (final a in (c.abilityStruct ?? <AbilityStructStruct>[])) {
-        final place = (a.place).toString().trim();
         final tag = (a.ability).toString().trim();
         final url = (a.imageUrl).toString().trim();
-        if (place.isNotEmpty && tag.isNotEmpty && url.isNotEmpty) {
-          comboNames.add('${place}__${tag}');
+        if (tag.isNotEmpty && url.isNotEmpty) {
+          imageTags.add(tag);
         }
       }
       for (final e in (c.emotionStruct ?? <EmotionStructStruct>[])) {
-        final place = (e.place).toString().trim();
         final tag = (e.emotion).toString().trim();
         final url = (e.imageurl).toString().trim();
-        if (place.isNotEmpty && tag.isNotEmpty && url.isNotEmpty) {
-          comboNames.add('${place}__${tag}');
+        if (tag.isNotEmpty && url.isNotEmpty) {
+          imageTags.add(tag);
         }
       }
     }
   }
 
-  // 기존 메시지에서 마지막 배경 장소 추정
-  String? lastBgPlace;
+  String? _extractPlaceFromHeader(String text) {
+    final m = RegExp(r'\|\s*(.*?)\s*\]$').firstMatch(text.trim());
+    final place = (m?.group(1) ?? '').trim();
+    return place.isEmpty ? null : place;
+  }
+
+  // 기존 메시지에서 마지막 헤더 장소 추정
+  String? lastPlace;
   if (!isPrologue && existingMessages != null && existingMessages.isNotEmpty) {
     for (final msg in existingMessages.reversed) {
-      if (msg.type == 'story_image') {
-        final url = (msg.storyImageUrl).toString().trim();
-        if (url.isEmpty) continue;
-        final mapped = bgUrlToName[url];
-        if (mapped != null && mapped.isNotEmpty) {
-          lastBgPlace = mapped;
+      if (msg.type == 'turn_header') {
+        final parsed = _extractPlaceFromHeader(msg.text);
+        if (parsed != null) {
+          lastPlace = parsed;
           break;
         }
       }
@@ -105,7 +98,7 @@ Future<String> formatStoryTurnHeaderAndBg(
   if (tokens.isEmpty) {
     final now = DateTime.now();
     final dt = DateFormat('yyyy년 MM월 dd일 HH시 mm분', 'ko_KR').format(now);
-    final headerText = '[ $dt | ${lastBgPlace ?? '어딘가'} ]';
+    final headerText = '[ $dt | ${lastPlace ?? '어딘가'} ]';
     return '[TURN_HEADER]$headerText[/TURN_HEADER]\n[NARRATION]$raw[/NARRATION]';
   }
 
@@ -137,6 +130,15 @@ Future<String> formatStoryTurnHeaderAndBg(
         .replaceAll(RegExp(r'\[/?[A-Z_]+(?: [^\]]+)?\]'), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
+  }
+
+  String _normalizeImageTag(String cond) {
+    final trimmed = cond.trim();
+    if (trimmed.contains('__')) {
+      final parts = trimmed.split('__');
+      return parts.last.trim();
+    }
+    return trimmed;
   }
 
   // ✅ 장소 단독 NARRATION 판별(너무 길면 장소로 보지 않음 / 문장부호 있으면 제외)
@@ -181,32 +183,19 @@ Future<String> formatStoryTurnHeaderAndBg(
   final combinedTokenText =
       cleanedTokens.map(_tokenContent).where((e) => e.isNotEmpty).join('\n');
 
-  // AI가 요청한 bg 후보
-  String? requestedBg;
-  for (final t in cleanedTokens) {
-    final m = imgRe.firstMatch(t);
-    if (m == null) continue;
-    final cond = (m.group(1) ?? '').trim();
-    if (bgNames.contains(cond)) {
-      requestedBg = cond;
-      break;
-    }
-  }
-
   String? effectivePlace = thisPlace?.trim();
   if (!isPrologue &&
       effectivePlace != null &&
       effectivePlace.isNotEmpty &&
-      lastBgPlace != null &&
-      lastBgPlace.isNotEmpty &&
-      effectivePlace != lastBgPlace &&
+      lastPlace != null &&
+      lastPlace.isNotEmpty &&
+      effectivePlace != lastPlace &&
       !_hasTransitionCue(combinedTokenText)) {
-    effectivePlace = lastBgPlace;
+    effectivePlace = lastPlace;
   }
 
   // 헤더 장소
-  final placeForHeader =
-      (effectivePlace ?? requestedBg ?? lastBgPlace ?? '어딘가').trim();
+  final placeForHeader = (effectivePlace ?? lastPlace ?? '어딘가').trim();
 
   String sanitizePlace(String p) {
     var x = p.trim();
@@ -220,31 +209,9 @@ Future<String> formatStoryTurnHeaderAndBg(
   final safePlace =
       sanitizePlace(safePlaceRaw).isEmpty ? '어딘가' : sanitizePlace(safePlaceRaw);
 
-  // 배경 후보는 헤더 장소와 동일할 때만
-  String? bgCandidate;
-  if (effectivePlace != null && effectivePlace.isNotEmpty) {
-    bgCandidate = bgNames.contains(safePlace) ? safePlace : null;
-  } else {
-    bgCandidate = (requestedBg != null && bgNames.contains(requestedBg!))
-        ? requestedBg
-        : null;
-  }
-
-  // 배경 허용: 장소 변경 시 1개
-  final shouldShowBg = (() {
-    if (bgCandidate == null || bgCandidate!.isEmpty) return false;
-    if (isPrologue) return true;
-    if (lastBgPlace == null || lastBgPlace!.isEmpty) return true;
-    return bgCandidate != lastBgPlace;
-  })();
-
-  final bgToShow = shouldShowBg ? bgCandidate : null;
-
   // SHOW_IMAGE 필터
   final filtered = <String>[];
-  bool keptBg = false;
-  int keptCombo = 0;
-  final keptComboSet = <String>{};
+  final keptImageTags = <String>{};
   int keptOther = 0;
   final keptOtherSet = <String>{};
 
@@ -252,11 +219,11 @@ Future<String> formatStoryTurnHeaderAndBg(
     final m = imgRe.firstMatch(t);
     if (m != null) {
       final cond = (m.group(1) ?? '').trim();
+      final normalizedTag = _normalizeImageTag(cond);
 
-      final isBg = bgNames.contains(cond);
-      final isCombo = comboNames.contains(cond);
+      final isImageTag = imageTags.contains(normalizedTag);
 
-      if (!isBg && !isCombo) {
+      if (!isImageTag) {
         // 이벤트 같은 "기타"는 1개만 허용
         if (keptOther >= 1) continue;
         if (keptOtherSet.contains(cond)) continue;
@@ -266,32 +233,15 @@ Future<String> formatStoryTurnHeaderAndBg(
         continue;
       }
 
-      if (isBg) {
-        if (bgToShow == null) continue;
-        if (cond != bgToShow) continue;
-        if (keptBg) continue;
-        keptBg = true;
-        filtered.add(t);
-        continue;
-      }
-
-      // 조합(능력/감정) 최대 2개
-      if (keptComboSet.contains(cond)) continue;
-      if (keptCombo >= 2) continue;
-      keptComboSet.add(cond);
-      keptCombo++;
-      filtered.add(t);
+      // 능력/감정 태그는 최대 2개, 중복 금지, place 접두어 제거한 canonical 태그로 통일
+      if (keptImageTags.contains(normalizedTag)) continue;
+      if (keptImageTags.length >= 2) continue;
+      keptImageTags.add(normalizedTag);
+      filtered.add('[SHOW_IMAGE="$normalizedTag"]');
       continue;
     }
 
     filtered.add(t);
-  }
-
-  // 배경 자동 삽입
-  if (bgToShow != null && bgToShow.isNotEmpty) {
-    final tag = '[SHOW_IMAGE="$bgToShow"]';
-    final exists = filtered.any((x) => x.trim() == tag);
-    if (!exists) filtered.insert(0, tag);
   }
 
   // 헤더

@@ -61,12 +61,6 @@ class _PlacestructWidgetState extends State<PlacestructWidget> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
-<<<<<<< HEAD
-            child: safeNetworkImage(
-              imageUrl: functions.stringToImagePath(widget.item?.imageUrl),
-              width: 80.0,
-              height: 80.0,
-=======
             child: Image.network(
               valueOrDefault<String>(
                 functions.stringToImagePath(widget.item?.imageUrl),
@@ -74,7 +68,6 @@ class _PlacestructWidgetState extends State<PlacestructWidget> {
               ),
               width: 150.0,
               height: 150.0,
->>>>>>> origin/flutterflow
               fit: BoxFit.cover,
             ),
           ),
