@@ -81,7 +81,7 @@ class _EmotionstructWidgetState extends State<EmotionstructWidget> {
                 safeSetState(() => _model.emotiontagDropDownValue = val);
                 FFAppState().emotions = functions
                     .updateEmotionTagByUrl(FFAppState().emotions.toList(),
-                        widget.item!.imageurl, widget.item!.emotion)
+                        widget.item!.imageurl, val ?? '')
                     .toList()
                     .cast<EmotionStructStruct>();
                 safeSetState(() {});

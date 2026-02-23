@@ -233,6 +233,22 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               ParamType.String,
               isList: true,
             ),
+            initialCharName: params.getParam(
+              'initialCharName',
+              ParamType.String,
+            ),
+            initialCharSetting: params.getParam(
+              'initialCharSetting',
+              ParamType.String,
+            ),
+            initialCharAbility: params.getParam(
+              'initialCharAbility',
+              ParamType.String,
+            ),
+            initialCharIntroduce: params.getParam(
+              'initialCharIntroduce',
+              ParamType.String,
+            ),
           ),
         ),
         FFRoute(
@@ -249,23 +265,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               ParamType.String,
               isList: true,
             ),
-            placeTags: params.getParam<String>(
-              'placeTags',
-              ParamType.String,
-              isList: true,
-            ),
           ),
         ),
         FFRoute(
           name: EmotionimagelistWidget.routeName,
           path: EmotionimagelistWidget.routePath,
-          builder: (context, params) => EmotionimagelistWidget(
-            placeTags: params.getParam<String>(
-              'placeTags',
-              ParamType.String,
-              isList: true,
-            ),
-          ),
+          builder: (context, params) => EmotionimagelistWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

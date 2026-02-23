@@ -78,12 +78,12 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
                   FormFieldController<String>(
                 _model.abilitytagDropDownValue ??= widget.item?.ability,
               ),
-              options: widget.abilityTags!,
+              options: widget.abilityTags ?? const [],
               onChanged: (val) async {
                 safeSetState(() => _model.abilitytagDropDownValue = val);
                 FFAppState().Abilities = functions
                     .updateAbilityTagByUrl(FFAppState().Abilities.toList(),
-                        widget.item!.imageUrl, widget.item!.ability)
+                        widget.item!.imageUrl, val ?? '')
                     .toList()
                     .cast<AbilityStructStruct>();
                 safeSetState(() {});

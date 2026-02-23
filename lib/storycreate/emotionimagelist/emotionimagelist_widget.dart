@@ -1,23 +1,21 @@
 import '/backend/backend.dart';
+import '/backend/firebase_storage/storage.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/flutter_flow/upload_data.dart';
 import '/storycreate/emotionstruct/emotionstruct_widget.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'emotionimagelist_model.dart';
 export 'emotionimagelist_model.dart';
 
 class EmotionimagelistWidget extends StatefulWidget {
-  const EmotionimagelistWidget({
-    super.key,
-    this.placeTags,
-  });
-
-  final List<String>? placeTags;
+  const EmotionimagelistWidget({super.key});
 
   static String routeName = 'emotionimagelist';
   static String routePath = '/emotionimagelist';
@@ -46,8 +44,69 @@ class _EmotionimagelistWidgetState extends State<EmotionimagelistWidget> {
     super.dispose();
   }
 
+  Future<void> _uploadAndAddEmotionImage() async {
+    final selectedMedia = await selectMediaWithSourceBottomSheet(
+      context: context,
+      allowPhoto: true,
+    );
+    if (selectedMedia == null ||
+        !selectedMedia
+            .every((m) => validateFileFormat(m.storagePath, context))) {
+      return;
+    }
+
+    safeSetState(() => _model.isDataUploading_uploademotion = true);
+    var selectedUploadedFiles = <FFUploadedFile>[];
+    var downloadUrls = <String>[];
+
+    try {
+      selectedUploadedFiles = selectedMedia
+          .map((m) => FFUploadedFile(
+                name: m.storagePath.split('/').last,
+                bytes: m.bytes,
+                height: m.dimensions?.height,
+                width: m.dimensions?.width,
+                blurHash: m.blurHash,
+                originalFilename: m.originalFilename,
+              ))
+          .toList();
+
+      downloadUrls = (await Future.wait(
+        selectedMedia.map(
+          (m) async => await uploadData(m.storagePath, m.bytes),
+        ),
+      ))
+          .where((u) => u != null)
+          .map((u) => u!)
+          .toList();
+    } finally {
+      _model.isDataUploading_uploademotion = false;
+    }
+
+    if (selectedUploadedFiles.length != selectedMedia.length ||
+        downloadUrls.length != selectedMedia.length) {
+      safeSetState(() {});
+      return;
+    }
+
+    safeSetState(() {
+      _model.uploadedLocalFile_uploademotion = selectedUploadedFiles.first;
+      _model.uploadedFileUrl_uploademotion = downloadUrls.first;
+    });
+
+    FFAppState().addToEmotions(
+      EmotionStructStruct(
+        emotion: '',
+        imageurl: _model.uploadedFileUrl_uploademotion,
+      ),
+    );
+    safeSetState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -104,10 +163,19 @@ class _EmotionimagelistWidgetState extends State<EmotionimagelistWidget> {
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  FaIcon(
-                    FontAwesomeIcons.images,
-                    color: FlutterFlowTheme.of(context).primaryBackground,
-                    size: 20.0,
+                  InkWell(
+                    splashColor: Colors.transparent,
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onTap: () async {
+                      await _uploadAndAddEmotionImage();
+                    },
+                    child: FaIcon(
+                      FontAwesomeIcons.images,
+                      color: FlutterFlowTheme.of(context).primaryBackground,
+                      size: 20.0,
+                    ),
                   ),
                 ],
               ),
@@ -119,27 +187,35 @@ class _EmotionimagelistWidgetState extends State<EmotionimagelistWidget> {
         body: SafeArea(
           top: true,
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(20.0, 20.0, 20.0, 0.0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
                 Expanded(
-                  child: GridView(
-                    padding: EdgeInsets.zero,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 15.0,
-                      mainAxisSpacing: 15.0,
-                      childAspectRatio: 0.85,
-                    ),
-                    scrollDirection: Axis.vertical,
-                    children: [
-                      wrapWithModel(
-                        model: _model.emotionstructModel,
-                        updateCallback: () => safeSetState(() {}),
-                        child: EmotionstructWidget(),
-                      ),
-                    ],
+                  child: Builder(
+                    builder: (context) {
+                      final emotionitem = FFAppState().emotions.toList();
+
+                      return GridView.builder(
+                        padding: EdgeInsets.zero,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 20.0,
+                          mainAxisSpacing: 20.0,
+                          childAspectRatio: 0.7,
+                        ),
+                        scrollDirection: Axis.vertical,
+                        itemCount: emotionitem.length,
+                        itemBuilder: (context, emotionitemIndex) {
+                          final emotionitemItem = emotionitem[emotionitemIndex];
+                          return EmotionstructWidget(
+                            key: Key(
+                                'Keyqe4_${emotionitemIndex}_of_${emotionitem.length}'),
+                            item: emotionitemItem,
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
                 Align(
@@ -208,8 +284,8 @@ class _EmotionimagelistWidgetState extends State<EmotionimagelistWidget> {
                             ),
                           ),
                           FFButtonWidget(
-                            onPressed: () {
-                              print('emotionuploadbutton pressed ...');
+                            onPressed: () async {
+                              await _uploadAndAddEmotionImage();
                             },
                             text: '업로드',
                             options: FFButtonOptions(

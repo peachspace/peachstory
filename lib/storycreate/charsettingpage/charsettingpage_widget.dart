@@ -23,6 +23,10 @@ class CharsettingpageWidget extends StatefulWidget {
     int? editIndex,
     this.storyContext,
     this.placeTags,
+    this.initialCharName,
+    this.initialCharSetting,
+    this.initialCharAbility,
+    this.initialCharIntroduce,
   })  : this.isEdit = isEdit ?? false,
         this.editIndex = editIndex ?? 0;
 
@@ -30,6 +34,10 @@ class CharsettingpageWidget extends StatefulWidget {
   final int editIndex;
   final String? storyContext;
   final List<String>? placeTags;
+  final String? initialCharName;
+  final String? initialCharSetting;
+  final String? initialCharAbility;
+  final String? initialCharIntroduce;
 
   static String routeName = 'charsettingpage';
   static String routePath = '/charsettingpage';
@@ -53,41 +61,55 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      final defaultChar = CharacterStructStruct(
+        name: '',
+        setting: '',
+        introduce: '',
+        seed: 0,
+        profileimage: '',
+        emotionStruct: functions.getEmptyEmotionList(),
+        basePrompt: '',
+        abilityStruct: functions.getEmptyabilityList(),
+        appearance: '',
+        ability: '',
+      );
       if (widget.isEdit == true) {
         _model.editchar =
-            FFAppState().Characters.elementAtOrNull(widget.editIndex);
-        safeSetState(() {});
+            FFAppState().Characters.elementAtOrNull(widget.editIndex) ??
+                defaultChar;
       } else {
         _model.editchar = CharacterStructStruct(
-          name: '\' \'',
-          setting: '\' \'',
-          introduce: '\' \'',
+          name: (widget.initialCharName ?? '').trim(),
+          setting: (widget.initialCharSetting ?? '').trim(),
+          introduce: (widget.initialCharIntroduce ?? '').trim(),
           seed: 0,
-          profileimage: '\' \'',
+          profileimage: '',
           emotionStruct: functions.getEmptyEmotionList(),
-          basePrompt: '\' \'',
+          basePrompt: '',
           abilityStruct: functions.getEmptyabilityList(),
-          appearance: '\' \'',
-          ability: '\' \'',
+          appearance: '',
+          ability: (widget.initialCharAbility ?? '').trim(),
         );
-        safeSetState(() {});
       }
+
+      _model.charNameTextController?.text = _model.editchar?.name ?? '';
+      _model.charSettingTextController?.text = _model.editchar?.setting ?? '';
+      _model.charabilityTextController?.text = _model.editchar?.ability ?? '';
+      _model.charintroduceTextController?.text =
+          _model.editchar?.introduce ?? '';
+      safeSetState(() {});
     });
 
-    _model.charNameTextController ??=
-        TextEditingController(text: _model.editchar?.name);
+    _model.charNameTextController ??= TextEditingController();
     _model.charNameFocusNode ??= FocusNode();
 
-    _model.charSettingTextController ??=
-        TextEditingController(text: _model.editchar?.setting);
+    _model.charSettingTextController ??= TextEditingController();
     _model.charSettingFocusNode ??= FocusNode();
 
-    _model.charabilityTextController ??=
-        TextEditingController(text: _model.editchar?.ability);
+    _model.charabilityTextController ??= TextEditingController();
     _model.charabilityFocusNode ??= FocusNode();
 
-    _model.charintroduceTextController ??=
-        TextEditingController(text: _model.editchar?.introduce);
+    _model.charintroduceTextController ??= TextEditingController();
     _model.charintroduceFocusNode ??= FocusNode();
 
     animationsMap.addAll({
@@ -115,6 +137,21 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
     _model.dispose();
 
     super.dispose();
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(
+            color: FlutterFlowTheme.of(context).secondaryText,
+          ),
+        ),
+        duration: const Duration(milliseconds: 2200),
+        backgroundColor: FlutterFlowTheme.of(context).info,
+      ),
+    );
   }
 
   @override
@@ -1043,6 +1080,15 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                           ),
                                           FFButtonWidget(
                                             onPressed: () async {
+                                              if (_model
+                                                  .charabilityTextController
+                                                  .text
+                                                  .trim()
+                                                  .isEmpty) {
+                                                _showMessage(
+                                                    '캐릭터능력을 먼저 입력해주세요.');
+                                                return;
+                                              }
                                               FFAppState().emotions = _model
                                                   .editchar!.emotionStruct
                                                   .toList()
@@ -1052,13 +1098,6 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                               context.pushNamed(
                                                 EmotionimagelistWidget
                                                     .routeName,
-                                                queryParameters: {
-                                                  'placeTags': serializeParam(
-                                                    widget.placeTags,
-                                                    ParamType.String,
-                                                    isList: true,
-                                                  ),
-                                                }.withoutNulls,
                                               );
                                             },
                                             text: '',
@@ -1176,6 +1215,15 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             ),
                                             FFButtonWidget(
                                               onPressed: () async {
+                                                if (_model
+                                                    .charabilityTextController
+                                                    .text
+                                                    .trim()
+                                                    .isEmpty) {
+                                                  _showMessage(
+                                                      '캐릭터능력을 먼저 입력해주세요.');
+                                                  return;
+                                                }
                                                 FFAppState().Abilities = _model
                                                     .editchar!.abilityStruct
                                                     .toList()
@@ -1194,11 +1242,6 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                                               _model
                                                                   .charabilityTextController
                                                                   .text),
-                                                      ParamType.String,
-                                                      isList: true,
-                                                    ),
-                                                    'placeTags': serializeParam(
-                                                      widget.placeTags,
                                                       ParamType.String,
                                                       isList: true,
                                                     ),

@@ -18,11 +18,9 @@ class AbilityimagelistWidget extends StatefulWidget {
   const AbilityimagelistWidget({
     super.key,
     this.abilityTags,
-    this.placeTags,
   });
 
   final List<String>? abilityTags;
-  final List<String>? placeTags;
 
   static String routeName = 'abilityimagelist';
   static String routePath = '/abilityimagelist';
@@ -49,6 +47,65 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
     _model.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _uploadAndAddAbilityImage() async {
+    final selectedMedia = await selectMediaWithSourceBottomSheet(
+      context: context,
+      allowPhoto: true,
+    );
+    if (selectedMedia == null ||
+        !selectedMedia
+            .every((m) => validateFileFormat(m.storagePath, context))) {
+      return;
+    }
+
+    safeSetState(() => _model.isDataUploading_uploadability = true);
+    var selectedUploadedFiles = <FFUploadedFile>[];
+    var downloadUrls = <String>[];
+
+    try {
+      selectedUploadedFiles = selectedMedia
+          .map((m) => FFUploadedFile(
+                name: m.storagePath.split('/').last,
+                bytes: m.bytes,
+                height: m.dimensions?.height,
+                width: m.dimensions?.width,
+                blurHash: m.blurHash,
+                originalFilename: m.originalFilename,
+              ))
+          .toList();
+
+      downloadUrls = (await Future.wait(
+        selectedMedia.map(
+          (m) async => await uploadData(m.storagePath, m.bytes),
+        ),
+      ))
+          .where((u) => u != null)
+          .map((u) => u!)
+          .toList();
+    } finally {
+      _model.isDataUploading_uploadability = false;
+    }
+
+    if (selectedUploadedFiles.length != selectedMedia.length ||
+        downloadUrls.length != selectedMedia.length) {
+      safeSetState(() {});
+      return;
+    }
+
+    safeSetState(() {
+      _model.uploadedLocalFile_uploadability = selectedUploadedFiles.first;
+      _model.uploadedFileUrl_uploadability = downloadUrls.first;
+    });
+
+    FFAppState().addToAbilities(
+      AbilityStructStruct(
+        ability: '',
+        imageUrl: _model.uploadedFileUrl_uploadability,
+      ),
+    );
+    safeSetState(() {});
   }
 
   @override
@@ -117,66 +174,7 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onTap: () async {
-                      final selectedMedia =
-                          await selectMediaWithSourceBottomSheet(
-                        context: context,
-                        allowPhoto: true,
-                      );
-                      if (selectedMedia != null &&
-                          selectedMedia.every((m) =>
-                              validateFileFormat(m.storagePath, context))) {
-                        safeSetState(() =>
-                            _model.isDataUploading_uploadabilityimage = true);
-                        var selectedUploadedFiles = <FFUploadedFile>[];
-
-                        var downloadUrls = <String>[];
-                        try {
-                          selectedUploadedFiles = selectedMedia
-                              .map((m) => FFUploadedFile(
-                                    name: m.storagePath.split('/').last,
-                                    bytes: m.bytes,
-                                    height: m.dimensions?.height,
-                                    width: m.dimensions?.width,
-                                    blurHash: m.blurHash,
-                                    originalFilename: m.originalFilename,
-                                  ))
-                              .toList();
-
-                          downloadUrls = (await Future.wait(
-                            selectedMedia.map(
-                              (m) async =>
-                                  await uploadData(m.storagePath, m.bytes),
-                            ),
-                          ))
-                              .where((u) => u != null)
-                              .map((u) => u!)
-                              .toList();
-                        } finally {
-                          _model.isDataUploading_uploadabilityimage = false;
-                        }
-                        if (selectedUploadedFiles.length ==
-                                selectedMedia.length &&
-                            downloadUrls.length == selectedMedia.length) {
-                          safeSetState(() {
-                            _model.uploadedLocalFile_uploadabilityimage =
-                                selectedUploadedFiles.first;
-                            _model.uploadedFileUrl_uploadabilityimage =
-                                downloadUrls.first;
-                          });
-                        } else {
-                          safeSetState(() {});
-                          return;
-                        }
-                      }
-
-                      _model.addToAbilities(AbilityStructStruct(
-                        ability: '\' \'',
-                        imageUrl: _model.uploadedFileUrl_uploadabilityimage,
-                      ));
-                      safeSetState(() {});
-                      FFAppState().Abilities =
-                          _model.abilities.toList().cast<AbilityStructStruct>();
-                      safeSetState(() {});
+                      await _uploadAndAddAbilityImage();
                     },
                     child: FaIcon(
                       FontAwesomeIcons.images,
@@ -293,66 +291,7 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                           ),
                           FFButtonWidget(
                             onPressed: () async {
-                              final selectedMedia =
-                                  await selectMediaWithSourceBottomSheet(
-                                context: context,
-                                allowPhoto: true,
-                              );
-                              if (selectedMedia != null &&
-                                  selectedMedia.every((m) => validateFileFormat(
-                                      m.storagePath, context))) {
-                                safeSetState(() => _model
-                                    .isDataUploading_uploadability = true);
-                                var selectedUploadedFiles = <FFUploadedFile>[];
-
-                                var downloadUrls = <String>[];
-                                try {
-                                  selectedUploadedFiles = selectedMedia
-                                      .map((m) => FFUploadedFile(
-                                            name: m.storagePath.split('/').last,
-                                            bytes: m.bytes,
-                                            height: m.dimensions?.height,
-                                            width: m.dimensions?.width,
-                                            blurHash: m.blurHash,
-                                            originalFilename:
-                                                m.originalFilename,
-                                          ))
-                                      .toList();
-
-                                  downloadUrls = (await Future.wait(
-                                    selectedMedia.map(
-                                      (m) async => await uploadData(
-                                          m.storagePath, m.bytes),
-                                    ),
-                                  ))
-                                      .where((u) => u != null)
-                                      .map((u) => u!)
-                                      .toList();
-                                } finally {
-                                  _model.isDataUploading_uploadability = false;
-                                }
-                                if (selectedUploadedFiles.length ==
-                                        selectedMedia.length &&
-                                    downloadUrls.length ==
-                                        selectedMedia.length) {
-                                  safeSetState(() {
-                                    _model.uploadedLocalFile_uploadability =
-                                        selectedUploadedFiles.first;
-                                    _model.uploadedFileUrl_uploadability =
-                                        downloadUrls.first;
-                                  });
-                                } else {
-                                  safeSetState(() {});
-                                  return;
-                                }
-                              }
-
-                              FFAppState().addToAbilities(AbilityStructStruct(
-                                ability: '',
-                                imageUrl:
-                                    _model.uploadedFileUrl_uploadabilityimage,
-                              ));
-                              safeSetState(() {});
+                              await _uploadAndAddAbilityImage();
                             },
                             text: '업로드',
                             options: FFButtonOptions(

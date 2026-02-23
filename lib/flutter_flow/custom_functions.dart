@@ -91,8 +91,8 @@ String buildStoryPrompt(
   final bgBlock = bgSet.isEmpty ? '없음' : bgSet.join(', ');
 
   // -------------------------
-  // Ability/Emotion 조합 자산 수집
-  // - 형식: PLACE__TAG
+  // Ability/Emotion 자산 수집
+  // - 형식: TAG
   // -------------------------
   final abilityComboSet = <String>{};
   final emotionComboSet = <String>{};
@@ -114,11 +114,10 @@ String buildStoryPrompt(
 
     for (final it in abilityList) {
       final im = _toMap(it);
-      final place = _pickStr(im, ['place', 'placeName']);
       final tag = _pickStr(im, ['ability', 'condition']);
       final url = _pickStr(im, ['imageUrl', 'imageurl', 'imageURL']);
-      if (place.isNotEmpty && tag.isNotEmpty && url.isNotEmpty) {
-        abilityComboSet.add('${place}__${tag}');
+      if (tag.isNotEmpty && url.isNotEmpty) {
+        abilityComboSet.add(tag);
       }
     }
 
@@ -131,12 +130,11 @@ String buildStoryPrompt(
     final emoTagSet = <String>{};
     for (final it in emotionList) {
       final em = _toMap(it);
-      final place = _pickStr(em, ['place', 'placeName']);
       final tag = _pickStr(em, ['emotion']);
       final url = _pickStr(em, ['imageurl', 'imageUrl', 'imageURL']);
       if (tag.isNotEmpty) emoTagSet.add(tag);
-      if (place.isNotEmpty && tag.isNotEmpty && url.isNotEmpty) {
-        emotionComboSet.add('${place}__${tag}');
+      if (tag.isNotEmpty && url.isNotEmpty) {
+        emotionComboSet.add(tag);
       }
     }
 
@@ -208,10 +206,10 @@ $characterBlock
 [자산 목록(=이미지로 보여줄 수 있는 태그 목록)]
 배경자산(장소 배경): $bgBlock
 
-능력자산(장소__능력):
+능력자산(능력태그):
 $abilityAssetBlock
 
-감정자산(장소__감정):
+감정자산(감정태그):
 $emotionAssetBlock
 
 이벤트자산:
@@ -226,7 +224,7 @@ $eventAssetBlock
 - 장소를 바꿀 때는 "주요 장소"에 있는 이름을 우선 사용해라.
 - 장소가 배경자산에 없어도 __PLACE__에는 사용할 수 있다.
   단, 배경자산에 없는 장소는 배경 SHOW_IMAGE를 출력하지 마라.
-- 능력자산/감정자산은 반드시 "장소__태그"가 정확히 일치할 때만 사용해라.
+- 능력자산/감정자산은 반드시 "태그"가 정확히 일치할 때만 사용해라.
 - 이벤트자산은 "정확히 그 순간"에만 사용해라(미리 쓰지 마라).
 - 모든 캐릭터를 체크리스트처럼 순서대로 한 번씩 말시키지 마라.
 
@@ -247,8 +245,8 @@ $eventAssetBlock
 중요 규칙:
 1) "자산이름"은 아래 목록 중 하나와 “완전 동일”해야만 한다.
    - 배경자산(장소명)
-   - 능력자산(장소__능력)
-   - 감정자산(장소__감정)
+   - 능력자산(능력태그)
+   - 감정자산(감정태그)
    - 이벤트자산(이벤트 태그)
 2) 배경 규칙:
    - 장소가 바뀌었고, 새 장소가 배경자산에 있으면
@@ -256,11 +254,11 @@ $eventAssetBlock
    - 장소가 바뀌었지만 배경자산에 없으면
      배경 SHOW_IMAGE는 출력하지 말고 __PLACE__만 갱신하라.
 3) 능력 규칙:
-   - 현재 장소가 PLACE이고, 행동/상황이 ABILITY와 정확히 일치할 때만
-     [SHOW_IMAGE="PLACE__ABILITY"]를 상단에 1번 출력하라.
+   - 행동/상황이 ABILITY와 정확히 일치할 때만
+     [SHOW_IMAGE="ABILITY"]를 상단에 1번 출력하라.
 4) 감정 규칙:
-   - 현재 장소가 PLACE이고, 감정이 EMOTION과 정확히 일치할 때만
-     [SHOW_IMAGE="PLACE__EMOTION"]을 상단에 1번 출력하라.
+   - 감정이 EMOTION과 정확히 일치할 때만
+     [SHOW_IMAGE="EMOTION"]을 상단에 1번 출력하라.
 5) 이벤트 규칙(가장 중요):
    - "지금 이 순간이 그 이벤트"일 때만 [SHOW_IMAGE="EVENT_TAG"]를 1번 출력하라.
    - 절대 미리 출력하지 마라.
