@@ -59,7 +59,7 @@ class _StoryusernameentercomponentWidgetState
       width: 250.0,
       height: 150.0,
       decoration: BoxDecoration(
-        color: Color(0xFFFFF8F9),
+        color: FlutterFlowTheme.of(context).secondaryText,
         borderRadius: BorderRadius.circular(15.0),
       ),
       child: Column(
@@ -76,7 +76,7 @@ class _StoryusernameentercomponentWidgetState
                       fontStyle:
                           FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                     ),
-                    color: FlutterFlowTheme.of(context).tertiary,
+                    color: FlutterFlowTheme.of(context).primaryBackground,
                     fontSize: 15.0,
                     letterSpacing: 0.0,
                     fontWeight: FontWeight.w600,
@@ -86,93 +86,73 @@ class _StoryusernameentercomponentWidgetState
             ),
           ),
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 5.0, 0.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(5.0, 0.0, 0.0, 0.0),
-                    child: Container(
-                      width: 180.0,
-                      child: TextFormField(
-                        controller: _model.usernameTextFieldTextController,
-                        focusNode: _model.usernameTextFieldFocusNode,
-                        autofocus: false,
-                        obscureText: false,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          labelStyle:
-                              FlutterFlowTheme.of(context).labelMedium.override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .fontStyle,
-                                    ),
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .labelMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .labelMedium
-                                        .fontStyle,
-                                  ),
-                          hintText: '이름을 입력하세요...',
-                          hintStyle:
-                              FlutterFlowTheme.of(context).labelMedium.override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .fontStyle,
-                                    ),
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .labelMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .labelMedium
-                                        .fontStyle,
-                                  ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context).alternate,
-                              width: 1.0,
+            padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5.0),
+                border: Border.all(
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                ),
+              ),
+              child: Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 5.0, 0.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        child: TextFormField(
+                          controller: _model.usernameTextFieldTextController,
+                          focusNode: _model.usernameTextFieldFocusNode,
+                          autofocus: false,
+                          enabled: false,
+                          obscureText: false,
+                          decoration: InputDecoration(
+                            isDense: false,
+                            hintText: '이름을 입력하세요...',
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0x00000000),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(5.0),
                             ),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0x00000000),
-                              width: 1.0,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0x00000000),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(5.0),
                             ),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0x00000000),
-                              width: 1.0,
+                            errorBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0x00000000),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(5.0),
                             ),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0x00000000),
-                              width: 1.0,
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0x00000000),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(5.0),
                             ),
-                            borderRadius: BorderRadius.circular(10.0),
                           ),
-                          filled: true,
-                          fillColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
-                        ),
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              font: GoogleFonts.inter(
+                          style: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .override(
+                                font: GoogleFonts.inter(
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                                color: FlutterFlowTheme.of(context).alternate,
+                                letterSpacing: 0.0,
                                 fontWeight: FlutterFlowTheme.of(context)
                                     .bodyMedium
                                     .fontWeight,
@@ -180,58 +160,39 @@ class _StoryusernameentercomponentWidgetState
                                     .bodyMedium
                                     .fontStyle,
                               ),
-                              letterSpacing: 0.0,
-                              fontWeight: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontWeight,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
-                        maxLength: 30,
-                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                        buildCounter: (context,
-                                {required currentLength,
-                                required isFocused,
-                                maxLength}) =>
-                            null,
-                        cursorColor: FlutterFlowTheme.of(context).primaryText,
-                        validator: _model
-                            .usernameTextFieldTextControllerValidator
-                            .asValidator(context),
+                          maxLength: 30,
+                          maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                          buildCounter: (context,
+                                  {required currentLength,
+                                  required isFocused,
+                                  maxLength}) =>
+                              null,
+                          cursorColor: FlutterFlowTheme.of(context).alternate,
+                          enableInteractiveSelection: false,
+                          validator: _model
+                              .usernameTextFieldTextControllerValidator
+                              .asValidator(context),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                FlutterFlowIconButton(
-                  borderRadius: 100.0,
-                  buttonSize: 40.0,
-                  fillColor: Color(0xFFFFF8F9),
-                  icon: Icon(
-                    Icons.check_circle,
-                    color: FlutterFlowTheme.of(context).primaryText,
-                    size: 24.0,
-                  ),
-                  showLoadingIndicator: true,
-                  onPressed: () async {
-                    FFAppState().storyUserName =
-                        _model.usernameTextFieldTextController.text;
-                    safeSetState(() {});
+                    FlutterFlowIconButton(
+                      borderRadius: 100.0,
+                      buttonSize: 40.0,
+                      icon: Icon(
+                        Icons.check_sharp,
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                        size: 24.0,
+                      ),
+                      showLoadingIndicator: true,
+                      onPressed: () async {
+                        FFAppState().storyUserName =
+                            _model.usernameTextFieldTextController.text;
+                        safeSetState(() {});
 
-                    var storychatsRecordReference =
-                        StorychatsRecord.collection.doc();
-                    await storychatsRecordReference
-                        .set(createStorychatsRecordData(
-                      storyRef: widget.storydoc?.reference,
-                      userRef: currentUserReference,
-                      userInChatName:
-                          _model.usernameTextFieldTextController.text,
-                      selectedAiModel: 'gemini-2.5-pro',
-                      creatorRef: widget.storydoc?.creatorRef,
-                      isNovelMode: widget.novelmode,
-                    ));
-                    _model.newChatDoc = StorychatsRecord.getDocumentFromData(
-                        createStorychatsRecordData(
+                        var storychatsRecordReference =
+                            StorychatsRecord.collection.doc();
+                        await storychatsRecordReference
+                            .set(createStorychatsRecordData(
                           storyRef: widget.storydoc?.reference,
                           userRef: currentUserReference,
                           userInChatName:
@@ -239,35 +200,48 @@ class _StoryusernameentercomponentWidgetState
                           selectedAiModel: 'gemini-2.5-pro',
                           creatorRef: widget.storydoc?.creatorRef,
                           isNovelMode: widget.novelmode,
-                        ),
-                        storychatsRecordReference);
+                        ));
+                        _model.newChatDoc =
+                            StorychatsRecord.getDocumentFromData(
+                                createStorychatsRecordData(
+                                  storyRef: widget.storydoc?.reference,
+                                  userRef: currentUserReference,
+                                  userInChatName: _model
+                                      .usernameTextFieldTextController.text,
+                                  selectedAiModel: 'gemini-2.5-pro',
+                                  creatorRef: widget.storydoc?.creatorRef,
+                                  isNovelMode: widget.novelmode,
+                                ),
+                                storychatsRecordReference);
 
-                    context.pushNamed(
-                      StorychatpageWidget.routeName,
-                      queryParameters: {
-                        'storyRef': serializeParam(
-                          widget.storydoc?.reference,
-                          ParamType.DocumentReference,
-                        ),
-                        'userInChatName': serializeParam(
-                          _model.usernameTextFieldTextController.text,
-                          ParamType.String,
-                        ),
-                        'storychatRef': serializeParam(
-                          _model.newChatDoc?.reference,
-                          ParamType.DocumentReference,
-                        ),
-                        'isNovelMode': serializeParam(
-                          widget.novelmode,
-                          ParamType.bool,
-                        ),
-                      }.withoutNulls,
-                    );
+                        context.pushNamed(
+                          VisualnovelpageWidget.routeName,
+                          queryParameters: {
+                            'storyRef': serializeParam(
+                              widget.storydoc?.reference,
+                              ParamType.DocumentReference,
+                            ),
+                            'userInChatName': serializeParam(
+                              _model.usernameTextFieldTextController.text,
+                              ParamType.String,
+                            ),
+                            'storychatRef': serializeParam(
+                              _model.newChatDoc?.reference,
+                              ParamType.DocumentReference,
+                            ),
+                            'isNovelMode': serializeParam(
+                              widget.novelmode,
+                              ParamType.bool,
+                            ),
+                          }.withoutNulls,
+                        );
 
-                    safeSetState(() {});
-                  },
+                        safeSetState(() {});
+                      },
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ],

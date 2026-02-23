@@ -62,9 +62,9 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+        backgroundColor: FlutterFlowTheme.of(context).primaryText,
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
           automaticallyImplyLeading: false,
           leading: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 0.0, 0.0),
@@ -78,7 +78,7 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
               },
               child: Icon(
                 Icons.keyboard_arrow_left,
-                color: FlutterFlowTheme.of(context).primaryText,
+                color: FlutterFlowTheme.of(context).primaryBackground,
                 size: 24.0,
               ),
             ),
@@ -95,7 +95,7 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                       fontStyle:
                           FlutterFlowTheme.of(context).headlineMedium.fontStyle,
                     ),
-                    color: FlutterFlowTheme.of(context).tertiary,
+                    color: FlutterFlowTheme.of(context).primaryBackground,
                     fontSize: 20.0,
                     letterSpacing: 0.0,
                     fontWeight:
@@ -180,7 +180,7 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                     },
                     child: FaIcon(
                       FontAwesomeIcons.images,
-                      color: FlutterFlowTheme.of(context).secondaryText,
+                      color: FlutterFlowTheme.of(context).primaryBackground,
                       size: 20.0,
                     ),
                   ),
@@ -194,7 +194,7 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
         body: SafeArea(
           top: true,
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(20.0, 20.0, 20.0, 0.0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
@@ -207,9 +207,9 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                         padding: EdgeInsets.zero,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 15.0,
-                          mainAxisSpacing: 15.0,
-                          childAspectRatio: 0.85,
+                          crossAxisSpacing: 20.0,
+                          mainAxisSpacing: 20.0,
+                          childAspectRatio: 0.7,
                         ),
                         scrollDirection: Axis.vertical,
                         itemCount: abilityitem.length,
@@ -266,7 +266,7 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                                   7.0, 0.0, 0.0, 0.0),
                               iconColor: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
-                              color: Color(0xFFFFD1BA),
+                              color: FlutterFlowTheme.of(context).secondaryText,
                               textStyle: FlutterFlowTheme.of(context)
                                   .titleSmall
                                   .override(
@@ -362,7 +362,7 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                                   0.0, 0.0, 0.0, 0.0),
                               iconPadding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 0.0, 0.0, 0.0),
-                              color: Color(0xFFFFD1BA),
+                              color: FlutterFlowTheme.of(context).secondaryText,
                               textStyle: FlutterFlowTheme.of(context)
                                   .titleSmall
                                   .override(

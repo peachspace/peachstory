@@ -210,6 +210,12 @@ class FFAppState extends ChangeNotifier {
   void insertAtIndexInEmotions(int index, EmotionStructStruct value) {
     emotions.insert(index, value);
   }
+
+  bool _isAIGenerating = false;
+  bool get isAIGenerating => _isAIGenerating;
+  set isAIGenerating(bool value) {
+    _isAIGenerating = value;
+  }
 }
 
 void _safeInit(Function() initializeField) {

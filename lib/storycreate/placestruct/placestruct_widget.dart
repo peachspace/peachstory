@@ -97,6 +97,7 @@ class _PlacestructWidgetState extends State<PlacestructWidget> {
                       fontStyle:
                           FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                     ),
+                    color: FlutterFlowTheme.of(context).alternate,
                     fontSize: 15.0,
                     letterSpacing: 0.0,
                     fontWeight:
@@ -107,7 +108,7 @@ class _PlacestructWidgetState extends State<PlacestructWidget> {
               hintText: '장소 선택',
               icon: Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: FlutterFlowTheme.of(context).secondaryText,
+                color: FlutterFlowTheme.of(context).primaryBackground,
                 size: 25.0,
               ),
               elevation: 2.0,

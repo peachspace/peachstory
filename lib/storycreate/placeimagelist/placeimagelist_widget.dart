@@ -65,9 +65,9 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+        backgroundColor: FlutterFlowTheme.of(context).primaryText,
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
           automaticallyImplyLeading: false,
           leading: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 0.0, 0.0),
@@ -84,7 +84,7 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
               },
               child: Icon(
                 Icons.arrow_back,
-                color: FlutterFlowTheme.of(context).primaryText,
+                color: FlutterFlowTheme.of(context).primaryBackground,
                 size: 24.0,
               ),
             ),
@@ -101,7 +101,7 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
                       fontStyle:
                           FlutterFlowTheme.of(context).headlineMedium.fontStyle,
                     ),
-                    color: FlutterFlowTheme.of(context).tertiary,
+                    color: FlutterFlowTheme.of(context).primaryBackground,
                     fontSize: 20.0,
                     letterSpacing: 0.0,
                     fontWeight:
@@ -119,7 +119,7 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
                 children: [
                   FaIcon(
                     FontAwesomeIcons.images,
-                    color: FlutterFlowTheme.of(context).secondaryText,
+                    color: FlutterFlowTheme.of(context).primaryBackground,
                     size: 20.0,
                   ),
                 ],
@@ -205,7 +205,7 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
                                   7.0, 0.0, 0.0, 0.0),
                               iconColor: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
-                              color: Color(0xFFFFD1BA),
+                              color: FlutterFlowTheme.of(context).secondaryText,
                               textStyle: FlutterFlowTheme.of(context)
                                   .titleSmall
                                   .override(
@@ -242,7 +242,7 @@ class _PlaceimagelistWidgetState extends State<PlaceimagelistWidget> {
                                   0.0, 0.0, 0.0, 0.0),
                               iconPadding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 0.0, 0.0, 0.0),
-                              color: Color(0xFFFFD1BA),
+                              color: FlutterFlowTheme.of(context).secondaryText,
                               textStyle: FlutterFlowTheme.of(context)
                                   .titleSmall
                                   .override(

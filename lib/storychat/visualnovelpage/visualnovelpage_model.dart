@@ -1,10 +1,9 @@
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/index.dart';
-import 'storychatpage_widget.dart' show StorychatpageWidget;
+import 'visualnovelpage_widget.dart' show VisualnovelpageWidget;
 import 'package:flutter/material.dart';
 
-class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
+class VisualnovelpageModel extends FlutterFlowModel<VisualnovelpageWidget> {
   ///  Local state fields for this page.
 
   DocumentReference? currentDocRef;
@@ -76,14 +75,20 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   void updateMessageAsJsonAtIndex(int index, Function(dynamic) updateFn) =>
       messageAsJson[index] = updateFn(messageAsJson[index]);
 
+  bool isvisualmode = false;
+
   ///  State fields for stateful widgets in this page.
 
-  // Stores action output result for [Backend Call - Read Document] action in storychatpage widget.
+  // Stores action output result for [Backend Call - Read Document] action in visualnovelpage widget.
   StoriesRecord? loadedStory;
-  // Stores action output result for [Custom Action - getRecentHistoryAsJson] action in storychatpage widget.
+  // Stores action output result for [Custom Action - getRecentHistoryAsJson] action in visualnovelpage widget.
   List<dynamic>? messagesAsJson;
-  // Stores action output result for [Custom Action - formatStoryTurnHeaderAndBg] action in storychatpage widget.
+  // Stores action output result for [Custom Action - formatStoryTurnHeaderAndBg] action in visualnovelpage widget.
   String? pageloadformat;
+  // State field(s) for usertextField widget.
+  FocusNode? usertextFieldFocusNode;
+  TextEditingController? usertextFieldTextController;
+  String? Function(BuildContext, String?)? usertextFieldTextControllerValidator;
   // Stores action output result for [Custom Action - processAndSaveChatTurn] action in NotifierChatList widget.
   List<StoryChatMessageStructStruct>? newMessages;
   // Stores action output result for [Custom Action - getPreviousChatHistory] action in NotifierChatList widget.
@@ -93,36 +98,15 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   TextEditingController? messageTextFieldTextController;
   String? Function(BuildContext, String?)?
       messageTextFieldTextControllerValidator;
-  // Stores action output result for [Custom Action - getAndProcessHistory] action in messagesendbutton widget.
-  List<dynamic>? formattedHistory;
-  // Stores action output result for [Custom Action - getPointCostAction] action in messagesendbutton widget.
-  int? pointsToDeduct;
-  // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in messagesendbutton widget.
-  int? creatorShare;
-  // Stores action output result for [Custom Action - callAiProxy] action in messagesendbutton widget.
-  String? aiFullText;
-  // Stores action output result for [Custom Action - removeThinkingMessage] action in messagesendbutton widget.
-  List<StoryChatMessageStructStruct>? cleanList;
-  // Stores action output result for [Custom Action - getAndProcessHistory] action in continuebutton widget.
-  List<dynamic>? formattedHistory1;
-  // Stores action output result for [Custom Action - getPointCostAction] action in continuebutton widget.
-  int? pointsToDeduct1;
-  // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in continuebutton widget.
-  int? creatorShare1;
-  // Stores action output result for [Custom Action - getNextPhaseCommand] action in continuebutton widget.
-  String? nextCommand;
-  // Stores action output result for [Custom Action - callAiProxy] action in continuebutton widget.
-  String? aiFullText1;
-  // Stores action output result for [Custom Action - removeThinkingMessage] action in continuebutton widget.
-  List<StoryChatMessageStructStruct>? cleanList1;
-  // Stores action output result for [Custom Action - formatStoryTurnHeaderAndBg] action in continuebutton widget.
-  String? continueformat;
 
   @override
   void initState(BuildContext context) {}
 
   @override
   void dispose() {
+    usertextFieldFocusNode?.dispose();
+    usertextFieldTextController?.dispose();
+
     messageTextFieldFocusNode?.dispose();
     messageTextFieldTextController?.dispose();
   }

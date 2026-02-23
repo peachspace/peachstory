@@ -66,8 +66,8 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
                 functions.stringToImagePath(widget.item?.imageUrl),
                 '\' \'',
               ),
-              width: 150.0,
-              height: 150.0,
+              width: 180.0,
+              height: 180.0,
               fit: BoxFit.cover,
             ),
           ),
@@ -97,6 +97,7 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
                       fontStyle:
                           FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                     ),
+                    color: FlutterFlowTheme.of(context).alternate,
                     fontSize: 15.0,
                     letterSpacing: 0.0,
                     fontWeight:
@@ -107,7 +108,7 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
               hintText: '능력 선택',
               icon: Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: FlutterFlowTheme.of(context).secondaryText,
+                color: FlutterFlowTheme.of(context).primaryBackground,
                 size: 25.0,
               ),
               elevation: 2.0,

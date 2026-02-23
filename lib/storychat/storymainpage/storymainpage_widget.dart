@@ -4,7 +4,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_toggle_icon.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/storychat/modeselectcomponent/modeselectcomponent_widget.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:collection/collection.dart';
@@ -70,7 +69,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+            backgroundColor: FlutterFlowTheme.of(context).primaryText,
             body: Center(
               child: SizedBox(
                 width: 50.0,
@@ -94,15 +93,13 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
           },
           child: Scaffold(
             key: scaffoldKey,
-            backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+            backgroundColor: FlutterFlowTheme.of(context).primaryText,
             appBar: AppBar(
-              backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-              iconTheme: IconThemeData(
-                  color: FlutterFlowTheme.of(context).primaryText),
-              automaticallyImplyLeading: true,
+              backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+              automaticallyImplyLeading: false,
               leading: Icon(
-                Icons.arrow_back_ios_new,
-                color: FlutterFlowTheme.of(context).primaryText,
+                Icons.keyboard_arrow_left,
+                color: FlutterFlowTheme.of(context).primaryBackground,
                 size: 24.0,
               ),
               title: Text(
@@ -114,7 +111,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                         fontStyle:
                             FlutterFlowTheme.of(context).titleLarge.fontStyle,
                       ),
-                      color: FlutterFlowTheme.of(context).tertiary,
+                      color: FlutterFlowTheme.of(context).secondaryBackground,
                       fontSize: 18.0,
                       letterSpacing: 0.0,
                       fontWeight:
@@ -143,7 +140,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                           children: [
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 20.0, 0.0, 0.0),
+                                  0.0, 30.0, 0.0, 0.0),
                               child: Container(
                                 width: 350.0,
                                 height: 350.0,
@@ -187,6 +184,8 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                       .titleMedium
                                                       .fontStyle,
                                             ),
+                                            color: FlutterFlowTheme.of(context)
+                                                .secondaryBackground,
                                             letterSpacing: 0.0,
                                             fontWeight:
                                                 FlutterFlowTheme.of(context)
@@ -252,7 +251,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                     offIcon: Icon(
                                       Icons.favorite_border_sharp,
                                       color: FlutterFlowTheme.of(context)
-                                          .secondaryText,
+                                          .alternate,
                                       size: 20.0,
                                     ),
                                   ),
@@ -275,7 +274,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                             .fontStyle,
                                       ),
                                       color: FlutterFlowTheme.of(context)
-                                          .secondaryText,
+                                          .alternate,
                                       fontSize: 12.0,
                                       letterSpacing: 0.0,
                                       fontWeight: FlutterFlowTheme.of(context)
@@ -307,6 +306,8 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                   .bodyMedium
                                                   .fontStyle,
                                         ),
+                                        color: FlutterFlowTheme.of(context)
+                                            .primaryBackground,
                                         letterSpacing: 0.0,
                                         fontWeight: FlutterFlowTheme.of(context)
                                             .bodyMedium
@@ -362,6 +363,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                           .bodyMedium
                                                           .fontStyle,
                                                 ),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .alternate,
                                                 letterSpacing: 0.0,
                                                 fontWeight:
                                                     FlutterFlowTheme.of(context)
@@ -403,6 +407,8 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                   .titleMedium
                                                   .fontStyle,
                                         ),
+                                        color: FlutterFlowTheme.of(context)
+                                            .secondaryBackground,
                                         letterSpacing: 0.0,
                                         fontWeight: FlutterFlowTheme.of(context)
                                             .titleMedium
@@ -420,7 +426,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                 padding: EdgeInsetsDirectional.fromSTEB(
                                     0.0, 10.0, 0.0, 10.0),
                                 child: Container(
-                                  height: 250.0,
+                                  height: 230.0,
                                   child: Builder(
                                     builder: (context) {
                                       final characters =
@@ -440,7 +446,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                               characters[charactersIndex];
                                           return Container(
                                             width: 150.0,
-                                            height: 250.0,
+                                            height: 230.0,
                                             decoration: BoxDecoration(),
                                             child: Column(
                                               mainAxisSize: MainAxisSize.max,
@@ -451,9 +457,6 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                   width: 150.0,
                                                   height: 150.0,
                                                   decoration: BoxDecoration(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .secondaryBackground,
                                                     image: DecorationImage(
                                                       fit: BoxFit.cover,
                                                       image: Image.network(
@@ -463,6 +466,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                                     .profileimage),
                                                       ).image,
                                                     ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            5.0),
                                                   ),
                                                 ),
                                                 Padding(
@@ -471,6 +477,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                           0.0, 10.0, 0.0, 5.0),
                                                   child: Text(
                                                     charactersItem.name,
+                                                    maxLines: 1,
                                                     style: FlutterFlowTheme.of(
                                                             context)
                                                         .bodyMedium
@@ -485,6 +492,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                           ),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .primaryBackground,
                                                           fontSize: 18.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
@@ -495,6 +505,8 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                                   .bodyMedium
                                                                   .fontStyle,
                                                         ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                                 Text(
@@ -519,7 +531,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                         color:
                                                             FlutterFlowTheme.of(
                                                                     context)
-                                                                .secondaryText,
+                                                                .alternate,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
@@ -549,41 +561,63 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                               thickness: 2.0,
                               color: FlutterFlowTheme.of(context).alternate,
                             ),
-                            Column(
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-                                Align(
-                                  alignment: AlignmentDirectional(-1.0, 0.0),
-                                  child: Text(
-                                    '상세 정보',
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight: FontWeight.w600,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                          fontSize: 18.0,
-                                          letterSpacing: 0.0,
-                                          fontWeight: FontWeight.w600,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 20.0, 0.0, 20.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Align(
+                                    alignment: AlignmentDirectional(-1.0, 0.0),
+                                    child: Padding(
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          0.0, 0.0, 0.0, 10.0),
+                                      child: Text(
+                                        '상세 정보',
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              font: GoogleFonts.inter(
+                                                fontWeight: FontWeight.w600,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontStyle,
+                                              ),
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .secondaryBackground,
+                                              fontSize: 18.0,
+                                              letterSpacing: 0.0,
+                                              fontWeight: FontWeight.w600,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontStyle,
+                                            ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                Align(
-                                  alignment: AlignmentDirectional(-1.0, 0.0),
-                                  child: Text(
-                                    storymainpageStoriesRecord.detailmode,
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
+                                  Align(
+                                    alignment: AlignmentDirectional(-1.0, 0.0),
+                                    child: Text(
+                                      storymainpageStoriesRecord.detailmode,
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontWeight,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontStyle,
+                                            ),
+                                            color: FlutterFlowTheme.of(context)
+                                                .primaryBackground,
+                                            letterSpacing: 0.0,
                                             fontWeight:
                                                 FlutterFlowTheme.of(context)
                                                     .bodyMedium
@@ -593,19 +627,10 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                     .bodyMedium
                                                     .fontStyle,
                                           ),
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             Divider(
                               thickness: 2.0,
@@ -628,6 +653,8 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                   .bodyMedium
                                                   .fontStyle,
                                         ),
+                                        color: FlutterFlowTheme.of(context)
+                                            .secondaryBackground,
                                         fontSize: 18.0,
                                         letterSpacing: 0.0,
                                         fontWeight: FontWeight.w600,
@@ -677,7 +704,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                               rowUsersRecord.photoUrl,
                                             ).image,
                                           ),
-                                          shape: BoxShape.circle,
+                                          borderRadius:
+                                              BorderRadius.circular(5.0),
+                                          shape: BoxShape.rectangle,
                                           border: Border.all(
                                             color: FlutterFlowTheme.of(context)
                                                 .alternate,
@@ -705,6 +734,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                           .bodyLarge
                                                           .fontStyle,
                                                 ),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .primaryBackground,
                                                 letterSpacing: 0.0,
                                                 fontWeight:
                                                     FlutterFlowTheme.of(context)
@@ -739,6 +771,8 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                   .bodyMedium
                                                   .fontStyle,
                                         ),
+                                        color: FlutterFlowTheme.of(context)
+                                            .primaryBackground,
                                         letterSpacing: 0.0,
                                         fontWeight: FontWeight.w600,
                                         fontStyle: FlutterFlowTheme.of(context)
@@ -779,6 +813,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                           .bodyMedium
                                                           .fontStyle,
                                                 ),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 fontSize: 18.0,
                                                 letterSpacing: 0.0,
                                                 fontWeight: FontWeight.w600,
@@ -841,6 +878,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                             .labelMedium
                                                             .fontStyle,
                                                   ),
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .alternate,
                                                   letterSpacing: 0.0,
                                                   fontWeight:
                                                       FlutterFlowTheme.of(
@@ -890,7 +930,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                       .fontStyle,
                                             ),
                                             color: FlutterFlowTheme.of(context)
-                                                .secondaryText,
+                                                .alternate,
                                             letterSpacing: 0.0,
                                             fontWeight:
                                                 FlutterFlowTheme.of(context)
@@ -908,7 +948,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                             ),
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 20.0, 0.0, 0.0),
+                                  0.0, 20.0, 0.0, 20.0),
                               child: FutureBuilder<List<CommentsRecord>>(
                                 future: queryCommentsRecordOnce(
                                   queryBuilder: (commentsRecord) =>
@@ -1030,6 +1070,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                                           .bodyMedium
                                                                           .fontStyle,
                                                                     ),
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .primaryBackground,
                                                                     letterSpacing:
                                                                         0.0,
                                                                     fontWeight: FlutterFlowTheme.of(
@@ -1068,6 +1111,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                                         .labelSmall
                                                                         .fontStyle,
                                                                   ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .alternate,
                                                                   letterSpacing:
                                                                       0.0,
                                                                   fontWeight: FlutterFlowTheme.of(
@@ -1113,6 +1159,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                                   .bodyMedium
                                                                   .fontStyle,
                                                         ),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .primaryBackground,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
@@ -1181,7 +1230,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                               ).then((s) => s.firstOrNull);
                               if (_model.foundChat?.reference != null) {
                                 context.pushNamed(
-                                  StorychatpageWidget.routeName,
+                                  VisualnovelpageWidget.routeName,
                                   queryParameters: {
                                     'storychatRef': serializeParam(
                                       _model.foundChat?.reference,
@@ -1197,29 +1246,6 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                     ),
                                   }.withoutNulls,
                                 );
-                              } else {
-                                await showModalBottomSheet(
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  enableDrag: false,
-                                  context: context,
-                                  builder: (context) {
-                                    return GestureDetector(
-                                      onTap: () {
-                                        FocusScope.of(context).unfocus();
-                                        FocusManager.instance.primaryFocus
-                                            ?.unfocus();
-                                      },
-                                      child: Padding(
-                                        padding:
-                                            MediaQuery.viewInsetsOf(context),
-                                        child: ModeselectcomponentWidget(
-                                          storydoc: storymainpageStoriesRecord,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ).then((value) => safeSetState(() {}));
                               }
 
                               safeSetState(() {});
@@ -1231,7 +1257,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                   16.0, 0.0, 16.0, 0.0),
                               iconPadding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 0.0, 0.0, 0.0),
-                              color: Color(0xFFFFD1BA),
+                              color: FlutterFlowTheme.of(context).secondaryText,
                               textStyle: FlutterFlowTheme.of(context)
                                   .titleSmall
                                   .override(
@@ -1243,7 +1269,8 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                           .titleSmall
                                           .fontStyle,
                                     ),
-                                    color: Colors.white,
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryBackground,
                                     letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .titleSmall
