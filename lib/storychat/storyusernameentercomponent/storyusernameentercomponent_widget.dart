@@ -213,7 +213,7 @@ class _StoryusernameentercomponentWidgetState
                           userRef: currentUserReference,
                           userInChatName:
                               _model.usernameTextFieldTextController.text,
-                          selectedAiModel: 'gemini-2.5-pro',
+                          selectedAiModel: 'claude-3-haiku-20240307',
                           creatorRef: widget.storydoc?.creatorRef,
                         ));
                         _model.newChatDoc =
@@ -223,7 +223,7 @@ class _StoryusernameentercomponentWidgetState
                                   userRef: currentUserReference,
                                   userInChatName: _model
                                       .usernameTextFieldTextController.text,
-                                  selectedAiModel: 'gemini-2.5-pro',
+                                  selectedAiModel: 'claude-3-haiku-20240307',
                                   creatorRef: widget.storydoc?.creatorRef,
                                 ),
                                 storychatsRecordReference);

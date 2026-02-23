@@ -5,13 +5,23 @@ import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/home/loginpage/loginpage_widget.dart';
-import '/my/pointchargepage/pointchargepage_widget.dart';
+import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'visualnovelpage_model.dart';
 export 'visualnovelpage_model.dart';
+
+class _AiModelOption {
+  const _AiModelOption({
+    required this.id,
+    required this.label,
+  });
+
+  final String id;
+  final String label;
+}
 
 class _VisualParagraph {
   const _VisualParagraph({
@@ -51,12 +61,34 @@ class VisualnovelpageWidget extends StatefulWidget {
 }
 
 class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
+  static const String _defaultAiModelId = 'claude-3-haiku-20240307';
+  static const List<_AiModelOption> _aiModelOptions = [
+    _AiModelOption(
+      id: 'claude-3-haiku-20240307',
+      label: 'Claude Haiku 4.5',
+    ),
+    _AiModelOption(
+      id: 'gpt-4o',
+      label: 'GPT-4o',
+    ),
+    _AiModelOption(
+      id: 'gemini-2.5-pro',
+      label: 'Gemini 2.5 Pro',
+    ),
+    _AiModelOption(
+      id: 'gemini-2.5-flash',
+      label: 'Gemini 2.5 Flash',
+    ),
+  ];
+
   late VisualnovelpageModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   bool _isInitializing = true;
   bool _isGenerating = false;
+  bool _isChatMode = false;
+  bool _didBackfillDefaultModel = false;
 
   String _currentPlace = '어딘가';
   String? _currentBackgroundImageUrl;
@@ -130,6 +162,274 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
         );
       },
     ).then((value) => safeSetState(() {}));
+  }
+
+  String _resolveSelectedModelId(String? rawModelId) {
+    final value = (rawModelId ?? '').trim();
+    if (value.isEmpty) return _defaultAiModelId;
+    return value;
+  }
+
+  String _resolveSelectedModelLabel(String? rawModelId) {
+    final modelId = _resolveSelectedModelId(rawModelId);
+    for (final option in _aiModelOptions) {
+      if (option.id == modelId) {
+        return option.label;
+      }
+    }
+    if (modelId == _defaultAiModelId) {
+      return 'Claude Haiku 4.5';
+    }
+    return modelId;
+  }
+
+  Future<void> _updateSelectedModel(
+    StorychatsRecord chatDoc,
+    String modelId,
+  ) async {
+    await chatDoc.reference.update(
+      createStorychatsRecordData(
+        selectedAiModel: modelId,
+      ),
+    );
+  }
+
+  Future<void> _updateUserNote(
+    StorychatsRecord chatDoc,
+    String note,
+  ) async {
+    await chatDoc.reference.update(
+      createStorychatsRecordData(
+        userNote: note,
+      ),
+    );
+  }
+
+  Future<void> _openSettingsSheet(StorychatsRecord chatDoc) async {
+    final noteController = TextEditingController(text: chatDoc.userNote);
+    var selectedModelId = _resolveSelectedModelId(chatDoc.selectedAiModel);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          child: Padding(
+            padding: MediaQuery.viewInsetsOf(context),
+            child: StatefulBuilder(
+              builder: (context, setSheetState) {
+                return Container(
+                  height: 420.0,
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16.0),
+                      topRight: Radius.circular(16.0),
+                    ),
+                  ),
+                  child: DefaultTabController(
+                    length: 2,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            16.0,
+                            12.0,
+                            16.0,
+                            0.0,
+                          ),
+                          child: Container(
+                            width: 42.0,
+                            height: 4.0,
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context).alternate,
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                          ),
+                        ),
+                        TabBar(
+                          labelColor: FlutterFlowTheme.of(context).primary,
+                          unselectedLabelColor:
+                              FlutterFlowTheme.of(context).alternate,
+                          indicatorColor: FlutterFlowTheme.of(context).primary,
+                          tabs: const [
+                            Tab(text: '모델선택'),
+                            Tab(text: '유저노트'),
+                          ],
+                        ),
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              ListView.builder(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                  20.0,
+                                  16.0,
+                                  20.0,
+                                  16.0,
+                                ),
+                                itemCount: _aiModelOptions.length,
+                                itemBuilder: (context, index) {
+                                  final option = _aiModelOptions[index];
+                                  final isSelected =
+                                      selectedModelId == option.id;
+                                  return InkWell(
+                                    splashColor: Colors.transparent,
+                                    focusColor: Colors.transparent,
+                                    hoverColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    onTap: () async {
+                                      setSheetState(() {
+                                        selectedModelId = option.id;
+                                      });
+                                      await _updateSelectedModel(
+                                        chatDoc,
+                                        option.id,
+                                      );
+                                      if (mounted) {
+                                        safeSetState(() {});
+                                      }
+                                    },
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                        0.0,
+                                        8.0,
+                                        0.0,
+                                        8.0,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            isSelected
+                                                ? Icons.check_circle
+                                                : Icons.circle_outlined,
+                                            color: isSelected
+                                                ? Colors.red
+                                                : FlutterFlowTheme.of(context)
+                                                    .alternate,
+                                            size: 20.0,
+                                          ),
+                                          const SizedBox(width: 10.0),
+                                          Expanded(
+                                            child: Text(
+                                              option.label,
+                                              style: FlutterFlowTheme.of(context)
+                                                  .bodyMedium
+                                                  .override(
+                                                    font: GoogleFonts.inter(
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                    color: isSelected
+                                                        ? Colors.red
+                                                        : FlutterFlowTheme.of(
+                                                                context)
+                                                            .primaryBackground,
+                                                    letterSpacing: 0.0,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              Padding(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                  16.0,
+                                  16.0,
+                                  16.0,
+                                  16.0,
+                                ),
+                                child: TextFormField(
+                                  controller: noteController,
+                                  autofocus: false,
+                                  style: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .override(
+                                        font: GoogleFonts.inter(
+                                          fontWeight: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .fontWeight,
+                                          fontStyle: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .fontStyle,
+                                        ),
+                                        color: FlutterFlowTheme.of(context)
+                                            .primaryBackground,
+                                        letterSpacing: 0.0,
+                                      ),
+                                  decoration: InputDecoration(
+                                    hintText: 'AI가 계속 기억해야 할 설정을 입력하세요.',
+                                    hintStyle: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .override(
+                                          font: GoogleFonts.inter(
+                                            fontWeight: FlutterFlowTheme.of(
+                                                    context)
+                                                .labelMedium
+                                                .fontWeight,
+                                            fontStyle: FlutterFlowTheme.of(
+                                                    context)
+                                                .labelMedium
+                                                .fontStyle,
+                                          ),
+                                          color:
+                                              FlutterFlowTheme.of(context).alternate,
+                                          letterSpacing: 0.0,
+                                        ),
+                                    filled: true,
+                                    fillColor: const Color(0x22000000),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      borderSide: BorderSide(
+                                        color:
+                                            FlutterFlowTheme.of(context).alternate,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      borderSide: BorderSide(
+                                        color:
+                                            FlutterFlowTheme.of(context).alternate,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      borderSide: BorderSide(
+                                        color:
+                                            FlutterFlowTheme.of(context).primary,
+                                      ),
+                                    ),
+                                  ),
+                                  minLines: 6,
+                                  maxLines: 10,
+                                  onChanged: (value) async {
+                                    await _updateUserNote(chatDoc, value);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+
+    await _updateUserNote(chatDoc, noteController.text);
+    noteController.dispose();
   }
 
   Future<void> _initializeVisualNovel() async {
@@ -637,8 +937,10 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       return;
     }
 
+    final selectedModelId = _resolveSelectedModelId(chatDoc.selectedAiModel);
+
     final pointCost = await actions.getPointCostAction(
-      chatDoc.selectedAiModel,
+      selectedModelId,
     );
 
     if (valueOrDefault(currentUserDocument?.points, 0) < pointCost) {
@@ -704,7 +1006,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       });
 
       final creatorShare = await actions.calculateCreatorEarningAction(
-        chatDoc.selectedAiModel,
+        selectedModelId,
       );
 
       if (chatDoc.creatorRef != null && currentUserReference != chatDoc.creatorRef) {
@@ -722,10 +1024,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       );
 
       final aiRaw = await actions.callAiProxy(
-        valueOrDefault<String>(
-          chatDoc.selectedAiModel,
-          'gpt-4o-mini',
-        ),
+        selectedModelId,
         functions.buildStoryPrompt(
           story.title,
           story.worldview,
@@ -844,6 +1143,280 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     }
   }
 
+  Future<void> _handleChatModeSend(
+    StoriesRecord story,
+    StorychatsRecord chatDoc,
+  ) async {
+    if (_isGenerating) return;
+    final text = (_model.messageTextFieldTextController?.text ?? '').trim();
+    if (text.isEmpty) {
+      _showMessage('메시지를 입력해주세요.');
+      return;
+    }
+
+    safeSetState(() {
+      _model.messageTextFieldTextController?.clear();
+    });
+
+    await _requestNextTurn(
+      text,
+      story,
+      chatDoc,
+    );
+  }
+
+  Widget _buildChatMessageBubble(
+    BuildContext context,
+    StoryChatMessageStructStruct message,
+  ) {
+    final type = (message.type).toString();
+
+    if (type == 'turn_header') {
+      return Align(
+        alignment: Alignment.center,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(12.0, 6.0, 12.0, 6.0),
+          child: Text(
+            (message.text).toString(),
+            textAlign: TextAlign.center,
+            style: FlutterFlowTheme.of(context).labelMedium.override(
+                  font: GoogleFonts.inter(
+                    fontWeight: FlutterFlowTheme.of(context)
+                        .labelMedium
+                        .fontWeight,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                  ),
+                  color: FlutterFlowTheme.of(context).alternate,
+                  letterSpacing: 0.0,
+                ),
+          ),
+        ),
+      );
+    }
+
+    if (type == 'story_image') {
+      final imageUrl = functions.stringToImagePath((message.storyImageUrl).toString()).trim();
+      if (!_isValidNetworkImageUrl(imageUrl)) {
+        return const SizedBox.shrink();
+      }
+
+      return Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(12.0, 4.0, 12.0, 8.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10.0),
+          child: safeNetworkImage(
+            imageUrl: imageUrl,
+            width: double.infinity,
+            height: 180.0,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+
+    final isUser = type == 'user';
+    final speaker = (message.speakerName).toString().trim();
+    final bubbleText = (message.text).toString().trim();
+    if (bubbleText.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final titleText = !isUser && speaker.isNotEmpty && speaker != 'null'
+        ? speaker
+        : (isUser ? (widget.userInChatName ?? '나') : '');
+
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(12.0, 4.0, 12.0, 6.0),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width * 0.82,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isUser ? const Color(0xFFFFD1BA) : const Color(0x22131A24),
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(
+                color: isUser
+                    ? const Color(0xFFFFD1BA)
+                    : FlutterFlowTheme.of(context).alternate,
+              ),
+            ),
+            padding: const EdgeInsetsDirectional.fromSTEB(12.0, 10.0, 12.0, 10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (titleText.isNotEmpty)
+                  Padding(
+                    padding:
+                        const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 4.0),
+                    child: Text(
+                      titleText,
+                      style: FlutterFlowTheme.of(context).labelSmall.override(
+                            font: GoogleFonts.inter(
+                              fontWeight: FontWeight.w700,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .labelSmall
+                                  .fontStyle,
+                            ),
+                            color: isUser
+                                ? const Color(0xFF5A2E16)
+                                : FlutterFlowTheme.of(context).primaryBackground,
+                            letterSpacing: 0.0,
+                          ),
+                    ),
+                  ),
+                Text(
+                  bubbleText,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        font: GoogleFonts.inter(
+                          fontWeight:
+                              FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                        color: isUser
+                            ? const Color(0xFF2A150B)
+                            : FlutterFlowTheme.of(context).primaryBackground,
+                        letterSpacing: 0.0,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatModeBody(
+    BuildContext context,
+    StoriesRecord story,
+    StorychatsRecord chatDoc,
+  ) {
+    final messages = _model.chatMessages.toList();
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 12.0),
+            itemCount: messages.length,
+            itemBuilder: (context, index) {
+              final message = messages[index];
+              return _buildChatMessageBubble(
+                context,
+                message,
+              );
+            },
+          ),
+        ),
+        SafeArea(
+          top: false,
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xE612161D),
+              border: Border(
+                top: BorderSide(
+                  color: FlutterFlowTheme.of(context).alternate,
+                ),
+              ),
+            ),
+            padding: const EdgeInsetsDirectional.fromSTEB(12.0, 10.0, 12.0, 10.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _model.messageTextFieldTextController,
+                    focusNode: _model.messageTextFieldFocusNode,
+                    autofocus: false,
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          font: GoogleFonts.inter(
+                            fontWeight:
+                                FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                            fontStyle:
+                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                          ),
+                          color: FlutterFlowTheme.of(context).primaryBackground,
+                          letterSpacing: 0.0,
+                        ),
+                    decoration: InputDecoration(
+                      hintText: '메시지를 입력하세요...',
+                      hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                            font: GoogleFonts.inter(
+                              fontWeight: FlutterFlowTheme.of(context)
+                                  .labelMedium
+                                  .fontWeight,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .labelMedium
+                                  .fontStyle,
+                            ),
+                            color: FlutterFlowTheme.of(context).alternate,
+                            letterSpacing: 0.0,
+                          ),
+                      filled: true,
+                      fillColor: const Color(0x1AFFFFFF),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(
+                          color: FlutterFlowTheme.of(context).alternate,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(
+                          color: FlutterFlowTheme.of(context).alternate,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(
+                          color: FlutterFlowTheme.of(context).primary,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                        12.0,
+                        10.0,
+                        12.0,
+                        10.0,
+                      ),
+                    ),
+                    minLines: 1,
+                    maxLines: 4,
+                    textInputAction: TextInputAction.send,
+                    onFieldSubmitted: (_) async {
+                      await _handleChatModeSend(
+                        story,
+                        chatDoc,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8.0),
+                IconButton(
+                  icon: Icon(
+                    Icons.send_rounded,
+                    color: FlutterFlowTheme.of(context).primaryBackground,
+                  ),
+                  onPressed: _isGenerating
+                      ? null
+                      : () async {
+                          await _handleChatModeSend(
+                            story,
+                            chatDoc,
+                          );
+                        },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.storyRef == null || widget.storychatRef == null) {
@@ -926,6 +1499,18 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
             }
 
             final chatDoc = chatSnapshot.data!;
+            final selectedModelLabel =
+                _resolveSelectedModelLabel(chatDoc.selectedAiModel);
+
+            if (!_didBackfillDefaultModel &&
+                (chatDoc.selectedAiModel).toString().trim().isEmpty) {
+              _didBackfillDefaultModel = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                try {
+                  await _updateSelectedModel(chatDoc, _defaultAiModelId);
+                } catch (_) {}
+              });
+            }
 
             return GestureDetector(
               onTap: () {
@@ -944,7 +1529,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                       color: FlutterFlowTheme.of(context).primaryBackground,
                     ),
                     onPressed: () async {
-                      context.safePop();
+                      context.pushNamed(ChatlistpageWidget.routeName);
                     },
                   ),
                   title: Column(
@@ -984,6 +1569,35 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                     ],
                   ),
                   actions: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.tune_rounded,
+                        color: FlutterFlowTheme.of(context).primaryBackground,
+                      ),
+                      onPressed: () async {
+                        await _openSettingsSheet(chatDoc);
+                      },
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        safeSetState(() {
+                          _isChatMode = !_isChatMode;
+                        });
+                      },
+                      child: Text(
+                        _isChatMode ? 'visualmode' : 'changemode',
+                        style: FlutterFlowTheme.of(context).labelMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FontWeight.w700,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .labelMedium
+                                    .fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context).primaryBackground,
+                              letterSpacing: 0.0,
+                            ),
+                      ),
+                    ),
                     if (_isGenerating)
                       Padding(
                         padding:
@@ -997,14 +1611,20 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 FlutterFlowTheme.of(context).primary,
                               ),
+                              ),
                             ),
                           ),
-                        ),
                       ),
                   ],
                 ),
-                body: Stack(
-                  children: [
+                body: _isChatMode
+                    ? _buildChatModeBody(
+                        context,
+                        story,
+                        chatDoc,
+                      )
+                    : Stack(
+                        children: [
                     Positioned.fill(
                       child: _isValidNetworkImageUrl(backgroundImageUrl)
                           ? safeNetworkImage(
@@ -1409,10 +2029,42 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                               ),
                             ],
                           ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 16.0,
+                      right: 16.0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0x66000000),
+                          borderRadius: BorderRadius.circular(20.0),
+                          border: Border.all(
+                            color: FlutterFlowTheme.of(context).alternate,
+                          ),
+                        ),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          10.0,
+                          6.0,
+                          10.0,
+                          6.0,
+                        ),
+                        child: Text(
+                          selectedModelLabel,
+                          style: FlutterFlowTheme.of(context).labelSmall.override(
+                                font: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w700,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                      .labelSmall
+                                      .fontStyle,
+                                ),
+                                color: Colors.red,
+                                letterSpacing: 0.0,
+                              ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                        ],
+                      ),
               ),
             );
           },
