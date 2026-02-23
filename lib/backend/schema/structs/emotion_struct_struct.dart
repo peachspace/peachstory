@@ -10,11 +10,9 @@ class EmotionStructStruct extends FFFirebaseStruct {
   EmotionStructStruct({
     String? emotion,
     String? imageurl,
-    String? place,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _emotion = emotion,
         _imageurl = imageurl,
-        _place = place,
         super(firestoreUtilData);
 
   // "emotion" field.
@@ -31,18 +29,10 @@ class EmotionStructStruct extends FFFirebaseStruct {
 
   bool hasImageurl() => _imageurl != null;
 
-  // "place" field.
-  String? _place;
-  String get place => _place ?? '';
-  set place(String? val) => _place = val;
-
-  bool hasPlace() => _place != null;
-
   static EmotionStructStruct fromMap(Map<String, dynamic> data) =>
       EmotionStructStruct(
         emotion: data['emotion'] as String?,
         imageurl: data['imageurl'] as String?,
-        place: data['place'] as String?,
       );
 
   static EmotionStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -52,7 +42,6 @@ class EmotionStructStruct extends FFFirebaseStruct {
   Map<String, dynamic> toMap() => {
         'emotion': _emotion,
         'imageurl': _imageurl,
-        'place': _place,
       }.withoutNulls;
 
   @override
@@ -63,10 +52,6 @@ class EmotionStructStruct extends FFFirebaseStruct {
         ),
         'imageurl': serializeParam(
           _imageurl,
-          ParamType.String,
-        ),
-        'place': serializeParam(
-          _place,
           ParamType.String,
         ),
       }.withoutNulls;
@@ -80,11 +65,6 @@ class EmotionStructStruct extends FFFirebaseStruct {
         ),
         imageurl: deserializeParam(
           data['imageurl'],
-          ParamType.String,
-          false,
-        ),
-        place: deserializeParam(
-          data['place'],
           ParamType.String,
           false,
         ),
@@ -102,11 +82,6 @@ class EmotionStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        place: convertAlgoliaParam(
-          data['place'],
-          ParamType.String,
-          false,
-        ),
         firestoreUtilData: FirestoreUtilData(
           clearUnsetFields: false,
           create: true,
@@ -120,18 +95,16 @@ class EmotionStructStruct extends FFFirebaseStruct {
   bool operator ==(Object other) {
     return other is EmotionStructStruct &&
         emotion == other.emotion &&
-        imageurl == other.imageurl &&
-        place == other.place;
+        imageurl == other.imageurl;
   }
 
   @override
-  int get hashCode => const ListEquality().hash([emotion, imageurl, place]);
+  int get hashCode => const ListEquality().hash([emotion, imageurl]);
 }
 
 EmotionStructStruct createEmotionStructStruct({
   String? emotion,
   String? imageurl,
-  String? place,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
@@ -140,7 +113,6 @@ EmotionStructStruct createEmotionStructStruct({
     EmotionStructStruct(
       emotion: emotion,
       imageurl: imageurl,
-      place: place,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,

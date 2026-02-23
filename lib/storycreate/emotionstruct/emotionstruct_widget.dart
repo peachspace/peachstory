@@ -51,7 +51,7 @@ class _EmotionstructWidgetState extends State<EmotionstructWidget> {
     context.watch<FFAppState>();
 
     return Container(
-      height: 110.0,
+      height: 200.0,
       decoration: BoxDecoration(),
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -59,15 +59,25 @@ class _EmotionstructWidgetState extends State<EmotionstructWidget> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
+<<<<<<< HEAD
             child: safeNetworkImage(
               imageUrl: functions.stringToImagePath(widget.item?.imageurl),
               width: 80.0,
               height: 80.0,
+=======
+            child: Image.network(
+              valueOrDefault<String>(
+                functions.stringToImagePath(widget.item?.imageurl),
+                '\' \'',
+              ),
+              width: 150.0,
+              height: 150.0,
+>>>>>>> origin/flutterflow
               fit: BoxFit.cover,
             ),
           ),
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(0.0, 5.0, 0.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 0.0),
             child: FlutterFlowDropDown<String>(
               controller: _model.emotiontagDropDownValueController ??=
                   FormFieldController<String>(
@@ -77,17 +87,14 @@ class _EmotionstructWidgetState extends State<EmotionstructWidget> {
               onChanged: (val) async {
                 safeSetState(() => _model.emotiontagDropDownValue = val);
                 FFAppState().emotions = functions
-                    .updateEmotionImageUrlAt(
-                        FFAppState().emotions.toList(),
-                        widget.item!.place,
-                        widget.item!.imageurl,
-                        _model.emotiontagDropDownValue!)
+                    .updateEmotionTagByUrl(FFAppState().emotions.toList(),
+                        widget.item!.imageurl, widget.item!.emotion)
                     .toList()
                     .cast<EmotionStructStruct>();
                 safeSetState(() {});
               },
-              width: 80.0,
-              height: 20.0,
+              width: 150.0,
+              height: 30.0,
               textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                     font: GoogleFonts.inter(
                       fontWeight:
@@ -95,7 +102,8 @@ class _EmotionstructWidgetState extends State<EmotionstructWidget> {
                       fontStyle:
                           FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                     ),
-                    fontSize: 13.0,
+                    color: FlutterFlowTheme.of(context).alternate,
+                    fontSize: 15.0,
                     letterSpacing: 0.0,
                     fontWeight:
                         FlutterFlowTheme.of(context).bodyMedium.fontWeight,
@@ -105,10 +113,9 @@ class _EmotionstructWidgetState extends State<EmotionstructWidget> {
               hintText: '감정 선택',
               icon: Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: FlutterFlowTheme.of(context).secondaryText,
-                size: 20.0,
+                color: FlutterFlowTheme.of(context).primaryBackground,
+                size: 25.0,
               ),
-              fillColor: FlutterFlowTheme.of(context).secondaryBackground,
               elevation: 2.0,
               borderColor: Colors.transparent,
               borderWidth: 0.0,

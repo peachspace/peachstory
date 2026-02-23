@@ -163,10 +163,10 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
-          name: StorychatpageWidget.routeName,
-          path: StorychatpageWidget.routePath,
+          name: VisualnovelpageWidget.routeName,
+          path: VisualnovelpageWidget.routePath,
           requireAuth: true,
-          builder: (context, params) => StorychatpageWidget(
+          builder: (context, params) => VisualnovelpageWidget(
             storyRef: params.getParam(
               'storyRef',
               ParamType.DocumentReference,

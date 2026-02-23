@@ -16,13 +16,6 @@ class PlaceimagelistModel extends FlutterFlowModel<PlaceimagelistWidget> {
   void updatePlacesAtIndex(int index, Function(PlaceStructStruct) updateFn) =>
       places[index] = updateFn(places[index]);
 
-  ///  State fields for stateful widgets in this page.
-
-  bool isDataUploading_uploadplaceimage = false;
-  FFUploadedFile uploadedLocalFile_uploadplaceimage =
-      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
-  String uploadedFileUrl_uploadplaceimage = '';
-
   @override
   void initState(BuildContext context) {}
 

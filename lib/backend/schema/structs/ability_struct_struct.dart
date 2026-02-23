@@ -10,11 +10,9 @@ class AbilityStructStruct extends FFFirebaseStruct {
   AbilityStructStruct({
     String? ability,
     String? imageUrl,
-    String? place,
     FirestoreUtilData firestoreUtilData = const FirestoreUtilData(),
   })  : _ability = ability,
         _imageUrl = imageUrl,
-        _place = place,
         super(firestoreUtilData);
 
   // "ability" field.
@@ -31,18 +29,10 @@ class AbilityStructStruct extends FFFirebaseStruct {
 
   bool hasImageUrl() => _imageUrl != null;
 
-  // "place" field.
-  String? _place;
-  String get place => _place ?? '';
-  set place(String? val) => _place = val;
-
-  bool hasPlace() => _place != null;
-
   static AbilityStructStruct fromMap(Map<String, dynamic> data) =>
       AbilityStructStruct(
         ability: data['ability'] as String?,
         imageUrl: data['imageUrl'] as String?,
-        place: data['place'] as String?,
       );
 
   static AbilityStructStruct? maybeFromMap(dynamic data) => data is Map
@@ -52,7 +42,6 @@ class AbilityStructStruct extends FFFirebaseStruct {
   Map<String, dynamic> toMap() => {
         'ability': _ability,
         'imageUrl': _imageUrl,
-        'place': _place,
       }.withoutNulls;
 
   @override
@@ -63,10 +52,6 @@ class AbilityStructStruct extends FFFirebaseStruct {
         ),
         'imageUrl': serializeParam(
           _imageUrl,
-          ParamType.String,
-        ),
-        'place': serializeParam(
-          _place,
           ParamType.String,
         ),
       }.withoutNulls;
@@ -80,11 +65,6 @@ class AbilityStructStruct extends FFFirebaseStruct {
         ),
         imageUrl: deserializeParam(
           data['imageUrl'],
-          ParamType.String,
-          false,
-        ),
-        place: deserializeParam(
-          data['place'],
           ParamType.String,
           false,
         ),
@@ -102,11 +82,6 @@ class AbilityStructStruct extends FFFirebaseStruct {
           ParamType.String,
           false,
         ),
-        place: convertAlgoliaParam(
-          data['place'],
-          ParamType.String,
-          false,
-        ),
         firestoreUtilData: FirestoreUtilData(
           clearUnsetFields: false,
           create: true,
@@ -120,18 +95,16 @@ class AbilityStructStruct extends FFFirebaseStruct {
   bool operator ==(Object other) {
     return other is AbilityStructStruct &&
         ability == other.ability &&
-        imageUrl == other.imageUrl &&
-        place == other.place;
+        imageUrl == other.imageUrl;
   }
 
   @override
-  int get hashCode => const ListEquality().hash([ability, imageUrl, place]);
+  int get hashCode => const ListEquality().hash([ability, imageUrl]);
 }
 
 AbilityStructStruct createAbilityStructStruct({
   String? ability,
   String? imageUrl,
-  String? place,
   Map<String, dynamic> fieldValues = const {},
   bool clearUnsetFields = true,
   bool create = false,
@@ -140,7 +113,6 @@ AbilityStructStruct createAbilityStructStruct({
     AbilityStructStruct(
       ability: ability,
       imageUrl: imageUrl,
-      place: place,
       firestoreUtilData: FirestoreUtilData(
         clearUnsetFields: clearUnsetFields,
         create: create,

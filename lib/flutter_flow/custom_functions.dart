@@ -1046,62 +1046,49 @@ List<CharacterStructStruct> addCharacter(
   return out;
 }
 
-List<EmotionStructStruct> updateEmotionImageUrlAt(
+List<EmotionStructStruct> updateEmotionTagByUrl(
   List<EmotionStructStruct> list,
-  String place,
   String imageUrl,
-  String newEmotion,
+  String emotionTag,
 ) {
-  final out = List<EmotionStructStruct>.from(list);
+  final url = imageUrl.trim();
+  final tag = emotionTag.trim();
+  if (url.isEmpty) return list;
 
-  final p = place.trim();
-  final u = imageUrl.trim();
-  final e = newEmotion.trim();
-
-  if (p.isEmpty || u.isEmpty) return out;
-
-  final idx = out.indexWhere((x) =>
-      (x.place ?? '').toString().trim() == p &&
-      (x.imageurl ?? '').toString().trim() == u);
-
-  if (idx < 0) return out;
-
-  final old = out[idx];
-
-  out[idx] = createEmotionStructStruct(
-    place: old.place,
-    emotion: e,
-    imageurl: old.imageurl,
-  );
-
+  final out = <EmotionStructStruct>[];
+  for (final it in list) {
+    if ((it.imageurl ?? '').trim() == url) {
+      out.add(EmotionStructStruct(
+        emotion: tag,
+        imageurl: it.imageurl,
+      ));
+    } else {
+      out.add(it);
+    }
+  }
   return out;
 }
 
-List<AbilityStructStruct> updateAbilityTagByPlaceAndUrl(
+List<AbilityStructStruct> updateAbilityTagByUrl(
   List<AbilityStructStruct> list,
-  String place,
   String imageUrl,
-  String newAbility,
+  String abilityTag,
 ) {
-  final out = List<AbilityStructStruct>.from(list);
+  final url = imageUrl.trim();
+  final tag = abilityTag.trim();
+  if (url.isEmpty) return list;
 
-  final p = place.trim();
-  final u = imageUrl.trim();
-  final a = newAbility.trim();
-
-  if (p.isEmpty || u.isEmpty) return out;
-
-  final idx = out.indexWhere(
-      (e) => (e.place ?? '').trim() == p && (e.imageUrl ?? '').trim() == u);
-
-  if (idx < 0) return out;
-
-  final old = out[idx];
-  out[idx] = createAbilityStructStruct(
-    place: old.place,
-    ability: a,
-    imageUrl: old.imageUrl,
-  );
+  final out = <AbilityStructStruct>[];
+  for (final it in list) {
+    if ((it.imageUrl ?? '').trim() == url) {
+      out.add(AbilityStructStruct(
+        ability: tag,
+        imageUrl: it.imageUrl,
+      ));
+    } else {
+      out.add(it);
+    }
+  }
   return out;
 }
 
@@ -1114,22 +1101,4 @@ List<CharacterStructStruct> updateCharacterAt(
   if (index < 0 || index >= out.length) return out;
   out[index] = updated;
   return out;
-}
-
-List<AbilityStructStruct> filterAbilityByPlace(
-  List<AbilityStructStruct> list,
-  String place,
-) {
-  final p = place.trim();
-  if (p.isEmpty) return [];
-  return list.where((e) => (e.place ?? '').trim() == p).toList();
-}
-
-List<EmotionStructStruct> filterEmotionByPlace(
-  List<EmotionStructStruct> list,
-  String place,
-) {
-  final p = place.trim();
-  if (p.isEmpty) return [];
-  return list.where((e) => (e.place ?? '').trim() == p).toList();
 }

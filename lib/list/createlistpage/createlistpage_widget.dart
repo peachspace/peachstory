@@ -49,7 +49,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+        backgroundColor: FlutterFlowTheme.of(context).primaryText,
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             if (loggedIn) {
@@ -75,7 +75,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
               ).then((value) => safeSetState(() {}));
             }
           },
-          backgroundColor: Color(0xFFFFD1BA),
+          backgroundColor: FlutterFlowTheme.of(context).primary,
           elevation: 8.0,
           child: Icon(
             Icons.add_rounded,
@@ -84,7 +84,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
           ),
         ),
         appBar: AppBar(
-          backgroundColor: Color(0xFFFFF8F9),
+          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
           automaticallyImplyLeading: false,
           leading: InkWell(
             splashColor: Colors.transparent,
@@ -96,7 +96,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
             },
             child: Icon(
               Icons.menu,
-              color: FlutterFlowTheme.of(context).primaryText,
+              color: FlutterFlowTheme.of(context).alternate,
               size: 24.0,
             ),
           ),
@@ -108,7 +108,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                     fontStyle:
                         FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                   ),
-                  color: FlutterFlowTheme.of(context).tertiary,
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
                   fontSize: 18.0,
                   letterSpacing: 0.0,
                   fontWeight: FontWeight.w600,
@@ -122,7 +122,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
         body: SafeArea(
           top: true,
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(25.0, 10.0, 25.0, 0.0),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.max,
@@ -165,20 +165,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                               listViewStoriesRecordList[listViewIndex];
                           return Container(
                             width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              boxShadow: [
-                                BoxShadow(
-                                  blurRadius: 0.0,
-                                  color: FlutterFlowTheme.of(context).alternate,
-                                  offset: Offset(
-                                    0.0,
-                                    1.0,
-                                  ),
-                                )
-                              ],
-                            ),
+                            decoration: BoxDecoration(),
                             child: Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 12.0, 0.0, 12.0),
@@ -261,6 +248,9 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                                                                     .bodyLarge
                                                                     .fontStyle,
                                                           ),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FlutterFlowTheme.of(
@@ -303,7 +293,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                                                       color:
                                                           FlutterFlowTheme.of(
                                                                   context)
-                                                              .secondaryText,
+                                                              .alternate,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
                                                           FlutterFlowTheme.of(
@@ -359,7 +349,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
                                       child: Icon(
                                         Icons.more_vert_sharp,
                                         color: FlutterFlowTheme.of(context)
-                                            .secondaryText,
+                                            .alternate,
                                         size: 22.0,
                                       ),
                                     ),

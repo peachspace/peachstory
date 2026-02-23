@@ -84,66 +84,36 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   FocusNode? storyNameFocusNode;
   TextEditingController? storyNameTextController;
   String? Function(BuildContext, String?)? storyNameTextControllerValidator;
-  // Stores action output result for [Custom Action - generateMetaFields] action in titlegenbutton widget.
-  String? generatedtitle;
   // State field(s) for worldSettings widget.
   FocusNode? worldSettingsFocusNode;
   TextEditingController? worldSettingsTextController;
   String? Function(BuildContext, String?)? worldSettingsTextControllerValidator;
-  // Stores action output result for [Custom Action - generateWorldText] action in worldviewgenbutton widget.
-  String? generatedworldview;
   // State field(s) for placetextfield widget.
   FocusNode? placetextfieldFocusNode;
   TextEditingController? placetextfieldTextController;
   String? Function(BuildContext, String?)?
       placetextfieldTextControllerValidator;
-  // Stores action output result for [Custom Action - generateWorldText] action in placegenbutton widget.
-  String? generatedplace;
   // State field(s) for UserRoleInfo widget.
   FocusNode? userRoleInfoFocusNode;
   TextEditingController? userRoleInfoTextController;
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
-  // Stores action output result for [Custom Action - generateCharacterField] action in userrolegenbutton widget.
-  String? generateduserrole;
   // State field(s) for event widget.
   FocusNode? eventFocusNode;
   TextEditingController? eventTextController;
   String? Function(BuildContext, String?)? eventTextControllerValidator;
-  // Stores action output result for [Custom Action - generateEventField] action in eventgenbutton widget.
-  String? generatedevent;
-  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in eventaddbutton widget.
-  GenResultStructStruct? generatedeventimage;
-  // State field(s) for outlineSwitch widget.
-  bool? outlineSwitchValue;
-  // State field(s) for outline widget.
-  FocusNode? outlineFocusNode;
-  TextEditingController? outlineTextController;
-  String? Function(BuildContext, String?)? outlineTextControllerValidator;
-  // Stores action output result for [Custom Action - generateEventField] action in outlinegenbutton widget.
-  String? generatedoutline;
   // State field(s) for prologuetext widget.
   FocusNode? prologuetextFocusNode;
   TextEditingController? prologuetextTextController;
   String? Function(BuildContext, String?)? prologuetextTextControllerValidator;
-  // Stores action output result for [Custom Action - generatePrologueField] action in prologuegenbutton widget.
-  String? generatedprologue;
-  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in addmainimagebutton widget.
-  GenResultStructStruct? generatedmainimage;
-  // Stores action output result for [Bottom Sheet - SourceSelectSheet] action in editmainimagebutton widget.
-  GenResultStructStruct? editmainimage;
   // State field(s) for introduce widget.
   FocusNode? introduceFocusNode;
   TextEditingController? introduceTextController;
   String? Function(BuildContext, String?)? introduceTextControllerValidator;
-  // Stores action output result for [Custom Action - generateMetaFields] action in storyintrogenbutton widget.
-  String? generatedintroduce;
   // State field(s) for detailinfotext widget.
   FocusNode? detailinfotextFocusNode;
   TextEditingController? detailinfotextTextController;
   String? Function(BuildContext, String?)?
       detailinfotextTextControllerValidator;
-  // Stores action output result for [Custom Action - generateMetaFields] action in storydetalilgenbutton widget.
-  String? generateddetail;
   // State field(s) for authorComment widget.
   FocusNode? authorCommentFocusNode;
   TextEditingController? authorCommentTextController;
@@ -178,9 +148,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
     eventFocusNode?.dispose();
     eventTextController?.dispose();
-
-    outlineFocusNode?.dispose();
-    outlineTextController?.dispose();
 
     prologuetextFocusNode?.dispose();
     prologuetextTextController?.dispose();

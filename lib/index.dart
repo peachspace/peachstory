@@ -10,11 +10,11 @@ export '/storychat/storymainpage/storymainpage_widget.dart'
     show StorymainpageWidget;
 export '/storychat/storycommentlistpage/storycommentlistpage_widget.dart'
     show StorycommentlistpageWidget;
-export '/storychat/storychatpage/storychatpage_widget.dart'
-    show StorychatpageWidget;
+export '/storychat/visualnovelpage/visualnovelpage_widget.dart'
+    show VisualnovelpageWidget;
 export '/my/pointchargepage/pointchargepage_widget.dart'
     show PointchargepageWidget;
-export '/my/heartlistpage/heartlistpage_widget.dart' show HeartlistpageWidget;
+export '/home/heartlistpage/heartlistpage_widget.dart' show HeartlistpageWidget;
 export '/my/creatorrequestpage/creatorrequestpage_widget.dart'
     show CreatorrequestpageWidget;
 export '/home/searchpage/searchpage_widget.dart' show SearchpageWidget;
