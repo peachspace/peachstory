@@ -7,6 +7,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
+import '/custom_code/actions/index.dart' as actions;
 import '/index.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
@@ -161,6 +162,293 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
     _model.dispose();
 
     super.dispose();
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(
+            color: FlutterFlowTheme.of(context).secondaryText,
+          ),
+        ),
+        duration: const Duration(milliseconds: 2200),
+        backgroundColor: FlutterFlowTheme.of(context).info,
+      ),
+    );
+  }
+
+  String _normalizePlaceLines(String raw) {
+    final lines = raw.replaceAll('\r\n', '\n').split('\n');
+    final out = <String>[];
+    final usedNames = <String>{};
+
+    for (var line in lines) {
+      line = line.trim();
+      if (line.isEmpty) continue;
+      line = line.replaceAll(RegExp(r'^[-*•\d\.\)\(]+\s*'), '').trim();
+      if (!line.contains(':')) continue;
+
+      final name = line.split(':').first.trim();
+      final desc = line.substring(line.indexOf(':') + 1).trim();
+      if (name.isEmpty || desc.isEmpty) continue;
+      if (usedNames.add(name)) {
+        out.add('$name: $desc');
+      }
+    }
+
+    return out.join('\n').trim();
+  }
+
+  Map<String, String>? _parseStoryTapAiOutput(String raw) {
+    String cleaned = raw.trim();
+    cleaned = cleaned.replaceAll('```json', '').replaceAll('```', '').trim();
+
+    dynamic parsed;
+    try {
+      parsed = jsonDecode(cleaned);
+    } catch (_) {
+      parsed = null;
+    }
+
+    String pick(dynamic value) => (value ?? '').toString().trim();
+
+    String storyName = '';
+    String worldSettings = '';
+    String placeText = '';
+
+    if (parsed is Map) {
+      storyName = pick(
+        parsed['storyName'] ?? parsed['title'] ?? parsed['story_name'],
+      );
+      worldSettings = pick(
+        parsed['worldSettings'] ?? parsed['worldview'] ?? parsed['world'],
+      );
+      final placeValue =
+          parsed['placetextfield'] ?? parsed['placeText'] ?? parsed['places'];
+      if (placeValue is List) {
+        placeText = placeValue.map((e) => e.toString()).join('\n').trim();
+      } else {
+        placeText = pick(placeValue);
+      }
+    } else {
+      final titleMatch = RegExp(
+        r'(?:storyName|title|제목)\s*[:：]\s*(.+)',
+        multiLine: true,
+      ).firstMatch(cleaned);
+      final worldMatch = RegExp(
+        r'(?:worldSettings|worldview|세계관)\s*[:：]\s*([\s\S]*?)(?=\n(?:placetextfield|placeText|places|장소)\s*[:：]|$)',
+        multiLine: true,
+      ).firstMatch(cleaned);
+      final placeMatch = RegExp(
+        r'(?:placetextfield|placeText|places|장소)\s*[:：]\s*([\s\S]+)$',
+        multiLine: true,
+      ).firstMatch(cleaned);
+
+      storyName = (titleMatch?.group(1) ?? '').trim();
+      worldSettings = (worldMatch?.group(1) ?? '').trim();
+      placeText = (placeMatch?.group(1) ?? '').trim();
+    }
+
+    placeText = _normalizePlaceLines(placeText);
+    if (storyName.isEmpty || worldSettings.isEmpty || placeText.isEmpty) {
+      return null;
+    }
+
+    return {
+      'storyName': storyName,
+      'worldSettings': worldSettings,
+      'placetextfield': placeText,
+    };
+  }
+
+  Future<void> _runStoryTapAiGeneration(String userInstruction) async {
+    if (_model.isgenerating) return;
+
+    safeSetState(() {
+      _model.isgenerating = true;
+      _model.generatingTarget = 'storytap';
+    });
+
+    try {
+      final contextBlock = '''
+[현재 입력값]
+제목: ${_model.storyNameTextController.text}
+세계관: ${_model.worldSettingsTextController.text}
+주요장소:
+${_model.placetextfieldTextController.text}
+''';
+
+      final systemPrompt = '''
+너는 웹소설 기획 assistant다.
+출력은 반드시 JSON 객체 1개만 출력한다. 코드블록, 설명, 마크다운 금지.
+JSON 스키마:
+{
+  "storyName": "제목",
+  "worldSettings": "세계관 설명(여러 문단 가능)",
+  "placetextfield": "장소명: 설명\\n장소명: 설명\\n..."
+}
+규칙:
+- placetextfield는 반드시 여러 줄이며 각 줄은 "장소명: 설명" 형식.
+- 한국어로 작성.
+- storyName/worldSettings/placetextfield 모두 비우지 마라.
+''';
+
+      final userPrompt = '''
+$contextBlock
+
+[사용자 지시]
+${userInstruction.trim().isEmpty ? '장르와 분위기를 반영해 스토리의 제목/세계관/핵심 장소를 균형 있게 생성해줘.' : userInstruction.trim()}
+''';
+
+      final raw = await actions.callAiProxy(
+        'gpt-4o-mini',
+        systemPrompt,
+        const [],
+        userPrompt,
+      );
+
+      if (raw == null || raw.trim().isEmpty || raw.startsWith('ERROR:')) {
+        throw Exception(raw ?? 'AI 응답이 비어 있습니다.');
+      }
+
+      final parsed = _parseStoryTapAiOutput(raw);
+      if (parsed == null) {
+        throw Exception('AI 응답 파싱 실패');
+      }
+
+      _model.storyNameTextController.text = parsed['storyName']!;
+      _model.worldSettingsTextController.text = parsed['worldSettings']!;
+      _model.placetextfieldTextController.text = parsed['placetextfield']!;
+
+      _model.title = parsed['storyName'];
+      _model.worldview = parsed['worldSettings'];
+      _model.placetext = parsed['placetextfield'];
+
+      safeSetState(() {});
+    } catch (e) {
+      _showMessage('스토리 AI 생성에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      if (!mounted) return;
+      safeSetState(() {
+        _model.isgenerating = false;
+        _model.generatingTarget = null;
+      });
+    }
+  }
+
+  Future<void> _openStoryTapAiSheet() async {
+    if (_model.isgenerating) return;
+    final promptController = TextEditingController();
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            20.0,
+            20.0,
+            20.0,
+            20.0 + MediaQuery.viewInsetsOf(sheetContext).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'StoryTap AI 생성',
+                style: FlutterFlowTheme.of(context).titleMedium.override(
+                      font: GoogleFonts.interTight(
+                        fontWeight:
+                            FlutterFlowTheme.of(context).titleMedium.fontWeight,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).titleMedium.fontStyle,
+                      ),
+                      color: FlutterFlowTheme.of(context).primaryBackground,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
+                child: TextFormField(
+                  controller: promptController,
+                  autofocus: true,
+                  maxLines: 4,
+                  minLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'AI에게 지시할 내용을 입력하세요...',
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                        width: 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                        width: 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    filled: true,
+                    fillColor: FlutterFlowTheme.of(context).secondaryText,
+                  ),
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        font: GoogleFonts.inter(
+                          fontWeight:
+                              FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                        color: FlutterFlowTheme.of(context).alternate,
+                        letterSpacing: 0.0,
+                      ),
+                ),
+              ),
+              FFButtonWidget(
+                onPressed: () async {
+                  final userInstruction = promptController.text;
+                  Navigator.pop(sheetContext);
+                  await _runStoryTapAiGeneration(userInstruction);
+                },
+                text: 'AI 생성',
+                icon: const Icon(
+                  Icons.auto_awesome,
+                  size: 16.0,
+                ),
+                options: FFButtonOptions(
+                  height: 46.0,
+                  padding:
+                      const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                  iconPadding:
+                      const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                        font: GoogleFonts.interTight(
+                          fontWeight:
+                              FlutterFlowTheme.of(context).titleSmall.fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                        ),
+                        color: FlutterFlowTheme.of(context).primaryText,
+                        letterSpacing: 0.0,
+                      ),
+                  elevation: 0.0,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -430,6 +718,64 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                                                               ),
                                                             ),
                                                           ],
+                                                        ),
+                                                        FFButtonWidget(
+                                                          onPressed: () async {
+                                                            await _openStoryTapAiSheet();
+                                                          },
+                                                          text: 'StoryTap AI',
+                                                          icon: Icon(
+                                                            Icons.auto_awesome,
+                                                            size: 14.0,
+                                                          ),
+                                                          options:
+                                                              FFButtonOptions(
+                                                            height: 32.0,
+                                                            padding:
+                                                                EdgeInsetsDirectional
+                                                                    .fromSTEB(
+                                                                        12.0,
+                                                                        0.0,
+                                                                        12.0,
+                                                                        0.0),
+                                                            iconPadding:
+                                                                EdgeInsetsDirectional
+                                                                    .fromSTEB(
+                                                                        0.0,
+                                                                        0.0,
+                                                                        0.0,
+                                                                        0.0),
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryBackground,
+                                                            textStyle: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .labelMedium
+                                                                .override(
+                                                                  font:
+                                                                      GoogleFonts
+                                                                          .inter(
+                                                                    fontWeight:
+                                                                        FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontWeight,
+                                                                    fontStyle:
+                                                                        FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .primaryText,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                ),
+                                                            elevation: 0.0,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        6.0),
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -4045,6 +4391,63 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
                       ),
                     ),
                   ),
+                  if (_model.isgenerating)
+                    Positioned.fill(
+                      child: Container(
+                        color: const Color(0xB3000000),
+                        child: Center(
+                          child: Container(
+                            width: 220.0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18.0,
+                              vertical: 20.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 32.0,
+                                  height: 32.0,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      FlutterFlowTheme.of(context).primary,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 12.0),
+                                  child: Text(
+                                    'AI가 생성 중입니다...',
+                                    textAlign: TextAlign.center,
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          font: GoogleFonts.inter(
+                                            fontWeight: FlutterFlowTheme.of(
+                                                    context)
+                                                .bodyMedium
+                                                .fontWeight,
+                                            fontStyle: FlutterFlowTheme.of(
+                                                    context)
+                                                .bodyMedium
+                                                .fontStyle,
+                                          ),
+                                          color: FlutterFlowTheme.of(context)
+                                              .primaryBackground,
+                                          letterSpacing: 0.0,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ],
