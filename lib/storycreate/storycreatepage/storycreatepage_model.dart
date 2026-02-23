@@ -10,6 +10,15 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
   String? mainImage;
 
+  List<String> mainImages = [];
+  void addToMainImages(String item) => mainImages.add(item);
+  void removeFromMainImages(String item) => mainImages.remove(item);
+  void removeAtIndexFromMainImages(int index) => mainImages.removeAt(index);
+  void insertAtIndexInMainImages(int index, String item) =>
+      mainImages.insert(index, item);
+  void updateMainImagesAtIndex(int index, Function(String) updateFn) =>
+      mainImages[index] = updateFn(mainImages[index]);
+
   List<String> hashitags = [];
   void addToHashitags(String item) => hashitags.add(item);
   void removeFromHashitags(String item) => hashitags.remove(item);

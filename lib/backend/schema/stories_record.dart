@@ -52,6 +52,11 @@ class StoriesRecord extends FirestoreRecord {
   String get mainImage => _mainImage ?? '';
   bool hasMainImage() => _mainImage != null;
 
+  // "main_images" field.
+  List<String>? _mainImages;
+  List<String> get mainImages => _mainImages ?? const [];
+  bool hasMainImages() => _mainImages != null;
+
   // "description" field.
   String? _description;
   String get description => _description ?? '';
@@ -163,6 +168,7 @@ class StoriesRecord extends FirestoreRecord {
     _creatorRef = snapshotData['creator_ref'] as DocumentReference?;
     _userRole = snapshotData['user_role'] as String?;
     _mainImage = snapshotData['main_image'] as String?;
+    _mainImages = getDataList(snapshotData['main_images']);
     _description = snapshotData['description'] as String?;
     _authorNotes = snapshotData['author_notes'] as String?;
     _createdAt = snapshotData['created_at'] as DateTime?;
@@ -231,6 +237,9 @@ class StoriesRecord extends FirestoreRecord {
           ),
           'user_role': snapshot.data['user_role'],
           'main_image': snapshot.data['main_image'],
+          'main_images': safeGet(
+            () => snapshot.data['main_images'].toList(),
+          ),
           'description': snapshot.data['description'],
           'author_notes': snapshot.data['author_notes'],
           'created_at': convertAlgoliaParam(
@@ -323,6 +332,7 @@ Map<String, dynamic> createStoriesRecordData({
   DocumentReference? creatorRef,
   String? userRole,
   String? mainImage,
+  List<String>? mainImages,
   String? description,
   String? authorNotes,
   DateTime? createdAt,
@@ -349,6 +359,7 @@ Map<String, dynamic> createStoriesRecordData({
       'creator_ref': creatorRef,
       'user_role': userRole,
       'main_image': mainImage,
+      'main_images': mainImages,
       'description': description,
       'author_notes': authorNotes,
       'created_at': createdAt,
@@ -385,6 +396,7 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e1?.creatorRef == e2?.creatorRef &&
         e1?.userRole == e2?.userRole &&
         e1?.mainImage == e2?.mainImage &&
+        listEquality.equals(e1?.mainImages, e2?.mainImages) &&
         e1?.description == e2?.description &&
         e1?.authorNotes == e2?.authorNotes &&
         e1?.createdAt == e2?.createdAt &&
@@ -416,6 +428,7 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.creatorRef,
         e?.userRole,
         e?.mainImage,
+        e?.mainImages,
         e?.description,
         e?.authorNotes,
         e?.createdAt,

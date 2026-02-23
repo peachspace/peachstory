@@ -1,11 +1,13 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
+import '/backend/firebase_storage/storage.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
+import '/flutter_flow/upload_data.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/custom_code/actions/index.dart' as actions;
 import '/index.dart';
@@ -63,7 +65,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
         _model.title = widget.storyDoc?.title;
         _model.worldview = widget.storyDoc?.worldview;
         _model.userrole = widget.storyDoc?.userRole;
-        _model.mainImage = _model.mainImage;
+        _syncMainImageState(_extractMainImageUrlsFromRecord(widget.storyDoc));
         _model.introduce = widget.storyDoc?.description;
         _model.author = widget.storyDoc?.authorNotes;
         _model.genre = widget.storyDoc?.category;
@@ -80,7 +82,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
         _model.outline = widget.storyDoc?.outlineText;
         safeSetState(() {});
       } else {
-        _model.mainImage = null;
+        _syncMainImageState(const []);
         _model.hashitags = [];
         _model.title = '';
         _model.worldview = '';
@@ -183,6 +185,171 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
         backgroundColor: FlutterFlowTheme.of(context).info,
       ),
     );
+  }
+
+  List<String> _extractMainImageUrlsFromRecord(StoriesRecord? story) {
+    if (story == null) return const [];
+    final urls = <String>[];
+    final seen = <String>{};
+
+    for (final raw in story.mainImages) {
+      final normalized = functions.stringToImagePath(raw).trim();
+      if (normalized.isEmpty) continue;
+      if (seen.add(normalized)) urls.add(normalized);
+    }
+
+    final fallback = functions.stringToImagePath(story.mainImage).trim();
+    if (fallback.isNotEmpty && seen.add(fallback)) {
+      urls.insert(0, fallback);
+    }
+
+    return urls;
+  }
+
+  void _syncMainImageState(List<String> images) {
+    final deduped = <String>[];
+    final seen = <String>{};
+    for (final raw in images) {
+      final normalized = functions.stringToImagePath(raw).trim();
+      if (normalized.isEmpty) continue;
+      if (seen.add(normalized)) deduped.add(normalized);
+    }
+    _model.mainImages = deduped;
+    _model.mainImage = deduped.isNotEmpty ? deduped.first : null;
+  }
+
+  Future<void> _uploadAndAddMainImages() async {
+    final selectedMedia = await selectMediaWithSourceBottomSheet(
+      context: context,
+      allowPhoto: true,
+    );
+    if (selectedMedia == null ||
+        !selectedMedia
+            .every((m) => validateFileFormat(m.storagePath, context))) {
+      return;
+    }
+
+    var selectedUploadedFiles = <FFUploadedFile>[];
+    var downloadUrls = <String>[];
+
+    try {
+      selectedUploadedFiles = selectedMedia
+          .map((m) => FFUploadedFile(
+                name: m.storagePath.split('/').last,
+                bytes: m.bytes,
+                height: m.dimensions?.height,
+                width: m.dimensions?.width,
+                blurHash: m.blurHash,
+                originalFilename: m.originalFilename,
+              ))
+          .toList();
+
+      downloadUrls = (await Future.wait(
+        selectedMedia.map(
+          (m) async => await uploadData(m.storagePath, m.bytes),
+        ),
+      ))
+          .whereType<String>()
+          .toList();
+    } catch (_) {
+      _showMessage('이미지 업로드에 실패했습니다.');
+      return;
+    }
+
+    if (selectedUploadedFiles.length != selectedMedia.length ||
+        downloadUrls.length != selectedMedia.length) {
+      _showMessage('이미지 업로드에 실패했습니다.');
+      return;
+    }
+
+    final merged = <String>[
+      ..._model.mainImages,
+      ...downloadUrls,
+    ];
+    safeSetState(() {
+      _syncMainImageState(merged);
+    });
+  }
+
+  Future<void> _confirmAndDeleteMainImage(int index) async {
+    if (index < 0 || index >= _model.mainImages.length) return;
+    final targetUrl = _model.mainImages[index];
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+          content: Text(
+            '삭제하시겠습니까?',
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  font: GoogleFonts.inter(
+                    fontWeight:
+                        FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+                  color: FlutterFlowTheme.of(context).primaryBackground,
+                  letterSpacing: 0.0,
+                ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(
+                '취소',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      font: GoogleFonts.inter(
+                        fontWeight:
+                            FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                      ),
+                      color: FlutterFlowTheme.of(context).alternate,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(
+                '확인',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      font: GoogleFonts.inter(
+                        fontWeight:
+                            FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                      ),
+                      color: FlutterFlowTheme.of(context).error,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete != true) return;
+
+    final updated = List<String>.from(_model.mainImages)..removeAt(index);
+    safeSetState(() {
+      _syncMainImageState(updated);
+    });
+
+    await deleteFileByUrl(targetUrl);
+
+    if (widget.storyDoc != null) {
+      await widget.storyDoc!.reference.update({
+        ...mapToFirestore(
+          {
+            'main_image': _model.mainImage ?? '',
+            'main_images': _model.mainImages,
+          },
+        ),
+      });
+    }
   }
 
   String _normalizePlaceLines(String raw) {
@@ -3806,8 +3973,6 @@ $contextBlock
                                                 child: Row(
                                                   mainAxisSize:
                                                       MainAxisSize.max,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
                                                   children: [
                                                     Padding(
                                                       padding:
@@ -3817,56 +3982,185 @@ $contextBlock
                                                                   0.0,
                                                                   10.0,
                                                                   0.0),
-                                                      child: Container(
+                                                      child: InkWell(
+                                                        splashColor: Colors
+                                                            .transparent,
+                                                        focusColor: Colors
+                                                            .transparent,
+                                                        hoverColor: Colors
+                                                            .transparent,
+                                                        highlightColor: Colors
+                                                            .transparent,
+                                                        onTap: () async {
+                                                          await _uploadAndAddMainImages();
+                                                        },
+                                                        child: Container(
+                                                          width: 100.0,
+                                                          height: 100.0,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryText,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        5.0),
+                                                            border: Border.all(
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .alternate,
+                                                            ),
+                                                          ),
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              Icon(
+                                                                Icons.add,
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .primaryBackground,
+                                                                size: 30.0,
+                                                              ),
+                                                              Text(
+                                                                '이미지 추가',
+                                                                style: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelSmall
+                                                                    .override(
+                                                                      font: GoogleFonts.inter(
+                                                                        fontWeight: FlutterFlowTheme.of(context)
+                                                                            .labelSmall
+                                                                            .fontWeight,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .labelSmall
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      color: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .primaryBackground,
+                                                                      letterSpacing:
+                                                                          0.0,
+                                                                    ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    if (_model.mainImages
+                                                        .isEmpty)
+                                                      Container(
                                                         width: 100.0,
                                                         height: 100.0,
                                                         decoration:
                                                             BoxDecoration(
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .secondaryText,
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(
                                                                       5.0),
+                                                          border: Border.all(
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .alternate,
+                                                          ),
                                                         ),
-                                                        child: Icon(
-                                                          Icons.add,
-                                                          color: FlutterFlowTheme
+                                                        alignment:
+                                                            AlignmentDirectional(
+                                                                0.0, 0.0),
+                                                        child: Text(
+                                                          '업로드된\n이미지가 없어요',
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: FlutterFlowTheme
                                                                   .of(context)
-                                                              .primaryBackground,
-                                                          size: 40.0,
+                                                              .labelSmall
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .inter(
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelSmall
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelSmall
+                                                                      .fontStyle,
+                                                                ),
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .alternate,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                              ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Container(
-                                                        width: 100.0,
-                                                        height: 100.0,
-                                                        decoration:
-                                                            BoxDecoration(),
-                                                        child: ListView(
-                                                          padding:
-                                                              EdgeInsets.zero,
-                                                          shrinkWrap: true,
-                                                          scrollDirection:
-                                                              Axis.vertical,
-                                                          children: [
-                                                            Container(
-                                                              width: 100.0,
-                                                              height: 100.0,
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            5.0),
+                                                    ...List.generate(
+                                                        _model.mainImages
+                                                            .length,
+                                                        (mainImageIndex) {
+                                                      final mainImageUrl = _model
+                                                              .mainImages[
+                                                          mainImageIndex];
+                                                      return Padding(
+                                                        padding:
+                                                            EdgeInsetsDirectional
+                                                                .fromSTEB(
+                                                                    0.0,
+                                                                    0.0,
+                                                                    10.0,
+                                                                    0.0),
+                                                        child: InkWell(
+                                                          splashColor: Colors
+                                                              .transparent,
+                                                          focusColor: Colors
+                                                              .transparent,
+                                                          hoverColor: Colors
+                                                              .transparent,
+                                                          highlightColor: Colors
+                                                              .transparent,
+                                                          onLongPress:
+                                                              () async {
+                                                            await _confirmAndDeleteMainImage(
+                                                                mainImageIndex);
+                                                          },
+                                                          child: Container(
+                                                            width: 100.0,
+                                                            height: 100.0,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          5.0),
+                                                              border:
+                                                                  Border.all(
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .alternate,
                                                               ),
                                                             ),
-                                                          ],
+                                                            child: ClipRRect(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          5.0),
+                                                              child:
+                                                                  safeNetworkImage(
+                                                                imageUrl:
+                                                                    mainImageUrl,
+                                                                width: 100.0,
+                                                                height: 100.0,
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                              ),
+                                                            ),
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ),
+                                                      );
+                                                    }),
                                                   ],
                                                 ),
                                               ),
@@ -5022,6 +5316,7 @@ $contextBlock
                                   .events
                                   .toList()
                                   .cast<EventStructStruct>();
+                              _syncMainImageState(_model.mainImages);
                               safeSetState(() {});
                               if (_model.title != null && _model.title != '') {
                                 final generatedOutline =
@@ -5079,6 +5374,7 @@ $contextBlock
                                             getEventStructListFirestoreData(
                                           _model.eventlist,
                                         ),
+                                        'main_images': _model.mainImages,
                                       },
                                     ),
                                   });
@@ -5127,6 +5423,7 @@ $contextBlock
                                             getEventStructListFirestoreData(
                                           _model.eventlist,
                                         ),
+                                        'main_images': _model.mainImages,
                                       },
                                     ),
                                   }, storiesRecordReference);
@@ -5180,6 +5477,7 @@ $contextBlock
                                             getEventStructListFirestoreData(
                                           _model.eventlist,
                                         ),
+                                        'main_images': _model.mainImages,
                                       },
                                     ),
                                   });

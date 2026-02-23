@@ -9,3 +9,14 @@ Future<String?> uploadData(String path, Uint8List data) async {
   final result = await storageRef.putData(data, metadata);
   return result.state == TaskState.success ? result.ref.getDownloadURL() : null;
 }
+
+Future<void> deleteFileByUrl(String? url) async {
+  final target = (url ?? '').trim();
+  if (target.isEmpty) return;
+  try {
+    final ref = FirebaseStorage.instance.refFromURL(target);
+    await ref.delete();
+  } catch (_) {
+    // Ignore non-storage URLs and missing files.
+  }
+}

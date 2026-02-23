@@ -32,13 +32,34 @@ class StorymainpageWidget extends StatefulWidget {
 
 class _StorymainpageWidgetState extends State<StorymainpageWidget> {
   late StorymainpageModel _model;
+  late final PageController _mainImagePageController;
+  int _mainImagePageIndex = 0;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  List<String> _resolveMainImages(StoriesRecord story) {
+    final urls = <String>[];
+    final seen = <String>{};
+
+    for (final raw in story.mainImages) {
+      final normalized = functions.stringToImagePath(raw).trim();
+      if (normalized.isEmpty) continue;
+      if (seen.add(normalized)) urls.add(normalized);
+    }
+
+    final fallback = functions.stringToImagePath(story.mainImage).trim();
+    if (fallback.isNotEmpty && seen.add(fallback)) {
+      urls.insert(0, fallback);
+    }
+
+    return urls;
+  }
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => StorymainpageModel());
+    _mainImagePageController = PageController();
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -54,6 +75,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
 
   @override
   void dispose() {
+    _mainImagePageController.dispose();
     _model.dispose();
 
     super.dispose();
@@ -83,6 +105,10 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
         }
 
         final storymainpageStoriesRecord = snapshot.data!;
+        final mainImages = _resolveMainImages(storymainpageStoriesRecord);
+        final currentMainImageIndex = mainImages.isEmpty
+            ? 0
+            : _mainImagePageIndex.clamp(0, mainImages.length - 1);
 
         return GestureDetector(
           onTap: () {
@@ -143,17 +169,130 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                 width: 350.0,
                                 height: 350.0,
                                 decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: Image.network(
-                                      storymainpageStoriesRecord.mainImage,
-                                    ).image,
-                                  ),
                                   borderRadius: BorderRadius.circular(8.0),
                                   border: Border.all(
                                     color:
                                         FlutterFlowTheme.of(context).alternate,
                                   ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  child: mainImages.isEmpty
+                                      ? Container(
+                                          color: FlutterFlowTheme.of(context)
+                                              .secondaryText,
+                                          alignment:
+                                              AlignmentDirectional(0.0, 0.0),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.image_not_supported,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .alternate,
+                                                size: 36.0,
+                                              ),
+                                              SizedBox(height: 8.0),
+                                              Text(
+                                                '메인 이미지가 없습니다.',
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      letterSpacing: 0.0,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : Stack(
+                                          children: [
+                                            PageView.builder(
+                                              controller:
+                                                  _mainImagePageController,
+                                              itemCount: mainImages.length,
+                                              onPageChanged: (index) {
+                                                safeSetState(() {
+                                                  _mainImagePageIndex = index;
+                                                });
+                                              },
+                                              itemBuilder: (context, index) {
+                                                final imageUrl =
+                                                    mainImages[index];
+                                                return safeNetworkImage(
+                                                  imageUrl: imageUrl,
+                                                  width: 350.0,
+                                                  height: 350.0,
+                                                  fit: BoxFit.cover,
+                                                );
+                                              },
+                                            ),
+                                            if (mainImages.length > 1)
+                                              Align(
+                                                alignment:
+                                                    AlignmentDirectional(
+                                                        0.0, 0.95),
+                                                child: Container(
+                                                  padding:
+                                                      EdgeInsetsDirectional
+                                                          .fromSTEB(
+                                                              10.0,
+                                                              4.0,
+                                                              10.0,
+                                                              4.0),
+                                                  decoration: BoxDecoration(
+                                                    color: Color(0x80000000),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20.0),
+                                                  ),
+                                                  child: Text(
+                                                    '${currentMainImageIndex + 1}/${mainImages.length}',
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
+                                                        .labelSmall
+                                                        .override(
+                                                          font:
+                                                              GoogleFonts.inter(
+                                                            fontWeight:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelSmall
+                                                                    .fontWeight,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelSmall
+                                                                    .fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .primaryBackground,
+                                                          letterSpacing: 0.0,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
                                 ),
                               ),
                             ),
@@ -165,14 +304,31 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Align(
-                                    alignment: AlignmentDirectional(-1.0, 0.0),
-                                    child: Text(
-                                      storymainpageStoriesRecord.title,
-                                      style: FlutterFlowTheme.of(context)
-                                          .titleMedium
-                                          .override(
-                                            font: GoogleFonts.interTight(
+                                  Expanded(
+                                    child: Align(
+                                      alignment:
+                                          AlignmentDirectional(-1.0, 0.0),
+                                      child: Text(
+                                        storymainpageStoriesRecord.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: FlutterFlowTheme.of(context)
+                                            .titleMedium
+                                            .override(
+                                              font: GoogleFonts.interTight(
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(context)
+                                                        .titleMedium
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .titleMedium
+                                                        .fontStyle,
+                                              ),
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .secondaryBackground,
+                                              letterSpacing: 0.0,
                                               fontWeight:
                                                   FlutterFlowTheme.of(context)
                                                       .titleMedium
@@ -182,18 +338,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                       .titleMedium
                                                       .fontStyle,
                                             ),
-                                            color: FlutterFlowTheme.of(context)
-                                                .secondaryBackground,
-                                            letterSpacing: 0.0,
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .titleMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .titleMedium
-                                                    .fontStyle,
-                                          ),
+                                      ),
                                     ),
                                   ),
                                   ToggleIcon(
