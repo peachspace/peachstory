@@ -22,6 +22,8 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
   late ChatlistpageModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  final Set<String> _deletingChatIds = <String>{};
+  final Set<String> _deletedChatIds = <String>{};
 
   @override
   void initState() {
@@ -36,6 +38,93 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
     _model.dispose();
 
     super.dispose();
+  }
+
+  Future<bool> _showDeleteConfirmDialog() async {
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: const Text('삭제하시겠습니까?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('삭제하기'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: const Text('취소하기'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+    return confirmed;
+  }
+
+  Future<void> _deleteChatItem(StorychatsRecord chatDoc) async {
+    final chatId = chatDoc.reference.id;
+    if (_deletingChatIds.contains(chatId)) {
+      return;
+    }
+
+    final confirm = await _showDeleteConfirmDialog();
+    if (!confirm) {
+      return;
+    }
+
+    safeSetState(() {
+      _deletingChatIds.add(chatId);
+    });
+
+    try {
+      final messagesSnapshot =
+          await chatDoc.reference.collection('storymessages').get();
+
+      final refsToDelete = <DocumentReference>[
+        ...messagesSnapshot.docs.map((doc) => doc.reference),
+        chatDoc.reference,
+      ];
+
+      const int chunkSize = 400;
+      for (int i = 0; i < refsToDelete.length; i += chunkSize) {
+        final batch = FirebaseFirestore.instance.batch();
+        final end = (i + chunkSize) > refsToDelete.length
+            ? refsToDelete.length
+            : (i + chunkSize);
+
+        for (final ref in refsToDelete.sublist(i, end)) {
+          batch.delete(ref);
+        }
+
+        await batch.commit();
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '삭제에 실패했습니다. 다시 시도해주세요.',
+              style: TextStyle(
+                color: FlutterFlowTheme.of(context).secondaryText,
+              ),
+            ),
+            duration: const Duration(milliseconds: 2200),
+            backgroundColor: FlutterFlowTheme.of(context).info,
+          ),
+        );
+      }
+      safeSetState(() {
+        _deletingChatIds.remove(chatId);
+      });
+      return;
+    }
+
+    safeSetState(() {
+      _deletingChatIds.remove(chatId);
+      _deletedChatIds.add(chatId);
+    });
   }
 
   @override
@@ -388,8 +477,11 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
                             ),
                           );
                         }
-                        List<StorychatsRecord> listViewStorychatsRecordList =
-                            snapshot.data!;
+                        final listViewStorychatsRecordList = snapshot.data!
+                            .where((chat) =>
+                                !_deletingChatIds.contains(chat.reference.id) &&
+                                !_deletedChatIds.contains(chat.reference.id))
+                            .toList();
 
                         return ListView.builder(
                           padding: EdgeInsets.zero,
@@ -583,12 +675,38 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
                                               ),
                                             ),
                                           ),
-                                          Icon(
-                                            Icons.more_vert_sharp,
-                                            color: FlutterFlowTheme.of(context)
-                                                .alternate,
-                                            size: 22.0,
-                                          ),
+                                          _deletingChatIds.contains(
+                                                  listViewStorychatsRecord
+                                                      .reference.id)
+                                              ? SizedBox(
+                                                  width: 22.0,
+                                                  height: 22.0,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    strokeWidth: 2.0,
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                            Color>(
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .primary,
+                                                    ),
+                                                  ),
+                                                )
+                                              : IconButton(
+                                                  icon: Icon(
+                                                    Icons.delete_outline_rounded,
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .alternate,
+                                                    size: 22.0,
+                                                  ),
+                                                  onPressed: () async {
+                                                    await _deleteChatItem(
+                                                      listViewStorychatsRecord,
+                                                    );
+                                                  },
+                                                ),
                                         ],
                                       ),
                                     ),

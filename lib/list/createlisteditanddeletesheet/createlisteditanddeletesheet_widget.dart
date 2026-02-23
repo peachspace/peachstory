@@ -26,6 +26,7 @@ class CreatelisteditanddeletesheetWidget extends StatefulWidget {
 class _CreatelisteditanddeletesheetWidgetState
     extends State<CreatelisteditanddeletesheetWidget> {
   late CreatelisteditanddeletesheetModel _model;
+  bool _isDeleting = false;
 
   @override
   void setState(VoidCallback callback) {
@@ -69,7 +70,9 @@ class _CreatelisteditanddeletesheetWidgetState
           Padding(
             padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
             child: FFButtonWidget(
-              onPressed: () async {
+              onPressed: _isDeleting
+                  ? null
+                  : () async {
                 Navigator.pop(context);
 
                 context.pushNamed(
@@ -125,24 +128,24 @@ class _CreatelisteditanddeletesheetWidgetState
           Padding(
             padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
             child: FFButtonWidget(
-              onPressed: () async {
-                Navigator.pop(context);
+              onPressed: _isDeleting
+                  ? null
+                  : () async {
                 var confirmDialogResponse = await showDialog<bool>(
                       context: context,
                       builder: (alertDialogContext) {
                         return AlertDialog(
-                          title: Text('삭제'),
-                          content: Text('정말 삭제하시겠습니까?'),
+                          title: Text('삭제하시겠습니까?'),
                           actions: [
                             TextButton(
                               onPressed: () =>
                                   Navigator.pop(alertDialogContext, false),
-                              child: Text('취소'),
+                              child: Text('취소하기'),
                             ),
                             TextButton(
                               onPressed: () =>
                                   Navigator.pop(alertDialogContext, true),
-                              child: Text('확인'),
+                              child: Text('삭제하기'),
                             ),
                           ],
                         );
@@ -150,6 +153,10 @@ class _CreatelisteditanddeletesheetWidgetState
                     ) ??
                     false;
                 if (confirmDialogResponse) {
+                  safeSetState(() {
+                    _isDeleting = true;
+                  });
+
                   try {
                     final result = await FirebaseFunctions.instanceFor(
                             region: 'us-central1')
@@ -164,19 +171,42 @@ class _CreatelisteditanddeletesheetWidgetState
                       resultAsString: result.data.toString(),
                       jsonBody: result.data,
                     );
+
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
                   } on FirebaseFunctionsException catch (error) {
                     _model.cloudFunction =
                         DeleteStoryWithDataCloudFunctionCallResponse(
                       errorCode: error.code,
                       succeeded: false,
                     );
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '삭제에 실패했습니다. 다시 시도해주세요.',
+                            style: TextStyle(
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                            ),
+                          ),
+                          duration: Duration(milliseconds: 2200),
+                          backgroundColor: FlutterFlowTheme.of(context).info,
+                        ),
+                      );
+                    }
+                  } finally {
+                    if (mounted) {
+                      safeSetState(() {
+                        _isDeleting = false;
+                      });
+                    }
                   }
                 }
-                Navigator.pop(context);
-
                 safeSetState(() {});
               },
-              text: '삭제하기',
+              text: _isDeleting ? '삭제 중...' : '삭제하기',
               options: FFButtonOptions(
                 width: double.infinity,
                 height: 60.0,
