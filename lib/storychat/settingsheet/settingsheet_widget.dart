@@ -668,14 +668,16 @@ class _SettingsheetWidgetState extends State<SettingsheetWidget>
                                 '- 스토리를 진행하는 동안 AI가 계속 기억하고 있어야 할 정보를 입력하세요.\n- 최대 500자까지 작성 가능합니다.',
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color(0x00000000),
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
                                 width: 1.0,
                               ),
                               borderRadius: BorderRadius.circular(8.0),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color(0x00000000),
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
                                 width: 1.0,
                               ),
                               borderRadius: BorderRadius.circular(8.0),

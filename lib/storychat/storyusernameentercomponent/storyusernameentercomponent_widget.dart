@@ -111,28 +111,32 @@ class _StoryusernameentercomponentWidgetState
                             hintText: '이름을 입력하세요...',
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color(0x00000000),
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
                                 width: 1.0,
                               ),
                               borderRadius: BorderRadius.circular(5.0),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color(0x00000000),
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
                                 width: 1.0,
                               ),
                               borderRadius: BorderRadius.circular(5.0),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color(0x00000000),
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
                                 width: 1.0,
                               ),
                               borderRadius: BorderRadius.circular(5.0),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Color(0x00000000),
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
                                 width: 1.0,
                               ),
                               borderRadius: BorderRadius.circular(5.0),
@@ -191,12 +195,13 @@ class _StoryusernameentercomponentWidgetState
                               content: Text(
                                 '이름을 입력하세요.',
                                 style: TextStyle(
-                                  color:
-                                      FlutterFlowTheme.of(context).secondaryText,
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryText,
                                 ),
                               ),
                               duration: Duration(milliseconds: 2000),
-                              backgroundColor: FlutterFlowTheme.of(context).info,
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).info,
                             ),
                           );
                           return;

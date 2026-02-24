@@ -12,6 +12,7 @@ import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'charsettingpage_model.dart';
@@ -153,6 +154,67 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
         borderRadius: BorderRadius.circular(5.0),
       );
 
+  Widget _buildSparkleLoadingOverlay() {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Container(
+          color: const Color(0x99000000),
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.auto_awesome,
+            color: FlutterFlowTheme.of(context).primary,
+            size: 110.0,
+          )
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .fade(
+                duration: 700.ms,
+                begin: 0.35,
+                end: 1.0,
+              )
+              .scaleXY(
+                duration: 700.ms,
+                begin: 0.9,
+                end: 1.08,
+              ),
+        ),
+      ),
+    );
+  }
+
+  String _normalizeCharSettingTemplate(String raw) {
+    final lines = raw.replaceAll('\r\n', '\n').split('\n');
+    String pick(String key) {
+      final lowerKey = key.toLowerCase();
+      for (final line in lines) {
+        final trimmed = line.trim();
+        final normalized =
+            trimmed.startsWith('- ') ? trimmed.substring(2).trim() : trimmed;
+        if (!normalized.contains(':')) continue;
+        final name = normalized.split(':').first.trim().toLowerCase();
+        if (name == lowerKey) {
+          return normalized.substring(normalized.indexOf(':') + 1).trim();
+        }
+      }
+      return '';
+    }
+
+    final rows = <String>[
+      '나이: ${pick('나이')}',
+      '성별: ${pick('성별')}',
+      '성격: ${pick('성격')}',
+      '말투: ${pick('말투')}',
+      '- 예시대사 3개: ${pick('예시대사 3개')}',
+      '습관: ${pick('습관')}',
+      '역할: ${pick('역할')}',
+      '관계: ${pick('관계')}',
+      '목표: ${pick('목표')}',
+      '약점: ${pick('약점')}',
+      '금기: ${pick('금기')}',
+      '비밀: ${pick('비밀')}',
+    ];
+    return rows.join('\n').trim();
+  }
+
   String _normalizeAbilityLines(String raw) {
     final lines = raw.replaceAll('\r\n', '\n').split('\n');
     final out = <String>[];
@@ -280,6 +342,19 @@ JSON 스키마:
   "charintroduce": "캐릭터 소개문"
 }
 규칙:
+- charSetting은 반드시 아래 형식을 유지한다.
+나이:
+성별:
+성격:
+말투:
+- 예시대사 3개:
+습관:
+역할:
+관계:
+목표:
+약점:
+금기:
+비밀:
 - charability는 각 줄이 "능력명: 설명" 형식을 따른다.
 - 한국어로 작성.
 - 4개 필드는 모두 비우지 마라.
@@ -306,7 +381,8 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
       if (parsed == null) throw Exception('AI 응답 파싱 실패');
 
       _model.charNameTextController.text = parsed['charName']!;
-      _model.charSettingTextController.text = parsed['charSetting']!;
+      _model.charSettingTextController.text =
+          _normalizeCharSettingTemplate(parsed['charSetting']!);
       _model.charabilityTextController.text = parsed['charability']!;
       _model.charintroduceTextController.text = parsed['charintroduce']!;
       safeSetState(() {});
@@ -325,111 +401,132 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: FlutterFlowTheme.of(context).secondaryText,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            20.0,
-            20.0,
-            20.0,
-            20.0 + MediaQuery.viewInsetsOf(sheetContext).bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Char AI 생성',
-                style: FlutterFlowTheme.of(context).titleMedium.override(
-                      font: GoogleFonts.interTight(
-                        fontWeight:
-                            FlutterFlowTheme.of(context).titleMedium.fontWeight,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).titleMedium.fontStyle,
-                      ),
-                      color: FlutterFlowTheme.of(context).primaryBackground,
-                      letterSpacing: 0.0,
-                    ),
+        final media = MediaQuery.of(sheetContext);
+        final insetBottom = media.viewInsets.bottom;
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(
+              20.0,
+              0.0,
+              20.0,
+              insetBottom + 20.0,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFD0D5DD),
+                borderRadius: BorderRadius.circular(12.0),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
-                child: TextFormField(
-                  controller: promptController,
-                  autofocus: true,
-                  maxLines: 4,
-                  minLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'AI에게 지시할 내용을 입력하세요...',
-                    hintStyle:
-                        FlutterFlowTheme.of(context).labelMedium.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: FlutterFlowTheme.of(context)
-                                    .labelMedium
-                                    .fontWeight,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .labelMedium
-                                    .fontStyle,
-                              ),
-                              color: FlutterFlowTheme.of(context).alternate,
-                              letterSpacing: 0.0,
-                            ),
-                    enabledBorder: _inputBorder(),
-                    focusedBorder: _inputBorder(),
-                    errorBorder: _inputBorder(),
-                    focusedErrorBorder: _inputBorder(),
-                    filled: true,
-                    fillColor: FlutterFlowTheme.of(context).secondaryText,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                    10.0, 10.0, 10.0, 10.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).primaryBackground,
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: FlutterFlowTheme.of(context)
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                        12.0, 12.0, 12.0, 12.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '프롬프트 입력하기',
+                              style: FlutterFlowTheme.of(context)
+                                  .titleMedium
+                                  .override(
+                                    font: GoogleFonts.interTight(
+                                      fontWeight: FontWeight.w700,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .titleMedium
+                                          .fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText,
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                            InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                final userInstruction = promptController.text;
+                                Navigator.pop(sheetContext);
+                                await _runCharAiGeneration(userInstruction);
+                              },
+                              child: Icon(
+                                Icons.keyboard_arrow_right_rounded,
+                                color:
+                                    FlutterFlowTheme.of(context).secondaryText,
+                                size: 30.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8.0),
+                        TextFormField(
+                          controller: promptController,
+                          autofocus: true,
+                          minLines: 8,
+                          maxLines: 8,
+                          decoration: InputDecoration(
+                            hintText:
+                                '캐릭터의 이름, 설정, 소개 등을 자동으로 생성하기 위해 지시할 프롬프트를 입력해주세요.',
+                            hintStyle: FlutterFlowTheme.of(context)
+                                .labelMedium
+                                .override(
+                                  font: GoogleFonts.inter(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .fontStyle,
+                                  ),
+                                  color: const Color(0xFF5D6A77),
+                                  letterSpacing: 0.0,
+                                ),
+                            filled: true,
+                            fillColor: const Color(0xFFE8EBEF),
+                            enabledBorder: _inputBorder(),
+                            focusedBorder: _inputBorder(),
+                            errorBorder: _inputBorder(),
+                            focusedErrorBorder: _inputBorder(),
+                            contentPadding:
+                                const EdgeInsetsDirectional.fromSTEB(
+                                    12.0, 12.0, 12.0, 12.0),
+                          ),
+                          style: FlutterFlowTheme.of(context)
                               .bodyMedium
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                              .override(
+                                font: GoogleFonts.inter(
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                                color:
+                                    FlutterFlowTheme.of(context).secondaryText,
+                                letterSpacing: 0.0,
+                              ),
                         ),
-                        color: FlutterFlowTheme.of(context).alternate,
-                        letterSpacing: 0.0,
-                      ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              FFButtonWidget(
-                onPressed: () async {
-                  final userInstruction = promptController.text;
-                  Navigator.pop(sheetContext);
-                  await _runCharAiGeneration(userInstruction);
-                },
-                text: 'AI 생성',
-                icon: const Icon(
-                  Icons.auto_awesome,
-                  size: 16.0,
-                ),
-                options: FFButtonOptions(
-                  height: 46.0,
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                      16.0, 0.0, 16.0, 0.0),
-                  iconPadding:
-                      const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                        font: GoogleFonts.interTight(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        letterSpacing: 0.0,
-                      ),
-                  elevation: 0.0,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -687,13 +784,15 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           10.0),
-                                                  child: Image.network(
-                                                    functions.stringToImagePath(
-                                                        valueOrDefault<String>(
-                                                      _model.editchar
-                                                          ?.profileimage,
-                                                      '\' \'',
-                                                    )),
+                                                  child: safeNetworkImage(
+                                                    imageUrl: functions
+                                                        .stringToImagePath(
+                                                      valueOrDefault<String>(
+                                                        _model.editchar
+                                                            ?.profileimage,
+                                                        '\' \'',
+                                                      ),
+                                                    ),
                                                     width: 200.0,
                                                     height: 200.0,
                                                     fit: BoxFit.cover,
@@ -782,10 +881,9 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .alternate,
+                                                      color: FlutterFlowTheme
+                                                              .of(context)
+                                                          .primaryBackground,
                                                       letterSpacing: 0.0,
                                                     ),
                                             enabledBorder: OutlineInputBorder(
@@ -851,7 +949,7 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                 ),
                                                 color:
                                                     FlutterFlowTheme.of(context)
-                                                        .alternate,
+                                                        .primaryBackground,
                                                 letterSpacing: 0.0,
                                                 fontWeight:
                                                     FlutterFlowTheme.of(context)
@@ -874,7 +972,7 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                               null,
                                           cursorColor:
                                               FlutterFlowTheme.of(context)
-                                                  .alternate,
+                                                  .primaryBackground,
                                           validator: _model
                                               .charNameTextControllerValidator
                                               .asValidator(context),
@@ -961,10 +1059,9 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .alternate,
+                                                      color: FlutterFlowTheme
+                                                              .of(context)
+                                                          .primaryBackground,
                                                       letterSpacing: 0.0,
                                                     ),
                                             enabledBorder: OutlineInputBorder(
@@ -1030,7 +1127,7 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                 ),
                                                 color:
                                                     FlutterFlowTheme.of(context)
-                                                        .alternate,
+                                                        .primaryBackground,
                                                 letterSpacing: 0.0,
                                                 fontWeight:
                                                     FlutterFlowTheme.of(context)
@@ -1053,7 +1150,7 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                               null,
                                           cursorColor:
                                               FlutterFlowTheme.of(context)
-                                                  .alternate,
+                                                  .primaryBackground,
                                           validator: _model
                                               .charSettingTextControllerValidator
                                               .asValidator(context),
@@ -1140,10 +1237,9 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .alternate,
+                                                      color: FlutterFlowTheme
+                                                              .of(context)
+                                                          .primaryBackground,
                                                       letterSpacing: 0.0,
                                                     ),
                                             enabledBorder: OutlineInputBorder(
@@ -1209,7 +1305,7 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                 ),
                                                 color:
                                                     FlutterFlowTheme.of(context)
-                                                        .alternate,
+                                                        .primaryBackground,
                                                 letterSpacing: 0.0,
                                                 fontWeight:
                                                     FlutterFlowTheme.of(context)
@@ -1232,7 +1328,7 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                               null,
                                           cursorColor:
                                               FlutterFlowTheme.of(context)
-                                                  .alternate,
+                                                  .primaryBackground,
                                           validator: _model
                                               .charabilityTextControllerValidator
                                               .asValidator(context),
@@ -1318,10 +1414,9 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .alternate,
+                                                      color: FlutterFlowTheme
+                                                              .of(context)
+                                                          .primaryBackground,
                                                       letterSpacing: 0.0,
                                                     ),
                                             enabledBorder: OutlineInputBorder(
@@ -1387,7 +1482,7 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                 ),
                                                 color:
                                                     FlutterFlowTheme.of(context)
-                                                        .alternate,
+                                                        .primaryBackground,
                                                 letterSpacing: 0.0,
                                                 fontWeight:
                                                     FlutterFlowTheme.of(context)
@@ -1410,7 +1505,7 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                               null,
                                           cursorColor:
                                               FlutterFlowTheme.of(context)
-                                                  .alternate,
+                                                  .primaryBackground,
                                           validator: _model
                                               .charintroduceTextControllerValidator
                                               .asValidator(context),
@@ -1464,8 +1559,12 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                   ),
                                             ),
                                           ),
-                                          FFButtonWidget(
-                                            onPressed: () async {
+                                          InkWell(
+                                            splashColor: Colors.transparent,
+                                            focusColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            onTap: () async {
                                               if (_model
                                                   .charabilityTextController
                                                   .text
@@ -1480,69 +1579,18 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                   .toList()
                                                   .cast<EmotionStructStruct>();
                                               safeSetState(() {});
-
                                               context.pushNamed(
                                                 EmotionimagelistWidget
                                                     .routeName,
                                               );
                                             },
-                                            text: '',
-                                            icon: Icon(
+                                            child: Icon(
                                               Icons.keyboard_arrow_right,
-                                              size: 30.0,
-                                            ),
-                                            options: FFButtonOptions(
-                                              width: 30.0,
-                                              height: 30.0,
-                                              padding: EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
-                                              iconAlignment:
-                                                  IconAlignment.start,
-                                              iconPadding: EdgeInsets.all(0.0),
-                                              iconColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryBackground,
                                               color:
                                                   FlutterFlowTheme.of(context)
-                                                      .primaryText,
-                                              textStyle: FlutterFlowTheme.of(
-                                                      context)
-                                                  .titleSmall
-                                                  .override(
-                                                    font:
-                                                        GoogleFonts.interTight(
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontStyle,
-                                                    ),
-                                                    color: Colors.white,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .titleSmall
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .titleSmall
-                                                            .fontStyle,
-                                                  ),
-                                              elevation: 0.0,
-                                              borderSide: BorderSide(
-                                                width: 1.0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(0.0),
+                                                      .primaryBackground,
+                                              size: 30.0,
                                             ),
-                                            showLoadingIndicator: false,
                                           ),
                                         ],
                                       ),
@@ -1599,8 +1647,13 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                         ),
                                               ),
                                             ),
-                                            FFButtonWidget(
-                                              onPressed: () async {
+                                            InkWell(
+                                              splashColor: Colors.transparent,
+                                              focusColor: Colors.transparent,
+                                              hoverColor: Colors.transparent,
+                                              highlightColor:
+                                                  Colors.transparent,
+                                              onTap: () async {
                                                 if (_model
                                                     .charabilityTextController
                                                     .text
@@ -1616,7 +1669,6 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                     .cast<
                                                         AbilityStructStruct>();
                                                 safeSetState(() {});
-
                                                 context.pushNamed(
                                                   AbilityimagelistWidget
                                                       .routeName,
@@ -1634,60 +1686,13 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                                                   }.withoutNulls,
                                                 );
                                               },
-                                              text: '',
-                                              icon: Icon(
+                                              child: Icon(
                                                 Icons.keyboard_arrow_right,
-                                                size: 30.0,
-                                              ),
-                                              options: FFButtonOptions(
-                                                width: 30.0,
-                                                height: 30.0,
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        0.0, 0.0, 0.0, 0.0),
-                                                iconPadding:
-                                                    EdgeInsets.all(0.0),
-                                                iconColor:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryBackground,
                                                 color:
                                                     FlutterFlowTheme.of(context)
-                                                        .primaryText,
-                                                textStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .titleSmall
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .interTight(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: Colors.white,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmall
-                                                                  .fontStyle,
-                                                        ),
-                                                elevation: 0.0,
-                                                borderRadius:
-                                                    BorderRadius.circular(0.0),
+                                                        .primaryBackground,
+                                                size: 30.0,
                                               ),
-                                              showLoadingIndicator: false,
                                             ),
                                           ],
                                         ),
@@ -1841,34 +1846,7 @@ ${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터�
                   ),
                 ],
               ),
-              if (_isAiGenerating)
-                Positioned.fill(
-                  child: Container(
-                    color: const Color(0xB3000000),
-                    child: Center(
-                      child: Container(
-                        width: 220.0,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18.0,
-                          vertical: 20.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: FlutterFlowTheme.of(context).secondaryText,
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: SizedBox(
-                          width: 32.0,
-                          height: 32.0,
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              FlutterFlowTheme.of(context).primary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+              if (_isAiGenerating) _buildSparkleLoadingOverlay(),
             ],
           ),
         ),

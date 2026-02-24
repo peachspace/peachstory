@@ -14,6 +14,7 @@ import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'storycreatepage_model.dart';
@@ -163,6 +164,185 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
         duration: const Duration(milliseconds: 2200),
         backgroundColor: FlutterFlowTheme.of(context).info,
       ),
+    );
+  }
+
+  OutlineInputBorder _sheetInputBorder() => OutlineInputBorder(
+        borderSide: BorderSide(
+          color: FlutterFlowTheme.of(context).secondaryText,
+          width: 1.0,
+        ),
+        borderRadius: BorderRadius.circular(5.0),
+      );
+
+  Widget _buildSparkleLoadingOverlay() {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Container(
+          color: const Color(0x99000000),
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.auto_awesome,
+            color: FlutterFlowTheme.of(context).primary,
+            size: 110.0,
+          )
+              .animate(
+                onPlay: (controller) => controller.repeat(reverse: true),
+              )
+              .fade(
+                duration: 700.ms,
+                begin: 0.35,
+                end: 1.0,
+              )
+              .scaleXY(
+                duration: 700.ms,
+                begin: 0.9,
+                end: 1.08,
+              ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openAiPromptSheet({
+    required String hintText,
+    required Future<void> Function(String userInstruction) onSubmit,
+  }) async {
+    if (_model.isgenerating) return;
+    final promptController = TextEditingController();
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        final media = MediaQuery.of(sheetContext);
+        final insetBottom = media.viewInsets.bottom;
+
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(
+              20.0,
+              0.0,
+              20.0,
+              insetBottom + 20.0,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFD0D5DD),
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                    10.0, 10.0, 10.0, 10.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).primaryBackground,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                        12.0, 12.0, 12.0, 12.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '프롬프트 입력하기',
+                              style: FlutterFlowTheme.of(context)
+                                  .titleMedium
+                                  .override(
+                                    font: GoogleFonts.interTight(
+                                      fontWeight: FontWeight.w700,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .titleMedium
+                                          .fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText,
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                            InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                final userInstruction = promptController.text;
+                                Navigator.pop(sheetContext);
+                                await onSubmit(userInstruction);
+                              },
+                              child: Icon(
+                                Icons.keyboard_arrow_right_rounded,
+                                color:
+                                    FlutterFlowTheme.of(context).secondaryText,
+                                size: 30.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8.0),
+                        TextFormField(
+                          controller: promptController,
+                          autofocus: true,
+                          minLines: 8,
+                          maxLines: 8,
+                          decoration: InputDecoration(
+                            hintText: hintText,
+                            hintStyle: FlutterFlowTheme.of(context)
+                                .labelMedium
+                                .override(
+                                  font: GoogleFonts.inter(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .fontStyle,
+                                  ),
+                                  color: const Color(0xFF5D6A77),
+                                  letterSpacing: 0.0,
+                                ),
+                            filled: true,
+                            fillColor: const Color(0xFFE8EBEF),
+                            enabledBorder: _sheetInputBorder(),
+                            focusedBorder: _sheetInputBorder(),
+                            errorBorder: _sheetInputBorder(),
+                            focusedErrorBorder: _sheetInputBorder(),
+                            contentPadding:
+                                const EdgeInsetsDirectional.fromSTEB(
+                                    12.0, 12.0, 12.0, 12.0),
+                          ),
+                          style: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .override(
+                                font: GoogleFonts.inter(
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                                color:
+                                    FlutterFlowTheme.of(context).secondaryText,
+                                letterSpacing: 0.0,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -491,117 +671,9 @@ ${userInstruction.trim().isEmpty ? '장르와 분위기를 반영해 스토리�
   }
 
   Future<void> _openStoryTapAiSheet() async {
-    if (_model.isgenerating) return;
-    final promptController = TextEditingController();
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: FlutterFlowTheme.of(context).secondaryText,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
-      builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            20.0,
-            20.0,
-            20.0,
-            20.0 + MediaQuery.viewInsetsOf(sheetContext).bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'StoryTap AI 생성',
-                style: FlutterFlowTheme.of(context).titleMedium.override(
-                      font: GoogleFonts.interTight(
-                        fontWeight:
-                            FlutterFlowTheme.of(context).titleMedium.fontWeight,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).titleMedium.fontStyle,
-                      ),
-                      color: FlutterFlowTheme.of(context).primaryBackground,
-                      letterSpacing: 0.0,
-                    ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
-                child: TextFormField(
-                  controller: promptController,
-                  autofocus: true,
-                  maxLines: 4,
-                  minLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'AI에게 지시할 내용을 입력하세요...',
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    filled: true,
-                    fillColor: FlutterFlowTheme.of(context).secondaryText,
-                  ),
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).alternate,
-                        letterSpacing: 0.0,
-                      ),
-                ),
-              ),
-              FFButtonWidget(
-                onPressed: () async {
-                  final userInstruction = promptController.text;
-                  Navigator.pop(sheetContext);
-                  await _runStoryTapAiGeneration(userInstruction);
-                },
-                text: 'AI 생성',
-                icon: const Icon(
-                  Icons.auto_awesome,
-                  size: 16.0,
-                ),
-                options: FFButtonOptions(
-                  height: 46.0,
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                      16.0, 0.0, 16.0, 0.0),
-                  iconPadding:
-                      const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                        font: GoogleFonts.interTight(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        letterSpacing: 0.0,
-                      ),
-                  elevation: 0.0,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+    await _openAiPromptSheet(
+      hintText: '제목, 세계관, 주요 장소 등을 자동으로 생성하기 위해 지시할 프롬프트를 입력해주세요.',
+      onSubmit: _runStoryTapAiGeneration,
     );
   }
 
@@ -629,6 +701,43 @@ ${userInstruction.trim().isEmpty ? '장르와 분위기를 반영해 스토리�
     ).firstMatch(cleaned);
     final output = (match?.group(1) ?? cleaned).trim();
     return output.isEmpty ? null : output;
+  }
+
+  String _normalizePrologueText(String raw) {
+    final normalized = raw
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
+    if (normalized.isEmpty) return normalized;
+
+    final lines = normalized.split('\n');
+    final firstLine = lines.first.trim();
+    final body = lines.skip(1).join('\n').trim();
+
+    var normalizedBody = body;
+    if (normalizedBody.isNotEmpty && !normalizedBody.contains('\n\n')) {
+      final sentences = normalizedBody
+          .split(RegExp(r'(?<=[\.\!\?…])\s+'))
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (sentences.length >= 3) {
+        final paragraphs = <String>[];
+        for (var i = 0; i < sentences.length; i += 2) {
+          final end = (i + 2 > sentences.length) ? sentences.length : i + 2;
+          paragraphs.add(sentences.sublist(i, end).join(' '));
+        }
+        normalizedBody = paragraphs.join('\n\n').trim();
+      }
+    }
+
+    if (firstLine.startsWith('장소:')) {
+      return normalizedBody.isEmpty
+          ? firstLine
+          : '$firstLine\n\n$normalizedBody'.trim();
+    }
+    return normalized;
   }
 
   Future<void> _runPrologueTapAiGeneration(String userInstruction) async {
@@ -664,7 +773,9 @@ JSON 스키마:
 }
 규칙:
 - 한국어로 작성.
-- 프롤로그의 시작 줄은 가능하면 "장소: 장소명" 형식을 사용한다.
+- 첫 줄은 반드시 "장소: 장소명" 형식.
+- "장소: 장소명" 다음 줄은 반드시 빈 줄 1개.
+- 문단과 문단 사이에는 반드시 빈 줄 1개.
 - 세계관/캐릭터/주요 장소를 반영해 자연스럽고 개연성 있게 작성한다.
 - prologuetext는 절대 비우지 마라.
 ''';
@@ -692,8 +803,9 @@ ${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연�
         throw Exception('AI 응답 파싱 실패');
       }
 
-      _model.prologuetextTextController.text = prologue;
-      _model.prologuetext = prologue;
+      final normalizedPrologue = _normalizePrologueText(prologue);
+      _model.prologuetextTextController.text = normalizedPrologue;
+      _model.prologuetext = normalizedPrologue;
       safeSetState(() {});
     } catch (e) {
       _showMessage('프롤로그 AI 생성에 실패했습니다. 다시 시도해주세요.');
@@ -716,115 +828,9 @@ ${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연�
       return;
     }
 
-    final promptController = TextEditingController();
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: FlutterFlowTheme.of(context).secondaryText,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
-      builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            20.0,
-            20.0,
-            20.0,
-            20.0 + MediaQuery.viewInsetsOf(sheetContext).bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'PrologueTap AI 생성',
-                style: FlutterFlowTheme.of(context).titleMedium.override(
-                      font: GoogleFonts.interTight(
-                        fontWeight:
-                            FlutterFlowTheme.of(context).titleMedium.fontWeight,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).titleMedium.fontStyle,
-                      ),
-                      color: FlutterFlowTheme.of(context).primaryBackground,
-                      letterSpacing: 0.0,
-                    ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
-                child: TextFormField(
-                  controller: promptController,
-                  autofocus: true,
-                  maxLines: 4,
-                  minLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'AI에게 지시할 내용을 입력하세요...',
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    filled: true,
-                    fillColor: FlutterFlowTheme.of(context).secondaryText,
-                  ),
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).alternate,
-                        letterSpacing: 0.0,
-                      ),
-                ),
-              ),
-              FFButtonWidget(
-                onPressed: () async {
-                  final userInstruction = promptController.text;
-                  Navigator.pop(sheetContext);
-                  await _runPrologueTapAiGeneration(userInstruction);
-                },
-                text: 'AI 생성',
-                icon: const Icon(
-                  Icons.auto_awesome,
-                  size: 16.0,
-                ),
-                options: FFButtonOptions(
-                  height: 46.0,
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                      16.0, 0.0, 16.0, 0.0),
-                  iconPadding:
-                      const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                        font: GoogleFonts.interTight(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        letterSpacing: 0.0,
-                      ),
-                  elevation: 0.0,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+    await _openAiPromptSheet(
+      hintText: '프롤로그를 자동으로 생성하기 위해 지시할 프롬프트를 입력해주세요.',
+      onSubmit: _runPrologueTapAiGeneration,
     );
   }
 
@@ -1035,6 +1041,7 @@ $contextBlock
                                   ),
                               indicatorColor: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
+                              isScrollable: true,
                               tabs: [
                                 Tab(
                                   text: '스토리',
@@ -1257,8 +1264,9 @@ $contextBlock
                                                             OutlineInputBorder(
                                                           borderSide:
                                                               BorderSide(
-                                                            color: Color(
-                                                                0x00000000),
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryBackground,
                                                             width: 1.0,
                                                           ),
                                                           borderRadius:
@@ -1270,8 +1278,9 @@ $contextBlock
                                                             OutlineInputBorder(
                                                           borderSide:
                                                               BorderSide(
-                                                            color: Color(
-                                                                0x00000000),
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryBackground,
                                                             width: 1.0,
                                                           ),
                                                           borderRadius:
@@ -1283,8 +1292,9 @@ $contextBlock
                                                             OutlineInputBorder(
                                                           borderSide:
                                                               BorderSide(
-                                                            color: Color(
-                                                                0x00000000),
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryBackground,
                                                             width: 1.0,
                                                           ),
                                                           borderRadius:
@@ -1571,8 +1581,9 @@ $contextBlock
                                                               OutlineInputBorder(
                                                             borderSide:
                                                                 BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
                                                               width: 1.0,
                                                             ),
                                                             borderRadius:
@@ -1584,8 +1595,9 @@ $contextBlock
                                                               OutlineInputBorder(
                                                             borderSide:
                                                                 BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
                                                               width: 1.0,
                                                             ),
                                                             borderRadius:
@@ -1597,8 +1609,9 @@ $contextBlock
                                                               OutlineInputBorder(
                                                             borderSide:
                                                                 BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
                                                               width: 1.0,
                                                             ),
                                                             borderRadius:
@@ -1950,8 +1963,9 @@ $contextBlock
                                                               OutlineInputBorder(
                                                             borderSide:
                                                                 BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
                                                               width: 1.0,
                                                             ),
                                                             borderRadius:
@@ -1963,8 +1977,9 @@ $contextBlock
                                                               OutlineInputBorder(
                                                             borderSide:
                                                                 BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
                                                               width: 1.0,
                                                             ),
                                                             borderRadius:
@@ -1976,8 +1991,9 @@ $contextBlock
                                                               OutlineInputBorder(
                                                             borderSide:
                                                                 BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
                                                               width: 1.0,
                                                             ),
                                                             borderRadius:
@@ -2680,9 +2696,8 @@ $contextBlock
                                                                     .labelMedium
                                                                     .fontStyle,
                                                           ),
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .alternate,
+                                                          color: const Color(
+                                                              0xFFBFC7D2),
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FlutterFlowTheme.of(
@@ -2714,9 +2729,8 @@ $contextBlock
                                                                     .labelMedium
                                                                     .fontStyle,
                                                           ),
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .alternate,
+                                                          color: const Color(
+                                                              0xFFBFC7D2),
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FlutterFlowTheme.of(
@@ -4994,44 +5008,13 @@ $contextBlock
                               elevation: 0.0,
                               borderRadius: BorderRadius.circular(8.0),
                             ),
+                            showLoadingIndicator: false,
                           ),
                         ),
                       ),
                     ),
                   ),
-                  if (_model.isgenerating)
-                    Positioned.fill(
-                      child: Container(
-                        color: const Color(0xB3000000),
-                        child: Center(
-                          child: Container(
-                            width: 220.0,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18.0,
-                              vertical: 20.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).secondaryText,
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 32.0,
-                                  height: 32.0,
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      FlutterFlowTheme.of(context).primary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  if (_model.isgenerating) _buildSparkleLoadingOverlay(),
                 ],
               ),
             ],

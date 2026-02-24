@@ -61,8 +61,8 @@ class _AbilitystructWidgetState extends State<AbilitystructWidget> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
-            child: Image.network(
-              valueOrDefault<String>(
+            child: safeNetworkImage(
+              imageUrl: valueOrDefault<String>(
                 functions.stringToImagePath(widget.item?.imageUrl),
                 '\' \'',
               ),

@@ -170,19 +170,6 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     return value;
   }
 
-  String _resolveSelectedModelLabel(String? rawModelId) {
-    final modelId = _resolveSelectedModelId(rawModelId);
-    for (final option in _aiModelOptions) {
-      if (option.id == modelId) {
-        return option.label;
-      }
-    }
-    if (modelId == _defaultAiModelId) {
-      return 'Claude Haiku 4.5';
-    }
-    return modelId;
-  }
-
   Future<void> _updateSelectedModel(
     StorychatsRecord chatDoc,
     String modelId,
@@ -318,19 +305,21 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                           Expanded(
                                             child: Text(
                                               option.label,
-                                              style: FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    font: GoogleFonts.inter(
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                    color: isSelected
-                                                        ? Colors.red
-                                                        : FlutterFlowTheme.of(
-                                                                context)
-                                                            .primaryBackground,
-                                                    letterSpacing: 0.0,
-                                                  ),
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font: GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                        color: isSelected
+                                                            ? Colors.red
+                                                            : FlutterFlowTheme
+                                                                    .of(context)
+                                                                .primaryBackground,
+                                                        letterSpacing: 0.0,
+                                                      ),
                                             ),
                                           ),
                                         ],
@@ -353,12 +342,14 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                       .bodyMedium
                                       .override(
                                         font: GoogleFonts.inter(
-                                          fontWeight: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .fontWeight,
-                                          fontStyle: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .fontStyle,
+                                          fontWeight:
+                                              FlutterFlowTheme.of(context)
+                                                  .bodyMedium
+                                                  .fontWeight,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(context)
+                                                  .bodyMedium
+                                                  .fontStyle,
                                         ),
                                         color: FlutterFlowTheme.of(context)
                                             .primaryBackground,
@@ -370,17 +361,17 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                         .labelMedium
                                         .override(
                                           font: GoogleFonts.inter(
-                                            fontWeight: FlutterFlowTheme.of(
-                                                    context)
-                                                .labelMedium
-                                                .fontWeight,
-                                            fontStyle: FlutterFlowTheme.of(
-                                                    context)
-                                                .labelMedium
-                                                .fontStyle,
+                                            fontWeight:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .fontStyle,
                                           ),
-                                          color:
-                                              FlutterFlowTheme.of(context).alternate,
+                                          color: FlutterFlowTheme.of(context)
+                                              .alternate,
                                           letterSpacing: 0.0,
                                         ),
                                     filled: true,
@@ -388,22 +379,22 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                       borderSide: BorderSide(
-                                        color:
-                                            FlutterFlowTheme.of(context).alternate,
+                                        color: FlutterFlowTheme.of(context)
+                                            .alternate,
                                       ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                       borderSide: BorderSide(
-                                        color:
-                                            FlutterFlowTheme.of(context).alternate,
+                                        color: FlutterFlowTheme.of(context)
+                                            .alternate,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                       borderSide: BorderSide(
-                                        color:
-                                            FlutterFlowTheme.of(context).primary,
+                                        color: FlutterFlowTheme.of(context)
+                                            .primary,
                                       ),
                                     ),
                                   ),
@@ -480,7 +471,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
           );
 
           _model.chatMessages = functions
-              .mergeChatLists(_model.chatMessages.toList(), savedMessages.toList())
+              .mergeChatLists(
+                  _model.chatMessages.toList(), savedMessages.toList())
               .toList()
               .cast<StoryChatMessageStructStruct>();
 
@@ -511,7 +503,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     final map = <String, String>{};
     for (final place in story.places) {
       final tag = (place.place).toString().trim();
-      final url = functions.stringToImagePath((place.imageUrl).toString()).trim();
+      final url =
+          functions.stringToImagePath((place.imageUrl).toString()).trim();
       if (tag.isNotEmpty && url.isNotEmpty) {
         map.putIfAbsent(tag, () => url);
       }
@@ -523,7 +516,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     final map = <String, String>{};
     for (final event in story.events) {
       final tag = (event.event).toString().trim();
-      final url = functions.stringToImagePath((event.imageurl).toString()).trim();
+      final url =
+          functions.stringToImagePath((event.imageurl).toString()).trim();
       if (tag.isNotEmpty && url.isNotEmpty) {
         map.putIfAbsent(tag, () => url);
       }
@@ -594,7 +588,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     String? emotionUrl;
     for (final emotion in character.emotionStruct) {
       if ((emotion.emotion).toString().trim() == '무감정') {
-        final url = functions.stringToImagePath((emotion.imageurl).toString()).trim();
+        final url =
+            functions.stringToImagePath((emotion.imageurl).toString()).trim();
         if (url.isNotEmpty) {
           emotionUrl = url;
           break;
@@ -605,11 +600,13 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     if (emotionUrl != null && emotionUrl.isNotEmpty) return emotionUrl;
 
     for (final emotion in character.emotionStruct) {
-      final url = functions.stringToImagePath((emotion.imageurl).toString()).trim();
+      final url =
+          functions.stringToImagePath((emotion.imageurl).toString()).trim();
       if (url.isNotEmpty) return url;
     }
 
-    final profile = functions.stringToImagePath((character.profileimage).toString()).trim();
+    final profile =
+        functions.stringToImagePath((character.profileimage).toString()).trim();
     if (profile.isNotEmpty) return profile;
 
     return null;
@@ -713,7 +710,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       }
 
       if (type == 'show_image') {
-        final condition = _normalizeImageTag((scene['condition'] ?? '').toString());
+        final condition =
+            _normalizeImageTag((scene['condition'] ?? '').toString());
         if (condition.isEmpty) continue;
 
         if (placeMap.containsKey(condition)) {
@@ -743,7 +741,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
         final speaker = (scene['speaker'] ?? '').toString().trim();
         final isNarration = type == 'narration' || speaker.isEmpty;
 
-        if (!isNarration && (workingCharacter == null || workingCharacter.isEmpty)) {
+        if (!isNarration &&
+            (workingCharacter == null || workingCharacter.isEmpty)) {
           workingCharacter = _resolveDefaultCharacterImage(story, speaker);
         }
 
@@ -826,7 +825,9 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       }
 
       if (type == 'story_image') {
-        final imageUrl = functions.stringToImagePath((message.storyImageUrl).toString()).trim();
+        final imageUrl = functions
+            .stringToImagePath((message.storyImageUrl).toString())
+            .trim();
         if (imageUrl.isEmpty) continue;
 
         final placeByImage = _findPlaceByImageUrl(placeMap, imageUrl);
@@ -846,7 +847,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
         final speaker = (message.speakerName).toString().trim();
         final isNarration = type == 'narration' || speaker.isEmpty;
 
-        if (!isNarration && (workingCharacter == null || workingCharacter.isEmpty)) {
+        if (!isNarration &&
+            (workingCharacter == null || workingCharacter.isEmpty)) {
           workingCharacter = _resolveDefaultCharacterImage(story, speaker);
         }
 
@@ -1009,7 +1011,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
         selectedModelId,
       );
 
-      if (chatDoc.creatorRef != null && currentUserReference != chatDoc.creatorRef) {
+      if (chatDoc.creatorRef != null &&
+          currentUserReference != chatDoc.creatorRef) {
         batch.update(chatDoc.creatorRef!, {
           ...mapToFirestore(
             {
@@ -1189,9 +1192,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
             textAlign: TextAlign.center,
             style: FlutterFlowTheme.of(context).labelMedium.override(
                   font: GoogleFonts.inter(
-                    fontWeight: FlutterFlowTheme.of(context)
-                        .labelMedium
-                        .fontWeight,
+                    fontWeight:
+                        FlutterFlowTheme.of(context).labelMedium.fontWeight,
                     fontStyle:
                         FlutterFlowTheme.of(context).labelMedium.fontStyle,
                   ),
@@ -1204,7 +1206,9 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     }
 
     if (type == 'story_image') {
-      final imageUrl = functions.stringToImagePath((message.storyImageUrl).toString()).trim();
+      final imageUrl = functions
+          .stringToImagePath((message.storyImageUrl).toString())
+          .trim();
       if (!_isValidNetworkImageUrl(imageUrl)) {
         return const SizedBox.shrink();
       }
@@ -1252,14 +1256,15 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                     : FlutterFlowTheme.of(context).alternate,
               ),
             ),
-            padding: const EdgeInsetsDirectional.fromSTEB(12.0, 10.0, 12.0, 10.0),
+            padding:
+                const EdgeInsetsDirectional.fromSTEB(12.0, 10.0, 12.0, 10.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (titleText.isNotEmpty)
                   Padding(
-                    padding:
-                        const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 4.0),
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                        0.0, 0.0, 0.0, 4.0),
                     child: Text(
                       titleText,
                       style: FlutterFlowTheme.of(context).labelSmall.override(
@@ -1271,7 +1276,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                             ),
                             color: isUser
                                 ? const Color(0xFF5A2E16)
-                                : FlutterFlowTheme.of(context).primaryBackground,
+                                : FlutterFlowTheme.of(context)
+                                    .primaryBackground,
                             letterSpacing: 0.0,
                           ),
                     ),
@@ -1280,8 +1286,9 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                   bubbleText,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         font: GoogleFonts.inter(
-                          fontWeight:
-                              FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                          fontWeight: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .fontWeight,
                           fontStyle:
                               FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                         ),
@@ -1332,7 +1339,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                 ),
               ),
             ),
-            padding: const EdgeInsetsDirectional.fromSTEB(12.0, 10.0, 12.0, 10.0),
+            padding:
+                const EdgeInsetsDirectional.fromSTEB(12.0, 10.0, 12.0, 10.0),
             child: Row(
               children: [
                 Expanded(
@@ -1342,28 +1350,31 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                     autofocus: false,
                     style: FlutterFlowTheme.of(context).bodyMedium.override(
                           font: GoogleFonts.inter(
-                            fontWeight:
-                                FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                            fontStyle:
-                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                            fontWeight: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontWeight,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontStyle,
                           ),
                           color: FlutterFlowTheme.of(context).primaryBackground,
                           letterSpacing: 0.0,
                         ),
                     decoration: InputDecoration(
                       hintText: '메시지를 입력하세요...',
-                      hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
-                            font: GoogleFonts.inter(
-                              fontWeight: FlutterFlowTheme.of(context)
-                                  .labelMedium
-                                  .fontWeight,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .labelMedium
-                                  .fontStyle,
-                            ),
-                            color: FlutterFlowTheme.of(context).alternate,
-                            letterSpacing: 0.0,
-                          ),
+                      hintStyle:
+                          FlutterFlowTheme.of(context).labelMedium.override(
+                                font: GoogleFonts.inter(
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .labelMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .labelMedium
+                                      .fontStyle,
+                                ),
+                                color: FlutterFlowTheme.of(context).alternate,
+                                letterSpacing: 0.0,
+                              ),
                       filled: true,
                       fillColor: const Color(0x1AFFFFFF),
                       border: OutlineInputBorder(
@@ -1448,9 +1459,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       );
     }
 
-    final currentParagraph = _paragraphs.isNotEmpty
-        ? _paragraphs[_currentParagraphIndex]
-        : null;
+    final currentParagraph =
+        _paragraphs.isNotEmpty ? _paragraphs[_currentParagraphIndex] : null;
 
     final paragraphPlace = (currentParagraph?.place ?? _currentPlace).trim();
     final placeText = paragraphPlace.isEmpty ? '어딘가' : paragraphPlace;
@@ -1507,9 +1517,6 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
             }
 
             final chatDoc = chatSnapshot.data!;
-            final selectedModelLabel =
-                _resolveSelectedModelLabel(chatDoc.selectedAiModel);
-
             if (!_didBackfillDefaultModel &&
                 (chatDoc.selectedAiModel).toString().trim().isEmpty) {
               _didBackfillDefaultModel = true;
@@ -1528,8 +1535,11 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
               child: Scaffold(
                 key: scaffoldKey,
                 backgroundColor: Colors.black,
+                extendBodyBehindAppBar: !_isChatMode,
                 appBar: AppBar(
-                  backgroundColor: Colors.black,
+                  backgroundColor:
+                      _isChatMode ? Colors.black : Colors.transparent,
+                  surfaceTintColor: Colors.transparent,
                   elevation: 0.0,
                   leading: IconButton(
                     icon: Icon(
@@ -1579,50 +1589,24 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                   actions: [
                     IconButton(
                       icon: Icon(
-                        Icons.tune_rounded,
+                        Icons.sync_rounded,
+                        color: FlutterFlowTheme.of(context).primaryBackground,
+                      ),
+                      onPressed: () {
+                        safeSetState(() {
+                          _isChatMode = !_isChatMode;
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.menu_rounded,
                         color: FlutterFlowTheme.of(context).primaryBackground,
                       ),
                       onPressed: () async {
                         await _openSettingsSheet(chatDoc);
                       },
                     ),
-                    TextButton(
-                      onPressed: () {
-                        safeSetState(() {
-                          _isChatMode = !_isChatMode;
-                        });
-                      },
-                      child: Text(
-                        _isChatMode ? 'visualmode' : 'changemode',
-                        style: FlutterFlowTheme.of(context).labelMedium.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: FontWeight.w700,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .labelMedium
-                                    .fontStyle,
-                              ),
-                              color: FlutterFlowTheme.of(context).primaryBackground,
-                              letterSpacing: 0.0,
-                            ),
-                      ),
-                    ),
-                    if (_isGenerating)
-                      Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
-                        child: Center(
-                          child: SizedBox(
-                            width: 20.0,
-                            height: 20.0,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.0,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                FlutterFlowTheme.of(context).primary,
-                              ),
-                              ),
-                            ),
-                          ),
-                      ),
                   ],
                 ),
                 body: _isChatMode
@@ -1633,171 +1617,40 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                       )
                     : Stack(
                         children: [
-                    Positioned.fill(
-                      child: _isValidNetworkImageUrl(backgroundImageUrl)
-                          ? safeNetworkImage(
-                              imageUrl: backgroundImageUrl,
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(0xFF13161D),
-                                    Color(0xFF1C222C),
-                                    Color(0xFF101317),
-                                  ],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '배경 이미지 없음',
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
+                          Positioned.fill(
+                            child: _isValidNetworkImageUrl(backgroundImageUrl)
+                                ? safeNetworkImage(
+                                    imageUrl: backgroundImageUrl,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFF13161D),
+                                          Color(0xFF1C222C),
+                                          Color(0xFF101317),
+                                        ],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
                                       ),
-                                      color:
-                                          FlutterFlowTheme.of(context).alternate,
-                                      letterSpacing: 0.0,
                                     ),
-                              ),
-                            ),
-                    ),
-                    if (_isValidNetworkImageUrl(characterImageUrl))
-                      Align(
-                        alignment: AlignmentDirectional(0.0, 1.0),
-                        child: Padding(
-                          padding:
-                              EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 170.0),
-                          child: safeNetworkImage(
-                            imageUrl: characterImageUrl,
-                            width: double.infinity,
-                            height: MediaQuery.sizeOf(context).height * 0.62,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    Positioned.fill(
-                      bottom: _showActionPanel ? 250.0 : 170.0,
-                      child: IgnorePointer(
-                        ignoring: _showActionPanel || _isGenerating,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.translucent,
-                                onTap: _onTapPrevious,
-                                child: const SizedBox.expand(),
-                              ),
-                            ),
-                            Expanded(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.translucent,
-                                onTap: _onTapNext,
-                                child: const SizedBox.expand(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Align(
-                      alignment: AlignmentDirectional(0.0, 1.0),
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              const Color(0x00000000),
-                              const Color(0xBF000000),
-                              const Color(0xE6000000),
-                            ],
-                            stops: const [0.0, 0.25, 1.0],
-                            begin: AlignmentDirectional(0.0, -1.0),
-                            end: AlignmentDirectional(0, 1.0),
-                          ),
-                        ),
-                        child: Padding(
-                          padding:
-                              EdgeInsetsDirectional.fromSTEB(20.0, 20.0, 20.0, 20.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!(currentParagraph?.isNarration ?? true))
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 0.0, 0.0, 8.0),
-                                  child: Text(
-                                    currentParagraph?.speaker ?? '',
-                                    style: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .override(
-                                          font: GoogleFonts.interTight(
-                                            fontWeight: FontWeight.w700,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .titleSmall
-                                                    .fontStyle,
-                                          ),
-                                          color: const Color(0xFFFFD58F),
-                                          letterSpacing: 0.0,
-                                        ),
-                                  ),
-                                ),
-                              Text(
-                                currentParagraph?.text ?? '스토리를 준비중입니다.',
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      color: (currentParagraph?.isNarration ?? true)
-                                          ? const Color(0xFFE0E3E7)
-                                          : const Color(0xFFFFFFFF),
-                                      fontSize: 18.0,
-                                      letterSpacing: 0.0,
-                                    ),
-                              ),
-                              if (!_showActionPanel)
-                                Align(
-                                  alignment: AlignmentDirectional(1.0, 0.0),
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        0.0, 12.0, 0.0, 0.0),
+                                    alignment: Alignment.center,
                                     child: Text(
-                                      _paragraphs.isEmpty
-                                          ? '0/0'
-                                          : '${_currentParagraphIndex + 1}/${_paragraphs.length}',
+                                      '배경 이미지 없음',
                                       style: FlutterFlowTheme.of(context)
-                                          .labelSmall
+                                          .bodyMedium
                                           .override(
                                             font: GoogleFonts.inter(
-                                              fontWeight: FlutterFlowTheme.of(
-                                                      context)
-                                                  .labelSmall
-                                                  .fontWeight,
+                                              fontWeight:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontWeight,
                                               fontStyle:
                                                   FlutterFlowTheme.of(context)
-                                                      .labelSmall
+                                                      .bodyMedium
                                                       .fontStyle,
                                             ),
                                             color: FlutterFlowTheme.of(context)
@@ -1806,271 +1659,404 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                           ),
                                     ),
                                   ),
+                          ),
+                          if (_isValidNetworkImageUrl(characterImageUrl))
+                            Align(
+                              alignment: AlignmentDirectional(0.0, 1.0),
+                              child: Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    0.0, 0.0, 0.0, 170.0),
+                                child: safeNetworkImage(
+                                  imageUrl: characterImageUrl,
+                                  width: double.infinity,
+                                  height:
+                                      MediaQuery.sizeOf(context).height * 0.62,
+                                  fit: BoxFit.contain,
                                 ),
-                              if (_showActionPanel)
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 14.0, 0.0, 0.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      ..._defaultChoices.map(
-                                        (choiceText) => Padding(
+                              ),
+                            ),
+                          Positioned.fill(
+                            bottom: _showActionPanel ? 250.0 : 170.0,
+                            child: IgnorePointer(
+                              ignoring: _showActionPanel || _isGenerating,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.translucent,
+                                      onTap: _onTapPrevious,
+                                      child: const SizedBox.expand(),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.translucent,
+                                      onTap: _onTapNext,
+                                      child: const SizedBox.expand(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Align(
+                            alignment: AlignmentDirectional(0.0, 1.0),
+                            child: Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    const Color(0x00000000),
+                                    const Color(0xBF000000),
+                                    const Color(0xE6000000),
+                                  ],
+                                  stops: const [0.0, 0.25, 1.0],
+                                  begin: AlignmentDirectional(0.0, -1.0),
+                                  end: AlignmentDirectional(0, 1.0),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    20.0, 20.0, 20.0, 20.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (!(currentParagraph?.isNarration ??
+                                        true))
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            0.0, 0.0, 0.0, 8.0),
+                                        child: Text(
+                                          currentParagraph?.speaker ?? '',
+                                          style: FlutterFlowTheme.of(context)
+                                              .titleSmall
+                                              .override(
+                                                font: GoogleFonts.interTight(
+                                                  fontWeight: FontWeight.w700,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .titleSmall
+                                                          .fontStyle,
+                                                ),
+                                                color: const Color(0xFFFFD58F),
+                                                letterSpacing: 0.0,
+                                              ),
+                                        ),
+                                      ),
+                                    Text(
+                                      currentParagraph?.text ?? '스토리를 준비중입니다.',
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontWeight,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .fontStyle,
+                                            ),
+                                            color: (currentParagraph
+                                                        ?.isNarration ??
+                                                    true)
+                                                ? const Color(0xFFE0E3E7)
+                                                : const Color(0xFFFFFFFF),
+                                            fontSize: 18.0,
+                                            letterSpacing: 0.0,
+                                          ),
+                                    ),
+                                    if (!_showActionPanel)
+                                      Align(
+                                        alignment:
+                                            AlignmentDirectional(1.0, 0.0),
+                                        child: Padding(
                                           padding:
                                               EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 0.0, 8.0),
-                                          child: SizedBox(
-                                            width: double.infinity,
-                                            child: OutlinedButton(
-                                              onPressed: _isGenerating
-                                                  ? null
-                                                  : () async {
-                                                      await _handleChoiceOrSend(
-                                                        choiceText,
-                                                        story,
-                                                        chatDoc,
-                                                      );
-                                                    },
-                                              style: OutlinedButton.styleFrom(
-                                                side: BorderSide(
-                                                  color:
-                                                      FlutterFlowTheme.of(context)
-                                                          .alternate,
+                                                  0.0, 12.0, 0.0, 0.0),
+                                          child: Text(
+                                            _paragraphs.isEmpty
+                                                ? '0/0'
+                                                : '${_currentParagraphIndex + 1}/${_paragraphs.length}',
+                                            style: FlutterFlowTheme.of(context)
+                                                .labelSmall
+                                                .override(
+                                                  font: GoogleFonts.inter(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .labelSmall
+                                                            .fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .labelSmall
+                                                            .fontStyle,
+                                                  ),
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .alternate,
+                                                  letterSpacing: 0.0,
                                                 ),
-                                                padding:
-                                                    EdgeInsetsDirectional.fromSTEB(
-                                                            12.0,
-                                                            10.0,
-                                                            12.0,
-                                                            10.0)
-                                                        .resolve(
-                                                            Directionality.of(
-                                                                context)),
-                                              ),
-                                              child: Text(
-                                                choiceText,
-                                                style: FlutterFlowTheme.of(
-                                                        context)
-                                                    .bodyMedium
-                                                    .override(
-                                                      font: GoogleFonts.inter(
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primaryBackground,
-                                                      letterSpacing: 0.0,
-                                                    ),
-                                              ),
-                                            ),
                                           ),
                                         ),
                                       ),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: const Color(0x26000000),
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                          border: Border.all(
-                                            color: FlutterFlowTheme.of(context)
-                                                .alternate,
-                                          ),
-                                        ),
-                                        child: Row(
+                                    if (_showActionPanel)
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            0.0, 14.0, 0.0, 0.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Expanded(
-                                              child: TextFormField(
-                                                controller: _model
-                                                    .usertextFieldTextController,
-                                                focusNode:
-                                                    _model.usertextFieldFocusNode,
-                                                autofocus: false,
-                                                style:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .primaryBackground,
-                                                          letterSpacing: 0.0,
-                                                        ),
-                                                decoration: InputDecoration(
-                                                  hintText: '직접 입력...',
-                                                  hintStyle:
-                                                      FlutterFlowTheme.of(context)
-                                                          .labelMedium
-                                                          .override(
-                                                            font:
-                                                                GoogleFonts.inter(
-                                                              fontWeight:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .fontWeight,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .fontStyle,
-                                                            ),
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
+                                            ..._defaultChoices.map(
+                                              (choiceText) => Padding(
+                                                padding: EdgeInsetsDirectional
+                                                    .fromSTEB(
+                                                        0.0, 0.0, 0.0, 8.0),
+                                                child: SizedBox(
+                                                  width: double.infinity,
+                                                  child: OutlinedButton(
+                                                    onPressed: _isGenerating
+                                                        ? null
+                                                        : () async {
+                                                            await _handleChoiceOrSend(
+                                                              choiceText,
+                                                              story,
+                                                              chatDoc,
+                                                            );
+                                                          },
+                                                    style: OutlinedButton
+                                                        .styleFrom(
+                                                      side: BorderSide(
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
                                                                 .alternate,
-                                                            letterSpacing: 0.0,
-                                                          ),
-                                                  border: InputBorder.none,
-                                                  contentPadding:
-                                                      EdgeInsetsDirectional
-                                                          .fromSTEB(12.0, 10.0,
-                                                              12.0, 10.0),
+                                                      ),
+                                                      padding: EdgeInsetsDirectional
+                                                              .fromSTEB(
+                                                                  12.0,
+                                                                  10.0,
+                                                                  12.0,
+                                                                  10.0)
+                                                          .resolve(
+                                                              Directionality.of(
+                                                                  context)),
+                                                    ),
+                                                    child: Text(
+                                                      choiceText,
+                                                      style:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font:
+                                                                    GoogleFonts
+                                                                        .inter(
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .primaryBackground,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                              ),
+                                                    ),
+                                                  ),
                                                 ),
-                                                maxLength: 200,
-                                                maxLengthEnforcement:
-                                                    MaxLengthEnforcement.enforced,
-                                                buildCounter: (context,
-                                                        {required currentLength,
-                                                        required isFocused,
-                                                        maxLength}) =>
-                                                    null,
-                                                onFieldSubmitted: (_) async {
-                                                  if (_isGenerating) return;
-                                                  await _handleChoiceOrSend(
-                                                    _model.usertextFieldTextController
-                                                        .text,
-                                                    story,
-                                                    chatDoc,
-                                                  );
-                                                },
                                               ),
                                             ),
-                                            IconButton(
-                                              icon: Icon(
-                                                Icons.send,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryBackground,
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: const Color(0x26000000),
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                                border: Border.all(
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .alternate,
+                                                ),
                                               ),
-                                              onPressed: _isGenerating
-                                                  ? null
-                                                  : () async {
-                                                      await _handleChoiceOrSend(
-                                                        _model
-                                                            .usertextFieldTextController
-                                                            .text,
-                                                        story,
-                                                        chatDoc,
-                                                      );
-                                                    },
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: TextFormField(
+                                                      controller: _model
+                                                          .usertextFieldTextController,
+                                                      focusNode: _model
+                                                          .usertextFieldFocusNode,
+                                                      autofocus: false,
+                                                      style:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font:
+                                                                    GoogleFonts
+                                                                        .inter(
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .primaryBackground,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                              ),
+                                                      decoration:
+                                                          InputDecoration(
+                                                        hintText: '직접 입력...',
+                                                        hintStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .override(
+                                                                  font:
+                                                                      GoogleFonts
+                                                                          .inter(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .alternate,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                ),
+                                                        border:
+                                                            InputBorder.none,
+                                                        contentPadding:
+                                                            EdgeInsetsDirectional
+                                                                .fromSTEB(
+                                                                    12.0,
+                                                                    10.0,
+                                                                    12.0,
+                                                                    10.0),
+                                                      ),
+                                                      maxLength: 200,
+                                                      maxLengthEnforcement:
+                                                          MaxLengthEnforcement
+                                                              .enforced,
+                                                      buildCounter: (context,
+                                                              {required currentLength,
+                                                              required isFocused,
+                                                              maxLength}) =>
+                                                          null,
+                                                      onFieldSubmitted:
+                                                          (_) async {
+                                                        if (_isGenerating)
+                                                          return;
+                                                        await _handleChoiceOrSend(
+                                                          _model
+                                                              .usertextFieldTextController
+                                                              .text,
+                                                          story,
+                                                          chatDoc,
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    icon: Icon(
+                                                      Icons.send,
+                                                      color: FlutterFlowTheme
+                                                              .of(context)
+                                                          .primaryBackground,
+                                                    ),
+                                                    onPressed: _isGenerating
+                                                        ? null
+                                                        : () async {
+                                                            await _handleChoiceOrSend(
+                                                              _model
+                                                                  .usertextFieldTextController
+                                                                  .text,
+                                                              story,
+                                                              chatDoc,
+                                                            );
+                                                          },
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (_isGenerating)
-                      Positioned.fill(
-                        child: Container(
-                          color: const Color(0x66000000),
-                          alignment: Alignment.center,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: 36.0,
-                                height: 36.0,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    FlutterFlowTheme.of(context).primary,
-                                  ),
+                                  ],
                                 ),
                               ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 12.0, 0.0, 0.0),
-                                child: Text(
-                                  '다음 턴 생성 중...',
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .fontWeight,
-                                          fontStyle: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .fontStyle,
+                            ),
+                          ),
+                          if (_isGenerating)
+                            Positioned.fill(
+                              child: Container(
+                                color: const Color(0x66000000),
+                                alignment: Alignment.center,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 36.0,
+                                      height: 36.0,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          FlutterFlowTheme.of(context).primary,
                                         ),
-                                        color: FlutterFlowTheme.of(context)
-                                            .primaryBackground,
-                                        letterSpacing: 0.0,
                                       ),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          0.0, 12.0, 0.0, 0.0),
+                                      child: Text(
+                                        '다음 턴 생성 중...',
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              font: GoogleFonts.inter(
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontStyle,
+                                              ),
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .primaryBackground,
+                                              letterSpacing: 0.0,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 16.0,
-                      right: 16.0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0x66000000),
-                          borderRadius: BorderRadius.circular(20.0),
-                          border: Border.all(
-                            color: FlutterFlowTheme.of(context).alternate,
-                          ),
-                        ),
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                          10.0,
-                          6.0,
-                          10.0,
-                          6.0,
-                        ),
-                        child: Text(
-                          selectedModelLabel,
-                          style: FlutterFlowTheme.of(context).labelSmall.override(
-                                font: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w700,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                      .labelSmall
-                                      .fontStyle,
-                                ),
-                                color: Colors.red,
-                                letterSpacing: 0.0,
-                              ),
-                        ),
-                      ),
-                    ),
+                            ),
+                          const SizedBox.shrink(),
                         ],
                       ),
               ),

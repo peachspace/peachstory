@@ -247,17 +247,12 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                             ),
                                             if (mainImages.length > 1)
                                               Align(
-                                                alignment:
-                                                    AlignmentDirectional(
-                                                        0.0, 0.95),
+                                                alignment: AlignmentDirectional(
+                                                    0.0, 0.95),
                                                 child: Container(
-                                                  padding:
-                                                      EdgeInsetsDirectional
-                                                          .fromSTEB(
-                                                              10.0,
-                                                              4.0,
-                                                              10.0,
-                                                              4.0),
+                                                  padding: EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                          10.0, 4.0, 10.0, 4.0),
                                                   decoration: BoxDecoration(
                                                     color: Color(0x80000000),
                                                     borderRadius:
@@ -602,12 +597,14 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                   decoration: BoxDecoration(
                                                     image: DecorationImage(
                                                       fit: BoxFit.cover,
-                                                      image: Image.network(
+                                                      image:
+                                                          safeImageProviderFromUrl(
                                                         functions
                                                             .stringToImagePath(
-                                                                charactersItem
-                                                                    .profileimage),
-                                                      ).image,
+                                                          charactersItem
+                                                              .profileimage,
+                                                        ),
+                                                      ),
                                                     ),
                                                     borderRadius:
                                                         BorderRadius.circular(
@@ -843,9 +840,9 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                         decoration: BoxDecoration(
                                           image: DecorationImage(
                                             fit: BoxFit.cover,
-                                            image: Image.network(
+                                            image: safeImageProviderFromUrl(
                                               rowUsersRecord.photoUrl,
-                                            ).image,
+                                            ),
                                           ),
                                           borderRadius:
                                               BorderRadius.circular(5.0),
@@ -1163,9 +1160,12 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                                       decoration: BoxDecoration(
                                                         shape: BoxShape.circle,
                                                       ),
-                                                      child: Image.network(
-                                                        listViewCommentsRecord
-                                                            .userProfileImage,
+                                                      child: safeNetworkImage(
+                                                        imageUrl:
+                                                            listViewCommentsRecord
+                                                                .userProfileImage,
+                                                        width: 30.0,
+                                                        height: 30.0,
                                                         fit: BoxFit.cover,
                                                       ),
                                                     ),
