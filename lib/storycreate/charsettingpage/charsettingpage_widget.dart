@@ -1,16 +1,17 @@
+import '/backend/firebase_storage/storage.dart';
 import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
-import '/flutter_flow/flutter_flow_animations.dart';
+import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/flutter_flow/upload_data.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'charsettingpage_model.dart';
@@ -51,8 +52,7 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
   late CharsettingpageModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
-  final animationsMap = <String, AnimationInfo>{};
+  bool _isAiGenerating = false;
 
   @override
   void initState() {
@@ -97,6 +97,14 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
       _model.charabilityTextController?.text = _model.editchar?.ability ?? '';
       _model.charintroduceTextController?.text =
           _model.editchar?.introduce ?? '';
+      FFAppState().emotions =
+          (_model.editchar?.emotionStruct ?? functions.getEmptyEmotionList())
+              .toList()
+              .cast<EmotionStructStruct>();
+      FFAppState().Abilities =
+          (_model.editchar?.abilityStruct ?? functions.getEmptyabilityList())
+              .toList()
+              .cast<AbilityStructStruct>();
       safeSetState(() {});
     });
 
@@ -111,23 +119,6 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
 
     _model.charintroduceTextController ??= TextEditingController();
     _model.charintroduceFocusNode ??= FocusNode();
-
-    animationsMap.addAll({
-      'containerOnPageLoadAnimation': AnimationInfo(
-        loop: true,
-        reverse: true,
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          FadeEffect(
-            curve: Curves.linear,
-            delay: 0.0.ms,
-            duration: 1000.0.ms,
-            begin: 0.7,
-            end: 1.0,
-          ),
-        ],
-      ),
-    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -152,6 +143,320 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
         backgroundColor: FlutterFlowTheme.of(context).info,
       ),
     );
+  }
+
+  OutlineInputBorder _inputBorder() => OutlineInputBorder(
+        borderSide: BorderSide(
+          color: FlutterFlowTheme.of(context).secondaryBackground,
+          width: 1.0,
+        ),
+        borderRadius: BorderRadius.circular(5.0),
+      );
+
+  String _normalizeAbilityLines(String raw) {
+    final lines = raw.replaceAll('\r\n', '\n').split('\n');
+    final out = <String>[];
+    final usedNames = <String>{};
+
+    for (var line in lines) {
+      line = line.trim();
+      if (line.isEmpty) continue;
+      line = line.replaceAll(RegExp(r'^[-*•\d\.\)\(]+\s*'), '').trim();
+      if (!line.contains(':')) continue;
+
+      final name = line.split(':').first.trim();
+      final desc = line.substring(line.indexOf(':') + 1).trim();
+      if (name.isEmpty || desc.isEmpty) continue;
+      if (usedNames.add(name)) out.add('$name: $desc');
+    }
+
+    return out.isEmpty ? raw.trim() : out.join('\n').trim();
+  }
+
+  Map<String, String>? _parseCharAiOutput(String raw) {
+    String cleaned = raw.trim();
+    cleaned = cleaned.replaceAll('```json', '').replaceAll('```', '').trim();
+
+    dynamic parsed;
+    try {
+      parsed = jsonDecode(cleaned);
+    } catch (_) {
+      parsed = null;
+    }
+
+    String pick(dynamic value) => (value ?? '').toString().trim();
+
+    String charName = '';
+    String charSetting = '';
+    String charAbility = '';
+    String charIntroduce = '';
+
+    if (parsed is Map) {
+      charName =
+          pick(parsed['charName'] ?? parsed['name'] ?? parsed['char_name']);
+      charSetting = pick(
+        parsed['charSetting'] ??
+            parsed['setting'] ??
+            parsed['characterSetting'],
+      );
+      final abilityValue =
+          parsed['charability'] ?? parsed['ability'] ?? parsed['abilities'];
+      if (abilityValue is List) {
+        charAbility = abilityValue.map((e) => e.toString()).join('\n').trim();
+      } else {
+        charAbility = pick(abilityValue);
+      }
+      charIntroduce = pick(
+        parsed['charintroduce'] ??
+            parsed['introduce'] ??
+            parsed['introduction'],
+      );
+    } else {
+      final nameMatch = RegExp(
+        r'(?:charName|name|이름)\s*[:：]\s*(.+)',
+        multiLine: true,
+      ).firstMatch(cleaned);
+      final settingMatch = RegExp(
+        r'(?:charSetting|setting|설정)\s*[:：]\s*([\s\S]*?)(?=\n(?:charability|ability|능력|charintroduce|introduce|소개)\s*[:：]|$)',
+        multiLine: true,
+      ).firstMatch(cleaned);
+      final abilityMatch = RegExp(
+        r'(?:charability|ability|능력)\s*[:：]\s*([\s\S]*?)(?=\n(?:charintroduce|introduce|소개)\s*[:：]|$)',
+        multiLine: true,
+      ).firstMatch(cleaned);
+      final introduceMatch = RegExp(
+        r'(?:charintroduce|introduce|소개)\s*[:：]\s*([\s\S]+)$',
+        multiLine: true,
+      ).firstMatch(cleaned);
+
+      charName = (nameMatch?.group(1) ?? '').trim();
+      charSetting = (settingMatch?.group(1) ?? '').trim();
+      charAbility = (abilityMatch?.group(1) ?? '').trim();
+      charIntroduce = (introduceMatch?.group(1) ?? '').trim();
+    }
+
+    charAbility = _normalizeAbilityLines(charAbility);
+    if (charName.isEmpty ||
+        charSetting.isEmpty ||
+        charAbility.isEmpty ||
+        charIntroduce.isEmpty) {
+      return null;
+    }
+
+    return {
+      'charName': charName,
+      'charSetting': charSetting,
+      'charability': charAbility,
+      'charintroduce': charIntroduce,
+    };
+  }
+
+  Future<void> _runCharAiGeneration(String userInstruction) async {
+    if (_isAiGenerating) return;
+    safeSetState(() => _isAiGenerating = true);
+
+    try {
+      final contextBlock = '''
+[스토리 컨텍스트]
+${widget.storyContext ?? ''}
+[기존 캐릭터]
+${functions.convertCharactersToString(FFAppState().Characters.toList())}
+[현재 입력값]
+이름: ${_model.charNameTextController.text}
+설정: ${_model.charSettingTextController.text}
+능력:
+${_model.charabilityTextController.text}
+소개: ${_model.charintroduceTextController.text}
+''';
+
+      final systemPrompt = '''
+너는 웹소설 캐릭터 생성 assistant다.
+출력은 반드시 JSON 객체 1개만 출력한다. 코드블록, 설명, 마크다운 금지.
+JSON 스키마:
+{
+  "charName": "캐릭터 이름",
+  "charSetting": "캐릭터 설정(여러 문단 가능)",
+  "charability": "능력명: 설명\\n능력명: 설명\\n...",
+  "charintroduce": "캐릭터 소개문"
+}
+규칙:
+- charability는 각 줄이 "능력명: 설명" 형식을 따른다.
+- 한국어로 작성.
+- 4개 필드는 모두 비우지 마라.
+''';
+
+      final userPrompt = '''
+$contextBlock
+
+[사용자 지시]
+${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 캐릭터를 자연스럽게 생성해줘.' : userInstruction.trim()}
+''';
+
+      final raw = await actions.callAiProxy(
+        'gpt-4o-mini',
+        systemPrompt,
+        const [],
+        userPrompt,
+      );
+      if (raw == null || raw.trim().isEmpty || raw.startsWith('ERROR:')) {
+        throw Exception(raw ?? 'AI 응답이 비어 있습니다.');
+      }
+
+      final parsed = _parseCharAiOutput(raw);
+      if (parsed == null) throw Exception('AI 응답 파싱 실패');
+
+      _model.charNameTextController.text = parsed['charName']!;
+      _model.charSettingTextController.text = parsed['charSetting']!;
+      _model.charabilityTextController.text = parsed['charability']!;
+      _model.charintroduceTextController.text = parsed['charintroduce']!;
+      safeSetState(() {});
+    } catch (_) {
+      _showMessage('캐릭터 AI 생성에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      if (!mounted) return;
+      safeSetState(() => _isAiGenerating = false);
+    }
+  }
+
+  Future<void> _openCharAiSheet() async {
+    if (_isAiGenerating) return;
+    final promptController = TextEditingController();
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            20.0,
+            20.0,
+            20.0,
+            20.0 + MediaQuery.viewInsetsOf(sheetContext).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Char AI 생성',
+                style: FlutterFlowTheme.of(context).titleMedium.override(
+                      font: GoogleFonts.interTight(
+                        fontWeight:
+                            FlutterFlowTheme.of(context).titleMedium.fontWeight,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).titleMedium.fontStyle,
+                      ),
+                      color: FlutterFlowTheme.of(context).primaryBackground,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
+                child: TextFormField(
+                  controller: promptController,
+                  autofocus: true,
+                  maxLines: 4,
+                  minLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'AI에게 지시할 내용을 입력하세요...',
+                    hintStyle:
+                        FlutterFlowTheme.of(context).labelMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FlutterFlowTheme.of(context)
+                                    .labelMedium
+                                    .fontWeight,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .labelMedium
+                                    .fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context).alternate,
+                              letterSpacing: 0.0,
+                            ),
+                    enabledBorder: _inputBorder(),
+                    focusedBorder: _inputBorder(),
+                    errorBorder: _inputBorder(),
+                    focusedErrorBorder: _inputBorder(),
+                    filled: true,
+                    fillColor: FlutterFlowTheme.of(context).secondaryText,
+                  ),
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        font: GoogleFonts.inter(
+                          fontWeight: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                        color: FlutterFlowTheme.of(context).alternate,
+                        letterSpacing: 0.0,
+                      ),
+                ),
+              ),
+              FFButtonWidget(
+                onPressed: () async {
+                  final userInstruction = promptController.text;
+                  Navigator.pop(sheetContext);
+                  await _runCharAiGeneration(userInstruction);
+                },
+                text: 'AI 생성',
+                icon: const Icon(
+                  Icons.auto_awesome,
+                  size: 16.0,
+                ),
+                options: FFButtonOptions(
+                  height: 46.0,
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                      16.0, 0.0, 16.0, 0.0),
+                  iconPadding:
+                      const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                        font: GoogleFonts.interTight(
+                          fontWeight: FlutterFlowTheme.of(context)
+                              .titleSmall
+                              .fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                        ),
+                        color: FlutterFlowTheme.of(context).primaryText,
+                        letterSpacing: 0.0,
+                      ),
+                  elevation: 0.0,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _uploadProfileImage() async {
+    final selectedMedia = await selectMediaWithSourceBottomSheet(
+      context: context,
+      allowPhoto: true,
+    );
+    if (selectedMedia == null ||
+        selectedMedia.isEmpty ||
+        !selectedMedia
+            .every((m) => validateFileFormat(m.storagePath, context))) {
+      return;
+    }
+
+    final first = selectedMedia.first;
+    final url = await uploadData(first.storagePath, first.bytes);
+    if (url == null || url.isEmpty) {
+      _showMessage('이미지 업로드에 실패했습니다.');
+      return;
+    }
+
+    _model.updateEditcharStruct((e) => e.profileimage = url);
+    safeSetState(() {});
   }
 
   @override
@@ -209,25 +514,6 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
           top: true,
           child: Stack(
             children: [
-              Opacity(
-                opacity: 0.7,
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  decoration: BoxDecoration(
-                    color: FlutterFlowTheme.of(context).primaryText,
-                  ),
-                  child: Align(
-                    alignment: AlignmentDirectional(0.0, 0.0),
-                    child: Icon(
-                      Icons.auto_awesome,
-                      color: FlutterFlowTheme.of(context).primary,
-                      size: 100.0,
-                    ),
-                  ),
-                ).animateOnPageLoad(
-                    animationsMap['containerOnPageLoadAnimation']!),
-              ),
               Column(
                 mainAxisSize: MainAxisSize.max,
                 children: [
@@ -296,79 +582,73 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                       Align(
                                         alignment:
                                             AlignmentDirectional(0.0, 0.0),
-                                        child: Stack(
-                                          alignment:
-                                              AlignmentDirectional(0.0, 0.0),
-                                          children: [
-                                            if (valueOrDefault<bool>(
-                                              _model.editchar?.profileimage ==
-                                                      null ||
-                                                  _model.editchar
-                                                          ?.profileimage ==
-                                                      '',
-                                              false,
-                                            ))
-                                              Container(
-                                                width: 200.0,
-                                                height: 200.0,
-                                                decoration: BoxDecoration(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryText,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10.0),
-                                                ),
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Padding(
-                                                      padding:
-                                                          EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  0.0,
-                                                                  30.0,
-                                                                  0.0,
-                                                                  10.0),
-                                                      child: Icon(
-                                                        Icons.upload,
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        size: 30.0,
+                                        child: InkWell(
+                                          splashColor: Colors.transparent,
+                                          focusColor: Colors.transparent,
+                                          hoverColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
+                                          onTap: () async {
+                                            await _uploadProfileImage();
+                                          },
+                                          child: Stack(
+                                            alignment:
+                                                AlignmentDirectional(0.0, 0.0),
+                                            children: [
+                                              if (valueOrDefault<bool>(
+                                                _model.editchar?.profileimage ==
+                                                        null ||
+                                                    _model.editchar
+                                                            ?.profileimage ==
+                                                        '',
+                                                false,
+                                              ))
+                                                Container(
+                                                  width: 200.0,
+                                                  height: 200.0,
+                                                  decoration: BoxDecoration(
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondaryText,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                  ),
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.max,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            EdgeInsetsDirectional
+                                                                .fromSTEB(
+                                                                    0.0,
+                                                                    30.0,
+                                                                    0.0,
+                                                                    10.0),
+                                                        child: Icon(
+                                                          Icons.upload,
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
+                                                          size: 30.0,
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Align(
-                                                      alignment:
-                                                          AlignmentDirectional(
-                                                              0.0, 0.0),
-                                                      child: Text(
-                                                        '캐릭터의 프로필로 사용될 \n이미지를 업로드해주세요.',
-                                                        style:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  font:
-                                                                      GoogleFonts
-                                                                          .inter(
-                                                                    fontWeight: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontWeight,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .primaryBackground,
-                                                                  letterSpacing:
-                                                                      0.0,
+                                                      Align(
+                                                        alignment:
+                                                            AlignmentDirectional(
+                                                                0.0, 0.0),
+                                                        child: Text(
+                                                          '캐릭터의 프로필로 사용될 \n이미지를 업로드해주세요.',
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font:
+                                                                    GoogleFonts
+                                                                        .inter(
                                                                   fontWeight: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
@@ -378,31 +658,49 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                                                       .bodyMedium
                                                                       .fontStyle,
                                                                 ),
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .primaryBackground,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                            if (_model.editchar?.profileimage !=
-                                                    null &&
-                                                _model.editchar?.profileimage !=
-                                                    '')
-                                              ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                                child: Image.network(
-                                                  functions.stringToImagePath(
-                                                      valueOrDefault<String>(
-                                                    _model
-                                                        .editchar?.profileimage,
-                                                    '\' \'',
-                                                  )),
-                                                  width: 200.0,
-                                                  height: 200.0,
-                                                  fit: BoxFit.cover,
+                                              if (_model.editchar
+                                                          ?.profileimage !=
+                                                      null &&
+                                                  _model.editchar
+                                                          ?.profileimage !=
+                                                      '')
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                  child: Image.network(
+                                                    functions.stringToImagePath(
+                                                        valueOrDefault<String>(
+                                                      _model.editchar
+                                                          ?.profileimage,
+                                                      '\' \'',
+                                                    )),
+                                                    width: 200.0,
+                                                    height: 200.0,
+                                                    fit: BoxFit.cover,
+                                                  ),
                                                 ),
-                                              ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -460,12 +758,6 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             '_model.charNameTextController',
                                             Duration(milliseconds: 2000),
                                             () async {
-                                              _model.editchar =
-                                                  CharacterStructStruct(
-                                                name: _model
-                                                    .charNameTextController
-                                                    .text,
-                                              );
                                               safeSetState(() {});
                                             },
                                           ),
@@ -474,6 +766,28 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                           decoration: InputDecoration(
                                             isDense: true,
                                             hintText: '캐릭터의 이름을 입력하세요.',
+                                            hintStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      letterSpacing: 0.0,
+                                                    ),
                                             enabledBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
                                                 color:
@@ -486,7 +800,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             ),
                                             focusedBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -494,7 +810,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             ),
                                             errorBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -503,7 +821,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             focusedErrorBorder:
                                                 OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -616,12 +936,6 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             '_model.charSettingTextController',
                                             Duration(milliseconds: 2000),
                                             () async {
-                                              _model.editchar =
-                                                  CharacterStructStruct(
-                                                setting: _model
-                                                    .charSettingTextController
-                                                    .text,
-                                              );
                                               safeSetState(() {});
                                             },
                                           ),
@@ -631,6 +945,28 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             isDense: true,
                                             hintText:
                                                 '캐릭터에 관한 정보를 입력하세요.\n\n[작성예시]\n\n나이: \n성별: \n성격: \n말투: \n- 예시대사 3개:\n습관: \n역할:\n관계: \n목표:\n약점:\n금기:\n비밀: ',
+                                            hintStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      letterSpacing: 0.0,
+                                                    ),
                                             enabledBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
                                                 color:
@@ -643,7 +979,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             ),
                                             focusedBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -651,7 +989,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             ),
                                             errorBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -660,7 +1000,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             focusedErrorBorder:
                                                 OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -773,12 +1115,6 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             '_model.charabilityTextController',
                                             Duration(milliseconds: 2000),
                                             () async {
-                                              _model.editchar =
-                                                  CharacterStructStruct(
-                                                ability: _model
-                                                    .charabilityTextController
-                                                    .text,
-                                              );
                                               safeSetState(() {});
                                             },
                                           ),
@@ -788,6 +1124,28 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             isDense: true,
                                             hintText:
                                                 '- 캐릭터의 능력을 입력하세요.\n- 반드시 \"능력: 설명\"의 형식으로 입력하세요.\n\n[입력예시]\n\n파이어볼: 세린의 주요공격방법\n독심술: 지안이 상대의 마음을 읽어 내는 능력',
+                                            hintStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      letterSpacing: 0.0,
+                                                    ),
                                             enabledBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
                                                 color:
@@ -800,7 +1158,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             ),
                                             focusedBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -808,7 +1168,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             ),
                                             errorBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -817,7 +1179,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             focusedErrorBorder:
                                                 OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -930,12 +1294,6 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             '_model.charintroduceTextController',
                                             Duration(milliseconds: 2000),
                                             () async {
-                                              _model.editchar =
-                                                  CharacterStructStruct(
-                                                introduce: _model
-                                                    .charintroduceTextController
-                                                    .text,
-                                              );
                                               safeSetState(() {});
                                             },
                                           ),
@@ -944,6 +1302,28 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                           decoration: InputDecoration(
                                             isDense: true,
                                             hintText: '캐릭터에 대해  소개해주세요.',
+                                            hintStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      letterSpacing: 0.0,
+                                                    ),
                                             enabledBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
                                                 color:
@@ -956,7 +1336,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             ),
                                             focusedBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -964,7 +1346,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             ),
                                             errorBorder: OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -973,7 +1357,9 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                                             focusedErrorBorder:
                                                 OutlineInputBorder(
                                               borderSide: BorderSide(
-                                                color: Color(0x00000000),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
                                                 width: 1.0,
                                               ),
                                               borderRadius:
@@ -1318,10 +1704,19 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                           child: Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 0.0, 0.0, 25.0, 25.0),
-                            child: Icon(
-                              Icons.auto_fix_high,
-                              color: FlutterFlowTheme.of(context).primary,
-                              size: 24.0,
+                            child: InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                await _openCharAiSheet();
+                              },
+                              child: Icon(
+                                Icons.auto_fix_high,
+                                color: FlutterFlowTheme.of(context).primary,
+                                size: 24.0,
+                              ),
                             ),
                           ),
                         ),
@@ -1342,7 +1737,60 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                           ),
                           child: FFButtonWidget(
                             onPressed: () async {
-                              if (widget.isEdit == true) {}
+                              final currentEmotionList =
+                                  FFAppState().emotions.isNotEmpty
+                                      ? FFAppState()
+                                          .emotions
+                                          .toList()
+                                          .cast<EmotionStructStruct>()
+                                      : (_model.editchar?.emotionStruct ??
+                                              functions.getEmptyEmotionList())
+                                          .toList()
+                                          .cast<EmotionStructStruct>();
+                              final currentAbilityStructList =
+                                  FFAppState().Abilities.isNotEmpty
+                                      ? FFAppState()
+                                          .Abilities
+                                          .toList()
+                                          .cast<AbilityStructStruct>()
+                                      : (_model.editchar?.abilityStruct ??
+                                              functions.getEmptyabilityList())
+                                          .toList()
+                                          .cast<AbilityStructStruct>();
+
+                              final savedCharacter = CharacterStructStruct(
+                                name: _model.charNameTextController.text.trim(),
+                                setting: _model.charSettingTextController.text
+                                    .trim(),
+                                introduce: _model
+                                    .charintroduceTextController.text
+                                    .trim(),
+                                seed: _model.editchar?.seed ?? 0,
+                                profileimage:
+                                    _model.editchar?.profileimage ?? '',
+                                emotionStruct: currentEmotionList,
+                                basePrompt: _model.editchar?.basePrompt ?? '',
+                                abilityStruct: currentAbilityStructList,
+                                appearance: _model.editchar?.appearance ?? '',
+                                ability: _model.charabilityTextController.text
+                                    .trim(),
+                              );
+
+                              FFAppState().update(() {
+                                final canEdit = widget.isEdit &&
+                                    widget.editIndex >= 0 &&
+                                    widget.editIndex <
+                                        FFAppState().Characters.length;
+                                if (canEdit) {
+                                  FFAppState().updateCharactersAtIndex(
+                                    widget.editIndex,
+                                    (_) => savedCharacter,
+                                  );
+                                } else {
+                                  FFAppState().addToCharacters(savedCharacter);
+                                }
+                              });
+
                               FFAppState().Abilities = functions
                                   .getEmptyabilityList()
                                   .toList()
@@ -1393,6 +1841,34 @@ class _CharsettingpageWidgetState extends State<CharsettingpageWidget>
                   ),
                 ],
               ),
+              if (_isAiGenerating)
+                Positioned.fill(
+                  child: Container(
+                    color: const Color(0xB3000000),
+                    child: Center(
+                      child: Container(
+                        width: 220.0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18.0,
+                          vertical: 20.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: SizedBox(
+                          width: 32.0,
+                          height: 32.0,
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              FlutterFlowTheme.of(context).primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

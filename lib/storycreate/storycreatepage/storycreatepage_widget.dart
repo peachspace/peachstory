@@ -1,7 +1,6 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/backend/firebase_storage/storage.dart';
-import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -15,7 +14,6 @@ import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'storycreatepage_model.dart';
@@ -43,8 +41,6 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
   late StorycreatepageModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
-  final animationsMap = <String, AnimationInfo>{};
 
   @override
   void initState() {
@@ -144,23 +140,6 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
 
     _model.hashitagTextController ??= TextEditingController();
     _model.hashitagFocusNode ??= FocusNode();
-
-    animationsMap.addAll({
-      'containerOnPageLoadAnimation': AnimationInfo(
-        loop: true,
-        reverse: true,
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          FadeEffect(
-            curve: Curves.linear,
-            delay: 0.0.ms,
-            duration: 1000.0.ms,
-            begin: 0.7,
-            end: 1.0,
-          ),
-        ],
-      ),
-    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -626,330 +605,6 @@ ${userInstruction.trim().isEmpty ? '장르와 분위기를 반영해 스토리�
     );
   }
 
-  String _normalizeAbilityLines(String raw) {
-    final lines = raw.replaceAll('\r\n', '\n').split('\n');
-    final out = <String>[];
-    final usedNames = <String>{};
-
-    for (var line in lines) {
-      line = line.trim();
-      if (line.isEmpty) continue;
-      line = line.replaceAll(RegExp(r'^[-*•\d\.\)\(]+\s*'), '').trim();
-      if (!line.contains(':')) continue;
-
-      final name = line.split(':').first.trim();
-      final desc = line.substring(line.indexOf(':') + 1).trim();
-      if (name.isEmpty || desc.isEmpty) continue;
-      if (usedNames.add(name)) {
-        out.add('$name: $desc');
-      }
-    }
-
-    return out.isEmpty ? raw.trim() : out.join('\n').trim();
-  }
-
-  Map<String, String>? _parseCharTapAiOutput(String raw) {
-    String cleaned = raw.trim();
-    cleaned = cleaned.replaceAll('```json', '').replaceAll('```', '').trim();
-
-    dynamic parsed;
-    try {
-      parsed = jsonDecode(cleaned);
-    } catch (_) {
-      parsed = null;
-    }
-
-    String pick(dynamic value) => (value ?? '').toString().trim();
-
-    String charName = '';
-    String charSetting = '';
-    String charAbility = '';
-    String charIntroduce = '';
-
-    if (parsed is Map) {
-      charName =
-          pick(parsed['charName'] ?? parsed['name'] ?? parsed['char_name']);
-      charSetting = pick(
-        parsed['charSetting'] ??
-            parsed['setting'] ??
-            parsed['characterSetting'],
-      );
-      final abilityValue =
-          parsed['charability'] ?? parsed['ability'] ?? parsed['abilities'];
-      if (abilityValue is List) {
-        charAbility = abilityValue.map((e) => e.toString()).join('\n').trim();
-      } else {
-        charAbility = pick(abilityValue);
-      }
-      charIntroduce = pick(
-        parsed['charintroduce'] ??
-            parsed['introduce'] ??
-            parsed['introduction'],
-      );
-    } else {
-      final nameMatch = RegExp(
-        r'(?:charName|name|이름)\s*[:：]\s*(.+)',
-        multiLine: true,
-      ).firstMatch(cleaned);
-      final settingMatch = RegExp(
-        r'(?:charSetting|setting|설정)\s*[:：]\s*([\s\S]*?)(?=\n(?:charability|ability|능력|charintroduce|introduce|소개)\s*[:：]|$)',
-        multiLine: true,
-      ).firstMatch(cleaned);
-      final abilityMatch = RegExp(
-        r'(?:charability|ability|능력)\s*[:：]\s*([\s\S]*?)(?=\n(?:charintroduce|introduce|소개)\s*[:：]|$)',
-        multiLine: true,
-      ).firstMatch(cleaned);
-      final introduceMatch = RegExp(
-        r'(?:charintroduce|introduce|소개)\s*[:：]\s*([\s\S]+)$',
-        multiLine: true,
-      ).firstMatch(cleaned);
-
-      charName = (nameMatch?.group(1) ?? '').trim();
-      charSetting = (settingMatch?.group(1) ?? '').trim();
-      charAbility = (abilityMatch?.group(1) ?? '').trim();
-      charIntroduce = (introduceMatch?.group(1) ?? '').trim();
-    }
-
-    charAbility = _normalizeAbilityLines(charAbility);
-    if (charName.isEmpty ||
-        charSetting.isEmpty ||
-        charAbility.isEmpty ||
-        charIntroduce.isEmpty) {
-      return null;
-    }
-
-    return {
-      'charName': charName,
-      'charSetting': charSetting,
-      'charability': charAbility,
-      'charintroduce': charIntroduce,
-    };
-  }
-
-  Future<void> _runCharTapAiGeneration(String userInstruction) async {
-    if (_model.isgenerating) return;
-
-    safeSetState(() {
-      _model.isgenerating = true;
-      _model.generatingTarget = 'chartap';
-    });
-
-    try {
-      final contextBlock = '''
-[현재 스토리 컨텍스트]
-제목: ${_model.storyNameTextController.text}
-세계관: ${_model.worldSettingsTextController.text}
-주요 장소:
-${_model.placetextfieldTextController.text}
-유저 역할: ${_model.userRoleInfoTextController.text}
-주요 사건:
-${_model.eventTextController.text}
-기존 캐릭터:
-${functions.convertCharactersToString(FFAppState().Characters.toList())}
-''';
-
-      final systemPrompt = '''
-너는 웹소설 캐릭터 생성 assistant다.
-출력은 반드시 JSON 객체 1개만 출력한다. 코드블록, 설명, 마크다운 금지.
-JSON 스키마:
-{
-  "charName": "캐릭터 이름",
-  "charSetting": "캐릭터 설정(여러 문단 가능)",
-  "charability": "능력명: 설명\\n능력명: 설명\\n...",
-  "charintroduce": "캐릭터 소개문"
-}
-규칙:
-- charability는 각 줄이 "능력명: 설명" 형식을 따르도록 작성해라.
-- 한국어로 작성.
-- 네 필드는 모두 비우지 마라.
-''';
-
-      final userPrompt = '''
-$contextBlock
-
-[사용자 지시]
-${userInstruction.trim().isEmpty ? '기존 세계관과 어울리는 핵심 캐릭터 1명을 자연스럽게 생성해줘.' : userInstruction.trim()}
-''';
-
-      final raw = await actions.callAiProxy(
-        'gpt-4o-mini',
-        systemPrompt,
-        const [],
-        userPrompt,
-      );
-
-      if (raw == null || raw.trim().isEmpty || raw.startsWith('ERROR:')) {
-        throw Exception(raw ?? 'AI 응답이 비어 있습니다.');
-      }
-
-      final parsed = _parseCharTapAiOutput(raw);
-      if (parsed == null) {
-        throw Exception('AI 응답 파싱 실패');
-      }
-
-      if (!mounted) return;
-      context.pushNamed(
-        CharsettingpageWidget.routeName,
-        queryParameters: {
-          'isEdit': serializeParam(
-            false,
-            ParamType.bool,
-          ),
-          'storyContext': serializeParam(
-            '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저 역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
-            ParamType.String,
-          ),
-          'placeTags': serializeParam(
-            functions.extractTagsFromColonLines(
-              _model.placetextfieldTextController.text,
-            ),
-            ParamType.String,
-            isList: true,
-          ),
-          'initialCharName': serializeParam(
-            parsed['charName'],
-            ParamType.String,
-          ),
-          'initialCharSetting': serializeParam(
-            parsed['charSetting'],
-            ParamType.String,
-          ),
-          'initialCharAbility': serializeParam(
-            parsed['charability'],
-            ParamType.String,
-          ),
-          'initialCharIntroduce': serializeParam(
-            parsed['charintroduce'],
-            ParamType.String,
-          ),
-        }.withoutNulls,
-      );
-    } catch (e) {
-      _showMessage('캐릭터 AI 생성에 실패했습니다. 다시 시도해주세요.');
-    } finally {
-      if (!mounted) return;
-      safeSetState(() {
-        _model.isgenerating = false;
-        _model.generatingTarget = null;
-      });
-    }
-  }
-
-  Future<void> _openCharTapAiSheet() async {
-    if (_model.isgenerating) return;
-    final promptController = TextEditingController();
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: FlutterFlowTheme.of(context).secondaryText,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
-      builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            20.0,
-            20.0,
-            20.0,
-            20.0 + MediaQuery.viewInsetsOf(sheetContext).bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'CharTap AI 생성',
-                style: FlutterFlowTheme.of(context).titleMedium.override(
-                      font: GoogleFonts.interTight(
-                        fontWeight:
-                            FlutterFlowTheme.of(context).titleMedium.fontWeight,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).titleMedium.fontStyle,
-                      ),
-                      color: FlutterFlowTheme.of(context).primaryBackground,
-                      letterSpacing: 0.0,
-                    ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
-                child: TextFormField(
-                  controller: promptController,
-                  autofocus: true,
-                  maxLines: 4,
-                  minLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'AI에게 지시할 내용을 입력하세요...',
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    filled: true,
-                    fillColor: FlutterFlowTheme.of(context).secondaryText,
-                  ),
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).alternate,
-                        letterSpacing: 0.0,
-                      ),
-                ),
-              ),
-              FFButtonWidget(
-                onPressed: () async {
-                  final userInstruction = promptController.text;
-                  Navigator.pop(sheetContext);
-                  await _runCharTapAiGeneration(userInstruction);
-                },
-                text: 'AI 생성',
-                icon: const Icon(
-                  Icons.auto_awesome,
-                  size: 16.0,
-                ),
-                options: FFButtonOptions(
-                  height: 46.0,
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                      16.0, 0.0, 16.0, 0.0),
-                  iconPadding:
-                      const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                        font: GoogleFonts.interTight(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        letterSpacing: 0.0,
-                      ),
-                  elevation: 0.0,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   String? _parsePrologueTapAiOutput(String raw) {
     String cleaned = raw.trim();
     cleaned = cleaned.replaceAll('```json', '').replaceAll('```', '').trim();
@@ -1322,25 +977,6 @@ $contextBlock
           top: true,
           child: Stack(
             children: [
-              Opacity(
-                opacity: 0.7,
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  decoration: BoxDecoration(
-                    color: FlutterFlowTheme.of(context).primaryText,
-                  ),
-                  child: Align(
-                    alignment: AlignmentDirectional(0.0, 0.0),
-                    child: Icon(
-                      Icons.auto_awesome,
-                      color: FlutterFlowTheme.of(context).primary,
-                      size: 100.0,
-                    ),
-                  ),
-                ).animateOnPageLoad(
-                    animationsMap['containerOnPageLoadAnimation']!),
-              ),
               Column(
                 mainAxisSize: MainAxisSize.max,
                 children: [
@@ -1543,62 +1179,7 @@ $contextBlock
                                                             ),
                                                           ],
                                                         ),
-                                                        FFButtonWidget(
-                                                          onPressed: () async {
-                                                            await _openStoryTapAiSheet();
-                                                          },
-                                                          text: 'StoryTap AI',
-                                                          icon: Icon(
-                                                            Icons.auto_awesome,
-                                                            size: 14.0,
-                                                          ),
-                                                          options:
-                                                              FFButtonOptions(
-                                                            height: 32.0,
-                                                            padding:
-                                                                EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        12.0,
-                                                                        0.0,
-                                                                        12.0,
-                                                                        0.0),
-                                                            iconPadding:
-                                                                EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        0.0,
-                                                                        0.0,
-                                                                        0.0,
-                                                                        0.0),
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .secondaryBackground,
-                                                            textStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelMedium
-                                                                    .override(
-                                                                      font: GoogleFonts
-                                                                          .inter(
-                                                                        fontWeight: FlutterFlowTheme.of(context)
-                                                                            .labelMedium
-                                                                            .fontWeight,
-                                                                        fontStyle: FlutterFlowTheme.of(context)
-                                                                            .labelMedium
-                                                                            .fontStyle,
-                                                                      ),
-                                                                      color: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .primaryText,
-                                                                      letterSpacing:
-                                                                          0.0,
-                                                                    ),
-                                                            elevation: 0.0,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        6.0),
-                                                          ),
-                                                        ),
+                                                        const SizedBox.shrink(),
                                                       ],
                                                     ),
                                                   ),
@@ -2478,11 +2059,20 @@ $contextBlock
                                       child: Padding(
                                         padding: EdgeInsetsDirectional.fromSTEB(
                                             0.0, 0.0, 25.0, 25.0),
-                                        child: Icon(
-                                          Icons.auto_fix_high,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 24.0,
+                                        child: InkWell(
+                                          splashColor: Colors.transparent,
+                                          focusColor: Colors.transparent,
+                                          hoverColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
+                                          onTap: () async {
+                                            await _openStoryTapAiSheet();
+                                          },
+                                          child: Icon(
+                                            Icons.auto_fix_high,
+                                            color: FlutterFlowTheme.of(context)
+                                                .primary,
+                                            size: 24.0,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -2594,63 +2184,7 @@ $contextBlock
                                                       ),
                                                     ],
                                                   ),
-                                                  FFButtonWidget(
-                                                    onPressed: () async {
-                                                      await _openCharTapAiSheet();
-                                                    },
-                                                    text: 'CharTap AI',
-                                                    icon: Icon(
-                                                      Icons.auto_awesome,
-                                                      size: 14.0,
-                                                    ),
-                                                    options: FFButtonOptions(
-                                                      height: 32.0,
-                                                      padding:
-                                                          EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  12.0,
-                                                                  0.0,
-                                                                  12.0,
-                                                                  0.0),
-                                                      iconPadding:
-                                                          EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0),
-                                                      color: FlutterFlowTheme
-                                                              .of(context)
-                                                          .secondaryBackground,
-                                                      textStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .labelMedium
-                                                              .override(
-                                                                font:
-                                                                    GoogleFonts
-                                                                        .inter(
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .primaryText,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                              ),
-                                                      elevation: 0.0,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6.0),
-                                                    ),
-                                                  ),
+                                                  const SizedBox.shrink(),
                                                 ],
                                               ),
                                             ),
@@ -2873,7 +2407,7 @@ $contextBlock
                                                                     ),
                                                                     'editIndex':
                                                                         serializeParam(
-                                                                      -1,
+                                                                      charlistIndex,
                                                                       ParamType
                                                                           .int,
                                                                     ),
@@ -2882,6 +2416,16 @@ $contextBlock
                                                                       '[제목]: ${_model.storyNameTextController.text}\\n[세계관]: ${_model.worldSettingsTextController.text}\\n[주요 장소]: ${_model.placetextfieldTextController.text}\\n[캐릭터들]: ${functions.convertCharactersToString(FFAppState().Characters.toList())}\\n[유저 역할]: ${_model.userRoleInfoTextController.text}\\n[주요 사건]: ${_model.eventTextController.text}',
                                                                       ParamType
                                                                           .String,
+                                                                    ),
+                                                                    'placeTags':
+                                                                        serializeParam(
+                                                                      functions.extractTagsFromColonLines(_model
+                                                                          .placetextfieldTextController
+                                                                          .text),
+                                                                      ParamType
+                                                                          .String,
+                                                                      isList:
+                                                                          true,
                                                                     ),
                                                                   }.withoutNulls,
                                                                 );
@@ -3200,8 +2744,9 @@ $contextBlock
                                                     focusedBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -3211,8 +2756,9 @@ $contextBlock
                                                     errorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -3222,8 +2768,9 @@ $contextBlock
                                                     focusedErrorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -3514,8 +3061,9 @@ $contextBlock
                                                       focusedBorder:
                                                           OutlineInputBorder(
                                                         borderSide: BorderSide(
-                                                          color:
-                                                              Color(0x00000000),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
                                                           width: 1.0,
                                                         ),
                                                         borderRadius:
@@ -3525,8 +3073,9 @@ $contextBlock
                                                       errorBorder:
                                                           OutlineInputBorder(
                                                         borderSide: BorderSide(
-                                                          color:
-                                                              Color(0x00000000),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
                                                           width: 1.0,
                                                         ),
                                                         borderRadius:
@@ -3536,8 +3085,9 @@ $contextBlock
                                                       focusedErrorBorder:
                                                           OutlineInputBorder(
                                                         borderSide: BorderSide(
-                                                          color:
-                                                              Color(0x00000000),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
                                                           width: 1.0,
                                                         ),
                                                         borderRadius:
@@ -3615,63 +3165,9 @@ $contextBlock
                                 ),
                                 Stack(
                                   children: [
-                                    Align(
-                                      alignment:
-                                          AlignmentDirectional(1.0, -1.0),
-                                      child: Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 30.0, 25.0, 0.0),
-                                        child: FFButtonWidget(
-                                          onPressed: () async {
-                                            await _openPrologueTapAiSheet();
-                                          },
-                                          text: 'PrologueTap AI',
-                                          icon: Icon(
-                                            Icons.auto_awesome,
-                                            size: 14.0,
-                                          ),
-                                          options: FFButtonOptions(
-                                            height: 32.0,
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    12.0, 0.0, 12.0, 0.0),
-                                            iconPadding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    0.0, 0.0, 0.0, 0.0),
-                                            color: FlutterFlowTheme.of(context)
-                                                .secondaryBackground,
-                                            textStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .labelMedium
-                                                    .override(
-                                                      font: GoogleFonts.inter(
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontStyle,
-                                                      ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primaryText,
-                                                      letterSpacing: 0.0,
-                                                    ),
-                                            elevation: 0.0,
-                                            borderRadius:
-                                                BorderRadius.circular(6.0),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
                                     Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
-                                          25.0, 72.0, 25.0, 0.0),
+                                          25.0, 30.0, 25.0, 0.0),
                                       child: SingleChildScrollView(
                                         child: Column(
                                           mainAxisSize: MainAxisSize.max,
@@ -3722,6 +3218,9 @@ $contextBlock
                                                                     .labelMedium
                                                                     .fontStyle,
                                                           ),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .alternate,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FlutterFlowTheme.of(
@@ -3749,8 +3248,9 @@ $contextBlock
                                                     focusedBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -3760,8 +3260,9 @@ $contextBlock
                                                     errorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -3771,8 +3272,9 @@ $contextBlock
                                                     focusedErrorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -3850,11 +3352,20 @@ $contextBlock
                                       child: Padding(
                                         padding: EdgeInsetsDirectional.fromSTEB(
                                             0.0, 0.0, 25.0, 25.0),
-                                        child: Icon(
-                                          Icons.auto_fix_high,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 24.0,
+                                        child: InkWell(
+                                          splashColor: Colors.transparent,
+                                          focusColor: Colors.transparent,
+                                          hoverColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
+                                          onTap: () async {
+                                            await _openPrologueTapAiSheet();
+                                          },
+                                          child: Icon(
+                                            Icons.auto_fix_high,
+                                            color: FlutterFlowTheme.of(context)
+                                                .primary,
+                                            size: 24.0,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -3983,14 +3494,14 @@ $contextBlock
                                                                   10.0,
                                                                   0.0),
                                                       child: InkWell(
-                                                        splashColor: Colors
-                                                            .transparent,
-                                                        focusColor: Colors
-                                                            .transparent,
-                                                        hoverColor: Colors
-                                                            .transparent,
-                                                        highlightColor: Colors
-                                                            .transparent,
+                                                        splashColor:
+                                                            Colors.transparent,
+                                                        focusColor:
+                                                            Colors.transparent,
+                                                        hoverColor:
+                                                            Colors.transparent,
+                                                        highlightColor:
+                                                            Colors.transparent,
                                                         onTap: () async {
                                                           await _uploadAndAddMainImages();
                                                         },
@@ -4006,13 +3517,8 @@ $contextBlock
                                                                 BorderRadius
                                                                     .circular(
                                                                         5.0),
-                                                            border: Border.all(
-                                                              color: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .alternate,
-                                                            ),
                                                           ),
-                                                          child: Column(
+                                                          child: Row(
                                                             mainAxisAlignment:
                                                                 MainAxisAlignment
                                                                     .center,
@@ -4022,88 +3528,20 @@ $contextBlock
                                                                 color: FlutterFlowTheme.of(
                                                                         context)
                                                                     .primaryBackground,
-                                                                size: 30.0,
-                                                              ),
-                                                              Text(
-                                                                '이미지 추가',
-                                                                style: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelSmall
-                                                                    .override(
-                                                                      font: GoogleFonts.inter(
-                                                                        fontWeight: FlutterFlowTheme.of(context)
-                                                                            .labelSmall
-                                                                            .fontWeight,
-                                                                        fontStyle: FlutterFlowTheme.of(context)
-                                                                            .labelSmall
-                                                                            .fontStyle,
-                                                                      ),
-                                                                      color: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .primaryBackground,
-                                                                      letterSpacing:
-                                                                          0.0,
-                                                                    ),
+                                                                size: 34.0,
                                                               ),
                                                             ],
                                                           ),
                                                         ),
                                                       ),
                                                     ),
-                                                    if (_model.mainImages
-                                                        .isEmpty)
-                                                      Container(
-                                                        width: 100.0,
-                                                        height: 100.0,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      5.0),
-                                                          border: Border.all(
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .alternate,
-                                                          ),
-                                                        ),
-                                                        alignment:
-                                                            AlignmentDirectional(
-                                                                0.0, 0.0),
-                                                        child: Text(
-                                                          '업로드된\n이미지가 없어요',
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .labelSmall
-                                                              .override(
-                                                                font: GoogleFonts
-                                                                    .inter(
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelSmall
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelSmall
-                                                                      .fontStyle,
-                                                                ),
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .alternate,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                              ),
-                                                        ),
-                                                      ),
                                                     ...List.generate(
-                                                        _model.mainImages
-                                                            .length,
+                                                        _model
+                                                            .mainImages.length,
                                                         (mainImageIndex) {
-                                                      final mainImageUrl = _model
-                                                              .mainImages[
-                                                          mainImageIndex];
+                                                      final mainImageUrl =
+                                                          _model.mainImages[
+                                                              mainImageIndex];
                                                       return Padding(
                                                         padding:
                                                             EdgeInsetsDirectional
@@ -4306,8 +3744,9 @@ $contextBlock
                                                     focusedBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -4317,8 +3756,9 @@ $contextBlock
                                                     errorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -4328,8 +3768,9 @@ $contextBlock
                                                     focusedErrorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -4533,8 +3974,9 @@ $contextBlock
                                                     focusedBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -4544,8 +3986,9 @@ $contextBlock
                                                     errorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -4555,8 +3998,9 @@ $contextBlock
                                                     focusedErrorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -4708,8 +4152,9 @@ $contextBlock
                                                     focusedBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -4719,8 +4164,9 @@ $contextBlock
                                                     errorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -4730,8 +4176,9 @@ $contextBlock
                                                     focusedErrorBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
-                                                        color:
-                                                            Color(0x00000000),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
                                                         width: 1.0,
                                                       ),
                                                       borderRadius:
@@ -5100,8 +4547,9 @@ $contextBlock
                                                       focusedBorder:
                                                           OutlineInputBorder(
                                                         borderSide: BorderSide(
-                                                          color:
-                                                              Color(0x00000000),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
                                                           width: 1.0,
                                                         ),
                                                         borderRadius:
@@ -5111,8 +4559,9 @@ $contextBlock
                                                       errorBorder:
                                                           OutlineInputBorder(
                                                         borderSide: BorderSide(
-                                                          color:
-                                                              Color(0x00000000),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
                                                           width: 1.0,
                                                         ),
                                                         borderRadius:
@@ -5122,8 +4571,9 @@ $contextBlock
                                                       focusedErrorBorder:
                                                           OutlineInputBorder(
                                                         borderSide: BorderSide(
-                                                          color:
-                                                              Color(0x00000000),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
                                                           width: 1.0,
                                                         ),
                                                         borderRadius:
@@ -5574,30 +5024,6 @@ $contextBlock
                                     valueColor: AlwaysStoppedAnimation<Color>(
                                       FlutterFlowTheme.of(context).primary,
                                     ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 12.0),
-                                  child: Text(
-                                    'AI가 생성 중입니다...',
-                                    textAlign: TextAlign.center,
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryBackground,
-                                          letterSpacing: 0.0,
-                                        ),
                                   ),
                                 ),
                               ],
