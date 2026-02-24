@@ -1022,6 +1022,31 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       final formattedHistory = await actions.getAndProcessHistory(
         widget.storychatRef,
       );
+      final hybridMemory = await actions.buildHybridMemoryContext(
+        widget.storychatRef,
+        userInput,
+      );
+      final promptMemory = [
+        functions.dynamicContextByOutlineMode(
+          valueOrDefault<bool>(
+            story.outlineMode,
+            false,
+          ),
+          story.outlineText,
+          valueOrDefault<int>(
+            chatDoc.turnCount,
+            0,
+          ),
+          valueOrDefault<int>(
+            chatDoc.chapterIndex,
+            1,
+          ),
+          chatDoc.storyBible,
+          chatDoc.chapterState,
+          chatDoc.summary,
+        ),
+        hybridMemory,
+      ].where((part) => part.trim().isNotEmpty).join('\n\n');
 
       final aiRaw = await actions.callAiProxy(
         selectedModelId,
@@ -1033,24 +1058,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
           story.places.toList(),
           chatDoc.userNote,
           widget.userInChatName ?? '',
-          functions.dynamicContextByOutlineMode(
-            valueOrDefault<bool>(
-              story.outlineMode,
-              false,
-            ),
-            story.outlineText,
-            valueOrDefault<int>(
-              chatDoc.turnCount,
-              0,
-            ),
-            valueOrDefault<int>(
-              chatDoc.chapterIndex,
-              1,
-            ),
-            chatDoc.storyBible,
-            chatDoc.chapterState,
-            chatDoc.summary,
-          ),
+          promptMemory,
           story.place,
           story.event,
           story.events.toList(),

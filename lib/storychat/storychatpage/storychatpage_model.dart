@@ -94,6 +94,10 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
       messageTextFieldTextControllerValidator;
   // Stores action output result for [Custom Action - getAndProcessHistory] action in messagesendbutton widget.
   List<dynamic>? formattedHistory;
+  // Stores action output result for [Custom Action - buildHybridMemoryContext] action in messagesendbutton widget.
+  String? ragContext;
+  // Stores action output result for [Custom Action - compose prompt memory] action in messagesendbutton widget.
+  String? promptMemory;
   // Stores action output result for [Custom Action - getPointCostAction] action in messagesendbutton widget.
   int? pointsToDeduct;
   // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in messagesendbutton widget.
@@ -104,6 +108,10 @@ class StorychatpageModel extends FlutterFlowModel<StorychatpageWidget> {
   List<StoryChatMessageStructStruct>? cleanList;
   // Stores action output result for [Custom Action - getAndProcessHistory] action in continuebutton widget.
   List<dynamic>? formattedHistory1;
+  // Stores action output result for [Custom Action - buildHybridMemoryContext] action in continuebutton widget.
+  String? ragContext1;
+  // Stores action output result for [Custom Action - compose prompt memory] action in continuebutton widget.
+  String? promptMemory1;
   // Stores action output result for [Custom Action - getPointCostAction] action in continuebutton widget.
   int? pointsToDeduct1;
   // Stores action output result for [Custom Action - calculateCreatorEarningAction] action in continuebutton widget.

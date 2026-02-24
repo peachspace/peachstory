@@ -20,3 +20,4 @@ export 'generate_meta_fields.dart' show generateMetaFields;
 export 'format_story_turn_header_and_bg.dart' show formatStoryTurnHeaderAndBg;
 export 'generate_event_field.dart' show generateEventField;
 export 'update_story_memory.dart' show updateStoryMemory;
+export 'build_hybrid_memory_context.dart' show buildHybridMemoryContext;

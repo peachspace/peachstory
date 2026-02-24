@@ -1043,6 +1043,48 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                                 widget
                                                                     .storychatRef,
                                                               );
+                                                              _model.ragContext =
+                                                                  await actions
+                                                                      .buildHybridMemoryContext(
+                                                                widget
+                                                                    .storychatRef,
+                                                                _model.userinput,
+                                                              );
+                                                              _model.promptMemory =
+                                                                  [
+                                                                functions.dynamicContextByOutlineMode(
+                                                                    valueOrDefault<bool>(
+                                                                      storychatpageStoriesRecord
+                                                                          .outlineMode,
+                                                                      false,
+                                                                    ),
+                                                                    storychatpageStoriesRecord
+                                                                        .outlineText,
+                                                                    valueOrDefault<int>(
+                                                                      stackStorychatsRecord
+                                                                          .turnCount,
+                                                                      0,
+                                                                    ),
+                                                                    valueOrDefault<int>(
+                                                                      stackStorychatsRecord
+                                                                          .chapterIndex,
+                                                                      1,
+                                                                    ),
+                                                                    stackStorychatsRecord
+                                                                        .storyBible,
+                                                                    stackStorychatsRecord
+                                                                        .chapterState,
+                                                                    stackStorychatsRecord
+                                                                        .summary),
+                                                                _model.ragContext,
+                                                              ]
+                                                                      .where((e) =>
+                                                                          (e ?? '')
+                                                                              .toString()
+                                                                              .trim()
+                                                                              .isNotEmpty)
+                                                                      .join(
+                                                                          '\n\n');
                                                               _model.pointsToDeduct =
                                                                   await actions
                                                                       .getPointCostAction(
@@ -1099,31 +1141,15 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                                   functions.buildStoryPrompt(
                                                                       storychatpageStoriesRecord.title,
                                                                       storychatpageStoriesRecord.worldview,
-                                                                      storychatpageStoriesRecord.characters.toList(),
-                                                                      storychatpageStoriesRecord.userRole,
-                                                                      storychatpageStoriesRecord.places.toList(),
-                                                                      stackStorychatsRecord.userNote,
-                                                                      widget.userInChatName!,
-                                                                      functions.dynamicContextByOutlineMode(
-                                                                          valueOrDefault<bool>(
-                                                                            storychatpageStoriesRecord.outlineMode,
-                                                                            false,
-                                                                          ),
-                                                                          storychatpageStoriesRecord.outlineText,
-                                                                          valueOrDefault<int>(
-                                                                            stackStorychatsRecord.turnCount,
-                                                                            0,
-                                                                          ),
-                                                                          valueOrDefault<int>(
-                                                                            stackStorychatsRecord.chapterIndex,
-                                                                            1,
-                                                                          ),
-                                                                          stackStorychatsRecord.storyBible,
-                                                                          stackStorychatsRecord.chapterState,
-                                                                          stackStorychatsRecord.summary),
-                                                                      storychatpageStoriesRecord.place,
-                                                                      storychatpageStoriesRecord.event,
-                                                                      storychatpageStoriesRecord.events.toList()),
+                                                                  storychatpageStoriesRecord.characters.toList(),
+                                                                  storychatpageStoriesRecord.userRole,
+                                                                  storychatpageStoriesRecord.places.toList(),
+                                                                  stackStorychatsRecord.userNote,
+                                                                  widget.userInChatName!,
+                                                                  _model.promptMemory,
+                                                                  storychatpageStoriesRecord.place,
+                                                                  storychatpageStoriesRecord.event,
+                                                                  storychatpageStoriesRecord.events.toList()),
                                                                   _model
                                                                       .formattedHistory
                                                                       ?.toList(),
@@ -1342,15 +1368,54 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                     ),
                                                   });
                                             }
-                                            _model.nextCommand = await actions
-                                                .getNextPhaseCommand(
-                                              stackStorychatsRecord
-                                                  .messageCount,
-                                            );
-                                            _model.aiFullText1 =
-                                                await actions.callAiProxy(
-                                              stackStorychatsRecord
-                                                  .selectedAiModel,
+                                          _model.nextCommand = await actions
+                                              .getNextPhaseCommand(
+                                            stackStorychatsRecord
+                                                .messageCount,
+                                          );
+                                          _model.ragContext1 =
+                                              await actions
+                                                  .buildHybridMemoryContext(
+                                            widget.storychatRef,
+                                            _model.nextCommand,
+                                          );
+                                          _model.promptMemory1 = [
+                                            functions
+                                                .dynamicContextByOutlineMode(
+                                                    valueOrDefault<bool>(
+                                                      storychatpageStoriesRecord
+                                                          .outlineMode,
+                                                      false,
+                                                    ),
+                                                    storychatpageStoriesRecord
+                                                        .outlineText,
+                                                    valueOrDefault<int>(
+                                                      stackStorychatsRecord
+                                                          .turnCount,
+                                                      0,
+                                                    ),
+                                                    valueOrDefault<int>(
+                                                      stackStorychatsRecord
+                                                          .chapterIndex,
+                                                      1,
+                                                    ),
+                                                    stackStorychatsRecord
+                                                        .storyBible,
+                                                    stackStorychatsRecord
+                                                        .chapterState,
+                                                    stackStorychatsRecord
+                                                        .summary),
+                                            _model.ragContext1,
+                                          ]
+                                              .where((e) => (e ?? '')
+                                                  .toString()
+                                                  .trim()
+                                                  .isNotEmpty)
+                                              .join('\n\n');
+                                          _model.aiFullText1 =
+                                              await actions.callAiProxy(
+                                            stackStorychatsRecord
+                                                .selectedAiModel,
                                               functions.buildStoryPrompt(
                                                   storychatpageStoriesRecord
                                                       .title,
@@ -1367,31 +1432,7 @@ class _StorychatpageWidgetState extends State<StorychatpageWidget>
                                                   stackStorychatsRecord
                                                       .userNote,
                                                   widget.userInChatName!,
-                                                  functions
-                                                      .dynamicContextByOutlineMode(
-                                                          valueOrDefault<bool>(
-                                                            storychatpageStoriesRecord
-                                                                .outlineMode,
-                                                            false,
-                                                          ),
-                                                          storychatpageStoriesRecord
-                                                              .outlineText,
-                                                          valueOrDefault<int>(
-                                                            stackStorychatsRecord
-                                                                .turnCount,
-                                                            0,
-                                                          ),
-                                                          valueOrDefault<int>(
-                                                            stackStorychatsRecord
-                                                                .chapterIndex,
-                                                            1,
-                                                          ),
-                                                          stackStorychatsRecord
-                                                              .storyBible,
-                                                          stackStorychatsRecord
-                                                              .chapterState,
-                                                          stackStorychatsRecord
-                                                              .summary),
+                                                  _model.promptMemory1,
                                                   storychatpageStoriesRecord
                                                       .place,
                                                   storychatpageStoriesRecord
