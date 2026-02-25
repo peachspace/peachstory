@@ -10,6 +10,7 @@ import '/flutter_flow/upload_data.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/custom_code/actions/index.dart' as actions;
 import '/index.dart';
+import 'dart:ui';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -40,6 +41,7 @@ class StorycreatepageWidget extends StatefulWidget {
 class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
     with TickerProviderStateMixin {
   late StorycreatepageModel _model;
+  bool _isOutlineGenerating = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -178,27 +180,37 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
   Widget _buildSparkleLoadingOverlay() {
     return Positioned.fill(
       child: IgnorePointer(
-        child: Container(
-          color: const Color(0x99000000),
-          alignment: Alignment.center,
-          child: Icon(
-            Icons.auto_awesome,
-            color: FlutterFlowTheme.of(context).primary,
-            size: 110.0,
-          )
-              .animate(
-                onPlay: (controller) => controller.repeat(reverse: true),
-              )
-              .fade(
-                duration: 700.ms,
-                begin: 0.35,
-                end: 1.0,
-              )
-              .scaleXY(
-                duration: 700.ms,
-                begin: 0.9,
-                end: 1.08,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+                child: Container(
+                  color: const Color(0x80000000),
+                ),
               ),
+            ),
+            Center(
+              child: Icon(
+                Icons.auto_awesome,
+                color: FlutterFlowTheme.of(context).primary,
+                size: 110.0,
+              )
+                  .animate(
+                    onPlay: (controller) => controller.repeat(reverse: true),
+                  )
+                  .fade(
+                    duration: 700.ms,
+                    begin: 0.35,
+                    end: 1.0,
+                  )
+                  .scaleXY(
+                    duration: 700.ms,
+                    begin: 0.9,
+                    end: 1.08,
+                  ),
+            ),
+          ],
         ),
       ),
     );
@@ -860,12 +872,8 @@ ${userInstruction.trim().isEmpty ? '세계관과 캐릭터를 반영해 자연�
   }
 
   Future<String?> _runOutlineAutoGeneration() async {
-    if (_model.isgenerating) return null;
-
-    safeSetState(() {
-      _model.isgenerating = true;
-      _model.generatingTarget = 'outline';
-    });
+    if (_isOutlineGenerating || _model.isgenerating) return null;
+    _isOutlineGenerating = true;
 
     try {
       final eventText = _model.eventTextController.text.trim();
@@ -928,11 +936,7 @@ $contextBlock
       _showMessage('아웃라인 자동 생성에 실패했습니다. 다시 시도해주세요.');
       return null;
     } finally {
-      if (!mounted) return null;
-      safeSetState(() {
-        _model.isgenerating = false;
-        _model.generatingTarget = null;
-      });
+      _isOutlineGenerating = false;
     }
   }
 
@@ -3136,7 +3140,7 @@ $contextBlock
                                                           ),
                                                           color: FlutterFlowTheme
                                                                   .of(context)
-                                                              .alternate,
+                                                              .primaryBackground,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FlutterFlowTheme.of(
