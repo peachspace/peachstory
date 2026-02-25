@@ -1045,7 +1045,7 @@ $contextBlock
                                   ),
                               indicatorColor: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
-                              isScrollable: true,
+                              isScrollable: false,
                               tabs: [
                                 Tab(
                                   text: '스토리',
