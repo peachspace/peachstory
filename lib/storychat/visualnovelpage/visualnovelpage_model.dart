@@ -75,7 +75,7 @@ class VisualnovelpageModel extends FlutterFlowModel<VisualnovelpageWidget> {
   void updateMessageAsJsonAtIndex(int index, Function(dynamic) updateFn) =>
       messageAsJson[index] = updateFn(messageAsJson[index]);
 
-  bool isvisualmode = false;
+  bool isvisualmode = true;
 
   ///  State fields for stateful widgets in this page.
 
