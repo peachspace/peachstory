@@ -159,6 +159,32 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
+          name: GuidepageWidget.routeName,
+          path: GuidepageWidget.routePath,
+          builder: (context, params) => GuidepageWidget(
+            storyRef: params.getParam(
+              'storyRef',
+              ParamType.DocumentReference,
+              isList: false,
+              collectionNamePath: ['stories'],
+            ),
+            storychatRef: params.getParam(
+              'storychatRef',
+              ParamType.DocumentReference,
+              isList: false,
+              collectionNamePath: ['storychats'],
+            ),
+            userInChatName: params.getParam(
+              'userInChatName',
+              ParamType.String,
+            ),
+            guideText: params.getParam(
+              'guideText',
+              ParamType.String,
+            ),
+          ),
+        ),
+        FFRoute(
           name: VisualnovelpageWidget.routeName,
           path: VisualnovelpageWidget.routePath,
           builder: (context, params) => VisualnovelpageWidget(

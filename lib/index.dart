@@ -10,6 +10,7 @@ export '/storychat/storymainpage/storymainpage_widget.dart'
     show StorymainpageWidget;
 export '/storychat/storycommentlistpage/storycommentlistpage_widget.dart'
     show StorycommentlistpageWidget;
+export '/storychat/guidepage/guidepage_widget.dart' show GuidepageWidget;
 export '/storychat/visualnovelpage/visualnovelpage_widget.dart'
     show VisualnovelpageWidget;
 export '/my/pointchargepage/pointchargepage_widget.dart'

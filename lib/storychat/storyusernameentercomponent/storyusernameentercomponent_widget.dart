@@ -7,6 +7,7 @@ import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'storyusernameentercomponent_model.dart';
 export 'storyusernameentercomponent_model.dart';
 
@@ -26,6 +27,37 @@ class StoryusernameentercomponentWidget extends StatefulWidget {
 class _StoryusernameentercomponentWidgetState
     extends State<StoryusernameentercomponentWidget> {
   late StoryusernameentercomponentModel _model;
+
+  String _resolveGuideText(StoriesRecord? story) {
+    if (story == null) return '';
+    final candidateFields = <String>[
+      'guideText',
+      'guidetext',
+      'guidetextfield',
+      'guide',
+      'guide_text',
+    ];
+    for (final field in candidateFields) {
+      final dynamic rawGuide = story.snapshotData[field];
+      final guideText = rawGuide is String ? rawGuide.trim() : '';
+      if (guideText.isNotEmpty) {
+        return guideText;
+      }
+    }
+    return story.authorNotes.trim();
+  }
+
+  Future<bool> _shouldShowGuideForStory(DocumentReference? storyRef) async {
+    if (storyRef == null) return false;
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'guide_seen_${storyRef.path}';
+    final seen = prefs.getBool(key) ?? false;
+    if (!seen) {
+      await prefs.setBool(key, true);
+      return true;
+    }
+    return false;
+  }
 
   @override
   void setState(VoidCallback callback) {
@@ -233,23 +265,52 @@ class _StoryusernameentercomponentWidgetState
                                 ),
                                 storychatsRecordReference);
 
-                        context.pushNamed(
-                          VisualnovelpageWidget.routeName,
-                          queryParameters: {
-                            'storyRef': serializeParam(
-                              widget.storydoc?.reference,
-                              ParamType.DocumentReference,
-                            ),
-                            'userInChatName': serializeParam(
-                              _model.usernameTextFieldTextController.text,
-                              ParamType.String,
-                            ),
-                            'storychatRef': serializeParam(
-                              _model.newChatDoc?.reference,
-                              ParamType.DocumentReference,
-                            ),
-                          }.withoutNulls,
+                        final shouldShowGuide =
+                            await _shouldShowGuideForStory(
+                          widget.storydoc?.reference,
                         );
+
+                        if (shouldShowGuide) {
+                          context.pushNamed(
+                            GuidepageWidget.routeName,
+                            queryParameters: {
+                              'storyRef': serializeParam(
+                                widget.storydoc?.reference,
+                                ParamType.DocumentReference,
+                              ),
+                              'userInChatName': serializeParam(
+                                _model.usernameTextFieldTextController.text,
+                                ParamType.String,
+                              ),
+                              'storychatRef': serializeParam(
+                                _model.newChatDoc?.reference,
+                                ParamType.DocumentReference,
+                              ),
+                              'guideText': serializeParam(
+                                _resolveGuideText(widget.storydoc),
+                                ParamType.String,
+                              ),
+                            }.withoutNulls,
+                          );
+                        } else {
+                          context.pushNamed(
+                            VisualnovelpageWidget.routeName,
+                            queryParameters: {
+                              'storyRef': serializeParam(
+                                widget.storydoc?.reference,
+                                ParamType.DocumentReference,
+                              ),
+                              'userInChatName': serializeParam(
+                                _model.usernameTextFieldTextController.text,
+                                ParamType.String,
+                              ),
+                              'storychatRef': serializeParam(
+                                _model.newChatDoc?.reference,
+                                ParamType.DocumentReference,
+                              ),
+                            }.withoutNulls,
+                          );
+                        }
 
                         safeSetState(() {});
                       },
