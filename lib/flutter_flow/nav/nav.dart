@@ -161,7 +161,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: VisualnovelpageWidget.routeName,
           path: VisualnovelpageWidget.routePath,
-          requireAuth: true,
           builder: (context, params) => VisualnovelpageWidget(
             storyRef: params.getParam(
               'storyRef',
