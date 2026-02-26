@@ -77,6 +77,14 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     '질문을 던진다',
     '다른 행동을 시도한다',
   ];
+  List<String> _currentChoices = const [];
+  bool _isInputActionMode = false;
+  bool _isChoiceLoading = false;
+  bool _isSubmittingSelection = false;
+  String _submittedPreviewText = '';
+  double _submittedPreviewOffsetY = 0.0;
+  int _choiceRequestSerial = 0;
+  String _lastChoiceSignature = '';
 
   @override
   void initState() {
@@ -147,6 +155,236 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
   bool _isValidNetworkImageUrl(String? url) {
     final value = functions.stringToImagePath(url).trim();
     return value.startsWith('http://') || value.startsWith('https://');
+  }
+
+  List<String> _defaultChoiceCandidates() {
+    final paragraph = _paragraphs.isNotEmpty ? _paragraphs.last : null;
+    final speaker = (paragraph?.speaker ?? '').trim();
+    if (speaker.isNotEmpty && !(paragraph?.isNarration ?? true)) {
+      return <String>[
+        '${speaker}의 반응을 살핀다.',
+        '"왜 그렇게 말했어?"',
+        '주변 상황을 천천히 파악한다.',
+      ];
+    }
+    return _defaultChoices.toList();
+  }
+
+  String _choiceAt(int index) {
+    if (index >= 0 && index < _currentChoices.length) {
+      return _currentChoices[index];
+    }
+    final defaults = _defaultChoiceCandidates();
+    if (index >= 0 && index < defaults.length) {
+      return defaults[index];
+    }
+    return '';
+  }
+
+  String _normalizeChoiceText(String value) {
+    var text = value.trim();
+    if (text.isEmpty) return '';
+    text = text.replaceAll(RegExp(r'^\d+\s*[\.\)]\s*'), '');
+    text = text.replaceAll(RegExp(r'^[-*•]\s*'), '');
+    text = text.trim();
+    if (text.length > 90) {
+      text = text.substring(0, 90).trim();
+    }
+    return text;
+  }
+
+  List<String> _parseChoicesFromAi(String rawText) {
+    final fallback = _defaultChoiceCandidates();
+    final choices = <String>[];
+
+    String cleaned = rawText.trim();
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned
+          .replaceFirst(RegExp(r'^```(?:json)?\s*'), '')
+          .replaceFirst(RegExp(r'```$'), '')
+          .trim();
+    }
+
+    try {
+      final decoded = jsonDecode(cleaned);
+      if (decoded is List) {
+        for (final item in decoded) {
+          final text = _normalizeChoiceText(item.toString());
+          if (text.isNotEmpty && !choices.contains(text)) {
+            choices.add(text);
+          }
+          if (choices.length == 3) break;
+        }
+      }
+    } catch (_) {
+      // Fallback to line parsing.
+    }
+
+    if (choices.length < 3) {
+      final lineChoices = cleaned
+          .split('\n')
+          .map(_normalizeChoiceText)
+          .where((e) => e.isNotEmpty)
+          .toList();
+      for (final item in lineChoices) {
+        if (!choices.contains(item)) {
+          choices.add(item);
+        }
+        if (choices.length == 3) break;
+      }
+    }
+
+    for (final item in fallback) {
+      final normalized = _normalizeChoiceText(item);
+      if (normalized.isNotEmpty && !choices.contains(normalized)) {
+        choices.add(normalized);
+      }
+      if (choices.length == 3) break;
+    }
+
+    while (choices.length < 3) {
+      choices.add(_defaultChoices[choices.length]);
+    }
+
+    return choices.take(3).toList();
+  }
+
+  String _buildChoicePrompt(StoriesRecord story) {
+    final paragraph = _paragraphs.isNotEmpty ? _paragraphs.last : null;
+    final speaker = (paragraph?.speaker ?? '').trim();
+    final place = (paragraph?.place ?? _currentPlace).trim();
+    final sceneText = (paragraph?.text ?? '').trim();
+
+    return '''
+너는 비주얼노벨 선택지 생성기다.
+아래 장면을 바탕으로 유저가 선택할 3개 선택지를 만들어라.
+
+[규칙]
+- 반드시 JSON 배열만 출력: ["...", "...", "..."]
+- 배열 길이는 정확히 3개
+- 각 선택지는 1문장
+- 행동묘사면 일반 문장(예: 가방을 맨다.)
+- 대사 선택지면 반드시 큰따옴표로 감싼다(예: "너 미친거야?")
+- 장면과 개연성이 맞아야 하며 서로 다른 방향의 선택지여야 한다.
+- 불필요한 설명/마크다운/코드블록 금지
+
+[스토리]
+제목: ${story.title}
+세계관: ${story.worldview}
+장소: $place
+화자: ${speaker.isEmpty ? '내레이션' : speaker}
+현재 문단: $sceneText
+''';
+  }
+
+  Future<void> _refreshChoicesForCurrentTurn(
+    StoriesRecord story,
+    StorychatsRecord chatDoc,
+  ) async {
+    if (!_showActionPanel || _isGenerating || _isSubmittingSelection) return;
+    final signature =
+        '${valueOrDefault<int>(chatDoc.messageCount, 0)}|$_currentPlace|${_paragraphs.isNotEmpty ? _paragraphs.last.text.hashCode : 0}';
+    if (_lastChoiceSignature == signature && _currentChoices.length == 3) {
+      return;
+    }
+    _lastChoiceSignature = signature;
+
+    final requestId = ++_choiceRequestSerial;
+    safeSetState(() {
+      _isChoiceLoading = true;
+      _currentChoices = _defaultChoiceCandidates();
+    });
+
+    try {
+      final selectedModelId = _resolveSelectedModelId(chatDoc.selectedAiModel);
+      final formattedHistory = await actions.getAndProcessHistory(
+        widget.storychatRef,
+      );
+      final response = await actions.callAiProxy(
+        selectedModelId,
+        _buildChoicePrompt(story),
+        formattedHistory.toList(),
+        '',
+      );
+      final parsed = _parseChoicesFromAi((response ?? '').trim());
+      if (!mounted ||
+          requestId != _choiceRequestSerial ||
+          !_showActionPanel ||
+          _isSubmittingSelection) {
+        return;
+      }
+      safeSetState(() {
+        _currentChoices = parsed;
+      });
+    } catch (_) {
+      if (!mounted || requestId != _choiceRequestSerial) return;
+      safeSetState(() {
+        _currentChoices = _defaultChoiceCandidates();
+      });
+    } finally {
+      if (!mounted || requestId != _choiceRequestSerial) return;
+      safeSetState(() {
+        _isChoiceLoading = false;
+      });
+    }
+  }
+
+  String _buildUserInputForMode(String rawInput) {
+    final raw = rawInput.trim();
+    if (raw.isEmpty) return '';
+    if (_isInputActionMode) return raw;
+    if (raw.startsWith('"') && raw.endsWith('"')) return raw;
+    return '"$raw"';
+  }
+
+  Future<void> _submitWithSelectionAnimation({
+    required String submitValue,
+    required String previewValue,
+    required int sourceIndex,
+    required StoriesRecord story,
+    required StorychatsRecord chatDoc,
+  }) async {
+    final input = submitValue.trim();
+    if (input.isEmpty) {
+      _showMessage('메시지를 입력해주세요.');
+      return;
+    }
+    if (_isGenerating || _isSubmittingSelection) return;
+
+    safeSetState(() {
+      _isSubmittingSelection = true;
+      _submittedPreviewText =
+          previewValue.trim().isEmpty ? input : previewValue;
+      _submittedPreviewOffsetY = sourceIndex.toDouble();
+      _isChoiceLoading = false;
+      _choiceRequestSerial++;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 16));
+    if (!mounted) return;
+    safeSetState(() {
+      _submittedPreviewOffsetY = 0.0;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 260));
+    if (!mounted) return;
+    safeSetState(() {
+      _showActionPanel = false;
+      _isSubmittingSelection = false;
+      _submittedPreviewText = '';
+      _submittedPreviewOffsetY = 0.0;
+    });
+
+    await _requestNextTurn(
+      input,
+      story,
+      chatDoc,
+    );
+
+    if (!mounted) return;
+    safeSetState(() {
+      _model.usertextFieldTextController?.clear();
+    });
   }
 
   Future<void> _initializeVisualNovel() async {
@@ -234,7 +472,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     final map = <String, String>{};
     for (final place in story.places) {
       final tag = (place.place).toString().trim();
-      final url = functions.stringToImagePath((place.imageUrl).toString()).trim();
+      final url =
+          functions.stringToImagePath((place.imageUrl).toString()).trim();
       if (tag.isNotEmpty && url.isNotEmpty) {
         map.putIfAbsent(tag, () => url);
       }
@@ -246,7 +485,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     final map = <String, String>{};
     for (final event in story.events) {
       final tag = (event.event).toString().trim();
-      final url = functions.stringToImagePath((event.imageurl).toString()).trim();
+      final url =
+          functions.stringToImagePath((event.imageurl).toString()).trim();
       if (tag.isNotEmpty && url.isNotEmpty) {
         map.putIfAbsent(tag, () => url);
       }
@@ -317,7 +557,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     String? emotionUrl;
     for (final emotion in character.emotionStruct) {
       if ((emotion.emotion).toString().trim() == '무감정') {
-        final url = functions.stringToImagePath((emotion.imageurl).toString()).trim();
+        final url =
+            functions.stringToImagePath((emotion.imageurl).toString()).trim();
         if (url.isNotEmpty) {
           emotionUrl = url;
           break;
@@ -328,7 +569,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     if (emotionUrl != null && emotionUrl.isNotEmpty) return emotionUrl;
 
     for (final emotion in character.emotionStruct) {
-      final url = functions.stringToImagePath((emotion.imageurl).toString()).trim();
+      final url =
+          functions.stringToImagePath((emotion.imageurl).toString()).trim();
       if (url.isNotEmpty) return url;
     }
 
@@ -437,7 +679,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       }
 
       if (type == 'show_image') {
-        final condition = _normalizeImageTag((scene['condition'] ?? '').toString());
+        final condition =
+            _normalizeImageTag((scene['condition'] ?? '').toString());
         if (condition.isEmpty) continue;
 
         if (placeMap.containsKey(condition)) {
@@ -505,6 +748,13 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       _paragraphs = normalizedParagraphs;
       _currentParagraphIndex = 0;
       _showActionPanel = false;
+      _isChoiceLoading = false;
+      _isSubmittingSelection = false;
+      _submittedPreviewText = '';
+      _submittedPreviewOffsetY = 0.0;
+      _currentChoices = _defaultChoiceCandidates();
+      _choiceRequestSerial++;
+      _lastChoiceSignature = '';
     });
   }
 
@@ -551,8 +801,9 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       }
 
       if (type == 'story_image') {
-        final imageUrl =
-            functions.stringToImagePath((message.storyImageUrl).toString()).trim();
+        final imageUrl = functions
+            .stringToImagePath((message.storyImageUrl).toString())
+            .trim();
         if (imageUrl.isEmpty) continue;
 
         final placeByImage = _findPlaceByImageUrl(placeMap, imageUrl);
@@ -602,15 +853,24 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       _paragraphs = paragraphs;
       _currentParagraphIndex = paragraphs.length - 1;
       _showActionPanel = true;
+      _isChoiceLoading = false;
+      _isSubmittingSelection = false;
+      _submittedPreviewText = '';
+      _submittedPreviewOffsetY = 0.0;
+      _currentChoices = _defaultChoiceCandidates();
+      _choiceRequestSerial++;
+      _lastChoiceSignature = '';
     });
   }
 
   void _onTapPrevious() {
-    if (_isGenerating || _paragraphs.isEmpty) return;
+    if (_isGenerating || _paragraphs.isEmpty || _isSubmittingSelection) return;
 
     safeSetState(() {
       if (_showActionPanel) {
         _showActionPanel = false;
+        _isChoiceLoading = false;
+        _choiceRequestSerial++;
         return;
       }
 
@@ -620,8 +880,11 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     });
   }
 
-  void _onTapNext() {
-    if (_isGenerating || _paragraphs.isEmpty) return;
+  Future<void> _onTapNext(
+    StoriesRecord story,
+    StorychatsRecord chatDoc,
+  ) async {
+    if (_isGenerating || _paragraphs.isEmpty || _isSubmittingSelection) return;
 
     safeSetState(() {
       if (_showActionPanel) return;
@@ -630,26 +893,14 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
         _currentParagraphIndex++;
       } else {
         _showActionPanel = true;
+        _currentChoices = _defaultChoiceCandidates();
+        _isChoiceLoading = false;
       }
     });
-  }
 
-  Future<void> _handleChoiceOrSend(
-    String userInput,
-    StoriesRecord story,
-    StorychatsRecord chatDoc,
-  ) async {
-    final input = userInput.trim();
-    if (input.isEmpty) {
-      _showMessage('메시지를 입력해주세요.');
-      return;
+    if (_showActionPanel) {
+      await _refreshChoicesForCurrentTurn(story, chatDoc);
     }
-
-    await _requestNextTurn(
-      input,
-      story,
-      chatDoc,
-    );
   }
 
   Future<void> _requestNextTurn(
@@ -1069,22 +1320,15 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                   final currentParagraph = _paragraphs.isNotEmpty
                       ? _paragraphs[_currentParagraphIndex]
                       : null;
-                  final choice1 = _defaultChoices.isNotEmpty
-                      ? _defaultChoices[0]
-                      : '';
-                  final choice2 = _defaultChoices.length > 1
-                      ? _defaultChoices[1]
-                      : '';
-                  final choice3 = _defaultChoices.length > 2
-                      ? _defaultChoices[2]
-                      : '';
+                  final choice1 =
+                      _isChoiceLoading ? '선택지 생성 중...' : _choiceAt(0);
+                  final choice2 =
+                      _isChoiceLoading ? '선택지 생성 중...' : _choiceAt(1);
+                  final choice3 =
+                      _isChoiceLoading ? '선택지 생성 중...' : _choiceAt(2);
                   final topTitle = visualnovelpageStoriesRecord.title;
                   final topPlace =
                       (currentParagraph?.place ?? _currentPlace).trim();
-                  final pageLabel = _paragraphs.isEmpty
-                      ? '0/0'
-                      : '${_currentParagraphIndex + 1}/${_paragraphs.length}';
-
                   final bgImageUrl = functions
                       .stringToImagePath(
                         currentParagraph?.backgroundUrl ??
@@ -1123,532 +1367,315 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                       }
 
                       final visualChatDoc = chatSnapshot.data!;
+                      if (_showActionPanel &&
+                          !_isGenerating &&
+                          !_isSubmittingSelection &&
+                          !_isChoiceLoading) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) async {
+                          if (!mounted) return;
+                          await _refreshChoicesForCurrentTurn(
+                            visualnovelpageStoriesRecord,
+                            visualChatDoc,
+                          );
+                        });
+                      }
 
                       return Stack(
                         children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: _isValidNetworkImageUrl(bgImageUrl)
-                            ? Image.network(
-                                bgImageUrl,
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  decoration: const BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Color(0xFF13161D),
-                                        Color(0xFF1C222C),
-                                        Color(0xFF101317),
-                                      ],
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: _isValidNetworkImageUrl(bgImageUrl)
+                                ? Image.network(
+                                    bgImageUrl,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      decoration: const BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Color(0xFF13161D),
+                                            Color(0xFF1C222C),
+                                            Color(0xFF101317),
+                                          ],
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFF13161D),
+                                          Color(0xFF1C222C),
+                                          Color(0xFF101317),
+                                        ],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              )
-                            : Container(
-                                width: double.infinity,
-                                height: double.infinity,
-                                decoration: const BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Color(0xFF13161D),
-                                      Color(0xFF1C222C),
-                                      Color(0xFF101317),
+                          ),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: _isValidNetworkImageUrl(charImageUrl)
+                                ? Image.network(
+                                    charImageUrl,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const SizedBox.shrink(),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                                0.0, 0.0, 0.0, 50.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (_showActionPanel || _isSubmittingSelection)
+                                  Stack(
+                                    children: [
+                                      Opacity(
+                                        opacity: 0.5,
+                                        child: Padding(
+                                          padding:
+                                              EdgeInsetsDirectional.fromSTEB(
+                                                  25.0, 0.0, 25.0, 7.0),
+                                          child: Container(
+                                            width: double.infinity,
+                                            height: 60.0,
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Color(0x26000000),
+                                                  Color(0x73000000),
+                                                  Color(0x8C000000),
+                                                  Color(0x8C000000),
+                                                  Color(0x73000000),
+                                                  Color(0x26000000)
+                                                ],
+                                                stops: [
+                                                  0.0,
+                                                  0.08,
+                                                  0.2,
+                                                  0.8,
+                                                  0.92,
+                                                  1.0
+                                                ],
+                                                begin: AlignmentDirectional(
+                                                    1.0, 0.0),
+                                                end: AlignmentDirectional(
+                                                    -1.0, 0),
+                                              ),
+                                              borderRadius: BorderRadius.only(
+                                                bottomLeft:
+                                                    Radius.circular(0.0),
+                                                bottomRight:
+                                                    Radius.circular(0.0),
+                                                topLeft: Radius.circular(0.0),
+                                                topRight: Radius.circular(0.0),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            25.0, 0.0, 25.0, 7.0),
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: 60.0,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                              bottomLeft: Radius.circular(0.0),
+                                              bottomRight: Radius.circular(0.0),
+                                              topLeft: Radius.circular(0.0),
+                                              topRight: Radius.circular(0.0),
+                                            ),
+                                          ),
+                                          alignment:
+                                              AlignmentDirectional(0.0, 0.0),
+                                          child: InkWell(
+                                            splashColor: Colors.transparent,
+                                            focusColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            onTap: () async {
+                                              if (!_showActionPanel ||
+                                                  _isSubmittingSelection ||
+                                                  _isChoiceLoading) return;
+                                              await _submitWithSelectionAnimation(
+                                                submitValue: choice1,
+                                                previewValue: choice1,
+                                                sourceIndex: 0,
+                                                story:
+                                                    visualnovelpageStoriesRecord,
+                                                chatDoc: visualChatDoc,
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding: EdgeInsetsDirectional
+                                                  .fromSTEB(
+                                                      20.0, 0.0, 20.0, 0.0),
+                                              child: AnimatedSlide(
+                                                duration: const Duration(
+                                                    milliseconds: 260),
+                                                curve: Curves.easeOutCubic,
+                                                offset: Offset(
+                                                  0.0,
+                                                  _isSubmittingSelection
+                                                      ? _submittedPreviewOffsetY
+                                                      : 0.0,
+                                                ),
+                                                child: AutoSizeText(
+                                                  _isSubmittingSelection
+                                                      ? _submittedPreviewText
+                                                      : (_showActionPanel
+                                                          ? choice1
+                                                          : ''),
+                                                  maxLines: 3,
+                                                  textAlign: TextAlign.center,
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font: GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
                                   ),
-                                ),
-                              ),
-                      ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: _isValidNetworkImageUrl(charImageUrl)
-                            ? Image.network(
-                                charImageUrl,
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const SizedBox.shrink(),
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                      Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 50.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Stack(
-                              children: [
-                                Opacity(
-                                  opacity: 0.5,
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        25.0, 0.0, 25.0, 7.0),
-                                    child: Container(
-                                      width: double.infinity,
-                                      height: 60.0,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Color(0x26000000),
-                                            Color(0x73000000),
-                                            Color(0x8C000000),
-                                            Color(0x8C000000),
-                                            Color(0x73000000),
-                                            Color(0x26000000)
-                                          ],
-                                          stops: [
-                                            0.0,
-                                            0.08,
-                                            0.2,
-                                            0.8,
-                                            0.92,
-                                            1.0
-                                          ],
-                                          begin: AlignmentDirectional(1.0, 0.0),
-                                          end: AlignmentDirectional(-1.0, 0),
-                                        ),
-                                        borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(0.0),
-                                          bottomRight: Radius.circular(0.0),
-                                          topLeft: Radius.circular(0.0),
-                                          topRight: Radius.circular(0.0),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      25.0, 0.0, 25.0, 7.0),
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 60.0,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                        bottomLeft: Radius.circular(0.0),
-                                        bottomRight: Radius.circular(0.0),
-                                        topLeft: Radius.circular(0.0),
-                                        topRight: Radius.circular(0.0),
-                                      ),
-                                    ),
-                                    alignment: AlignmentDirectional(0.0, 0.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        if (!_showActionPanel) return;
-                                        await _handleChoiceOrSend(
-                                          choice1,
-                                          visualnovelpageStoriesRecord,
-                                          visualChatDoc,
-                                        );
-                                      },
-                                      child: Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            20.0, 0.0, 20.0, 0.0),
-                                        child: AutoSizeText(
-                                          _showActionPanel ? choice1 : '',
-                                          maxLines: 3,
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.inter(
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                letterSpacing: 0.0,
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
+                                if (_showActionPanel && !_isSubmittingSelection)
+                                  Stack(
+                                    children: [
+                                      Opacity(
+                                        opacity: 0.5,
+                                        child: Padding(
+                                          padding:
+                                              EdgeInsetsDirectional.fromSTEB(
+                                                  25.0, 0.0, 25.0, 7.0),
+                                          child: Container(
+                                            width: double.infinity,
+                                            height: 60.0,
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Color(0x26000000),
+                                                  Color(0x73000000),
+                                                  Color(0x8C000000),
+                                                  Color(0x8C000000),
+                                                  Color(0x73000000),
+                                                  Color(0x26000000)
+                                                ],
+                                                stops: [
+                                                  0.0,
+                                                  0.08,
+                                                  0.2,
+                                                  0.8,
+                                                  0.92,
+                                                  1.0
+                                                ],
+                                                begin: AlignmentDirectional(
+                                                    1.0, 0.0),
+                                                end: AlignmentDirectional(
+                                                    -1.0, 0),
                                               ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Stack(
-                              children: [
-                                Opacity(
-                                  opacity: 0.5,
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        25.0, 0.0, 25.0, 7.0),
-                                    child: Container(
-                                      width: double.infinity,
-                                      height: 60.0,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Color(0x26000000),
-                                            Color(0x73000000),
-                                            Color(0x8C000000),
-                                            Color(0x8C000000),
-                                            Color(0x73000000),
-                                            Color(0x26000000)
-                                          ],
-                                          stops: [
-                                            0.0,
-                                            0.08,
-                                            0.2,
-                                            0.8,
-                                            0.92,
-                                            1.0
-                                          ],
-                                          begin: AlignmentDirectional(1.0, 0.0),
-                                          end: AlignmentDirectional(-1.0, 0),
-                                        ),
-                                        borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(0.0),
-                                          bottomRight: Radius.circular(0.0),
-                                          topLeft: Radius.circular(0.0),
-                                          topRight: Radius.circular(0.0),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      25.0, 0.0, 25.0, 7.0),
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 60.0,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                        bottomLeft: Radius.circular(0.0),
-                                        bottomRight: Radius.circular(0.0),
-                                        topLeft: Radius.circular(0.0),
-                                        topRight: Radius.circular(0.0),
-                                      ),
-                                    ),
-                                    alignment: AlignmentDirectional(0.0, 0.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        if (!_showActionPanel) return;
-                                        await _handleChoiceOrSend(
-                                          choice2,
-                                          visualnovelpageStoriesRecord,
-                                          visualChatDoc,
-                                        );
-                                      },
-                                      child: Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            20.0, 0.0, 20.0, 0.0),
-                                        child: AutoSizeText(
-                                          _showActionPanel ? choice2 : '',
-                                          maxLines: 3,
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.inter(
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                letterSpacing: 0.0,
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
+                                              borderRadius: BorderRadius.only(
+                                                bottomLeft:
+                                                    Radius.circular(0.0),
+                                                bottomRight:
+                                                    Radius.circular(0.0),
+                                                topLeft: Radius.circular(0.0),
+                                                topRight: Radius.circular(0.0),
                                               ),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Stack(
-                              children: [
-                                Opacity(
-                                  opacity: 0.5,
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        25.0, 0.0, 25.0, 7.0),
-                                    child: Container(
-                                      width: double.infinity,
-                                      height: 60.0,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Color(0x26000000),
-                                            Color(0x73000000),
-                                            Color(0x8C000000),
-                                            Color(0x8C000000),
-                                            Color(0x73000000),
-                                            Color(0x26000000)
-                                          ],
-                                          stops: [
-                                            0.0,
-                                            0.08,
-                                            0.2,
-                                            0.8,
-                                            0.92,
-                                            1.0
-                                          ],
-                                          begin: AlignmentDirectional(1.0, 0.0),
-                                          end: AlignmentDirectional(-1.0, 0),
-                                        ),
-                                        borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(0.0),
-                                          bottomRight: Radius.circular(0.0),
-                                          topLeft: Radius.circular(0.0),
-                                          topRight: Radius.circular(0.0),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      25.0, 0.0, 25.0, 7.0),
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 60.0,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                        bottomLeft: Radius.circular(0.0),
-                                        bottomRight: Radius.circular(0.0),
-                                        topLeft: Radius.circular(0.0),
-                                        topRight: Radius.circular(0.0),
-                                      ),
-                                    ),
-                                    alignment: AlignmentDirectional(0.0, 0.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        if (!_showActionPanel) return;
-                                        await _handleChoiceOrSend(
-                                          choice3,
-                                          visualnovelpageStoriesRecord,
-                                          visualChatDoc,
-                                        );
-                                      },
-                                      child: Padding(
+                                      Padding(
                                         padding: EdgeInsetsDirectional.fromSTEB(
-                                            20.0, 0.0, 20.0, 0.0),
-                                        child: AutoSizeText(
-                                          _showActionPanel ? choice3 : pageLabel,
-                                          maxLines: 3,
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.inter(
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                letterSpacing: 0.0,
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Stack(
-                              children: [
-                                Opacity(
-                                  opacity: 0.3,
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        25.0, 0.0, 25.0, 10.0),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Padding(
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    10.0, 0.0, 0.0, 0.0),
-                                            child: Container(
-                                              width: 290.0,
-                                              child: TextFormField(
-                                                controller: _model
-                                                    .usertextFieldTextController,
-                                                focusNode: _model
-                                                    .usertextFieldFocusNode,
-                                                autofocus: false,
-                                                enabled: true,
-                                                obscureText: false,
-                                                decoration: InputDecoration(
-                                                  isDense: true,
-                                                  labelStyle: FlutterFlowTheme
-                                                          .of(context)
-                                                      .labelMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontStyle,
-                                                      ),
-                                                  hintText: '직접 입력...',
-                                                  hintStyle: FlutterFlowTheme
-                                                          .of(context)
-                                                      .labelMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontStyle,
-                                                      ),
-                                                  enabledBorder:
-                                                      OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                      color: Color(0x00000000),
-                                                      width: 1.0,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8.0),
-                                                  ),
-                                                  focusedBorder:
-                                                      OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                      color: Color(0x00000000),
-                                                      width: 1.0,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8.0),
-                                                  ),
-                                                  errorBorder:
-                                                      OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                      color: Color(0x00000000),
-                                                      width: 1.0,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8.0),
-                                                  ),
-                                                  focusedErrorBorder:
-                                                      OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                      color: Color(0x00000000),
-                                                      width: 1.0,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8.0),
-                                                  ),
-                                                  filled: true,
-                                                ),
+                                            25.0, 0.0, 25.0, 7.0),
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: 60.0,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                              bottomLeft: Radius.circular(0.0),
+                                              bottomRight: Radius.circular(0.0),
+                                              topLeft: Radius.circular(0.0),
+                                              topRight: Radius.circular(0.0),
+                                            ),
+                                          ),
+                                          alignment:
+                                              AlignmentDirectional(0.0, 0.0),
+                                          child: InkWell(
+                                            splashColor: Colors.transparent,
+                                            focusColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            onTap: () async {
+                                              if (!_showActionPanel ||
+                                                  _isSubmittingSelection ||
+                                                  _isChoiceLoading) return;
+                                              await _submitWithSelectionAnimation(
+                                                submitValue: choice2,
+                                                previewValue: choice2,
+                                                sourceIndex: 1,
+                                                story:
+                                                    visualnovelpageStoriesRecord,
+                                                chatDoc: visualChatDoc,
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding: EdgeInsetsDirectional
+                                                  .fromSTEB(
+                                                      20.0, 0.0, 20.0, 0.0),
+                                              child: AutoSizeText(
+                                                choice2,
+                                                maxLines: 3,
                                                 style:
                                                     FlutterFlowTheme.of(context)
                                                         .bodyMedium
@@ -1681,425 +1708,822 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                                                   .bodyMedium
                                                                   .fontStyle,
                                                         ),
-                                                maxLines: null,
-                                                minLines: 1,
-                                                cursorColor:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryText,
-                                                enableInteractiveSelection:
-                                                    true,
-                                                onFieldSubmitted: (_) async {
-                                                  await _handleChoiceOrSend(
-                                                    _model.usertextFieldTextController
-                                                            ?.text ??
-                                                        '',
-                                                    visualnovelpageStoriesRecord,
-                                                    visualChatDoc,
-                                                  );
-                                                },
-                                                validator: _model
-                                                    .usertextFieldTextControllerValidator
-                                                    .asValidator(context),
                                               ),
                                             ),
                                           ),
-                                          Padding(
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    10.0, 0.0, 0.0, 0.0),
-                                            child: InkWell(
-                                              splashColor: Colors.transparent,
-                                              focusColor: Colors.transparent,
-                                              hoverColor: Colors.transparent,
-                                              highlightColor:
-                                                  Colors.transparent,
-                                              onTap: () async {
-                                                await _handleChoiceOrSend(
-                                                  _model
-                                                          .usertextFieldTextController
-                                                          ?.text ??
-                                                      '',
-                                                  visualnovelpageStoriesRecord,
-                                                  visualChatDoc,
-                                                );
-                                              },
-                                              child: Icon(
-                                                Icons.send,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                size: 20.0,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                if (_showActionPanel && !_isSubmittingSelection)
+                                  Stack(
+                                    children: [
+                                      Opacity(
+                                        opacity: 0.5,
+                                        child: Padding(
+                                          padding:
+                                              EdgeInsetsDirectional.fromSTEB(
+                                                  25.0, 0.0, 25.0, 7.0),
+                                          child: Container(
+                                            width: double.infinity,
+                                            height: 60.0,
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Color(0x26000000),
+                                                  Color(0x73000000),
+                                                  Color(0x8C000000),
+                                                  Color(0x8C000000),
+                                                  Color(0x73000000),
+                                                  Color(0x26000000)
+                                                ],
+                                                stops: [
+                                                  0.0,
+                                                  0.08,
+                                                  0.2,
+                                                  0.8,
+                                                  0.92,
+                                                  1.0
+                                                ],
+                                                begin: AlignmentDirectional(
+                                                    1.0, 0.0),
+                                                end: AlignmentDirectional(
+                                                    -1.0, 0),
+                                              ),
+                                              borderRadius: BorderRadius.only(
+                                                bottomLeft:
+                                                    Radius.circular(0.0),
+                                                bottomRight:
+                                                    Radius.circular(0.0),
+                                                topLeft: Radius.circular(0.0),
+                                                topRight: Radius.circular(0.0),
                                               ),
                                             ),
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Stack(
-                            children: [
-                              Align(
-                                alignment: AlignmentDirectional(0.0, 1.0),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 200.0,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.transparent,
-                                        Color(0x33000000)
-                                      ],
-                                      stops: [0.0, 0.25],
-                                      begin: AlignmentDirectional(0.0, -1.0),
-                                      end: AlignmentDirectional(0, 1.0),
-                                    ),
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(0.0),
-                                      bottomRight: Radius.circular(0.0),
-                                      topLeft: Radius.circular(0.0),
-                                      topRight: Radius.circular(0.0),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Align(
-                                alignment: AlignmentDirectional(0.0, 1.0),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 200.0,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(0.0),
-                                      bottomRight: Radius.circular(0.0),
-                                      topLeft: Radius.circular(0.0),
-                                      topRight: Radius.circular(0.0),
-                                    ),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        40.0, 20.0, 40.0, 50.0),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.max,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 0.0, 10.0),
-                                          child: Text(
-                                            speakerText,
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  font: GoogleFonts.inter(
-                                                    fontWeight:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontStyle,
-                                                  ),
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .warning,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            25.0, 0.0, 25.0, 7.0),
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: 60.0,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                              bottomLeft: Radius.circular(0.0),
+                                              bottomRight: Radius.circular(0.0),
+                                              topLeft: Radius.circular(0.0),
+                                              topRight: Radius.circular(0.0),
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          dialogueText,
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.inter(
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color: (currentParagraph
-                                                                ?.isNarration ??
-                                                            true)
-                                                    ? Color(0xFFE0E3E7)
-                                                    : Color(0xFFFFFFFF),
-                                                letterSpacing: 0.0,
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Positioned.fill(
-                        bottom: _showActionPanel ? 250.0 : 170.0,
-                        child: IgnorePointer(
-                          ignoring: _isGenerating,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.translucent,
-                                  onTap: _onTapPrevious,
-                                  child: const SizedBox.expand(),
-                                ),
-                              ),
-                              Expanded(
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.translucent,
-                                  onTap: _onTapNext,
-                                  child: const SizedBox.expand(),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Stack(
-                            children: [
-                              Align(
-                                alignment: AlignmentDirectional(0.0, 1.0),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 100.0,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.transparent,
-                                        Color(0x33000000)
-                                      ],
-                                      stops: [0.0, 0.25],
-                                      begin: AlignmentDirectional(0.0, 1.0),
-                                      end: AlignmentDirectional(0, -1.0),
-                                    ),
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(0.0),
-                                      bottomRight: Radius.circular(0.0),
-                                      topLeft: Radius.circular(0.0),
-                                      topRight: Radius.circular(0.0),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Align(
-                                alignment: AlignmentDirectional(0.0, 1.0),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 100.0,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(0.0),
-                                      bottomRight: Radius.circular(0.0),
-                                      topLeft: Radius.circular(0.0),
-                                      topRight: Radius.circular(0.0),
-                                    ),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        60.0, 40.0, 40.0, 0.0),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.max,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 0.0, 8.0),
-                                          child: Text(
-                                            topTitle,
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  font: GoogleFonts.inter(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontStyle,
-                                                  ),
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryBackground,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        Text(
-                                          topPlace.isEmpty ? '어딘가' : topPlace,
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.inter(
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .warning,
-                                                letterSpacing: 0.0,
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    25.0, 50.0, 25.0, 0.0),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        context.pushNamed(
-                                          ChatlistpageWidget.routeName,
-                                        );
-                                      },
-                                      child: Icon(
-                                        Icons.arrow_back_ios,
-                                        color: FlutterFlowTheme.of(context)
-                                            .secondaryBackground,
-                                        size: 22.0,
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 10.0, 0.0),
+                                          alignment:
+                                              AlignmentDirectional(0.0, 0.0),
                                           child: InkWell(
                                             splashColor: Colors.transparent,
                                             focusColor: Colors.transparent,
                                             hoverColor: Colors.transparent,
-                                            highlightColor:
-                                                Colors.transparent,
+                                            highlightColor: Colors.transparent,
                                             onTap: () async {
-                                              safeSetState(() {
-                                                _model.isvisualmode = false;
-                                              });
+                                              if (!_showActionPanel ||
+                                                  _isSubmittingSelection ||
+                                                  _isChoiceLoading) return;
+                                              await _submitWithSelectionAnimation(
+                                                submitValue: choice3,
+                                                previewValue: choice3,
+                                                sourceIndex: 2,
+                                                story:
+                                                    visualnovelpageStoriesRecord,
+                                                chatDoc: visualChatDoc,
+                                              );
                                             },
-                                            child: Icon(
-                                              Icons.cached,
-                                              color: FlutterFlowTheme.of(context)
-                                                  .secondaryBackground,
-                                              size: 22.0,
+                                            child: Padding(
+                                              padding: EdgeInsetsDirectional
+                                                  .fromSTEB(
+                                                      20.0, 0.0, 20.0, 0.0),
+                                              child: AutoSizeText(
+                                                choice3,
+                                                maxLines: 3,
+                                                style:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font:
+                                                              GoogleFonts.inter(
+                                                            fontWeight:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                              ),
                                             ),
                                           ),
                                         ),
+                                      ),
+                                    ],
+                                  ),
+                                if (_showActionPanel && !_isSubmittingSelection)
+                                  Stack(
+                                    children: [
+                                      Opacity(
+                                        opacity: 0.3,
+                                        child: Padding(
+                                          padding:
+                                              EdgeInsetsDirectional.fromSTEB(
+                                                  25.0, 0.0, 25.0, 10.0),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black,
+                                              borderRadius:
+                                                  BorderRadius.circular(10.0),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.max,
+                                              children: [
+                                                Padding(
+                                                  padding: EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                          10.0, 0.0, 6.0, 0.0),
+                                                  child: InkWell(
+                                                    splashColor:
+                                                        Colors.transparent,
+                                                    focusColor:
+                                                        Colors.transparent,
+                                                    hoverColor:
+                                                        Colors.transparent,
+                                                    highlightColor:
+                                                        Colors.transparent,
+                                                    onTap: () async {
+                                                      safeSetState(() {
+                                                        _isInputActionMode =
+                                                            !_isInputActionMode;
+                                                      });
+                                                    },
+                                                    child: Icon(
+                                                      Icons.change_circle,
+                                                      color: FlutterFlowTheme
+                                                              .of(context)
+                                                          .secondaryBackground,
+                                                      size: 22.0,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Padding(
+                                                    padding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(0.0, 0.0,
+                                                                0.0, 0.0),
+                                                    child: TextFormField(
+                                                      controller: _model
+                                                          .usertextFieldTextController,
+                                                      focusNode: _model
+                                                          .usertextFieldFocusNode,
+                                                      autofocus: false,
+                                                      enabled: true,
+                                                      obscureText: false,
+                                                      decoration:
+                                                          InputDecoration(
+                                                        isDense: true,
+                                                        labelStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .override(
+                                                                  font:
+                                                                      GoogleFonts
+                                                                          .inter(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondaryBackground,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                        hintText: _isInputActionMode
+                                                            ? '당신의 행동을 입력하세요.'
+                                                            : '당신의 대사를 입력하세요.',
+                                                        hintStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .override(
+                                                                  font:
+                                                                      GoogleFonts
+                                                                          .inter(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondaryBackground,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                        enabledBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Color(
+                                                                0x00000000),
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      8.0),
+                                                        ),
+                                                        focusedBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Color(
+                                                                0x00000000),
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      8.0),
+                                                        ),
+                                                        errorBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Color(
+                                                                0x00000000),
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      8.0),
+                                                        ),
+                                                        focusedErrorBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: Color(
+                                                                0x00000000),
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      8.0),
+                                                        ),
+                                                        filled: true,
+                                                      ),
+                                                      style:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font:
+                                                                    GoogleFonts
+                                                                        .inter(
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .secondaryBackground,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
+                                                      maxLines: null,
+                                                      minLines: 1,
+                                                      cursorColor:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .primaryText,
+                                                      enableInteractiveSelection:
+                                                          true,
+                                                      onFieldSubmitted:
+                                                          (_) async {
+                                                        final typedRaw = _model
+                                                                .usertextFieldTextController
+                                                                ?.text ??
+                                                            '';
+                                                        final submitText =
+                                                            _buildUserInputForMode(
+                                                                typedRaw);
+                                                        await _submitWithSelectionAnimation(
+                                                          submitValue:
+                                                              submitText,
+                                                          previewValue:
+                                                              typedRaw.trim(),
+                                                          sourceIndex: 3,
+                                                          story:
+                                                              visualnovelpageStoriesRecord,
+                                                          chatDoc:
+                                                              visualChatDoc,
+                                                        );
+                                                      },
+                                                      validator: _model
+                                                          .usertextFieldTextControllerValidator
+                                                          .asValidator(context),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding: EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                          10.0, 0.0, 0.0, 0.0),
+                                                  child: InkWell(
+                                                    splashColor:
+                                                        Colors.transparent,
+                                                    focusColor:
+                                                        Colors.transparent,
+                                                    hoverColor:
+                                                        Colors.transparent,
+                                                    highlightColor:
+                                                        Colors.transparent,
+                                                    onTap: () async {
+                                                      final typedRaw = _model
+                                                              .usertextFieldTextController
+                                                              ?.text ??
+                                                          '';
+                                                      final submitText =
+                                                          _buildUserInputForMode(
+                                                              typedRaw);
+                                                      await _submitWithSelectionAnimation(
+                                                        submitValue: submitText,
+                                                        previewValue:
+                                                            typedRaw.trim(),
+                                                        sourceIndex: 3,
+                                                        story:
+                                                            visualnovelpageStoriesRecord,
+                                                        chatDoc: visualChatDoc,
+                                                      );
+                                                    },
+                                                    child: Icon(
+                                                      Icons.send,
+                                                      color: FlutterFlowTheme
+                                                              .of(context)
+                                                          .secondaryBackground,
+                                                      size: 20.0,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Stack(
+                                children: [
+                                  Align(
+                                    alignment: AlignmentDirectional(0.0, 1.0),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 200.0,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.transparent,
+                                            Color(0x33000000)
+                                          ],
+                                          stops: [0.0, 0.25],
+                                          begin:
+                                              AlignmentDirectional(0.0, -1.0),
+                                          end: AlignmentDirectional(0, 1.0),
+                                        ),
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(0.0),
+                                          bottomRight: Radius.circular(0.0),
+                                          topLeft: Radius.circular(0.0),
+                                          topRight: Radius.circular(0.0),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Align(
+                                    alignment: AlignmentDirectional(0.0, 1.0),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 200.0,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(0.0),
+                                          bottomRight: Radius.circular(0.0),
+                                          topLeft: Radius.circular(0.0),
+                                          topRight: Radius.circular(0.0),
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            40.0, 20.0, 40.0, 50.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.max,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Padding(
+                                              padding: EdgeInsetsDirectional
+                                                  .fromSTEB(
+                                                      0.0, 0.0, 0.0, 10.0),
+                                              child: Text(
+                                                speakerText,
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .warning,
+                                                      fontSize: 16.0,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
+                                              ),
+                                            ),
+                                            Text(
+                                              dialogueText,
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font: GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        color: (currentParagraph
+                                                                    ?.isNarration ??
+                                                                true)
+                                                            ? Color(0xFFE0E3E7)
+                                                            : Color(0xFFFFFFFF),
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Positioned.fill(
+                            bottom: _showActionPanel ? 250.0 : 170.0,
+                            child: IgnorePointer(
+                              ignoring: _isGenerating ||
+                                  _showActionPanel ||
+                                  _isSubmittingSelection,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.translucent,
+                                      onTap: _onTapPrevious,
+                                      child: const SizedBox.expand(),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.translucent,
+                                      onTap: () async {
+                                        await _onTapNext(
+                                          visualnovelpageStoriesRecord,
+                                          visualChatDoc,
+                                        );
+                                      },
+                                      child: const SizedBox.expand(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Stack(
+                                children: [
+                                  Align(
+                                    alignment: AlignmentDirectional(0.0, 1.0),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 100.0,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.transparent,
+                                            Color(0x33000000)
+                                          ],
+                                          stops: [0.0, 0.25],
+                                          begin: AlignmentDirectional(0.0, 1.0),
+                                          end: AlignmentDirectional(0, -1.0),
+                                        ),
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(0.0),
+                                          bottomRight: Radius.circular(0.0),
+                                          topLeft: Radius.circular(0.0),
+                                          topRight: Radius.circular(0.0),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Align(
+                                    alignment: AlignmentDirectional(0.0, 1.0),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 100.0,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(0.0),
+                                          bottomRight: Radius.circular(0.0),
+                                          topLeft: Radius.circular(0.0),
+                                          topRight: Radius.circular(0.0),
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            60.0, 40.0, 40.0, 0.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.max,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Padding(
+                                              padding: EdgeInsetsDirectional
+                                                  .fromSTEB(0.0, 0.0, 0.0, 8.0),
+                                              child: Text(
+                                                topTitle,
+                                                style:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font:
+                                                              GoogleFonts.inter(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryBackground,
+                                                          fontSize: 16.0,
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            Text(
+                                              topPlace.isEmpty
+                                                  ? '어딘가'
+                                                  : topPlace,
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font: GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .warning,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        25.0, 50.0, 25.0, 0.0),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
                                         InkWell(
                                           splashColor: Colors.transparent,
                                           focusColor: Colors.transparent,
                                           hoverColor: Colors.transparent,
                                           highlightColor: Colors.transparent,
                                           onTap: () async {
-                                            scaffoldKey.currentState!
-                                                .openEndDrawer();
+                                            context.pushNamed(
+                                              ChatlistpageWidget.routeName,
+                                            );
                                           },
                                           child: Icon(
-                                            Icons.menu,
+                                            Icons.arrow_back_ios,
                                             color: FlutterFlowTheme.of(context)
                                                 .secondaryBackground,
-                                            size: 25.0,
+                                            size: 22.0,
                                           ),
+                                        ),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.max,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Padding(
+                                              padding: EdgeInsetsDirectional
+                                                  .fromSTEB(
+                                                      0.0, 0.0, 10.0, 0.0),
+                                              child: InkWell(
+                                                splashColor: Colors.transparent,
+                                                focusColor: Colors.transparent,
+                                                hoverColor: Colors.transparent,
+                                                highlightColor:
+                                                    Colors.transparent,
+                                                onTap: () async {
+                                                  safeSetState(() {
+                                                    _model.isvisualmode = false;
+                                                  });
+                                                },
+                                                child: Icon(
+                                                  Icons.cached,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .secondaryBackground,
+                                                  size: 22.0,
+                                                ),
+                                              ),
+                                            ),
+                                            InkWell(
+                                              splashColor: Colors.transparent,
+                                              focusColor: Colors.transparent,
+                                              hoverColor: Colors.transparent,
+                                              highlightColor:
+                                                  Colors.transparent,
+                                              onTap: () async {
+                                                scaffoldKey.currentState!
+                                                    .openEndDrawer();
+                                              },
+                                              child: Icon(
+                                                Icons.menu,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
+                                                size: 25.0,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
                         ],
                       );
                     },
