@@ -10,8 +10,10 @@ class ResourceItemModel {
     required this.kind,
     this.resourceName = '',
     this.firstValue = 0,
+    this.increaseOrDecrease = '증가',
     this.deltaValue = 0,
     this.condition = '',
+    this.operatorValue = '=',
     this.referenceValue = 0,
     this.effect = '',
   });
@@ -19,13 +21,34 @@ class ResourceItemModel {
   String kind;
   String resourceName;
   int firstValue;
+  String increaseOrDecrease;
   int deltaValue;
   String condition;
+  String operatorValue;
   int referenceValue;
   String effect;
 
   factory ResourceItemModel.fromMap(Map<String, dynamic> map) {
     int parseInt(dynamic raw) => int.tryParse(raw?.toString() ?? '') ?? 0;
+    String normalizeIncreaseOrDecrease(dynamic raw) =>
+        raw?.toString().trim() == '감소' ? '감소' : '증가';
+    String normalizeOperator(dynamic raw) {
+      final value = (raw ?? '=').toString().trim();
+      switch (value) {
+        case '=':
+        case '>':
+        case '<':
+        case '≥':
+        case '≤':
+          return value;
+        case '>=':
+          return '≥';
+        case '<=':
+          return '≤';
+        default:
+          return '=';
+      }
+    }
 
     return ResourceItemModel(
       kind: (map['kind'] ?? 'stat').toString().trim().toLowerCase() == 'item'
@@ -33,8 +56,14 @@ class ResourceItemModel {
           : 'stat',
       resourceName: (map['resourceName'] ?? '').toString(),
       firstValue: parseInt(map['firstValue']),
+      increaseOrDecrease: normalizeIncreaseOrDecrease(
+        map['increaseOrDecrease'] ?? map['increaseORdecreaseValue'],
+      ),
       deltaValue: parseInt(map['deltaValue']),
       condition: (map['condition'] ?? '').toString(),
+      operatorValue: normalizeOperator(
+        map['operatorValue'] ?? map['operator'],
+      ),
       referenceValue: parseInt(map['referenceValue']),
       effect: (map['effect'] ?? '').toString(),
     );
@@ -44,8 +73,10 @@ class ResourceItemModel {
         'kind': kind,
         'resourceName': resourceName,
         'firstValue': firstValue,
+        'increaseOrDecrease': increaseOrDecrease,
         'deltaValue': deltaValue,
         'condition': condition,
+        'operatorValue': operatorValue,
         'referenceValue': referenceValue,
         'effect': effect,
       };

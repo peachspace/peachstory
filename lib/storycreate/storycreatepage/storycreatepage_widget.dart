@@ -957,6 +957,26 @@ $contextBlock
 
   int _toIntValue(String raw) => int.tryParse(raw.trim()) ?? 0;
 
+  String _normalizeIncreaseOrDecrease(String raw) =>
+      raw.trim() == '감소' ? '감소' : '증가';
+
+  String _normalizeOperatorValue(String raw) {
+    switch (raw.trim()) {
+      case '=':
+      case '>':
+      case '<':
+      case '≥':
+      case '≤':
+        return raw.trim();
+      case '>=':
+        return '≥';
+      case '<=':
+        return '≤';
+      default:
+        return '=';
+    }
+  }
+
   List<ResourceCardModel> _resourceCardsFromDynamic(dynamic raw) {
     if (raw is! List) return <ResourceCardModel>[];
     final result = <ResourceCardModel>[];
@@ -1668,6 +1688,69 @@ $contextBlock
                                           ),
                                           const Spacer(),
                                           SizedBox(
+                                            width: 74.0,
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButton<String>(
+                                                value:
+                                                    _normalizeIncreaseOrDecrease(
+                                                  item.increaseOrDecrease,
+                                                ),
+                                                isExpanded: true,
+                                                dropdownColor:
+                                                    const Color(0xFF2A2A2A),
+                                                icon: Icon(
+                                                  Icons
+                                                      .keyboard_arrow_down_rounded,
+                                                  color:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .alternate,
+                                                  size: 20.0,
+                                                ),
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      letterSpacing: 0.0,
+                                                    ),
+                                                items: const [
+                                                  DropdownMenuItem<String>(
+                                                    value: '증가',
+                                                    child: Text('증가'),
+                                                  ),
+                                                  DropdownMenuItem<String>(
+                                                    value: '감소',
+                                                    child: Text('감소'),
+                                                  ),
+                                                ],
+                                                onChanged: (value) {
+                                                  if (value == null) return;
+                                                  safeSetState(() {
+                                                    item.increaseOrDecrease =
+                                                        value;
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6.0),
+                                          SizedBox(
                                             width: 128.0,
                                             child: TextFormField(
                                               key: ValueKey(
@@ -1742,6 +1825,103 @@ $contextBlock
                                       Row(
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
+                                          Text(
+                                            '기준값',
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .override(
+                                                  font: GoogleFonts.inter(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontStyle,
+                                                  ),
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .alternate,
+                                                  letterSpacing: 0.0,
+                                                ),
+                                          ),
+                                          const Spacer(),
+                                          SizedBox(
+                                            width: 64.0,
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButton<String>(
+                                                value: _normalizeOperatorValue(
+                                                  item.operatorValue,
+                                                ),
+                                                isExpanded: true,
+                                                dropdownColor:
+                                                    const Color(0xFF2A2A2A),
+                                                icon: Icon(
+                                                  Icons
+                                                      .keyboard_arrow_down_rounded,
+                                                  color:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .alternate,
+                                                  size: 20.0,
+                                                ),
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate,
+                                                      letterSpacing: 0.0,
+                                                    ),
+                                                items: const [
+                                                  DropdownMenuItem<String>(
+                                                    value: '=',
+                                                    child: Text('='),
+                                                  ),
+                                                  DropdownMenuItem<String>(
+                                                    value: '>',
+                                                    child: Text('>'),
+                                                  ),
+                                                  DropdownMenuItem<String>(
+                                                    value: '<',
+                                                    child: Text('<'),
+                                                  ),
+                                                  DropdownMenuItem<String>(
+                                                    value: '≥',
+                                                    child: Text('≥'),
+                                                  ),
+                                                  DropdownMenuItem<String>(
+                                                    value: '≤',
+                                                    child: Text('≤'),
+                                                  ),
+                                                ],
+                                                onChanged: (value) {
+                                                  if (value == null) return;
+                                                  safeSetState(() {
+                                                    item.operatorValue = value;
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6.0),
                                           SizedBox(
                                             width: 90.0,
                                             child: TextFormField(
@@ -1788,41 +1968,34 @@ $contextBlock
                                                       ),
                                             ),
                                           ),
-                                          Expanded(
-                                            child: TextFormField(
-                                              key: ValueKey(
-                                                  'card_${cardIndex}_item_${itemIndex}_effect'),
-                                              initialValue: item.effect,
-                                              onChanged: (value) =>
-                                                  item.effect = value,
-                                              decoration:
-                                                  _resourceInputDecoration(
-                                                      '효과'),
-                                              style:
+                                        ],
+                                      ),
+                                      TextFormField(
+                                        key: ValueKey(
+                                            'card_${cardIndex}_item_${itemIndex}_effect'),
+                                        initialValue: item.effect,
+                                        onChanged: (value) =>
+                                            item.effect = value,
+                                        decoration:
+                                            _resourceInputDecoration('효과'),
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              font: GoogleFonts.inter(
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontStyle,
+                                              ),
+                                              color:
                                                   FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .alternate,
-                                                        letterSpacing: 0.0,
-                                                      ),
+                                                      .alternate,
+                                              letterSpacing: 0.0,
                                             ),
-                                          ),
-                                        ].divide(const SizedBox(width: 10.0)),
                                       ),
                                       Divider(
                                         thickness: 0.5,

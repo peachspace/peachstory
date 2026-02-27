@@ -44,16 +44,54 @@ class _StatusValue {
   final String value;
 }
 
-class _ResourcePanelCard {
-  const _ResourcePanelCard({
+class _RuntimeResourceItem {
+  const _RuntimeResourceItem({
+    required this.kind,
+    required this.resourceName,
+    required this.currentValue,
+    required this.increaseOrDecrease,
+    required this.deltaValue,
+    required this.condition,
+    required this.operatorValue,
+    required this.referenceValue,
+    required this.effect,
+  });
+
+  final String kind;
+  final String resourceName;
+  final int currentValue;
+  final String increaseOrDecrease;
+  final int deltaValue;
+  final String condition;
+  final String operatorValue;
+  final int referenceValue;
+  final String effect;
+
+  _RuntimeResourceItem copyWith({
+    int? currentValue,
+  }) {
+    return _RuntimeResourceItem(
+      kind: kind,
+      resourceName: resourceName,
+      currentValue: currentValue ?? this.currentValue,
+      increaseOrDecrease: increaseOrDecrease,
+      deltaValue: deltaValue,
+      condition: condition,
+      operatorValue: operatorValue,
+      referenceValue: referenceValue,
+      effect: effect,
+    );
+  }
+}
+
+class _RuntimeResourceCard {
+  const _RuntimeResourceCard({
     required this.owner,
-    required this.stats,
     required this.items,
   });
 
   final String owner;
-  final List<_StatusValue> stats;
-  final List<_StatusValue> items;
+  final List<_RuntimeResourceItem> items;
 }
 
 class VisualnovelpageWidget extends StatefulWidget {
@@ -114,6 +152,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
   List<_StatusValue> _characterStatusValues = const [];
   List<_StatusValue> _characterItemValues = const [];
   String _characterPanelTitle = '';
+  bool _runtimeResourcesInitialized = false;
+  List<_RuntimeResourceCard> _runtimeResourceCards = const [];
 
   @override
   void initState() {
@@ -400,53 +440,87 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
 
   int _parseIntValue(dynamic raw) => int.tryParse(raw?.toString() ?? '') ?? 0;
 
-  _ResourcePanelCard? _parseResourcePanelCard(dynamic rawCard) {
+  String _normalizeIncreaseOrDecrease(String raw) =>
+      raw.trim() == '감소' ? '감소' : '증가';
+
+  String _normalizeOperatorValue(String raw) {
+    switch (raw.trim()) {
+      case '=':
+      case '>':
+      case '<':
+      case '≥':
+      case '≤':
+        return raw.trim();
+      case '>=':
+        return '≥';
+      case '<=':
+        return '≤';
+      default:
+        return '=';
+    }
+  }
+
+  _RuntimeResourceCard? _parseRuntimeResourceCard(dynamic rawCard) {
     if (rawCard is! Map) return null;
     final card = rawCard.map((key, value) => MapEntry(key.toString(), value));
     final owner = (card['charOrUser'] ?? '').toString().trim();
     final rawItems = card['items'];
 
-    final stats = <_StatusValue>[];
-    final items = <_StatusValue>[];
+    final items = <_RuntimeResourceItem>[];
     if (rawItems is List) {
       for (final rawItem in rawItems) {
         if (rawItem is! Map) continue;
         final item =
             rawItem.map((key, value) => MapEntry(key.toString(), value));
         final kind = (item['kind'] ?? 'stat').toString().trim().toLowerCase();
+        final normalizedKind = kind == 'item' ? 'item' : 'stat';
         final name = (item['resourceName'] ?? '').toString().trim();
         if (name.isEmpty) continue;
-        final firstValue = _parseIntValue(item['firstValue']).toString();
-        if (kind == 'item') {
-          items.add(_StatusValue(name: name, value: firstValue));
-        } else {
-          stats.add(_StatusValue(name: name, value: firstValue));
-        }
+        items.add(
+          _RuntimeResourceItem(
+            kind: normalizedKind,
+            resourceName: name,
+            currentValue: _parseIntValue(item['firstValue']),
+            increaseOrDecrease: _normalizeIncreaseOrDecrease(
+              (item['increaseOrDecrease'] ?? item['increaseORdecreaseValue'] ??
+                      item['deltaMode'] ??
+                      '')
+                  .toString(),
+            ),
+            deltaValue: _parseIntValue(item['deltaValue']),
+            condition: (item['condition'] ?? '').toString().trim(),
+            operatorValue: _normalizeOperatorValue(
+              (item['operatorValue'] ?? item['operator'] ?? '=').toString(),
+            ),
+            referenceValue: _parseIntValue(item['referenceValue']),
+            effect: (item['effect'] ?? '').toString().trim(),
+          ),
+        );
       }
     }
 
-    return _ResourcePanelCard(owner: owner, stats: stats, items: items);
+    return _RuntimeResourceCard(owner: owner, items: items);
   }
 
-  List<_ResourcePanelCard> _extractResourcePanelCards(StoriesRecord story) {
-    final parsed = <_ResourcePanelCard>[];
+  List<_RuntimeResourceCard> _extractRuntimeResourceCards(StoriesRecord story) {
+    final parsed = <_RuntimeResourceCard>[];
     final rawCards = story.resourceCards;
     for (final rawCard in rawCards) {
-      final card = _parseResourcePanelCard(rawCard);
+      final card = _parseRuntimeResourceCard(rawCard);
       if (card != null) parsed.add(card);
     }
     return parsed;
   }
 
-  _ResourcePanelCard? _pickUserCard(List<_ResourcePanelCard> cards) {
+  _RuntimeResourceCard? _pickRuntimeUserCard(List<_RuntimeResourceCard> cards) {
     for (final card in cards) {
       if (_isUserOwnerLabel(card.owner)) return card;
     }
     return null;
   }
 
-  _ResourcePanelCard? _pickCharacterCard(
-    List<_ResourcePanelCard> cards, {
+  _RuntimeResourceCard? _pickRuntimeCharacterCard(
+    List<_RuntimeResourceCard> cards, {
     String? currentSpeaker,
   }) {
     final characterCards =
@@ -460,6 +534,66 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       }
     }
     return characterCards.first;
+  }
+
+  void _initializeRuntimeResourcesIfNeeded(StoriesRecord story) {
+    if (_runtimeResourcesInitialized) return;
+    _runtimeResourceCards = _extractRuntimeResourceCards(story);
+    _runtimeResourcesInitialized = true;
+  }
+
+  List<_StatusValue> _statusValuesForKind(
+    _RuntimeResourceCard? card, {
+    required String kind,
+  }) {
+    if (card == null) {
+      return kind == 'item'
+          ? const [_StatusValue(name: '표시할 아이템 없음', value: '-')]
+          : const [_StatusValue(name: '표시할 스탯 없음', value: '-')];
+    }
+
+    final values = card.items
+        .where((item) => item.kind == kind)
+        .map(
+          (item) => _StatusValue(
+            name: item.resourceName,
+            value: kind == 'item'
+                ? 'x${item.currentValue}'
+                : item.currentValue.toString(),
+          ),
+        )
+        .toList();
+
+    if (values.isEmpty) {
+      return kind == 'item'
+          ? const [_StatusValue(name: '표시할 아이템 없음', value: '-')]
+          : const [_StatusValue(name: '표시할 스탯 없음', value: '-')];
+    }
+    return values;
+  }
+
+  void _refreshStatusPanelFromRuntime({
+    String? currentSpeaker,
+  }) {
+    if (_runtimeResourceCards.isEmpty) return;
+
+    final userCard = _pickRuntimeUserCard(_runtimeResourceCards);
+    final characterCard = _pickRuntimeCharacterCard(
+      _runtimeResourceCards,
+      currentSpeaker: currentSpeaker,
+    );
+
+    _userStatusValues = _statusValuesForKind(userCard, kind: 'stat');
+    _userItemValues = _statusValuesForKind(userCard, kind: 'item');
+
+    _characterPanelTitle = (characterCard?.owner ?? '').trim();
+    if (characterCard == null) {
+      _characterStatusValues = const [];
+      _characterItemValues = const [];
+      return;
+    }
+    _characterStatusValues = _statusValuesForKind(characterCard, kind: 'stat');
+    _characterItemValues = _statusValuesForKind(characterCard, kind: 'item');
   }
 
   String _extractSectionBody(String source, String sectionTitle) {
@@ -521,28 +655,9 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     StoriesRecord story, {
     String? currentSpeaker,
   }) {
-    final resourceCards = _extractResourcePanelCards(story);
-    if (resourceCards.isNotEmpty) {
-      final userCard = _pickUserCard(resourceCards);
-      final characterCard =
-          _pickCharacterCard(resourceCards, currentSpeaker: currentSpeaker);
-
-      _userStatusValues = (userCard == null || userCard.stats.isEmpty)
-          ? const [_StatusValue(name: '표시할 스탯 없음', value: '-')]
-          : userCard.stats;
-      _userItemValues = (userCard == null || userCard.items.isEmpty)
-          ? const [_StatusValue(name: '표시할 아이템 없음', value: '-')]
-          : userCard.items;
-
-      _characterPanelTitle = (characterCard?.owner ?? '').trim();
-      _characterStatusValues =
-          (characterCard == null || characterCard.stats.isEmpty)
-              ? const [_StatusValue(name: '표시할 스탯 없음', value: '-')]
-              : characterCard.stats;
-      _characterItemValues =
-          (characterCard == null || characterCard.items.isEmpty)
-              ? const [_StatusValue(name: '표시할 아이템 없음', value: '-')]
-              : characterCard.items;
+    _initializeRuntimeResourcesIfNeeded(story);
+    if (_runtimeResourceCards.isNotEmpty) {
+      _refreshStatusPanelFromRuntime(currentSpeaker: currentSpeaker);
       return;
     }
 
@@ -558,6 +673,229 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     _characterPanelTitle = '';
     _characterStatusValues = const [];
     _characterItemValues = const [];
+  }
+
+  int _indexOfRuntimeUserCard(List<_RuntimeResourceCard> cards) {
+    for (var i = 0; i < cards.length; i++) {
+      if (_isUserOwnerLabel(cards[i].owner)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  int _indexOfRuntimeCharacterCard(
+    List<_RuntimeResourceCard> cards, {
+    String? currentSpeaker,
+  }) {
+    final speaker = (currentSpeaker ?? '').trim();
+    if (speaker.isNotEmpty) {
+      for (var i = 0; i < cards.length; i++) {
+        final card = cards[i];
+        if (_isUserOwnerLabel(card.owner)) continue;
+        if (card.owner.trim() == speaker) return i;
+      }
+    }
+    for (var i = 0; i < cards.length; i++) {
+      if (!_isUserOwnerLabel(cards[i].owner)) return i;
+    }
+    return -1;
+  }
+
+  bool _containsConditionText(String source, String condition) {
+    final trimmedCondition = condition.trim();
+    if (trimmedCondition.isEmpty) return false;
+    if (source.contains(trimmedCondition)) return true;
+    return source.toLowerCase().contains(trimmedCondition.toLowerCase());
+  }
+
+  bool _matchesReference({
+    required int value,
+    required String operatorValue,
+    required int referenceValue,
+  }) {
+    final op = _normalizeOperatorValue(operatorValue);
+    switch (op) {
+      case '=':
+        return value == referenceValue;
+      case '>':
+        return value > referenceValue;
+      case '<':
+        return value < referenceValue;
+      case '≥':
+        return value >= referenceValue;
+      case '≤':
+        return value <= referenceValue;
+      default:
+        return value == referenceValue;
+    }
+  }
+
+  String _extractPrimarySpeakerFromScenes(List<Map<String, dynamic>> scenes) {
+    for (final scene in scenes) {
+      if ((scene['type'] ?? '').toString().trim() != 'dialogue') continue;
+      final speaker = (scene['speaker'] ?? '').toString().trim();
+      if (speaker.isNotEmpty) return speaker;
+    }
+    return '';
+  }
+
+  String _buildRuleEvaluationText({
+    required String userText,
+    required String aiRawText,
+    required List<Map<String, dynamic>> scenes,
+  }) {
+    final aiSceneText = scenes
+        .where((scene) {
+          final type = (scene['type'] ?? '').toString().trim();
+          return type == 'narration' || type == 'dialogue';
+        })
+        .map((scene) => (scene['content'] ?? '').toString().trim())
+        .where((text) => text.isNotEmpty)
+        .join('\n');
+
+    return <String>[userText.trim(), aiRawText.trim(), aiSceneText.trim()]
+        .where((part) => part.isNotEmpty)
+        .join('\n');
+  }
+
+  List<String> _applyRulesToRuntimeCardAt(
+    List<_RuntimeResourceCard> cards,
+    int cardIndex, {
+    required String evaluationText,
+  }) {
+    if (cardIndex < 0 || cardIndex >= cards.length) return const [];
+    final card = cards[cardIndex];
+    if (card.items.isEmpty) return const [];
+
+    final updatedItems = <_RuntimeResourceItem>[];
+    final effects = <String>[];
+
+    for (final item in card.items) {
+      final condition = item.condition.trim();
+      if (condition.isEmpty ||
+          !_containsConditionText(evaluationText, condition)) {
+        updatedItems.add(item);
+        continue;
+      }
+
+      final previousValue = item.currentValue;
+      final delta = item.deltaValue;
+      final nextValue = _normalizeIncreaseOrDecrease(item.increaseOrDecrease) ==
+              '감소'
+          ? previousValue - delta
+          : previousValue + delta;
+
+      final beforeMatched = _matchesReference(
+        value: previousValue,
+        operatorValue: item.operatorValue,
+        referenceValue: item.referenceValue,
+      );
+      final afterMatched = _matchesReference(
+        value: nextValue,
+        operatorValue: item.operatorValue,
+        referenceValue: item.referenceValue,
+      );
+
+      updatedItems.add(item.copyWith(currentValue: nextValue));
+
+      if (!beforeMatched && afterMatched && item.effect.trim().isNotEmpty) {
+        effects.add(item.effect.trim());
+      }
+    }
+
+    cards[cardIndex] = _RuntimeResourceCard(
+      owner: card.owner,
+      items: updatedItems,
+    );
+    return effects;
+  }
+
+  void _showEffectMessage(List<String> effects) {
+    if (effects.isEmpty) return;
+    final uniqueEffects = effects
+        .map((effect) => effect.trim())
+        .where((effect) => effect.isNotEmpty)
+        .toSet()
+        .toList();
+    if (uniqueEffects.isEmpty) return;
+
+    final message = uniqueEffects.map((effect) => '효과: $effect').join('\n');
+    final media = MediaQuery.of(context);
+    final centerBottomMargin = (media.size.height * 0.45).clamp(120.0, 420.0);
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: FlutterFlowTheme.of(context).secondaryBackground,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: const Color(0xE0000000),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.fromLTRB(
+          24.0,
+          0.0,
+          24.0,
+          centerBottomMargin,
+        ),
+      ),
+    );
+  }
+
+  void _applyResourceRulesForTurn({
+    required StoriesRecord story,
+    required String userText,
+    required String aiRawText,
+    required List<Map<String, dynamic>> scenes,
+    String? currentSpeaker,
+  }) {
+    _initializeRuntimeResourcesIfNeeded(story);
+    if (_runtimeResourceCards.isEmpty) return;
+
+    final evaluationText = _buildRuleEvaluationText(
+      userText: userText,
+      aiRawText: aiRawText,
+      scenes: scenes,
+    );
+    if (evaluationText.trim().isEmpty) return;
+
+    final workingCards = _runtimeResourceCards.toList();
+    final targets = <int>{};
+
+    final userIndex = _indexOfRuntimeUserCard(workingCards);
+    if (userIndex >= 0) targets.add(userIndex);
+
+    final characterIndex = _indexOfRuntimeCharacterCard(
+      workingCards,
+      currentSpeaker: currentSpeaker,
+    );
+    if (characterIndex >= 0) targets.add(characterIndex);
+
+    if (targets.isEmpty) return;
+
+    final triggeredEffects = <String>[];
+    for (final index in targets) {
+      triggeredEffects.addAll(
+        _applyRulesToRuntimeCardAt(
+          workingCards,
+          index,
+          evaluationText: evaluationText,
+        ),
+      );
+    }
+
+    _runtimeResourceCards = workingCards;
+    _refreshStatusPanelFromRuntime(currentSpeaker: currentSpeaker);
+    if (triggeredEffects.isNotEmpty) {
+      _showEffectMessage(triggeredEffects);
+    }
   }
 
   Widget _buildFirstEnterCover(BuildContext context) {
@@ -1556,6 +1894,20 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
         false,
       );
       final scenes = _parseScriptIntoScenes(formattedScript);
+      final sceneSpeaker = _extractPrimarySpeakerFromScenes(scenes);
+      final runtimeSpeaker = sceneSpeaker.isNotEmpty
+          ? sceneSpeaker
+          : (_paragraphs.isNotEmpty
+              ? _paragraphs[_currentParagraphIndex].speaker
+              : '');
+
+      _applyResourceRulesForTurn(
+        story: story,
+        userText: userInput,
+        aiRawText: aiRawText,
+        scenes: scenes,
+        currentSpeaker: runtimeSpeaker,
+      );
 
       final savedMessages = await actions.processAndSaveChatTurn(
         scenes,
