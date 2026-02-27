@@ -102,7 +102,7 @@ class _StorycreatepageWidgetState extends State<StorycreatepageWidget>
 
     _model.tabBarController = TabController(
       vsync: this,
-      length: 5,
+      length: 6,
       initialIndex: 0,
     )..addListener(() => safeSetState(() {}));
 
@@ -940,6 +940,857 @@ $contextBlock
     }
   }
 
+  ResourceItemModel _newResourceItem({String kind = 'stat'}) {
+    return ResourceItemModel(kind: kind);
+  }
+
+  ResourceCardModel _newResourceCard() {
+    return ResourceCardModel(
+      items: <ResourceItemModel>[
+        _newResourceItem(),
+      ],
+    );
+  }
+
+  int _toIntValue(String raw) => int.tryParse(raw.trim()) ?? 0;
+
+  void _addResourceCard() {
+    safeSetState(() {
+      _model.addToCards(_newResourceCard());
+    });
+  }
+
+  void _addResourceItem({
+    required int cardIndex,
+    required String kind,
+  }) {
+    if (cardIndex < 0 || cardIndex >= _model.cards.length) return;
+    safeSetState(() {
+      _model.cards[cardIndex].items.add(_newResourceItem(kind: kind));
+    });
+  }
+
+  void _removeResourceItem({
+    required int cardIndex,
+    required int itemIndex,
+  }) {
+    if (cardIndex < 0 || cardIndex >= _model.cards.length) return;
+    final items = _model.cards[cardIndex].items;
+    if (itemIndex < 0 || itemIndex >= items.length) return;
+
+    safeSetState(() {
+      if (items.length <= 1) {
+        final kind = items.first.kind;
+        items
+          ..clear()
+          ..add(_newResourceItem(kind: kind));
+      } else {
+        items.removeAt(itemIndex);
+      }
+    });
+  }
+
+  Future<void> _confirmDeleteResourceCard(int cardIndex) async {
+    if (cardIndex < 0 || cardIndex >= _model.cards.length) return;
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+          title: Text(
+            '삭제하시겠습니까?',
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  font: GoogleFonts.inter(
+                    fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+                  color: FlutterFlowTheme.of(context).primaryBackground,
+                  letterSpacing: 0.0,
+                ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(
+                '취소',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      font: GoogleFonts.inter(
+                        fontWeight:
+                            FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                      ),
+                      color: FlutterFlowTheme.of(context).alternate,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(
+                '확인',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      font: GoogleFonts.inter(
+                        fontWeight:
+                            FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                      ),
+                      color: FlutterFlowTheme.of(context).error,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete != true) return;
+
+    safeSetState(() {
+      _model.cards.removeAt(cardIndex);
+    });
+  }
+
+  Future<void> _openStatOrItemAddSheet(int cardIndex) async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 20.0),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xB3000000),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  topRight: Radius.circular(20.0),
+                  bottomLeft: Radius.circular(20.0),
+                  bottomRight: Radius.circular(20.0),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FFButtonWidget(
+                      onPressed: () async {
+                        Navigator.pop(sheetContext);
+                        _addResourceItem(cardIndex: cardIndex, kind: 'stat');
+                      },
+                      text: 'Stat 추가',
+                      options: FFButtonOptions(
+                        width: double.infinity,
+                        height: 44.0,
+                        color: const Color(0xFF3B3B3B),
+                        textStyle:
+                            FlutterFlowTheme.of(context).titleSmall.override(
+                                  font: GoogleFonts.interTight(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
+                                  ),
+                                  color: FlutterFlowTheme.of(context).alternate,
+                                  letterSpacing: 0.0,
+                                ),
+                        elevation: 5.0,
+                        borderSide: BorderSide(
+                          color: FlutterFlowTheme.of(context).alternate,
+                          width: 0.05,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    const SizedBox(height: 12.0),
+                    FFButtonWidget(
+                      onPressed: () async {
+                        Navigator.pop(sheetContext);
+                        _addResourceItem(cardIndex: cardIndex, kind: 'item');
+                      },
+                      text: 'Item 추가',
+                      options: FFButtonOptions(
+                        width: double.infinity,
+                        height: 44.0,
+                        color: const Color(0xFF3B3B3B),
+                        textStyle:
+                            FlutterFlowTheme.of(context).titleSmall.override(
+                                  font: GoogleFonts.interTight(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
+                                  ),
+                                  color: FlutterFlowTheme.of(context).alternate,
+                                  letterSpacing: 0.0,
+                                ),
+                        elevation: 5.0,
+                        borderSide: BorderSide(
+                          color: FlutterFlowTheme.of(context).alternate,
+                          width: 0.05,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  InputDecoration _resourceInputDecoration(String hint) {
+    return InputDecoration(
+      isDense: true,
+      hintText: hint,
+      hintStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+            font: GoogleFonts.inter(
+              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+            ),
+            color: const Color(0xB5E0E3E7),
+            fontSize: 14.0,
+            letterSpacing: 0.0,
+          ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0x00000000), width: 1.0),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0x00000000), width: 1.0),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0x00000000), width: 1.0),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0x00000000), width: 1.0),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+    );
+  }
+
+  Widget _buildResourceCardsTab() {
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 25.0, 0.0),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 20.0),
+              child: InkWell(
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                onTap: _addResourceCard,
+                child: Material(
+                  color: Colors.transparent,
+                  elevation: 5.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    height: 100.0,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2A2A2A),
+                      borderRadius: BorderRadius.circular(20.0),
+                      border: Border.all(
+                        color: FlutterFlowTheme.of(context).alternate,
+                        width: 0.1,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add,
+                          color: FlutterFlowTheme.of(context).primaryBackground,
+                          size: 40.0,
+                        ),
+                        Text(
+                          '스탯/아이템을 설정할 리소스카드를 추가합니다.',
+                          textAlign: TextAlign.center,
+                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                font: GoogleFonts.inter(
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                                color: FlutterFlowTheme.of(context).alternate,
+                                letterSpacing: 0.0,
+                              ),
+                        ),
+                        Text(
+                          '리소스카드를 길게 누르면 삭제할 수 있습니다.',
+                          textAlign: TextAlign.center,
+                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                font: GoogleFonts.inter(
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                                color: FlutterFlowTheme.of(context).alternate,
+                                letterSpacing: 0.0,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: const AlignmentDirectional(-1.0, 0.0),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 20.0),
+                child: Text(
+                  '- [캐릭터명]에는 \'캐릭터의 이름\' 또는 유저의 경우 \'USER\'라고 입력합니다.\n- [리소스명]에는 호감도, 체력, 레벨, 공격력 등의 스탯명 또는 붕대, 카드, 몽둥이 등 아이템명을 입력합니다.\n- [초기값]에는 스토리가 시작할 때 설정될 수치를 입력합니다.\n- [증감수치]에는 조건성립에 따라 증감하는 스탯 수치 또는 아이템 갯수를 입력하세요.\n- [조건문]에는 스탯/아이템이 증감하기 위한 상황을 입력하세요.\nex) 칭찬받으면 / 공격하면 / 무기 획득하면 / 물약 소비하면\n- [기준값]에는 일정한 효과를 발생시키기 위한 스탯/아이템의 경계값을 입력하세요.\n- [효과]에는 스탯/아이템 값이 기준값에 대한 조건을 충족했을 때 일어나는 변화를 입력하세요.\nex) 게임이 종료된다. / 이벤트가 시작된다. / 봉인이 해제된다.',
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        font: GoogleFonts.inter(
+                          fontWeight:
+                              FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                        color: FlutterFlowTheme.of(context).alternate,
+                        letterSpacing: 0.0,
+                      ),
+                ),
+              ),
+            ),
+            ListView.builder(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _model.cards.length,
+              itemBuilder: (context, cardIndex) {
+                final card = _model.cards[cardIndex];
+                return Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 20.0),
+                  child: InkWell(
+                    splashColor: Colors.transparent,
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onLongPress: () async => _confirmDeleteResourceCard(cardIndex),
+                    child: Material(
+                      color: Colors.transparent,
+                      elevation: 5.0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2A2A2A),
+                          borderRadius: BorderRadius.circular(20.0),
+                          border: Border.all(
+                            color: FlutterFlowTheme.of(context).alternate,
+                            width: 0.1,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsetsDirectional.fromSTEB(
+                                  8.0, 8.0, 8.0, 0.0),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsetsDirectional.fromSTEB(
+                                          11.0, 0.0, 0.0, 0.0),
+                                      child: TextFormField(
+                                        key: ValueKey('card_${cardIndex}_owner'),
+                                        initialValue: card.charOrUser,
+                                        onChanged: (value) => card.charOrUser = value,
+                                        decoration: _resourceInputDecoration('캐릭터명'),
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              font: GoogleFonts.inter(
+                                                fontWeight: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .fontWeight,
+                                                fontStyle: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .fontStyle,
+                                              ),
+                                              color: FlutterFlowTheme.of(context)
+                                                  .alternate,
+                                              fontSize: 14.0,
+                                              letterSpacing: 0.0,
+                                            ),
+                                        maxLength: 20,
+                                        maxLengthEnforcement:
+                                            MaxLengthEnforcement.enforced,
+                                        buildCounter: (context,
+                                                {required currentLength,
+                                                required isFocused,
+                                                maxLength}) =>
+                                            null,
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsetsDirectional.fromSTEB(
+                                        0.0, 0.0, 12.0, 0.0),
+                                    child: FFButtonWidget(
+                                      onPressed: () async {
+                                        await _openStatOrItemAddSheet(cardIndex);
+                                      },
+                                      text: '',
+                                      icon: const Icon(Icons.add, size: 20.0),
+                                      options: FFButtonOptions(
+                                        width: 25.0,
+                                        height: 25.0,
+                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                            0.0, 0.0, 0.0, 0.0),
+                                        iconPadding:
+                                            const EdgeInsetsDirectional.fromSTEB(
+                                                2.0, 0.0, 0.0, 0.0),
+                                        iconColor:
+                                            FlutterFlowTheme.of(context).alternate,
+                                        color: const Color(0xFF3B3B3B),
+                                        textStyle: FlutterFlowTheme.of(context)
+                                            .titleSmall
+                                            .override(
+                                              font: GoogleFonts.interTight(
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(context)
+                                                        .titleSmall
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .titleSmall
+                                                        .fontStyle,
+                                              ),
+                                              color: Colors.white,
+                                              letterSpacing: 0.0,
+                                            ),
+                                        elevation: 5.0,
+                                        borderSide: BorderSide(
+                                          color:
+                                              FlutterFlowTheme.of(context).alternate,
+                                          width: 0.05,
+                                        ),
+                                        borderRadius: BorderRadius.circular(5.0),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Divider(
+                              thickness: 0.5,
+                              indent: 20.0,
+                              endIndent: 20.0,
+                              color: FlutterFlowTheme.of(context).alternate,
+                            ),
+                            ListView.builder(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: card.items.length,
+                              itemBuilder: (context, itemIndex) {
+                                final item = card.items[itemIndex];
+                                return Padding(
+                                  padding: const EdgeInsetsDirectional.fromSTEB(
+                                      20.0, 0.0, 20.0, 10.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Container(
+                                            height: 20.0,
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(8.0, 0.0, 8.0, 0.0),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF3B3B3B),
+                                              borderRadius:
+                                                  BorderRadius.circular(5.0),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                item.kind,
+                                                style: FlutterFlowTheme.of(context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FontWeight.normal,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .tertiary,
+                                                      fontSize: 14.0,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                    ),
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: TextFormField(
+                                              key: ValueKey(
+                                                  'card_${cardIndex}_item_${itemIndex}_name'),
+                                              initialValue: item.resourceName,
+                                              onChanged: (value) =>
+                                                  item.resourceName = value,
+                                              decoration:
+                                                  _resourceInputDecoration('스탯명 또는 아이템명'),
+                                              style: FlutterFlowTheme.of(context)
+                                                  .bodyMedium
+                                                  .override(
+                                                    font: GoogleFonts.inter(
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
+                                                    color:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .alternate,
+                                                    fontSize: 14.0,
+                                                    letterSpacing: 0.0,
+                                                  ),
+                                            ),
+                                          ),
+                                          InkWell(
+                                            splashColor: Colors.transparent,
+                                            focusColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            onTap: () async {
+                                              _removeResourceItem(
+                                                cardIndex: cardIndex,
+                                                itemIndex: itemIndex,
+                                              );
+                                            },
+                                            child: Icon(
+                                              Icons.close,
+                                              color: FlutterFlowTheme.of(context)
+                                                  .alternate,
+                                              size: 18.0,
+                                            ),
+                                          ),
+                                        ].divide(const SizedBox(width: 6.0)),
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Text(
+                                            '초기값',
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .override(
+                                                  font: GoogleFonts.inter(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontStyle,
+                                                  ),
+                                                  color:
+                                                      FlutterFlowTheme.of(context)
+                                                          .alternate,
+                                                  letterSpacing: 0.0,
+                                                ),
+                                          ),
+                                          const Spacer(),
+                                          SizedBox(
+                                            width: 128.0,
+                                            child: TextFormField(
+                                              key: ValueKey(
+                                                  'card_${cardIndex}_item_${itemIndex}_first'),
+                                              initialValue: item.firstValue == 0
+                                                  ? ''
+                                                  : item.firstValue.toString(),
+                                              onChanged: (value) =>
+                                                  item.firstValue = _toIntValue(value),
+                                              decoration:
+                                                  _resourceInputDecoration('0'),
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly,
+                                              ],
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .alternate,
+                                                        letterSpacing: 0.0,
+                                                      ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Text(
+                                            '증감수치',
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .override(
+                                                  font: GoogleFonts.inter(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .fontStyle,
+                                                  ),
+                                                  color:
+                                                      FlutterFlowTheme.of(context)
+                                                          .alternate,
+                                                  letterSpacing: 0.0,
+                                                ),
+                                          ),
+                                          const Spacer(),
+                                          SizedBox(
+                                            width: 128.0,
+                                            child: TextFormField(
+                                              key: ValueKey(
+                                                  'card_${cardIndex}_item_${itemIndex}_delta'),
+                                              initialValue: item.deltaValue == 0
+                                                  ? ''
+                                                  : item.deltaValue.toString(),
+                                              onChanged: (value) =>
+                                                  item.deltaValue = _toIntValue(value),
+                                              decoration:
+                                                  _resourceInputDecoration('0'),
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly,
+                                              ],
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .alternate,
+                                                        letterSpacing: 0.0,
+                                                      ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      TextFormField(
+                                        key: ValueKey(
+                                            'card_${cardIndex}_item_${itemIndex}_condition'),
+                                        initialValue: item.condition,
+                                        onChanged: (value) => item.condition = value,
+                                        decoration: _resourceInputDecoration('조건문'),
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              font: GoogleFonts.inter(
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .fontStyle,
+                                              ),
+                                              color: FlutterFlowTheme.of(context)
+                                                  .alternate,
+                                              letterSpacing: 0.0,
+                                            ),
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          SizedBox(
+                                            width: 90.0,
+                                            child: TextFormField(
+                                              key: ValueKey(
+                                                  'card_${cardIndex}_item_${itemIndex}_reference'),
+                                              initialValue: item.referenceValue == 0
+                                                  ? ''
+                                                  : item.referenceValue.toString(),
+                                              onChanged: (value) => item
+                                                  .referenceValue = _toIntValue(value),
+                                              decoration:
+                                                  _resourceInputDecoration('기준값'),
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly,
+                                              ],
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .alternate,
+                                                        letterSpacing: 0.0,
+                                                      ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: TextFormField(
+                                              key: ValueKey(
+                                                  'card_${cardIndex}_item_${itemIndex}_effect'),
+                                              initialValue: item.effect,
+                                              onChanged: (value) =>
+                                                  item.effect = value,
+                                              decoration:
+                                                  _resourceInputDecoration('효과'),
+                                              style: FlutterFlowTheme.of(context)
+                                                  .bodyMedium
+                                                  .override(
+                                                    font: GoogleFonts.inter(
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
+                                                    color:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .alternate,
+                                                    letterSpacing: 0.0,
+                                                  ),
+                                            ),
+                                          ),
+                                        ].divide(const SizedBox(width: 10.0)),
+                                      ),
+                                      Divider(
+                                        thickness: 0.5,
+                                        color: FlutterFlowTheme.of(context)
+                                            .alternate,
+                                      ),
+                                    ].divide(const SizedBox(height: 6.0)),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -1054,6 +1905,9 @@ $contextBlock
                                   text: '캐릭터',
                                 ),
                                 Tab(
+                                  text: '스탯/아이템',
+                                ),
+                                Tab(
                                   text: '이벤트',
                                 ),
                                 Tab(
@@ -1066,6 +1920,7 @@ $contextBlock
                               controller: _model.tabBarController,
                               onTap: (i) async {
                                 [
+                                  () async {},
                                   () async {},
                                   () async {},
                                   () async {},
@@ -2863,6 +3718,7 @@ $contextBlock
                                     ),
                                   ),
                                 ),
+                                _buildResourceCardsTab(),
                                 Padding(
                                   padding: EdgeInsetsDirectional.fromSTEB(
                                       25.0, 0.0, 25.0, 0.0),

@@ -5,6 +5,36 @@ import '/index.dart';
 import 'storycreatepage_widget.dart' show StorycreatepageWidget;
 import 'package:flutter/material.dart';
 
+class ResourceItemModel {
+  ResourceItemModel({
+    required this.kind,
+    this.resourceName = '',
+    this.firstValue = 0,
+    this.deltaValue = 0,
+    this.condition = '',
+    this.referenceValue = 0,
+    this.effect = '',
+  });
+
+  String kind;
+  String resourceName;
+  int firstValue;
+  int deltaValue;
+  String condition;
+  int referenceValue;
+  String effect;
+}
+
+class ResourceCardModel {
+  ResourceCardModel({
+    this.charOrUser = '',
+    List<ResourceItemModel>? items,
+  }) : items = items ?? <ResourceItemModel>[];
+
+  String charOrUser;
+  List<ResourceItemModel> items;
+}
+
 class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   ///  Local state fields for this page.
 
@@ -79,6 +109,15 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   String? outline;
 
   bool outlineSwitch = false;
+
+  List<ResourceCardModel> cards = [];
+  void addToCards(ResourceCardModel item) => cards.add(item);
+  void removeFromCards(ResourceCardModel item) => cards.remove(item);
+  void removeAtIndexFromCards(int index) => cards.removeAt(index);
+  void insertAtIndexInCards(int index, ResourceCardModel item) =>
+      cards.insert(index, item);
+  void updateCardsAtIndex(int index, Function(ResourceCardModel) updateFn) =>
+      cards[index] = updateFn(cards[index]);
 
   ///  State fields for stateful widgets in this page.
 
