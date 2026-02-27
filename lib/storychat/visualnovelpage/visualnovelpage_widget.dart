@@ -781,6 +781,15 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
 
       final previousValue = item.currentValue;
       final delta = item.deltaValue;
+      if (delta <= 0) {
+        updatedItems.add(item);
+        continue;
+      }
+
+      print(
+        '[RESOURCE_RULE_MATCH] owner=${card.owner} resource=${item.resourceName} condition="${item.condition}"',
+      );
+
       final nextValue = _normalizeIncreaseOrDecrease(item.increaseOrDecrease) ==
               '감소'
           ? previousValue - delta
@@ -800,6 +809,9 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       updatedItems.add(item.copyWith(currentValue: nextValue));
 
       if (!beforeMatched && afterMatched && item.effect.trim().isNotEmpty) {
+        print(
+          '[RESOURCE_EFFECT_TRIGGER] owner=${card.owner} resource=${item.resourceName} value=$nextValue op=${item.operatorValue} ref=${item.referenceValue} effect="${item.effect}"',
+        );
         effects.add(item.effect.trim());
       }
     }
