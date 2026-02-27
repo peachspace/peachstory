@@ -157,6 +157,11 @@ class StoriesRecord extends FirestoreRecord {
   List<PlaceStructStruct> get places => _places ?? const [];
   bool hasPlaces() => _places != null;
 
+  // "resourceCards" field.
+  List<dynamic>? _resourceCards;
+  List<dynamic> get resourceCards => _resourceCards ?? const [];
+  bool hasResourceCards() => _resourceCards != null;
+
   void _initializeFields() {
     _title = snapshotData['title'] as String?;
     _worldview = snapshotData['worldview'] as String?;
@@ -195,6 +200,7 @@ class StoriesRecord extends FirestoreRecord {
       snapshotData['places'],
       PlaceStructStruct.fromMap,
     );
+    _resourceCards = getDataList(snapshotData['resourceCards']);
   }
 
   static CollectionReference get collection => FirebaseFirestore.instanceFor(
@@ -290,6 +296,9 @@ class StoriesRecord extends FirestoreRecord {
                 .map((d) => PlaceStructStruct.fromAlgoliaData(d).toMap())
                 .toList(),
           ),
+          'resourceCards': safeGet(
+            () => snapshot.data['resourceCards'].toList(),
+          ),
         },
         StoriesRecord.collection.doc(snapshot.objectID),
       );
@@ -350,6 +359,7 @@ Map<String, dynamic> createStoriesRecordData({
   String? event,
   String? outlineText,
   bool? outlineMode,
+  List<dynamic>? resourceCards,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -377,6 +387,7 @@ Map<String, dynamic> createStoriesRecordData({
       'event': event,
       'outlineText': outlineText,
       'outlineMode': outlineMode,
+      'resourceCards': resourceCards,
     }.withoutNulls,
   );
 
@@ -416,7 +427,8 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         listEquality.equals(e1?.events, e2?.events) &&
         e1?.outlineText == e2?.outlineText &&
         e1?.outlineMode == e2?.outlineMode &&
-        listEquality.equals(e1?.places, e2?.places);
+        listEquality.equals(e1?.places, e2?.places) &&
+        listEquality.equals(e1?.resourceCards, e2?.resourceCards);
   }
 
   @override
@@ -448,7 +460,8 @@ class StoriesRecordDocumentEquality implements Equality<StoriesRecord> {
         e?.events,
         e?.outlineText,
         e?.outlineMode,
-        e?.places
+        e?.places,
+        e?.resourceCards
       ]);
 
   @override

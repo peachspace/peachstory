@@ -23,6 +23,32 @@ class ResourceItemModel {
   String condition;
   int referenceValue;
   String effect;
+
+  factory ResourceItemModel.fromMap(Map<String, dynamic> map) {
+    int parseInt(dynamic raw) => int.tryParse(raw?.toString() ?? '') ?? 0;
+
+    return ResourceItemModel(
+      kind: (map['kind'] ?? 'stat').toString().trim().toLowerCase() == 'item'
+          ? 'item'
+          : 'stat',
+      resourceName: (map['resourceName'] ?? '').toString(),
+      firstValue: parseInt(map['firstValue']),
+      deltaValue: parseInt(map['deltaValue']),
+      condition: (map['condition'] ?? '').toString(),
+      referenceValue: parseInt(map['referenceValue']),
+      effect: (map['effect'] ?? '').toString(),
+    );
+  }
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'kind': kind,
+        'resourceName': resourceName,
+        'firstValue': firstValue,
+        'deltaValue': deltaValue,
+        'condition': condition,
+        'referenceValue': referenceValue,
+        'effect': effect,
+      };
 }
 
 class ResourceCardModel {
@@ -33,6 +59,36 @@ class ResourceCardModel {
 
   String charOrUser;
   List<ResourceItemModel> items;
+
+  factory ResourceCardModel.fromMap(Map<String, dynamic> map) {
+    final rawItems = map['items'];
+    final parsedItems = <ResourceItemModel>[];
+    if (rawItems is List) {
+      for (final raw in rawItems) {
+        if (raw is Map<String, dynamic>) {
+          parsedItems.add(ResourceItemModel.fromMap(raw));
+        } else if (raw is Map) {
+          parsedItems.add(
+            ResourceItemModel.fromMap(
+              raw.map((key, value) => MapEntry(key.toString(), value)),
+            ),
+          );
+        }
+      }
+    }
+
+    return ResourceCardModel(
+      charOrUser: (map['charOrUser'] ?? '').toString(),
+      items: parsedItems.isEmpty
+          ? <ResourceItemModel>[ResourceItemModel(kind: 'stat')]
+          : parsedItems,
+    );
+  }
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'charOrUser': charOrUser,
+        'items': items.map((e) => e.toMap()).toList(),
+      };
 }
 
 class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {

@@ -44,6 +44,18 @@ class _StatusValue {
   final String value;
 }
 
+class _ResourcePanelCard {
+  const _ResourcePanelCard({
+    required this.owner,
+    required this.stats,
+    required this.items,
+  });
+
+  final String owner;
+  final List<_StatusValue> stats;
+  final List<_StatusValue> items;
+}
+
 class VisualnovelpageWidget extends StatefulWidget {
   const VisualnovelpageWidget({
     super.key,
@@ -99,6 +111,9 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
   String _lastChoiceSignature = '';
   List<_StatusValue> _userStatusValues = const [];
   List<_StatusValue> _userItemValues = const [];
+  List<_StatusValue> _characterStatusValues = const [];
+  List<_StatusValue> _characterItemValues = const [];
+  String _characterPanelTitle = '';
 
   @override
   void initState() {
@@ -378,6 +393,75 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     return sources.join('\n\n');
   }
 
+  bool _isUserOwnerLabel(String owner) {
+    final normalized = owner.trim().toUpperCase();
+    return normalized == 'USER' || owner.trim() == '유저';
+  }
+
+  int _parseIntValue(dynamic raw) => int.tryParse(raw?.toString() ?? '') ?? 0;
+
+  _ResourcePanelCard? _parseResourcePanelCard(dynamic rawCard) {
+    if (rawCard is! Map) return null;
+    final card = rawCard.map((key, value) => MapEntry(key.toString(), value));
+    final owner = (card['charOrUser'] ?? '').toString().trim();
+    final rawItems = card['items'];
+
+    final stats = <_StatusValue>[];
+    final items = <_StatusValue>[];
+    if (rawItems is List) {
+      for (final rawItem in rawItems) {
+        if (rawItem is! Map) continue;
+        final item =
+            rawItem.map((key, value) => MapEntry(key.toString(), value));
+        final kind = (item['kind'] ?? 'stat').toString().trim().toLowerCase();
+        final name = (item['resourceName'] ?? '').toString().trim();
+        if (name.isEmpty) continue;
+        final firstValue = _parseIntValue(item['firstValue']).toString();
+        if (kind == 'item') {
+          items.add(_StatusValue(name: name, value: firstValue));
+        } else {
+          stats.add(_StatusValue(name: name, value: firstValue));
+        }
+      }
+    }
+
+    return _ResourcePanelCard(owner: owner, stats: stats, items: items);
+  }
+
+  List<_ResourcePanelCard> _extractResourcePanelCards(StoriesRecord story) {
+    final parsed = <_ResourcePanelCard>[];
+    final rawCards = story.resourceCards;
+    for (final rawCard in rawCards) {
+      final card = _parseResourcePanelCard(rawCard);
+      if (card != null) parsed.add(card);
+    }
+    return parsed;
+  }
+
+  _ResourcePanelCard? _pickUserCard(List<_ResourcePanelCard> cards) {
+    for (final card in cards) {
+      if (_isUserOwnerLabel(card.owner)) return card;
+    }
+    return null;
+  }
+
+  _ResourcePanelCard? _pickCharacterCard(
+    List<_ResourcePanelCard> cards, {
+    String? currentSpeaker,
+  }) {
+    final characterCards =
+        cards.where((card) => !_isUserOwnerLabel(card.owner)).toList();
+    if (characterCards.isEmpty) return null;
+
+    final speaker = (currentSpeaker ?? '').trim();
+    if (speaker.isNotEmpty) {
+      for (final card in characterCards) {
+        if (card.owner.trim() == speaker) return card;
+      }
+    }
+    return characterCards.first;
+  }
+
   String _extractSectionBody(String source, String sectionTitle) {
     final exp = RegExp(
       '\\[${RegExp.escape(sectionTitle)}\\]\\s*([\\s\\S]*?)(?=\\n\\s*\\[[^\\]]+\\]|\$)',
@@ -433,7 +517,35 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     return values;
   }
 
-  void _refreshStatusPanelData(StoriesRecord story) {
+  void _refreshStatusPanelData(
+    StoriesRecord story, {
+    String? currentSpeaker,
+  }) {
+    final resourceCards = _extractResourcePanelCards(story);
+    if (resourceCards.isNotEmpty) {
+      final userCard = _pickUserCard(resourceCards);
+      final characterCard =
+          _pickCharacterCard(resourceCards, currentSpeaker: currentSpeaker);
+
+      _userStatusValues = (userCard == null || userCard.stats.isEmpty)
+          ? const [_StatusValue(name: '표시할 스탯 없음', value: '-')]
+          : userCard.stats;
+      _userItemValues = (userCard == null || userCard.items.isEmpty)
+          ? const [_StatusValue(name: '표시할 아이템 없음', value: '-')]
+          : userCard.items;
+
+      _characterPanelTitle = (characterCard?.owner ?? '').trim();
+      _characterStatusValues =
+          (characterCard == null || characterCard.stats.isEmpty)
+              ? const [_StatusValue(name: '표시할 스탯 없음', value: '-')]
+              : characterCard.stats;
+      _characterItemValues =
+          (characterCard == null || characterCard.items.isEmpty)
+              ? const [_StatusValue(name: '표시할 아이템 없음', value: '-')]
+              : characterCard.items;
+      return;
+    }
+
     final source = _resolveStatusSourceText(story);
     final stats = _parseUserStats(source);
     final items = _parseUserItems(source);
@@ -443,6 +555,9 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     _userItemValues = items.isEmpty
         ? const [_StatusValue(name: '표시할 아이템 없음', value: '-')]
         : items;
+    _characterPanelTitle = '';
+    _characterStatusValues = const [];
+    _characterItemValues = const [];
   }
 
   Widget _buildFirstEnterCover(BuildContext context) {
@@ -536,7 +651,162 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     );
   }
 
+  Widget _buildStatusValuesColumn({
+    required BuildContext context,
+    required String title,
+    required Color titleColor,
+    required List<_StatusValue> values,
+  }) {
+    return SizedBox(
+      width: 150.0,
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+            child: Text(
+              title,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    font: GoogleFonts.inter(
+                      fontWeight:
+                          FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                    ),
+                    color: titleColor,
+                    letterSpacing: 0.0,
+                    fontWeight:
+                        FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+            ),
+          ),
+          Expanded(
+            child: ListView.separated(
+              padding: EdgeInsets.zero,
+              itemCount: values.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8.0),
+              itemBuilder: (context, index) {
+                final item = values[index];
+                return Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.inter(
+                                fontWeight: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontWeight,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              letterSpacing: 0.0,
+                              fontWeight: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontWeight,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                      ),
+                    ),
+                    Text(
+                      item.value,
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            font: GoogleFonts.inter(
+                              fontWeight: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontWeight,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                            color: FlutterFlowTheme.of(context).tertiary,
+                            letterSpacing: 0.0,
+                            fontWeight: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontWeight,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontStyle,
+                          ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusSection({
+    required BuildContext context,
+    required String title,
+    required List<_StatusValue> stats,
+    required List<_StatusValue> items,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Align(
+          alignment: const AlignmentDirectional(-1.0, 0.0),
+          child: Text(
+            title,
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  font: GoogleFonts.inter(
+                    fontWeight: FontWeight.w500,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+                  color: FlutterFlowTheme.of(context).warning,
+                  fontSize: 16.0,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w500,
+                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                ),
+          ),
+        ),
+        Divider(
+          thickness: 1.0,
+          color: FlutterFlowTheme.of(context).alternate,
+        ),
+        SizedBox(
+          height: 170.0,
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatusValuesColumn(
+                context: context,
+                title: '스탯',
+                titleColor: const Color(0xFF8B97FF),
+                values: stats,
+              ),
+              _buildStatusValuesColumn(
+                context: context,
+                title: '아이템',
+                titleColor: const Color(0xFF0BEF44),
+                values: items,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatusPanel(BuildContext context) {
+    final hasCharacterSection = _characterPanelTitle.trim().isNotEmpty;
     return Opacity(
       opacity: 0.7,
       child: Padding(
@@ -548,271 +818,26 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
             borderRadius: BorderRadius.circular(15.0),
           ),
           child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(15.0, 15.0, 15.0, 10.0),
+            padding:
+                const EdgeInsetsDirectional.fromSTEB(15.0, 15.0, 15.0, 10.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Align(
-                  alignment: const AlignmentDirectional(-1.0, 0.0),
-                  child: Text(
-                    '유저',
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: FontWeight.w500,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
-                          color: FlutterFlowTheme.of(context).warning,
-                          fontSize: 16.0,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w500,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .fontStyle,
-                        ),
+                _buildStatusSection(
+                  context: context,
+                  title: '유저',
+                  stats: _userStatusValues,
+                  items: _userItemValues,
+                ),
+                if (hasCharacterSection) ...[
+                  const SizedBox(height: 8.0),
+                  _buildStatusSection(
+                    context: context,
+                    title: _characterPanelTitle,
+                    stats: _characterStatusValues,
+                    items: _characterItemValues,
                   ),
-                ),
-                Divider(
-                  thickness: 1.0,
-                  color: FlutterFlowTheme.of(context).alternate,
-                ),
-                SizedBox(
-                  height: 170.0,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 150.0,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 10.0),
-                              child: Text(
-                                '스탯',
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      color: const Color(0xFF8B97FF),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ),
-                            Expanded(
-                              child: ListView.separated(
-                                padding: EdgeInsets.zero,
-                                itemCount: _userStatusValues.length,
-                                separatorBuilder: (_, __) => const SizedBox(
-                                  height: 8.0,
-                                ),
-                                itemBuilder: (context, index) {
-                                  final item = _userStatusValues[index];
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          item.name,
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.inter(
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                letterSpacing: 0.0,
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
-                                        ),
-                                      ),
-                                      Text(
-                                        item.value,
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              font: GoogleFonts.inter(
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .tertiary,
-                                              letterSpacing: 0.0,
-                                              fontWeight:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontWeight,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontStyle,
-                                            ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: 150.0,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 10.0),
-                              child: Text(
-                                '아이템',
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      color: const Color(0xFF0BEF44),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ),
-                            Expanded(
-                              child: ListView.separated(
-                                padding: EdgeInsets.zero,
-                                itemCount: _userItemValues.length,
-                                separatorBuilder: (_, __) => const SizedBox(
-                                  height: 8.0,
-                                ),
-                                itemBuilder: (context, index) {
-                                  final item = _userItemValues[index];
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          item.name,
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.inter(
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                letterSpacing: 0.0,
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
-                                        ),
-                                      ),
-                                      Text(
-                                        item.value,
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              font: GoogleFonts.inter(
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .tertiary,
-                                              letterSpacing: 0.0,
-                                              fontWeight:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontWeight,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontStyle,
-                                            ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ],
             ),
           ),
@@ -1832,7 +1857,10 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                           (currentParagraph?.isNarration ?? true)
                       ? ''
                       : (currentParagraph?.speaker ?? '');
-                  _refreshStatusPanelData(visualnovelpageStoriesRecord);
+                  _refreshStatusPanelData(
+                    visualnovelpageStoriesRecord,
+                    currentSpeaker: currentParagraph?.speaker,
+                  );
 
                   return StreamBuilder<StorychatsRecord>(
                     stream: StorychatsRecord.getDocument(widget.storychatRef!),
