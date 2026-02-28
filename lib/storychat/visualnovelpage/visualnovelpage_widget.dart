@@ -195,8 +195,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     );
   }
 
-  Future<void> _showLoginSheet() async {
-    await showModalBottomSheet(
+  Future<bool> _showLoginSheet() async {
+    final result = await showModalBottomSheet<bool>(
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       enableDrag: false,
@@ -209,11 +209,17 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
           },
           child: Padding(
             padding: MediaQuery.viewInsetsOf(context),
-            child: LoginpageWidget(),
+            child: const LoginpageWidget(
+              navigateToCreateListOnSuccess: false,
+            ),
           ),
         );
       },
-    ).then((value) => safeSetState(() {}));
+    );
+    if (mounted) {
+      safeSetState(() {});
+    }
+    return result == true || loggedIn;
   }
 
   String _resolveSelectedModelId(String? rawModelId) {
@@ -226,17 +232,48 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     return value.startsWith('http://') || value.startsWith('https://');
   }
 
+  String _extractChoiceKeyword(String rawText) {
+    final tokens = rawText
+        .replaceAll(RegExp(r'[^가-힣a-zA-Z0-9\\s]'), ' ')
+        .split(RegExp(r'\\s+'))
+        .map((part) => part.trim())
+        .where((part) => part.length >= 2)
+        .where((part) => !const <String>{
+              '그리고',
+              '하지만',
+              '그러나',
+              '그래서',
+              '그녀',
+              '그는',
+              '이곳',
+              '장면',
+              '상황',
+              '지금',
+            }.contains(part))
+        .toList();
+    if (tokens.isEmpty) return '';
+    tokens.sort((a, b) => b.length.compareTo(a.length));
+    return tokens.first;
+  }
+
   List<String> _defaultChoiceCandidates() {
-    final paragraph = _paragraphs.isNotEmpty ? _paragraphs.last : null;
+    final paragraph =
+        _paragraphs.isNotEmpty ? _paragraphs[_currentParagraphIndex] : null;
     final speaker = (paragraph?.speaker ?? '').trim();
+    final place = (paragraph?.place ?? _currentPlace).trim();
+    final keyword = _extractChoiceKeyword((paragraph?.text ?? '').trim());
     if (speaker.isNotEmpty && !(paragraph?.isNarration ?? true)) {
       return <String>[
         '${speaker}의 반응을 살핀다.',
-        '"왜 그렇게 말했어?"',
-        '주변 상황을 천천히 파악한다.',
+        keyword.isNotEmpty ? '"${keyword}에 대해 자세히 묻는다."' : '"방금 말의 의미를 묻는다."',
+        place.isNotEmpty ? '$place 주변을 더 조사한다.' : '주변 상황을 더 조사한다.',
       ];
     }
-    return _defaultChoices.toList();
+    return <String>[
+      place.isNotEmpty ? '$place 안쪽을 천천히 살핀다.' : '주변 상황을 살핀다.',
+      keyword.isNotEmpty ? '"${keyword}에 대해 묻는다."' : '"무슨 일이 있었는지 묻는다."',
+      keyword.isNotEmpty ? '${keyword}와 관련된 단서를 찾는다.' : '다음 행동을 준비한다.',
+    ];
   }
 
   String _choiceAt(int index) {
@@ -272,6 +309,14 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
           .replaceFirst(RegExp(r'^```(?:json)?\s*'), '')
           .replaceFirst(RegExp(r'```$'), '')
           .trim();
+    }
+
+    final normalizedError = cleaned.toLowerCase();
+    if (cleaned.isEmpty ||
+        normalizedError.startsWith('error:') ||
+        normalizedError.contains('auth required') ||
+        normalizedError.contains('firebase functions')) {
+      return fallback;
     }
 
     try {
@@ -361,8 +406,17 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     final requestId = ++_choiceRequestSerial;
     safeSetState(() {
       _isChoiceLoading = true;
-      _currentChoices = _defaultChoiceCandidates();
+      _currentChoices = const [];
     });
+
+    if (!loggedIn || currentUserReference == null) {
+      if (!mounted || requestId != _choiceRequestSerial) return;
+      safeSetState(() {
+        _currentChoices = _defaultChoiceCandidates();
+        _isChoiceLoading = false;
+      });
+      return;
+    }
 
     try {
       final selectedModelId = _resolveSelectedModelId(chatDoc.selectedAiModel);
@@ -482,7 +536,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
             resourceName: name,
             currentValue: _parseIntValue(item['firstValue']),
             increaseOrDecrease: _normalizeIncreaseOrDecrease(
-              (item['increaseOrDecrease'] ?? item['increaseORdecreaseValue'] ??
+              (item['increaseOrDecrease'] ??
+                      item['increaseORdecreaseValue'] ??
                       item['deltaMode'] ??
                       '')
                   .toString(),
@@ -790,10 +845,10 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
         '[RESOURCE_RULE_MATCH] owner=${card.owner} resource=${item.resourceName} condition="${item.condition}"',
       );
 
-      final nextValue = _normalizeIncreaseOrDecrease(item.increaseOrDecrease) ==
-              '감소'
-          ? previousValue - delta
-          : previousValue + delta;
+      final nextValue =
+          _normalizeIncreaseOrDecrease(item.increaseOrDecrease) == '감소'
+              ? previousValue - delta
+              : previousValue + delta;
 
       final beforeMatched = _matchesReference(
         value: previousValue,
@@ -917,24 +972,29 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
         width: double.infinity,
         height: double.infinity,
         color: Colors.black,
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Column(
-                  mainAxisSize: MainAxisSize.max,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 700.0;
+            final iconSize = isCompact ? 96.0 : 150.0;
+            final fontSize = isCompact ? 18.0 : 36.0;
+            final spacing = isCompact ? 40.0 : 80.0;
+
+            Widget buildGuide({
+              required IconData icon,
+              required String text,
+            }) {
+              return Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.keyboard_double_arrow_left,
+                      icon,
                       color: FlutterFlowTheme.of(context).primary,
-                      size: 150.0,
+                      size: iconSize,
                     ),
+                    const SizedBox(height: 16.0),
                     Text(
-                      '화면의 왼쪽을 클릭하면 \\n이전으로 돌아갑니다.',
+                      text,
                       textAlign: TextAlign.center,
                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                             font: GoogleFonts.inter(
@@ -947,7 +1007,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                             ),
                             color: FlutterFlowTheme.of(context)
                                 .secondaryBackground,
-                            fontSize: 36.0,
+                            fontSize: fontSize,
                             letterSpacing: 0.0,
                             fontWeight: FlutterFlowTheme.of(context)
                                 .bodyMedium
@@ -959,43 +1019,47 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                     ),
                   ],
                 ),
-                Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Icon(
-                      Icons.keyboard_double_arrow_right,
-                      color: FlutterFlowTheme.of(context).primary,
-                      size: 150.0,
-                    ),
-                    Text(
-                      '화면의 오른쪽을 클릭하면\\n다음으로 넘어갑니다.',
-                      textAlign: TextAlign.center,
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            font: GoogleFonts.inter(
-                              fontWeight: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontWeight,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
-                            color: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                            fontSize: 36.0,
-                            letterSpacing: 0.0,
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
+              );
+            }
+
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isCompact ? 32.0 : 48.0,
+                vertical: 32.0,
+              ),
+              child: Center(
+                child: isCompact
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          buildGuide(
+                            icon: Icons.keyboard_double_arrow_left,
+                            text: '화면의 왼쪽을 클릭하면\n이전으로 돌아갑니다.',
                           ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                          SizedBox(height: spacing),
+                          buildGuide(
+                            icon: Icons.keyboard_double_arrow_right,
+                            text: '화면의 오른쪽을 클릭하면\n다음으로 넘어갑니다.',
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          buildGuide(
+                            icon: Icons.keyboard_double_arrow_left,
+                            text: '화면의 왼쪽을 클릭하면\n이전으로 돌아갑니다.',
+                          ),
+                          SizedBox(width: spacing),
+                          buildGuide(
+                            icon: Icons.keyboard_double_arrow_right,
+                            text: '화면의 오른쪽을 클릭하면\n다음으로 넘어갑니다.',
+                          ),
+                        ],
+                      ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -1173,21 +1237,21 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildStatusSection(
-                  context: context,
-                  title: '유저',
-                  stats: _userStatusValues,
-                  items: _userItemValues,
-                ),
                 if (hasCharacterSection) ...[
-                  const SizedBox(height: 8.0),
                   _buildStatusSection(
                     context: context,
                     title: _characterPanelTitle,
                     stats: _characterStatusValues,
                     items: _characterItemValues,
                   ),
+                  const SizedBox(height: 8.0),
                 ],
+                _buildStatusSection(
+                  context: context,
+                  title: '유저',
+                  stats: _userStatusValues,
+                  items: _userItemValues,
+                ),
               ],
             ),
           ),
@@ -1611,7 +1675,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       _isSubmittingSelection = false;
       _submittedPreviewText = '';
       _submittedPreviewOffsetY = 0.0;
-      _currentChoices = _defaultChoiceCandidates();
+      _currentChoices = const [];
       _choiceRequestSerial++;
       _lastChoiceSignature = '';
     });
@@ -1716,7 +1780,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
       _isSubmittingSelection = false;
       _submittedPreviewText = '';
       _submittedPreviewOffsetY = 0.0;
-      _currentChoices = _defaultChoiceCandidates();
+      _currentChoices = const [];
       _choiceRequestSerial++;
       _lastChoiceSignature = '';
     });
@@ -1752,7 +1816,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
         _currentParagraphIndex++;
       } else {
         _showActionPanel = true;
-        _currentChoices = _defaultChoiceCandidates();
+        _currentChoices = const [];
         _isChoiceLoading = false;
       }
     });
@@ -1770,8 +1834,10 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     if (_isGenerating) return;
 
     if (!loggedIn || currentUserReference == null) {
-      await _showLoginSheet();
-      return;
+      final didLogin = await _showLoginSheet();
+      if (!didLogin || !loggedIn || currentUserReference == null) {
+        return;
+      }
     }
 
     final selectedModelId = _resolveSelectedModelId(chatDoc.selectedAiModel);
@@ -1989,8 +2055,10 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
     }
 
     if (!loggedIn || currentUserReference == null) {
-      await _showLoginSheet();
-      return;
+      final didLogin = await _showLoginSheet();
+      if (!didLogin || !loggedIn || currentUserReference == null) {
+        return;
+      }
     }
 
     final selectedModelId = _resolveSelectedModelId(chatDoc.selectedAiModel);
@@ -2193,12 +2261,13 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                   final currentParagraph = _paragraphs.isNotEmpty
                       ? _paragraphs[_currentParagraphIndex]
                       : null;
-                  final choice1 =
-                      _isChoiceLoading ? '선택지 생성 중...' : _choiceAt(0);
-                  final choice2 =
-                      _isChoiceLoading ? '선택지 생성 중...' : _choiceAt(1);
-                  final choice3 =
-                      _isChoiceLoading ? '선택지 생성 중...' : _choiceAt(2);
+                  final hasReadyChoices = _showActionPanel &&
+                      !_isSubmittingSelection &&
+                      !_isChoiceLoading &&
+                      _currentChoices.length == 3;
+                  final choice1 = hasReadyChoices ? _choiceAt(0) : '';
+                  final choice2 = hasReadyChoices ? _choiceAt(1) : '';
+                  final choice3 = hasReadyChoices ? _choiceAt(2) : '';
                   final topTitle = visualnovelpageStoriesRecord.title;
                   final topPlace =
                       (currentParagraph?.place ?? _currentPlace).trim();
@@ -2323,7 +2392,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                if (_showActionPanel || _isSubmittingSelection)
+                                if (hasReadyChoices || _isSubmittingSelection)
                                   Stack(
                                     children: [
                                       Opacity(
@@ -2421,7 +2490,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                                 child: AutoSizeText(
                                                   _isSubmittingSelection
                                                       ? _submittedPreviewText
-                                                      : (_showActionPanel
+                                                      : (hasReadyChoices
                                                           ? choice1
                                                           : ''),
                                                   maxLines: 3,
@@ -2465,7 +2534,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                       ),
                                     ],
                                   ),
-                                if (_showActionPanel && !_isSubmittingSelection)
+                                if (hasReadyChoices)
                                   Stack(
                                     children: [
                                       Opacity(
@@ -2592,7 +2661,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                       ),
                                     ],
                                   ),
-                                if (_showActionPanel && !_isSubmittingSelection)
+                                if (hasReadyChoices)
                                   Stack(
                                     children: [
                                       Opacity(
@@ -2719,7 +2788,7 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                       ),
                                     ],
                                   ),
-                                if (_showActionPanel && !_isSubmittingSelection)
+                                if (hasReadyChoices)
                                   Stack(
                                     children: [
                                       Opacity(
@@ -3070,17 +3139,35 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Padding(
-                                              padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      0.0, 0.0, 0.0, 10.0),
-                                              child: Text(
-                                                speakerText,
-                                                style: FlutterFlowTheme.of(
-                                                        context)
-                                                    .bodyMedium
-                                                    .override(
-                                                      font: GoogleFonts.inter(
+                                            if (speakerText.isNotEmpty)
+                                              Padding(
+                                                padding: EdgeInsetsDirectional
+                                                    .fromSTEB(
+                                                        0.0, 0.0, 0.0, 10.0),
+                                                child: Text(
+                                                  speakerText,
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font: GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .warning,
+                                                        fontSize: 16.0,
+                                                        letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -3092,29 +3179,19 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                                                 .bodyMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .warning,
-                                                      fontSize: 16.0,
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
+                                                ),
                                               ),
-                                            ),
-                                            Text(
-                                              dialogueText,
-                                              style:
-                                                  FlutterFlowTheme.of(context)
+                                            Expanded(
+                                              child: Align(
+                                                alignment: AlignmentDirectional(
+                                                    -1.0, -1.0),
+                                                child: AutoSizeText(
+                                                  dialogueText,
+                                                  maxLines: 7,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
                                                       .bodyMedium
                                                       .override(
                                                         font: GoogleFonts.inter(
@@ -3146,6 +3223,8 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                                                                 .bodyMedium
                                                                 .fontStyle,
                                                       ),
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -3157,7 +3236,11 @@ class _VisualnovelpageWidgetState extends State<VisualnovelpageWidget> {
                             ],
                           ),
                           Positioned.fill(
-                            bottom: _showActionPanel ? 250.0 : 170.0,
+                            bottom: (_showActionPanel ||
+                                    _isSubmittingSelection ||
+                                    _isChoiceLoading)
+                                ? 340.0
+                                : 0.0,
                             child: IgnorePointer(
                               ignoring: _isGenerating ||
                                   _showActionPanel ||

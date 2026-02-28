@@ -10,7 +10,12 @@ import 'loginpage_model.dart';
 export 'loginpage_model.dart';
 
 class LoginpageWidget extends StatefulWidget {
-  const LoginpageWidget({super.key});
+  const LoginpageWidget({
+    super.key,
+    this.navigateToCreateListOnSuccess = true,
+  });
+
+  final bool navigateToCreateListOnSuccess;
 
   @override
   State<LoginpageWidget> createState() => _LoginpageWidgetState();
@@ -109,10 +114,14 @@ class _LoginpageWidgetState extends State<LoginpageWidget> {
                       isCreator: false,
                       earnings: 0,
                     ));
-                    Navigator.pop(context);
+                    Navigator.pop(context, true);
 
-                    context.goNamedAuth(
-                        CreatelistpageWidget.routeName, context.mounted);
+                    if (widget.navigateToCreateListOnSuccess) {
+                      context.goNamedAuth(
+                        CreatelistpageWidget.routeName,
+                        context.mounted,
+                      );
+                    }
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.max,
@@ -185,10 +194,14 @@ class _LoginpageWidgetState extends State<LoginpageWidget> {
                       if (user == null) {
                         return;
                       }
-                      Navigator.pop(context);
+                      Navigator.pop(context, true);
 
-                      context.goNamedAuth(
-                          CreatelistpageWidget.routeName, context.mounted);
+                      if (widget.navigateToCreateListOnSuccess) {
+                        context.goNamedAuth(
+                          CreatelistpageWidget.routeName,
+                          context.mounted,
+                        );
+                      }
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
