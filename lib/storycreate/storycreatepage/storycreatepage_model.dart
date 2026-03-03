@@ -80,19 +80,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   int get tabBarPreviousIndex =>
       tabBarController != null ? tabBarController!.previousIndex : 0;
 
-  // State field(s) for storyName widget.
-  FocusNode? storyNameFocusNode;
-  TextEditingController? storyNameTextController;
-  String? Function(BuildContext, String?)? storyNameTextControllerValidator;
-  // State field(s) for worldSettings widget.
-  FocusNode? worldSettingsFocusNode;
-  TextEditingController? worldSettingsTextController;
-  String? Function(BuildContext, String?)? worldSettingsTextControllerValidator;
-  // State field(s) for placetextfield widget.
-  FocusNode? placetextfieldFocusNode;
-  TextEditingController? placetextfieldTextController;
-  String? Function(BuildContext, String?)?
-      placetextfieldTextControllerValidator;
   // State field(s) for placenametextField widget.
   FocusNode? placenametextFieldFocusNode;
   TextEditingController? placenametextFieldTextController;
@@ -174,11 +161,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   TextEditingController? dialoguetextFieldTextController;
   String? Function(BuildContext, String?)?
       dialoguetextFieldTextControllerValidator;
-  // State field(s) for guidetextfield widget.
-  FocusNode? guidetextfieldFocusNode;
-  TextEditingController? guidetextfieldTextController;
-  String? Function(BuildContext, String?)?
-      guidetextfieldTextControllerValidator;
   // State field(s) for introduce widget.
   FocusNode? introduceFocusNode;
   TextEditingController? introduceTextController;
@@ -208,15 +190,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   @override
   void dispose() {
     tabBarController?.dispose();
-    storyNameFocusNode?.dispose();
-    storyNameTextController?.dispose();
-
-    worldSettingsFocusNode?.dispose();
-    worldSettingsTextController?.dispose();
-
-    placetextfieldFocusNode?.dispose();
-    placetextfieldTextController?.dispose();
-
     placenametextFieldFocusNode?.dispose();
     placenametextFieldTextController?.dispose();
 
@@ -258,9 +231,6 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
 
     dialoguetextFieldFocusNode?.dispose();
     dialoguetextFieldTextController?.dispose();
-
-    guidetextfieldFocusNode?.dispose();
-    guidetextfieldTextController?.dispose();
 
     introduceFocusNode?.dispose();
     introduceTextController?.dispose();

@@ -15,18 +15,6 @@ class CharsettingpageModel extends FlutterFlowModel<CharsettingpageWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  // State field(s) for charName widget.
-  FocusNode? charNameFocusNode;
-  TextEditingController? charNameTextController;
-  String? Function(BuildContext, String?)? charNameTextControllerValidator;
-  // State field(s) for charSetting widget.
-  FocusNode? charSettingFocusNode;
-  TextEditingController? charSettingTextController;
-  String? Function(BuildContext, String?)? charSettingTextControllerValidator;
-  // State field(s) for charability widget.
-  FocusNode? charabilityFocusNode;
-  TextEditingController? charabilityTextController;
-  String? Function(BuildContext, String?)? charabilityTextControllerValidator;
   // State field(s) for emotionplacedropdown widget.
   String? emotionplacedropdownValue;
   FormFieldController<String>? emotionplacedropdownValueController;
@@ -46,15 +34,6 @@ class CharsettingpageModel extends FlutterFlowModel<CharsettingpageWidget> {
 
   @override
   void dispose() {
-    charNameFocusNode?.dispose();
-    charNameTextController?.dispose();
-
-    charSettingFocusNode?.dispose();
-    charSettingTextController?.dispose();
-
-    charabilityFocusNode?.dispose();
-    charabilityTextController?.dispose();
-
     abbilitynametextFieldFocusNode?.dispose();
     abbilitynametextFieldTextController?.dispose();
 
