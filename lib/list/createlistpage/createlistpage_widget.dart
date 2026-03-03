@@ -75,8 +75,8 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
               ).then((value) => safeSetState(() {}));
             }
           },
-          backgroundColor: FlutterFlowTheme.of(context).primary,
-          elevation: 8.0,
+          backgroundColor: Color(0xFFBF94E4),
+          elevation: 15.0,
           child: Icon(
             Icons.add_rounded,
             color: FlutterFlowTheme.of(context).info,
@@ -84,7 +84,7 @@ class _CreatelistpageWidgetState extends State<CreatelistpageWidget> {
           ),
         ),
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+          backgroundColor: FlutterFlowTheme.of(context).primaryText,
           automaticallyImplyLeading: false,
           leading: InkWell(
             splashColor: Colors.transparent,

@@ -17,18 +17,6 @@ class AbilityimagelistModel extends FlutterFlowModel<AbilityimagelistWidget> {
           int index, Function(AbilityStructStruct) updateFn) =>
       abilities[index] = updateFn(abilities[index]);
 
-  ///  State fields for stateful widgets in this page.
-
-  bool isDataUploading_uploadabilityimage = false;
-  FFUploadedFile uploadedLocalFile_uploadabilityimage =
-      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
-  String uploadedFileUrl_uploadabilityimage = '';
-
-  bool isDataUploading_uploadability = false;
-  FFUploadedFile uploadedLocalFile_uploadability =
-      FFUploadedFile(bytes: Uint8List.fromList([]), originalFilename: '');
-  String uploadedFileUrl_uploadability = '';
-
   @override
   void initState(BuildContext context) {}
 

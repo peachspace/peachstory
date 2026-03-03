@@ -93,18 +93,92 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
   TextEditingController? placetextfieldTextController;
   String? Function(BuildContext, String?)?
       placetextfieldTextControllerValidator;
+  // State field(s) for placenametextField widget.
+  FocusNode? placenametextFieldFocusNode;
+  TextEditingController? placenametextFieldTextController;
+  String? Function(BuildContext, String?)?
+      placenametextFieldTextControllerValidator;
+  // State field(s) for placeexplanationtextField widget.
+  FocusNode? placeexplanationtextFieldFocusNode;
+  TextEditingController? placeexplanationtextFieldTextController;
+  String? Function(BuildContext, String?)?
+      placeexplanationtextFieldTextControllerValidator;
   // State field(s) for UserRoleInfo widget.
   FocusNode? userRoleInfoFocusNode;
   TextEditingController? userRoleInfoTextController;
   String? Function(BuildContext, String?)? userRoleInfoTextControllerValidator;
-  // State field(s) for event widget.
-  FocusNode? eventFocusNode;
-  TextEditingController? eventTextController;
-  String? Function(BuildContext, String?)? eventTextControllerValidator;
-  // State field(s) for prologuetext widget.
-  FocusNode? prologuetextFocusNode;
-  TextEditingController? prologuetextTextController;
-  String? Function(BuildContext, String?)? prologuetextTextControllerValidator;
+  // State field(s) for charORusername widget.
+  FocusNode? charORusernameFocusNode;
+  TextEditingController? charORusernameTextController;
+  String? Function(BuildContext, String?)?
+      charORusernameTextControllerValidator;
+  // State field(s) for resourcename widget.
+  FocusNode? resourcenameFocusNode;
+  TextEditingController? resourcenameTextController;
+  String? Function(BuildContext, String?)? resourcenameTextControllerValidator;
+  // State field(s) for firstvalue widget.
+  FocusNode? firstvalueFocusNode;
+  TextEditingController? firstvalueTextController;
+  String? Function(BuildContext, String?)? firstvalueTextControllerValidator;
+  // State field(s) for conditionalstatement widget.
+  FocusNode? conditionalstatementFocusNode;
+  TextEditingController? conditionalstatementTextController;
+  String? Function(BuildContext, String?)?
+      conditionalstatementTextControllerValidator;
+  // State field(s) for increaseORdecrease widget.
+  String? increaseORdecreaseValue;
+  FormFieldController<String>? increaseORdecreaseValueController;
+  // State field(s) for increaseORdecreasevalue widget.
+  FocusNode? increaseORdecreasevalueFocusNode;
+  TextEditingController? increaseORdecreasevalueTextController;
+  String? Function(BuildContext, String?)?
+      increaseORdecreasevalueTextControllerValidator;
+  // State field(s) for operator widget.
+  String? operatorValue;
+  FormFieldController<String>? operatorValueController;
+  // State field(s) for referencevalue widget.
+  FocusNode? referencevalueFocusNode;
+  TextEditingController? referencevalueTextController;
+  String? Function(BuildContext, String?)?
+      referencevalueTextControllerValidator;
+  // State field(s) for effect widget.
+  FocusNode? effectFocusNode;
+  TextEditingController? effectTextController;
+  String? Function(BuildContext, String?)? effectTextControllerValidator;
+  // State field(s) for eventtextField widget.
+  FocusNode? eventtextFieldFocusNode;
+  TextEditingController? eventtextFieldTextController;
+  String? Function(BuildContext, String?)?
+      eventtextFieldTextControllerValidator;
+  // State field(s) for eventexplanationtextField widget.
+  FocusNode? eventexplanationtextFieldFocusNode;
+  TextEditingController? eventexplanationtextFieldTextController;
+  String? Function(BuildContext, String?)?
+      eventexplanationtextFieldTextControllerValidator;
+  // State field(s) for placedropdown widget.
+  String? placedropdownValue;
+  FormFieldController<String>? placedropdownValueController;
+  // State field(s) for narrationtextField widget.
+  FocusNode? narrationtextFieldFocusNode;
+  TextEditingController? narrationtextFieldTextController;
+  String? Function(BuildContext, String?)?
+      narrationtextFieldTextControllerValidator;
+  // State field(s) for charnameplacedropdown widget.
+  String? charnameplacedropdownValue;
+  FormFieldController<String>? charnameplacedropdownValueController;
+  // State field(s) for emotionplacedropdown widget.
+  String? emotionplacedropdownValue;
+  FormFieldController<String>? emotionplacedropdownValueController;
+  // State field(s) for dialoguetextField widget.
+  FocusNode? dialoguetextFieldFocusNode;
+  TextEditingController? dialoguetextFieldTextController;
+  String? Function(BuildContext, String?)?
+      dialoguetextFieldTextControllerValidator;
+  // State field(s) for guidetextfield widget.
+  FocusNode? guidetextfieldFocusNode;
+  TextEditingController? guidetextfieldTextController;
+  String? Function(BuildContext, String?)?
+      guidetextfieldTextControllerValidator;
   // State field(s) for introduce widget.
   FocusNode? introduceFocusNode;
   TextEditingController? introduceTextController;
@@ -143,14 +217,50 @@ class StorycreatepageModel extends FlutterFlowModel<StorycreatepageWidget> {
     placetextfieldFocusNode?.dispose();
     placetextfieldTextController?.dispose();
 
+    placenametextFieldFocusNode?.dispose();
+    placenametextFieldTextController?.dispose();
+
+    placeexplanationtextFieldFocusNode?.dispose();
+    placeexplanationtextFieldTextController?.dispose();
+
     userRoleInfoFocusNode?.dispose();
     userRoleInfoTextController?.dispose();
 
-    eventFocusNode?.dispose();
-    eventTextController?.dispose();
+    charORusernameFocusNode?.dispose();
+    charORusernameTextController?.dispose();
 
-    prologuetextFocusNode?.dispose();
-    prologuetextTextController?.dispose();
+    resourcenameFocusNode?.dispose();
+    resourcenameTextController?.dispose();
+
+    firstvalueFocusNode?.dispose();
+    firstvalueTextController?.dispose();
+
+    conditionalstatementFocusNode?.dispose();
+    conditionalstatementTextController?.dispose();
+
+    increaseORdecreasevalueFocusNode?.dispose();
+    increaseORdecreasevalueTextController?.dispose();
+
+    referencevalueFocusNode?.dispose();
+    referencevalueTextController?.dispose();
+
+    effectFocusNode?.dispose();
+    effectTextController?.dispose();
+
+    eventtextFieldFocusNode?.dispose();
+    eventtextFieldTextController?.dispose();
+
+    eventexplanationtextFieldFocusNode?.dispose();
+    eventexplanationtextFieldTextController?.dispose();
+
+    narrationtextFieldFocusNode?.dispose();
+    narrationtextFieldTextController?.dispose();
+
+    dialoguetextFieldFocusNode?.dispose();
+    dialoguetextFieldTextController?.dispose();
+
+    guidetextfieldFocusNode?.dispose();
+    guidetextfieldTextController?.dispose();
 
     introduceFocusNode?.dispose();
     introduceTextController?.dispose();

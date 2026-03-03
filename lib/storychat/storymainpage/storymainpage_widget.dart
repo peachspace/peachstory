@@ -384,7 +384,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                               ),
                             ),
                             Divider(
-                              thickness: 2.0,
+                              thickness: 1.0,
                               color: FlutterFlowTheme.of(context).alternate,
                             ),
                             Align(
@@ -558,7 +558,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                               ),
                             ),
                             Divider(
-                              thickness: 2.0,
+                              thickness: 1.0,
                               color: FlutterFlowTheme.of(context).alternate,
                             ),
                             Padding(
@@ -633,7 +633,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                               ),
                             ),
                             Divider(
-                              thickness: 2.0,
+                              thickness: 1.0,
                               color: FlutterFlowTheme.of(context).alternate,
                             ),
                             Align(
@@ -783,7 +783,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                               ),
                             ),
                             Divider(
-                              thickness: 2.0,
+                              thickness: 1.0,
                               color: FlutterFlowTheme.of(context).alternate,
                             ),
                             Padding(
@@ -801,7 +801,7 @@ class _StorymainpageWidgetState extends State<StorymainpageWidget> {
                                         padding: EdgeInsetsDirectional.fromSTEB(
                                             0.0, 0.0, 10.0, 0.0),
                                         child: Text(
-                                          '베스트 댓글',
+                                          '댓글',
                                           style: FlutterFlowTheme.of(context)
                                               .bodyMedium
                                               .override(

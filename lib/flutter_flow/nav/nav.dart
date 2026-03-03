@@ -274,6 +274,16 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               isList: true,
             ),
           ),
+        ),
+        FFRoute(
+          name: GuidepageWidget.routeName,
+          path: GuidepageWidget.routePath,
+          builder: (context, params) => GuidepageWidget(),
+        ),
+        FFRoute(
+          name: TemphomepageWidget.routeName,
+          path: TemphomepageWidget.routePath,
+          builder: (context, params) => TemphomepageWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
@@ -477,6 +487,7 @@ class FFRoute {
           return transitionInfo.hasTransition
               ? CustomTransitionPage(
                   key: state.pageKey,
+                  name: state.name,
                   child: child,
                   transitionDuration: transitionInfo.duration,
                   transitionsBuilder:
@@ -494,7 +505,8 @@ class FFRoute {
                     child,
                   ),
                 )
-              : MaterialPage(key: state.pageKey, child: child);
+              : MaterialPage(
+                  key: state.pageKey, name: state.name, child: child);
         },
         routes: routes,
       );

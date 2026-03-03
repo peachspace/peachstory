@@ -54,7 +54,7 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).primaryText,
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+          backgroundColor: FlutterFlowTheme.of(context).primaryText,
           automaticallyImplyLeading: false,
           leading: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 0.0, 0.0),
@@ -636,7 +636,7 @@ class _SearchpageWidgetState extends State<SearchpageWidget> {
                                                       children: [
                                                         Icon(
                                                           Icons
-                                                              .brightness_7_sharp,
+                                                              .shield_moon_outlined,
                                                           color: FlutterFlowTheme
                                                                   .of(context)
                                                               .error,

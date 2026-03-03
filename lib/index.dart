@@ -28,3 +28,5 @@ export '/storycreate/abilityimagelist/abilityimagelist_widget.dart'
     show AbilityimagelistWidget;
 export '/storycreate/emotionimagelist/emotionimagelist_widget.dart'
     show EmotionimagelistWidget;
+export '/storychat/guidepage/guidepage_widget.dart' show GuidepageWidget;
+export '/home/temphomepage/temphomepage_widget.dart' show TemphomepageWidget;

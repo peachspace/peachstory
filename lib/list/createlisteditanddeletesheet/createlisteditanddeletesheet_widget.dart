@@ -52,14 +52,14 @@ class _CreatelisteditanddeletesheetWidgetState
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 180.0,
+      height: 200.0,
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).primaryText,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(0.0),
           bottomRight: Radius.circular(0.0),
-          topLeft: Radius.circular(15.0),
-          topRight: Radius.circular(15.0),
+          topLeft: Radius.circular(20.0),
+          topRight: Radius.circular(20.0),
         ),
       ),
       child: Column(
@@ -116,8 +116,8 @@ class _CreatelisteditanddeletesheetWidgetState
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(0.0),
                   bottomRight: Radius.circular(0.0),
-                  topLeft: Radius.circular(5.0),
-                  topRight: Radius.circular(5.0),
+                  topLeft: Radius.circular(8.0),
+                  topRight: Radius.circular(8.0),
                 ),
               ),
             ),
@@ -200,8 +200,8 @@ class _CreatelisteditanddeletesheetWidgetState
                   width: 1.0,
                 ),
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(5.0),
-                  bottomRight: Radius.circular(5.0),
+                  bottomLeft: Radius.circular(8.0),
+                  bottomRight: Radius.circular(8.0),
                   topLeft: Radius.circular(0.0),
                   topRight: Radius.circular(0.0),
                 ),

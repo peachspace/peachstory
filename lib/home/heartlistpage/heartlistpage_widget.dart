@@ -46,7 +46,7 @@ class _HeartlistpageWidgetState extends State<HeartlistpageWidget> {
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).primaryText,
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+          backgroundColor: FlutterFlowTheme.of(context).primaryText,
           automaticallyImplyLeading: false,
           leading: Icon(
             Icons.keyboard_arrow_left,

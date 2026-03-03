@@ -316,7 +316,7 @@ class _ChatlistpageWidgetState extends State<ChatlistpageWidget> {
           ),
         ),
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+          backgroundColor: FlutterFlowTheme.of(context).primaryText,
           automaticallyImplyLeading: false,
           leading: InkWell(
             splashColor: Colors.transparent,

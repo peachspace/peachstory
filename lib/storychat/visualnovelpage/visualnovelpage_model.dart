@@ -85,10 +85,16 @@ class VisualnovelpageModel extends FlutterFlowModel<VisualnovelpageWidget> {
   List<dynamic>? messagesAsJson;
   // Stores action output result for [Custom Action - formatStoryTurnHeaderAndBg] action in visualnovelpage widget.
   String? pageloadformat;
-  // State field(s) for usertextField widget.
-  FocusNode? usertextFieldFocusNode;
-  TextEditingController? usertextFieldTextController;
-  String? Function(BuildContext, String?)? usertextFieldTextControllerValidator;
+  // State field(s) for useractiontextField widget.
+  FocusNode? useractiontextFieldFocusNode;
+  TextEditingController? useractiontextFieldTextController;
+  String? Function(BuildContext, String?)?
+      useractiontextFieldTextControllerValidator;
+  // State field(s) for userdialoguetextField widget.
+  FocusNode? userdialoguetextFieldFocusNode;
+  TextEditingController? userdialoguetextFieldTextController;
+  String? Function(BuildContext, String?)?
+      userdialoguetextFieldTextControllerValidator;
   // Stores action output result for [Custom Action - processAndSaveChatTurn] action in NotifierChatList widget.
   List<StoryChatMessageStructStruct>? newMessages;
   // Stores action output result for [Custom Action - getPreviousChatHistory] action in NotifierChatList widget.
@@ -104,8 +110,11 @@ class VisualnovelpageModel extends FlutterFlowModel<VisualnovelpageWidget> {
 
   @override
   void dispose() {
-    usertextFieldFocusNode?.dispose();
-    usertextFieldTextController?.dispose();
+    useractiontextFieldFocusNode?.dispose();
+    useractiontextFieldTextController?.dispose();
+
+    userdialoguetextFieldFocusNode?.dispose();
+    userdialoguetextFieldTextController?.dispose();
 
     messageTextFieldFocusNode?.dispose();
     messageTextFieldTextController?.dispose();

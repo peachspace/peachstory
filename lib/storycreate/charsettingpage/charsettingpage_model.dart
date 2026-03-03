@@ -1,7 +1,7 @@
 import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/index.dart';
+import '/flutter_flow/form_field_controller.dart';
 import 'charsettingpage_widget.dart' show CharsettingpageWidget;
 import 'package:flutter/material.dart';
 
@@ -27,10 +27,19 @@ class CharsettingpageModel extends FlutterFlowModel<CharsettingpageWidget> {
   FocusNode? charabilityFocusNode;
   TextEditingController? charabilityTextController;
   String? Function(BuildContext, String?)? charabilityTextControllerValidator;
-  // State field(s) for charintroduce widget.
-  FocusNode? charintroduceFocusNode;
-  TextEditingController? charintroduceTextController;
-  String? Function(BuildContext, String?)? charintroduceTextControllerValidator;
+  // State field(s) for emotionplacedropdown widget.
+  String? emotionplacedropdownValue;
+  FormFieldController<String>? emotionplacedropdownValueController;
+  // State field(s) for abbilitynametextField widget.
+  FocusNode? abbilitynametextFieldFocusNode;
+  TextEditingController? abbilitynametextFieldTextController;
+  String? Function(BuildContext, String?)?
+      abbilitynametextFieldTextControllerValidator;
+  // State field(s) for abilityexplanationtextField widget.
+  FocusNode? abilityexplanationtextFieldFocusNode;
+  TextEditingController? abilityexplanationtextFieldTextController;
+  String? Function(BuildContext, String?)?
+      abilityexplanationtextFieldTextControllerValidator;
 
   @override
   void initState(BuildContext context) {}
@@ -46,7 +55,10 @@ class CharsettingpageModel extends FlutterFlowModel<CharsettingpageWidget> {
     charabilityFocusNode?.dispose();
     charabilityTextController?.dispose();
 
-    charintroduceFocusNode?.dispose();
-    charintroduceTextController?.dispose();
+    abbilitynametextFieldFocusNode?.dispose();
+    abbilitynametextFieldTextController?.dispose();
+
+    abilityexplanationtextFieldFocusNode?.dispose();
+    abilityexplanationtextFieldTextController?.dispose();
   }
 }

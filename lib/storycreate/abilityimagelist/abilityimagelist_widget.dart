@@ -1,10 +1,8 @@
 import '/backend/backend.dart';
-import '/backend/firebase_storage/storage.dart';
 import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/upload_data.dart';
 import '/storycreate/abilitystruct/abilitystruct_widget.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
@@ -64,130 +62,41 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).primaryText,
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryText,
+          backgroundColor: FlutterFlowTheme.of(context).primaryText,
           automaticallyImplyLeading: false,
-          leading: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(25.0, 0.0, 0.0, 0.0),
-            child: InkWell(
-              splashColor: Colors.transparent,
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              onTap: () async {
-                context.safePop();
-              },
-              child: Icon(
-                Icons.keyboard_arrow_left,
-                color: FlutterFlowTheme.of(context).primaryBackground,
-                size: 24.0,
-              ),
+          leading: InkWell(
+            splashColor: Colors.transparent,
+            focusColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            onTap: () async {
+              context.safePop();
+            },
+            child: Icon(
+              Icons.keyboard_arrow_left,
+              color: FlutterFlowTheme.of(context).primaryBackground,
+              size: 24.0,
             ),
           ),
-          title: Align(
-            alignment: AlignmentDirectional(0.0, 0.0),
-            child: Text(
-              '능력 이미지',
-              style: FlutterFlowTheme.of(context).headlineMedium.override(
-                    font: GoogleFonts.interTight(
-                      fontWeight: FlutterFlowTheme.of(context)
-                          .headlineMedium
-                          .fontWeight,
-                      fontStyle:
-                          FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                    ),
-                    color: FlutterFlowTheme.of(context).primaryBackground,
-                    fontSize: 20.0,
-                    letterSpacing: 0.0,
+          title: Text(
+            '능력 이미지',
+            style: FlutterFlowTheme.of(context).headlineMedium.override(
+                  font: GoogleFonts.interTight(
                     fontWeight:
                         FlutterFlowTheme.of(context).headlineMedium.fontWeight,
                     fontStyle:
                         FlutterFlowTheme.of(context).headlineMedium.fontStyle,
                   ),
-            ),
+                  color: FlutterFlowTheme.of(context).primaryBackground,
+                  fontSize: 20.0,
+                  letterSpacing: 0.0,
+                  fontWeight:
+                      FlutterFlowTheme.of(context).headlineMedium.fontWeight,
+                  fontStyle:
+                      FlutterFlowTheme.of(context).headlineMedium.fontStyle,
+                ),
           ),
-          actions: [
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 25.0, 0.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  InkWell(
-                    splashColor: Colors.transparent,
-                    focusColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    onTap: () async {
-                      final selectedMedia =
-                          await selectMediaWithSourceBottomSheet(
-                        context: context,
-                        allowPhoto: true,
-                      );
-                      if (selectedMedia != null &&
-                          selectedMedia.every((m) =>
-                              validateFileFormat(m.storagePath, context))) {
-                        safeSetState(() =>
-                            _model.isDataUploading_uploadabilityimage = true);
-                        var selectedUploadedFiles = <FFUploadedFile>[];
-
-                        var downloadUrls = <String>[];
-                        try {
-                          selectedUploadedFiles = selectedMedia
-                              .map((m) => FFUploadedFile(
-                                    name: m.storagePath.split('/').last,
-                                    bytes: m.bytes,
-                                    height: m.dimensions?.height,
-                                    width: m.dimensions?.width,
-                                    blurHash: m.blurHash,
-                                    originalFilename: m.originalFilename,
-                                  ))
-                              .toList();
-
-                          downloadUrls = (await Future.wait(
-                            selectedMedia.map(
-                              (m) async =>
-                                  await uploadData(m.storagePath, m.bytes),
-                            ),
-                          ))
-                              .where((u) => u != null)
-                              .map((u) => u!)
-                              .toList();
-                        } finally {
-                          _model.isDataUploading_uploadabilityimage = false;
-                        }
-                        if (selectedUploadedFiles.length ==
-                                selectedMedia.length &&
-                            downloadUrls.length == selectedMedia.length) {
-                          safeSetState(() {
-                            _model.uploadedLocalFile_uploadabilityimage =
-                                selectedUploadedFiles.first;
-                            _model.uploadedFileUrl_uploadabilityimage =
-                                downloadUrls.first;
-                          });
-                        } else {
-                          safeSetState(() {});
-                          return;
-                        }
-                      }
-
-                      _model.addToAbilities(AbilityStructStruct(
-                        ability: '\' \'',
-                        imageUrl: _model.uploadedFileUrl_uploadabilityimage,
-                      ));
-                      safeSetState(() {});
-                      FFAppState().Abilities =
-                          _model.abilities.toList().cast<AbilityStructStruct>();
-                      safeSetState(() {});
-                    },
-                    child: FaIcon(
-                      FontAwesomeIcons.images,
-                      color: FlutterFlowTheme.of(context).primaryBackground,
-                      size: 20.0,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          actions: [],
           centerTitle: true,
           elevation: 0.0,
         ),
@@ -252,8 +161,8 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                               context.safePop();
                             },
                             text: '',
-                            icon: Icon(
-                              Icons.auto_fix_high,
+                            icon: FaIcon(
+                              FontAwesomeIcons.images,
                               size: 25.0,
                             ),
                             options: FFButtonOptions(
@@ -264,9 +173,8 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                               iconAlignment: IconAlignment.start,
                               iconPadding: EdgeInsetsDirectional.fromSTEB(
                                   7.0, 0.0, 0.0, 0.0),
-                              iconColor: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              color: FlutterFlowTheme.of(context).secondaryText,
+                              iconColor: FlutterFlowTheme.of(context).alternate,
+                              color: Color(0xFF3B3B3B),
                               textStyle: FlutterFlowTheme.of(context)
                                   .titleSmall
                                   .override(
@@ -287,72 +195,17 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                                         .titleSmall
                                         .fontStyle,
                                   ),
-                              elevation: 0.0,
+                              elevation: 5.0,
+                              borderSide: BorderSide(
+                                color: FlutterFlowTheme.of(context).alternate,
+                                width: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(8.0),
                             ),
                           ),
                           FFButtonWidget(
-                            onPressed: () async {
-                              final selectedMedia =
-                                  await selectMediaWithSourceBottomSheet(
-                                context: context,
-                                allowPhoto: true,
-                              );
-                              if (selectedMedia != null &&
-                                  selectedMedia.every((m) => validateFileFormat(
-                                      m.storagePath, context))) {
-                                safeSetState(() => _model
-                                    .isDataUploading_uploadability = true);
-                                var selectedUploadedFiles = <FFUploadedFile>[];
-
-                                var downloadUrls = <String>[];
-                                try {
-                                  selectedUploadedFiles = selectedMedia
-                                      .map((m) => FFUploadedFile(
-                                            name: m.storagePath.split('/').last,
-                                            bytes: m.bytes,
-                                            height: m.dimensions?.height,
-                                            width: m.dimensions?.width,
-                                            blurHash: m.blurHash,
-                                            originalFilename:
-                                                m.originalFilename,
-                                          ))
-                                      .toList();
-
-                                  downloadUrls = (await Future.wait(
-                                    selectedMedia.map(
-                                      (m) async => await uploadData(
-                                          m.storagePath, m.bytes),
-                                    ),
-                                  ))
-                                      .where((u) => u != null)
-                                      .map((u) => u!)
-                                      .toList();
-                                } finally {
-                                  _model.isDataUploading_uploadability = false;
-                                }
-                                if (selectedUploadedFiles.length ==
-                                        selectedMedia.length &&
-                                    downloadUrls.length ==
-                                        selectedMedia.length) {
-                                  safeSetState(() {
-                                    _model.uploadedLocalFile_uploadability =
-                                        selectedUploadedFiles.first;
-                                    _model.uploadedFileUrl_uploadability =
-                                        downloadUrls.first;
-                                  });
-                                } else {
-                                  safeSetState(() {});
-                                  return;
-                                }
-                              }
-
-                              FFAppState().addToAbilities(AbilityStructStruct(
-                                ability: '',
-                                imageUrl:
-                                    _model.uploadedFileUrl_uploadabilityimage,
-                              ));
-                              safeSetState(() {});
+                            onPressed: () {
+                              print('abilityuploadbutton pressed ...');
                             },
                             text: '업로드',
                             options: FFButtonOptions(
@@ -362,7 +215,7 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                                   0.0, 0.0, 0.0, 0.0),
                               iconPadding: EdgeInsetsDirectional.fromSTEB(
                                   0.0, 0.0, 0.0, 0.0),
-                              color: FlutterFlowTheme.of(context).secondaryText,
+                              color: Color(0xFF3B3B3B),
                               textStyle: FlutterFlowTheme.of(context)
                                   .titleSmall
                                   .override(
@@ -383,7 +236,11 @@ class _AbilityimagelistWidgetState extends State<AbilityimagelistWidget> {
                                         .titleSmall
                                         .fontStyle,
                                   ),
-                              elevation: 0.0,
+                              elevation: 5.0,
+                              borderSide: BorderSide(
+                                color: FlutterFlowTheme.of(context).alternate,
+                                width: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(8.0),
                             ),
                           ),
